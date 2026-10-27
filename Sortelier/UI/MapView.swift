@@ -16,7 +16,7 @@ struct MapView: View {
 
     var body: some View {
         ZStack {
-            Theme.background.ignoresSafeArea()
+            KitchenBackground(veil: 0.12)
             path
             VStack(spacing: 0) {
                 topBar
@@ -96,7 +96,7 @@ struct MapView: View {
                                     y: top + CGFloat(i) * rowHeight + rowHeight / 2 - 9)
                 if i == 0 { p.move(to: point) } else { p.addLine(to: point) }
             }
-            context.stroke(p, with: .color(Theme.brown.opacity(0.18)),
+            context.stroke(p, with: .color(Color.white.opacity(0.85)),
                            style: StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round, dash: [2, 16]))
         }
     }
@@ -137,10 +137,16 @@ struct MapView: View {
             .buttonStyle(.plain)
             if unlocked && stars > 0 {
                 StarsRow(count: stars, size: 14)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(Theme.card.opacity(0.9)))
             } else if level.hard {
                 Text(lang.t("map.hard"))
                     .font(Theme.rounded(11, .heavy))
                     .foregroundColor(Theme.red)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(Theme.card.opacity(0.9)))
             }
         }
         .offset(x: xOffset(level.id, width: width))
@@ -148,13 +154,15 @@ struct MapView: View {
     }
 
     private var title: some View {
-        VStack(spacing: 4) {
-            Text(lang.t("biome.1.name"))
-                .font(Theme.rounded(26, .heavy))
-                .foregroundColor(Theme.brown)
-            Text(lang.t("biome.1.subtitle"))
-                .font(Theme.rounded(14, .semibold))
-                .foregroundColor(Theme.brownSoft)
+        Panel(padding: 14) {
+            VStack(spacing: 4) {
+                Text(lang.t("biome.1.name"))
+                    .font(Theme.rounded(26, .heavy))
+                    .foregroundColor(Theme.brown)
+                Text(lang.t("biome.1.subtitle"))
+                    .font(Theme.rounded(14, .semibold))
+                    .foregroundColor(Theme.brownSoft)
+            }
         }
     }
 

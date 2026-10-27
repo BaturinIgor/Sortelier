@@ -44,11 +44,13 @@
 
 ## Графика
 
-Продукты - модели [Kenney Food Kit](https://kenney.nl/assets/food-kit) (лицензия CC0), отрендеренные в Blender одним светом и ракурсом. Полки смоделированы скриптом.
+Продукты - модели [Kenney Food Kit](https://kenney.nl/assets/food-kit) (лицензия CC0), отрендеренные в Blender одним светом и ракурсом. Полки и фон кухни собраны скриптом: деревянные полки с процедурной текстурой, стена из плитки, полка с посудой, рейлинг с утварью и столешница из тех же моделей Kenney.
 
 Модели сглаживаются и подразделяются, материалы глянцевые (плоским продуктам - матовые), свет теплый ключевой, холодная заливка и контровой.
 
-Рендер: `pip install bpy`, затем `python tools/render/render.py "<папка Models/GLB format>" art/renders --spin` и `--shelf` для полок. Спрайты для игры: `python3 tools/render/pack.py art/renders`, иконка: `python3 tools/render/icon.py art/renders`.
+Рендер: `pip install bpy`, затем `python tools/render/render.py "<папка Models/GLB format>" art/renders --spin`. Полки: `python tools/render/environment.py shelf art/renders`, фон: `python tools/render/environment.py background "<папка Models/GLB format>" art/renders` (с `--preview` - быстрый черновик). Скрипт полок печатает разметку (края, пол, верх), ее значения стоят в `GameScene.swift`.
+
+Спрайты для игры: `python3 tools/render/pack.py art/renders`. Продукты при упаковке ставятся на нижний край кадра, чтобы одинаково стояли на полке; фон слегка размывается, получает виньетку и сохраняется в JPEG. Иконка: `python3 tools/render/icon.py art/renders`.
 
 ## Тексты
 

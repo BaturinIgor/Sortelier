@@ -67,7 +67,7 @@ struct LevelContent: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                Theme.background.ignoresSafeArea()
+                KitchenBackground()
                 SpriteView(scene: scene, options: [.allowsTransparency])
                     .ignoresSafeArea()
                 VStack(spacing: 0) {
@@ -118,6 +118,9 @@ struct LevelContent: View {
                         .foregroundColor(Theme.red)
                 }
             }
+            .padding(.horizontal, 14)
+            .frame(minHeight: 42)
+            .background(Capsule().fill(Theme.card).shadow(color: Theme.brown.opacity(0.18), radius: 4, y: 2))
             Spacer()
             Pill(text: "\(session.orderCoins)") { CoinIcon(size: 22) }
             starMeter

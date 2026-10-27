@@ -18,7 +18,7 @@ final class PieceNode: SKNode {
         sprite.size = CGSize(width: size, height: size)
         shadow = SKSpriteNode(texture: Art.shadow)
         shadow.size = CGSize(width: size * 0.78, height: size * 0.24)
-        shadow.position = CGPoint(x: 0, y: -size * 0.36)
+        shadow.position = CGPoint(x: 0, y: -size * 0.42)
         shadow.zPosition = -1
         shadow.alpha = 0.55
         let bubble = SKShapeNode(circleOfRadius: size * 0.3)
@@ -44,7 +44,7 @@ final class PieceNode: SKNode {
     func resize(_ size: CGFloat) {
         sprite.size = CGSize(width: size, height: size)
         shadow.size = CGSize(width: size * 0.78, height: size * 0.24)
-        shadow.position = CGPoint(x: 0, y: -size * 0.36)
+        shadow.position = CGPoint(x: 0, y: -size * 0.42)
     }
 
     func setMystery(_ hidden: Bool) {
@@ -84,7 +84,10 @@ final class GameScene: SKScene {
     var bottomReserved: CGFloat = 110 { didSet { if oldValue != bottomReserved { rebuild() } } }
 
     private let ordersHeight: CGFloat = 104
-    private let shelfAspect: CGFloat = 600.0 / 275.0
+    // Разметка спрайта полки из tools/render/environment.py (доли размера картинки)
+    private let shelfAspect: CGFloat = 720.0 / 368.0
+    private let shelfInner: CGFloat = 0.897
+    private let shelfFloor: CGFloat = 0.126
 
     private var shelfFrames: [CGRect] = []
     private var shelfNodes: [SKSpriteNode] = []
@@ -172,18 +175,18 @@ final class GameScene: SKScene {
             let y = top - CGFloat(row + 1) * h - CGFloat(row) * gapY
             return CGRect(x: x, y: y, width: shelfWidth, height: h)
         }
-        itemSize = shelfWidth * 0.927 / 3 * 0.98
+        itemSize = shelfWidth * shelfInner / 3
     }
 
     private func slotPosition(_ shelf: Int, _ slot: Int) -> CGPoint {
         let f = shelfFrames[shelf]
-        let step = f.width * 0.927 / 3
-        return CGPoint(x: f.midX + CGFloat(slot - 1) * step, y: f.minY + f.height * 0.10 + itemSize * 0.46)
+        let step = f.width * shelfInner / 3
+        return CGPoint(x: f.midX + CGFloat(slot - 1) * step, y: f.minY + f.height * shelfFloor + itemSize * 0.45)
     }
 
     private func peekPosition(_ shelf: Int, _ slot: Int) -> CGPoint {
         let p = slotPosition(shelf, slot)
-        return CGPoint(x: p.x, y: p.y + itemSize * 0.36)
+        return CGPoint(x: p.x, y: p.y + itemSize * 0.25)
     }
 
     // MARK: - Построение
@@ -227,7 +230,7 @@ final class GameScene: SKScene {
             if let peek = b.peek(s) {
                 for (k, piece) in peek.enumerated() {
                     guard let piece = piece else { continue }
-                    result[piece.uid] = (piece, Target(position: peekPosition(s, k), scale: 0.8, dim: true,
+                    result[piece.uid] = (piece, Target(position: peekPosition(s, k), scale: 0.78, dim: true,
                                                        mystery: piece.hidden, z: 10))
                 }
             }

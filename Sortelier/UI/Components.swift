@@ -21,6 +21,24 @@ enum Theme {
     }
 }
 
+/// Фон кухни биома: рендер из tools/render/environment.py.
+struct KitchenBackground: View {
+    /// Светлая вуаль поверх, чтобы спокойнее читался интерфейс.
+    var veil: Double = 0
+
+    var body: some View {
+        GeometryReader { geo in
+            Image(uiImage: Art.image("bg_kitchen.jpg"))
+                .resizable()
+                .scaledToFill()
+                .frame(width: geo.size.width, height: geo.size.height)
+                .clipped()
+                .overlay(Color.white.opacity(veil))
+        }
+        .ignoresSafeArea()
+    }
+}
+
 /// Карточка с мягкой тенью.
 struct Panel<Content: View>: View {
     var padding: CGFloat = 16
