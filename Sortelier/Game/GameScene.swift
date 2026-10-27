@@ -6,6 +6,7 @@ final class PieceNode: SKNode {
     let uid: Int
     let item: String
     private let sprite: SKSpriteNode
+    private let shadow: SKSpriteNode
     private let mystery: SKNode
     private(set) var isMystery = false
     private(set) var isDim = false
@@ -15,6 +16,11 @@ final class PieceNode: SKNode {
         item = piece.item
         sprite = SKSpriteNode(texture: Art.texture(piece.item))
         sprite.size = CGSize(width: size, height: size)
+        shadow = SKSpriteNode(texture: Art.shadow)
+        shadow.size = CGSize(width: size * 0.78, height: size * 0.24)
+        shadow.position = CGPoint(x: 0, y: -size * 0.36)
+        shadow.zPosition = -1
+        shadow.alpha = 0.55
         let bubble = SKShapeNode(circleOfRadius: size * 0.3)
         bubble.fillColor = UIColor(red: 0.45, green: 0.30, blue: 0.20, alpha: 1)
         bubble.strokeColor = UIColor(red: 0.95, green: 0.85, blue: 0.70, alpha: 1)
@@ -27,6 +33,7 @@ final class PieceNode: SKNode {
         bubble.addChild(mark)
         mystery = bubble
         super.init()
+        addChild(shadow)
         addChild(sprite)
         addChild(mystery)
         setMystery(piece.hidden)
@@ -36,6 +43,8 @@ final class PieceNode: SKNode {
 
     func resize(_ size: CGFloat) {
         sprite.size = CGSize(width: size, height: size)
+        shadow.size = CGSize(width: size * 0.78, height: size * 0.24)
+        shadow.position = CGPoint(x: 0, y: -size * 0.36)
     }
 
     func setMystery(_ hidden: Bool) {
@@ -46,6 +55,7 @@ final class PieceNode: SKNode {
 
     func setDim(_ dim: Bool, animated: Bool) {
         isDim = dim
+        shadow.isHidden = dim
         let factor: CGFloat = dim ? 0.45 : 0
         sprite.color = .black
         if animated {
@@ -59,6 +69,7 @@ final class PieceNode: SKNode {
         sprite.texture = Art.texture("dish_" + dish)
         sprite.size = CGSize(width: size, height: size)
         sprite.colorBlendFactor = 0
+        shadow.isHidden = true
         setMystery(false)
     }
 }
@@ -79,14 +90,12 @@ final class GameScene: SKScene {
     private var shelfNodes: [SKSpriteNode] = []
     private var depthBadges: [SKNode] = []
     private var pieceNodes: [Int: PieceNode] = [:]
-    private var flying: Set<Int> = []
     private let board = SKNode()
     private let ordersLayer = SKNode()
     private var cards: [(order: Order, node: SKNode)] = []
     private var queueBadge: SKNode?
     private var itemSize: CGFloat = 40
     private var shelfWidth: CGFloat = 120
-    private var busy = false
 
     private struct Drag {
         let uid: Int
@@ -186,7 +195,6 @@ final class GameScene: SKScene {
         shelfNodes = []
         depthBadges = []
         pieceNodes = [:]
-        flying = []
         let texture = Art.texture(PlayerProgress.shared.goldShelves ? "shelf_gold" : "shelf")
         for frame in shelfFrames {
             let node = SKSpriteNode(texture: texture)
@@ -227,9 +235,9 @@ final class GameScene: SKScene {
         return result
     }
 
-    private func sync(animated: Bool) {
+    private func sync(animated: Bool, delay: TimeInterval = 0) {
         let all = targets()
-        for (uid, node) in pieceNodes where all[uid] == nil && !flying.contains(uid) {
+        for (uid, node) in pieceNodes where all[uid] == nil {
             pieceNodes[uid] = nil
             if animated {
                 node.run(.sequence([.fadeOut(withDuration: 0.15), .removeFromParent()]))
@@ -245,9 +253,12 @@ final class GameScene: SKScene {
                 if node.isMystery != target.mystery { node.setMystery(target.mystery) }
                 if node.isDim != target.dim { node.setDim(target.dim, animated: animated) }
                 if animated {
-                    let move = SKAction.move(to: target.position, duration: 0.2)
+                    let move = SKAction.move(to: target.position, duration: 0.18)
                     move.timingMode = .easeOut
-                    node.run(.group([move, .scale(to: target.scale, duration: 0.2)]))
+                    let group = SKAction.group([move, .scale(to: target.scale, duration: 0.18)])
+                    if node.position != target.position || node.xScale != target.scale {
+                        node.run(delay > 0 ? .sequence([.wait(forDuration: delay), group]) : group, withKey: "sync")
+                    }
                 } else {
                     node.position = target.position
                     node.setScale(target.scale)
@@ -262,7 +273,7 @@ final class GameScene: SKScene {
                 pieceNodes[uid] = node
                 if animated {
                     node.alpha = 0
-                    node.run(.fadeIn(withDuration: 0.25))
+                    node.run(.sequence([.wait(forDuration: delay), .fadeIn(withDuration: 0.2)]))
                 }
             }
         }
@@ -382,11 +393,12 @@ final class GameScene: SKScene {
     // MARK: - Касания
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard !busy, session.phase == .playing, let touch = touches.first else { return }
+        guard session.phase == .playing, let touch = touches.first else { return }
         let p = touch.location(in: self)
         if let hit = frontPiece(at: p) {
             drag = Drag(uid: hit.uid, shelf: hit.shelf, slot: hit.slot, start: p, moved: false)
             if let node = pieceNodes[hit.uid] {
+                node.removeAllActions()
                 node.zPosition = 100
                 node.run(.scale(to: 1.15, duration: 0.08))
             }
@@ -506,76 +518,72 @@ final class GameScene: SKScene {
             }
             return
         }
-        busy = true
         Haptics.light()
         if let node = pieceNodes[outcome.piece.uid] {
+            node.removeAllActions()
             node.zPosition = 20
-            let move = SKAction.move(to: slotPosition(outcome.to, outcome.toSlot), duration: 0.12)
+            let move = SKAction.move(to: slotPosition(outcome.to, outcome.toSlot), duration: 0.1)
             move.timingMode = .easeOut
-            node.run(.group([move, .scale(to: 1, duration: 0.12)]))
+            node.run(.group([move, .scale(to: 1, duration: 0.1)]))
         }
-        var claimed: Set<Int> = []
-        var delay: TimeInterval = 0.14
+        // Поле не блокируется: следующий ход можно делать сразу, анимации идут параллельно.
+        var delay: TimeInterval = 0.1
         for fire in outcome.fires {
-            let cardIndex = cards.indices.first { !claimed.contains($0) && cards[$0].order == fire.order }
-            if let i = cardIndex { claimed.insert(i) }
-            animateFire(fire, cardIndex: cardIndex, delay: delay)
-            delay += 0.3
+            let card = cards.first { $0.node.name != "served" && $0.order == fire.order }?.node
+            card?.name = "served"
+            animateFire(fire, card: card, delay: delay)
+            delay += 0.1
         }
-        let settle = outcome.fires.isEmpty ? 0.14 : delay + 0.35
-        run(.sequence([
-            .wait(forDuration: settle),
-            .run { [weak self] in
-                guard let self = self else { return }
-                self.sync(animated: true)
-                if !outcome.fires.isEmpty { self.layoutOrders(animated: true) }
-            },
-            .wait(forDuration: 0.25),
-            .run { [weak self] in
-                self?.busy = false
-                self?.session.presentPendingDish()
-                self?.session.checkEnd()
-            }
-        ]))
+        sync(animated: true, delay: outcome.fires.isEmpty ? 0 : 0.12)
+        if !outcome.fires.isEmpty {
+            removeAction(forKey: "orders")
+            run(.sequence([.wait(forDuration: delay + 0.42),
+                           .run { [weak self] in self?.layoutOrders(animated: true) }]), withKey: "orders")
+        }
+        removeAction(forKey: "end")
+        run(.sequence([.wait(forDuration: outcome.fires.isEmpty ? 0.12 : delay + 0.45),
+                       .run { [weak self] in
+                           self?.session.presentPendingDish()
+                           self?.session.checkEnd()
+                       }]), withKey: "end")
     }
 
-    private func animateFire(_ fire: Fire, cardIndex: Int?, delay: TimeInterval) {
+    private func animateFire(_ fire: Fire, card: SKNode?, delay: TimeInterval) {
         let nodes = fire.pieces.compactMap { pieceNodes[$0.uid] }
-        fire.pieces.forEach { flying.insert($0.uid) }
         let f = shelfFrames[fire.shelf]
         let center = CGPoint(x: f.midX, y: slotPosition(fire.shelf, 1).y + itemSize * 0.2)
         let target: CGPoint
-        if let i = cardIndex {
-            target = cards[i].node.position
+        if let card = card {
+            target = card.position
         } else if let badge = queueBadge {
             target = badge.position
         } else {
             target = CGPoint(x: ordersRect.midX, y: ordersRect.midY)
         }
-        let session = self.session
         let combo = session.combo
+        let size = itemSize
         for (i, node) in nodes.enumerated() {
             node.zPosition = 120
-            let gather = SKAction.move(to: center, duration: 0.18)
+            let gather = SKAction.move(to: center, duration: 0.14)
             gather.timingMode = .easeIn
-            var steps: [SKAction] = [.wait(forDuration: delay), .group([gather, .scale(to: 1.1, duration: 0.18)])]
+            var steps: [SKAction] = [.wait(forDuration: delay), .group([gather, .scale(to: 1.1, duration: 0.14)])]
             if i == 0 {
                 if fire.order.kind == .dish {
-                    steps.append(.run { node.swapToDish(fire.order.target, size: self.itemSize * 1.3) })
+                    steps.append(.run { node.swapToDish(fire.order.target, size: size * 1.3) })
                 }
-                steps.append(.scale(to: 1.35, duration: 0.1))
-                let fly = SKAction.move(to: target, duration: 0.32)
+                steps.append(.scale(to: 1.35, duration: 0.07))
+                let fly = SKAction.move(to: target, duration: 0.28)
                 fly.timingMode = .easeInEaseOut
-                steps.append(.group([fly, .scale(to: 0.6, duration: 0.32)]))
-                steps.append(.run { [weak self] in self?.cardServed(cardIndex) })
+                steps.append(.group([fly, .scale(to: 0.6, duration: 0.28)]))
+                steps.append(.run { [weak self, weak card] in self?.cardServed(card) })
                 steps.append(.removeFromParent())
             } else {
-                steps.append(.group([.fadeOut(withDuration: 0.1), .scale(to: 0.3, duration: 0.1)]))
+                steps.append(.group([.fadeOut(withDuration: 0.08), .scale(to: 0.3, duration: 0.08)]))
                 steps.append(.removeFromParent())
             }
             node.run(.sequence(steps))
         }
-        run(.sequence([.wait(forDuration: delay + 0.18), .run { [weak self] in
+        run(.sequence([.wait(forDuration: delay + 0.14), .run { [weak self] in
             guard let self = self else { return }
             Haptics.success()
             self.burst(at: center, dish: fire.order.kind == .dish)
@@ -586,9 +594,8 @@ final class GameScene: SKScene {
         }
     }
 
-    private func cardServed(_ index: Int?) {
-        guard let i = index, cards.indices.contains(i) else { return }
-        let card = cards[i].node
+    private func cardServed(_ card: SKNode?) {
+        guard let card = card, card.parent != nil else { return }
         let check = SKLabelNode(text: "✓")
         check.fontName = "AvenirNext-Heavy"
         check.fontSize = 34

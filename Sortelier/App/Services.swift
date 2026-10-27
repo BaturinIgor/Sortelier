@@ -73,6 +73,21 @@ enum Art {
         return texture
     }
 
+    /// Мягкая тень под продуктом на полке.
+    static let shadow: SKTexture = {
+        let size = CGSize(width: 128, height: 40)
+        let image = UIGraphicsImageRenderer(size: size).image { ctx in
+            let colors = [UIColor.black.withAlphaComponent(0.55).cgColor, UIColor.black.withAlphaComponent(0).cgColor] as CFArray
+            guard let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 1]) else { return }
+            let cg = ctx.cgContext
+            cg.scaleBy(x: 1, y: size.height / size.width)
+            let center = CGPoint(x: size.width / 2, y: size.width / 2)
+            cg.drawRadialGradient(gradient, startCenter: center, startRadius: 0, endCenter: center,
+                                  endRadius: size.width / 2, options: [])
+        }
+        return SKTexture(image: image)
+    }()
+
     static func sprite(for order: Order) -> String {
         order.kind == .dish ? "dish_" + order.target : order.target
     }

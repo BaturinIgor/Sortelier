@@ -46,7 +46,9 @@
 
 Продукты - модели [Kenney Food Kit](https://kenney.nl/assets/food-kit) (лицензия CC0), отрендеренные в Blender одним светом и ракурсом. Полки смоделированы скриптом.
 
-Рендер: `pip install bpy`, затем `python tools/render/render.py "<папка Models/GLB format>" art/renders --spin` и `--shelf` для полок. Готовые спрайты сжимаются и кладутся в `Sortelier/Resources/Sprites`.
+Модели сглаживаются и подразделяются, материалы глянцевые (плоским продуктам - матовые), свет теплый ключевой, холодная заливка и контровой.
+
+Рендер: `pip install bpy`, затем `python tools/render/render.py "<папка Models/GLB format>" art/renders --spin` и `--shelf` для полок. Спрайты для игры: `python3 tools/render/pack.py art/renders`, иконка: `python3 tools/render/icon.py art/renders`.
 
 ## Тексты
 

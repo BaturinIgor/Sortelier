@@ -64,7 +64,7 @@ def reset_scene():
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
     scene.cycles.device = "CPU"
-    scene.cycles.samples = 48
+    scene.cycles.samples = 64
     scene.cycles.use_denoising = True
     scene.render.film_transparent = True
     scene.render.image_settings.file_format = "PNG"
@@ -78,21 +78,22 @@ def reset_scene():
     scene.world = world
     world.use_nodes = True
     bg = world.node_tree.nodes["Background"]
-    bg.inputs[0].default_value = (1.0, 0.97, 0.92, 1.0)
-    bg.inputs[1].default_value = 0.6
+    bg.inputs[0].default_value = (1.0, 0.98, 0.95, 1.0)
+    bg.inputs[1].default_value = 0.5
 
-    key = bpy.data.lights.new("Key", type="SUN")
-    key.energy = 3.2
-    key.angle = math.radians(25)
-    key_obj = bpy.data.objects.new("Key", key)
-    key_obj.rotation_euler = (math.radians(50), 0, math.radians(-35))
-    scene.collection.objects.link(key_obj)
+    def sun(name, energy, rotation, color):
+        light = bpy.data.lights.new(name, type="SUN")
+        light.energy = energy
+        light.color = color
+        light.angle = math.radians(12)
+        obj = bpy.data.objects.new(name, light)
+        obj.rotation_euler = rotation
+        scene.collection.objects.link(obj)
 
-    fill = bpy.data.lights.new("Fill", type="SUN")
-    fill.energy = 1.1
-    fill_obj = bpy.data.objects.new("Fill", fill)
-    fill_obj.rotation_euler = (math.radians(65), 0, math.radians(70))
-    scene.collection.objects.link(fill_obj)
+    # теплый ключевой свет, холодная заливка и контровой для бликов по краю
+    sun("Key", 4.2, (math.radians(48), 0, math.radians(-40)), (1.0, 0.96, 0.9))
+    sun("Fill", 1.3, (math.radians(70), 0, math.radians(75)), (0.85, 0.9, 1.0))
+    sun("Rim", 3.5, (math.radians(-60), 0, math.radians(20)), (1.0, 1.0, 1.0))
     return scene
 
 
@@ -114,6 +115,45 @@ def import_model(path, keep, offsets):
                     o.matrix_world.translation.z += offsets[base]
     bpy.context.view_layer.update()
     return meshes
+
+
+def polish(meshes, subdivide=True, matte=False):
+    """Глянцевые материалы, сглаживание и подразделение: модели становятся круглее.
+    Плоским продуктам глянец дает пересвет, им матовый материал."""
+    import bmesh
+    for o in meshes:
+        for slot in o.material_slots:
+            m = slot.material
+            if not m or not m.use_nodes:
+                continue
+            b = m.node_tree.nodes.get("Principled BSDF")
+            if b:
+                b.inputs["Roughness"].default_value = 0.7 if matte else 0.35
+                if "Specular IOR Level" in b.inputs:
+                    b.inputs["Specular IOR Level"].default_value = 0.3 if matte else 0.6
+                if "Coat Weight" in b.inputs:
+                    b.inputs["Coat Weight"].default_value = 0.0 if matte else 0.25
+        if subdivide:
+            bm = bmesh.new()
+            bm.from_mesh(o.data)
+            bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0005)
+            bm.to_mesh(o.data)
+            bm.free()
+        o.data.shade_smooth()
+        o.data.set_sharp_from_angle(angle=math.radians(40))
+        if subdivide:
+            mod = o.modifiers.new("Subd", "SUBSURF")
+            mod.levels = 1
+            mod.render_levels = 1
+            mod.uv_smooth = "PRESERVE_BOUNDARIES"
+            mod.boundary_smooth = "PRESERVE_CORNERS"
+
+
+# модели, которые от подразделения теряют форму
+NO_SUBDIV = {"cheese", "waffle", "bacon", "bacon_raw", "meat_raw", "patty", "pie", "bread"}
+# плоские продукты, которым глянец дает пересвет
+MATTE = {"bread", "cheese", "cookie", "meat_raw", "patty", "pie", "waffle", "bacon", "bacon_raw",
+         "dish_pancakes", "dish_sandwich"}
 
 
 def bounds(meshes):
@@ -158,6 +198,7 @@ def render_item(src_dir, out_dir, sprite_id, spec, size, spin_frames=0):
     model, keep, offsets = spec
     scene = reset_scene()
     meshes = import_model(os.path.join(src_dir, model + ".glb"), keep, offsets)
+    polish(meshes, subdivide=sprite_id not in NO_SUBDIV, matte=sprite_id in MATTE)
     lo, hi, pts = bounds(meshes)
     center = (lo + hi) / 2
     # опорная точка вращения в центре модели
@@ -266,7 +307,7 @@ def main():
     for sprite_id, spec in ITEMS.items():
         if only and sprite_id not in only:
             continue
-        render_item(args.src, args.out, sprite_id, spec, 320)
+        render_item(args.src, args.out, sprite_id, spec, 360)
     for sprite_id, spec in DISHES.items():
         if only and sprite_id not in only:
             continue
