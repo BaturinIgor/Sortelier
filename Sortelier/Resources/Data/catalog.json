@@ -1,0 +1,185 @@
+{
+ "items": [
+  {
+   "id": "bun",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "patty",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "lettuce",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "cheese",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "tomato",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "sausage",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "hotdog_bun",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "ketchup",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "bread",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "ham",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "baguette",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "egg",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "milk",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "honey",
+   "kind": "ingredient",
+   "biome": 1
+  },
+  {
+   "id": "fries",
+   "kind": "snack",
+   "biome": 1
+  },
+  {
+   "id": "soda",
+   "kind": "snack",
+   "biome": 1
+  },
+  {
+   "id": "donut",
+   "kind": "snack",
+   "biome": 1
+  },
+  {
+   "id": "cupcake",
+   "kind": "snack",
+   "biome": 1
+  },
+  {
+   "id": "cookie",
+   "kind": "snack",
+   "biome": 1
+  },
+  {
+   "id": "icecream",
+   "kind": "snack",
+   "biome": 1
+  },
+  {
+   "id": "corn",
+   "kind": "snack",
+   "biome": 1
+  },
+  {
+   "id": "muffin",
+   "kind": "snack",
+   "biome": 1
+  },
+  {
+   "id": "corndog",
+   "kind": "snack",
+   "biome": 1
+  },
+  {
+   "id": "waffle",
+   "kind": "snack",
+   "biome": 1
+  },
+  {
+   "id": "pie",
+   "kind": "snack",
+   "biome": 1
+  }
+ ],
+ "dishes": [
+  {
+   "id": "burger",
+   "ingredients": [
+    "bun",
+    "patty",
+    "lettuce"
+   ],
+   "biome": 1
+  },
+  {
+   "id": "cheeseburger",
+   "ingredients": [
+    "bun",
+    "patty",
+    "cheese"
+   ],
+   "biome": 1
+  },
+  {
+   "id": "hotdog",
+   "ingredients": [
+    "hotdog_bun",
+    "sausage",
+    "ketchup"
+   ],
+   "biome": 1
+  },
+  {
+   "id": "sandwich",
+   "ingredients": [
+    "bread",
+    "ham",
+    "lettuce"
+   ],
+   "biome": 1
+  },
+  {
+   "id": "sub",
+   "ingredients": [
+    "baguette",
+    "ham",
+    "tomato"
+   ],
+   "biome": 1
+  },
+  {
+   "id": "pancakes",
+   "ingredients": [
+    "egg",
+    "milk",
+    "honey"
+   ],
+   "biome": 1
+  }
+ ]
+}

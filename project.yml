@@ -1,0 +1,61 @@
+name: Sortelier
+options:
+  bundleIdPrefix: com.personal
+  deploymentTarget:
+    iOS: "15.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1"
+    CURRENT_PROJECT_VERSION: "1"
+    TARGETED_DEVICE_FAMILY: "1"
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGNING_ALLOWED: "NO"
+    CODE_SIGNING_REQUIRED: "NO"
+    CODE_SIGN_IDENTITY: ""
+    DEVELOPMENT_TEAM: ""
+    ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+
+targets:
+  Sortelier:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sortelier
+    info:
+      path: Sortelier/Info.plist
+      properties:
+        CFBundleDisplayName: Sortelier
+        CFBundleDevelopmentRegion: en
+        CFBundleLocalizations: [en, ru]
+        CFBundleAllowMixedLocalizations: true
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSRequiresIPhoneOS: true
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UIApplicationSupportsIndirectInputEvents: true
+        UIRequiresFullScreen: true
+        CADisableMinimumFrameDurationOnPhone: true
+        UIStatusBarHidden: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        ITSAppUsesNonExemptEncryption: false
+        AppMetricaAPIKey: ""
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.personal.sortelier
+        PRODUCT_NAME: Sortelier
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+schemes:
+  Sortelier:
+    build:
+      targets:
+        Sortelier: all
+    run:
+      config: Debug
+    archive:
+      config: Release

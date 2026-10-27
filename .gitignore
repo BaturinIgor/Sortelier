@@ -1,0 +1,9 @@
+build/
+*.xcodeproj/
+Payload/
+*.ipa
+build.log
+.DS_Store
+__pycache__/
+art/renders/
+art/render_log.txt

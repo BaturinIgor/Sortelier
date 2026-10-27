@@ -1,0 +1,105 @@
+name: Build IPA
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-ipa
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: |
+          brew install xcodegen ldid
+          xcodebuild -version
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build
+        run: |
+          set +e
+          xcodebuild \
+            -project Sortelier.xcodeproj \
+            -scheme Sortelier \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) SIDELOAD' \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build > build.log 2>&1
+          status=$?
+          echo "---- errors ----"
+          grep -E "error:|fatal error" build.log | sort -u | head -150
+          echo "---- tail ----"
+          tail -40 build.log
+          exit $status
+
+      - name: Publish errors on failure
+        if: failure()
+        run: |
+          grep -E "error:|fatal error" build.log | sort -u > errors.txt || true
+          head -40 errors.txt | sed 's/^/::error::/' || true
+          tail -250 build.log > tail.txt
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout --orphan ci-logs
+          git rm -rf --cached . > /dev/null
+          git add -f errors.txt tail.txt
+          git commit -q -m "CI errors run ${{ github.run_number }}"
+          git push -q -f origin ci-logs
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: ignore
+
+      - name: Package IPA
+        run: |
+          APP="build/Build/Products/Release-iphoneos/Sortelier.app"
+          ls "$APP" "$APP/Frameworks" 2>/dev/null || true
+          if [ -d "$APP/Frameworks" ]; then
+            for f in "$APP"/Frameworks/*.framework; do ldid -S "$f/$(basename "$f" .framework)" || true; done
+          fi
+          ldid -S "$APP/Sortelier"
+          echo "::notice::Bundle: $(ls "$APP"/*.json 2>/dev/null | wc -l | tr -d ' ') language files, $(ls -d "$APP"/*.lproj 2>/dev/null | wc -l | tr -d ' ') lproj, frameworks: $(ls "$APP/Frameworks" 2>/dev/null | tr '\n' ' ')"
+          rm -rf Payload Sortelier.ipa
+          mkdir Payload
+          cp -R "$APP" Payload/
+          zip -qry Sortelier.ipa Payload
+          ls -lh Sortelier.ipa
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sortelier-ipa
+          path: Sortelier.ipa
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-${{ github.run_number }}"
+          gh release create "$TAG" Sortelier.ipa \
+            --title "Sortelier, сборка ${{ github.run_number }}" \
+            --notes "Скачай Sortelier.ipa и установи через SideStore." \
+            --latest
