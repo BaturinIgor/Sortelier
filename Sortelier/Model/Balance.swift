@@ -13,7 +13,9 @@ enum Balance {
     static let livesRefillPrice = 200
 
     static let startCoins = 300
-    static let startBoosters: [Booster: Int] = [.hint: 3, .undo: 3, .shelf: 1]
+    static let startBoosters: [Booster: Int] = [.hint: 3, .undo: 3, .shuffle: 1, .shelf: 1]
+    /// Сколько ходов терпение стоит на паузе после бустера.
+    static let pauseMoves = 5
 
     static let continuePrices = [150, 300, 600]
     static let adDailyLimit = 10
@@ -36,7 +38,7 @@ enum Balance {
 }
 
 enum Booster: String, Codable, CaseIterable, Identifiable {
-    case hint, undo, shelf
+    case hint, undo, shuffle, shelf, pause
 
     var id: String { rawValue }
 
@@ -44,6 +46,8 @@ enum Booster: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .undo: return 60
         case .hint: return 80
+        case .shuffle: return 100
+        case .pause: return 120
         case .shelf: return 150
         }
     }
@@ -52,7 +56,9 @@ enum Booster: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .hint: return "lightbulb.fill"
         case .undo: return "arrow.uturn.backward"
+        case .shuffle: return "shuffle"
         case .shelf: return "plus.rectangle.on.rectangle"
+        case .pause: return "hourglass"
         }
     }
 }

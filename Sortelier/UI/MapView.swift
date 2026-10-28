@@ -20,6 +20,8 @@ struct MapView: View {
     @State private var pendingLaunch: LevelLaunch?
     @State private var chest: Int?
     @State private var openedBiome: Int?
+    @State private var showShop = false
+    @State private var vipDaily: Granted?
 
     private let rowHeight: CGFloat = 96
 
@@ -45,8 +47,18 @@ struct MapView: View {
             if let biome = openedBiome {
                 BiomeOpenedPopup(biome: biome) { openedBiome = nil }
             }
+            if let granted = vipDaily {
+                RewardPopup(title: lang.t("vip.daily"), granted: granted) { vipDaily = nil }
+            }
         }
-        .onAppear { Audio.shared.setTrack(Biomes.music(progress.mapBiome)) }
+        .onAppear {
+            Audio.shared.setTrack(Biomes.music(progress.mapBiome))
+            progress.applyPassCredit()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { vipDaily = progress.claimVIPDaily() }
+        }
+        .sheet(isPresented: $showShop) {
+            ShopSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+        }
         .sheet(isPresented: $showBook) {
             BookView().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
         }
@@ -91,6 +103,7 @@ struct MapView: View {
 
     private var sideRail: some View {
         VStack(spacing: 12) {
+            railButton("cart.fill", badge: !progress.starterBought && progress.isPassed(5)) { showShop = true }
             railButton("book.fill", badge: false) { showBook = true }
             railButton("sparkles", badge: progress.eventsClaimable) { showEvents = true }
             railButton("square.grid.3x3.fill", badge: progress.energy >= MergeBalance.maxEnergy) { showMerge = true }
@@ -113,9 +126,10 @@ struct MapView: View {
     private var topBar: some View {
         HStack(spacing: 8) {
             Button { showLives = true } label: { LivesPill() }.buttonStyle(.plain)
-            CoinsPill()
+            Button { showShop = true } label: { CoinsPill() }.buttonStyle(.plain)
             StreakButton { showStreak = true }
             Spacer()
+            VIPBadge { showShop = true }
             CircleIconButton(symbol: "gearshape.fill") { showSettings = true }
         }
         .padding(.top, 6)
@@ -579,7 +593,7 @@ struct LivesSheet: View {
                 Image(systemName: "heart.fill")
                     .font(.system(size: 64))
                     .foregroundColor(Theme.red)
-                Text(progress.unlimitedLives ? lang.t("lives.unlimited") : lang.t("lives.count", progress.lives, Balance.maxLives))
+                Text(progress.unlimitedLives ? lang.t("lives.unlimited") : lang.t("lives.count", progress.lives, progress.maxLives))
                     .font(Theme.rounded(24, .heavy))
                     .foregroundColor(Theme.brown)
                 if let next = progress.nextLifeIn {
@@ -591,7 +605,7 @@ struct LivesSheet: View {
                     .font(Theme.rounded(14, .medium))
                     .foregroundColor(Theme.brownSoft)
                     .multilineTextAlignment(.center)
-                if progress.lives < Balance.maxLives && !progress.unlimitedLives {
+                if progress.lives < progress.maxLives && !progress.unlimitedLives {
                     Button {
                         if progress.refillLives() {
                             presentation.wrappedValue.dismiss()
@@ -607,7 +621,7 @@ struct LivesSheet: View {
                             if ok { progress.addLife() } else { message = lang.t("ads.limit") }
                         }
                     } label: {
-                        HStack { Image(systemName: "play.rectangle.fill"); Text(lang.t("lives.ad")) }
+                        HStack { AdIcon(); Text(lang.t("lives.ad")) }
                     }
                     .buttonStyle(BigButtonStyle(color: Theme.green))
                     AdsLeftLabel()

@@ -115,6 +115,12 @@ struct MetaData: Codable {
     var biomes: [Int] = []
     /// Обслуженные гурманы с последнего подарка: для гарантии подарка.
     var gourmetSinceGift = 0
+    // Покупки: срок VIP, стартовый набор, выданные покупки App Store, неиспользованные пропуска
+    var vipUntil: Date?
+    var vipDailyDay = ""
+    var starterBought = false
+    var deliveredTx: [String] = []
+    var passCredits = 0
 
     init() {}
 
@@ -139,6 +145,11 @@ struct MetaData: Codable {
         events = try c.decodeIfPresent([String: EventState].self, forKey: .events) ?? [:]
         biomes = try c.decodeIfPresent([Int].self, forKey: .biomes) ?? []
         gourmetSinceGift = try c.decodeIfPresent(Int.self, forKey: .gourmetSinceGift) ?? 0
+        vipUntil = try c.decodeIfPresent(Date.self, forKey: .vipUntil)
+        vipDailyDay = try c.decodeIfPresent(String.self, forKey: .vipDailyDay) ?? ""
+        starterBought = try c.decodeIfPresent(Bool.self, forKey: .starterBought) ?? false
+        deliveredTx = try c.decodeIfPresent([String].self, forKey: .deliveredTx) ?? []
+        passCredits = try c.decodeIfPresent(Int.self, forKey: .passCredits) ?? 0
     }
 }
 

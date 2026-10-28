@@ -181,6 +181,7 @@ final class GameScene: SKScene {
     private var plank: SKNode?
     private var queueBadge: SKNode?
     private var lockNodes: [Int: SKNode] = [:]
+    private var pauseBadge: SKNode?
     private var itemSize: CGFloat = 40
     private var shelfWidth: CGFloat = 120
 
@@ -209,6 +210,10 @@ final class GameScene: SKScene {
         }
         session.onHint = { [weak self] from, slot, to in
             self?.showHint(from: from, slot: slot, to: to)
+        }
+        session.onPause = { [weak self] in
+            Audio.shared.play(.unlock, volume: 0.5)
+            self?.refreshCustomers()
         }
     }
 
@@ -584,9 +589,10 @@ final class GameScene: SKScene {
                 }
             }
             node.update(patience: c.patience, max: b.patienceMax, coins: Balance.coinsPerOrder + b.tip(for: c),
-                        tip: b.tip(for: c), animated: animated)
+                        tip: b.tip(for: c), paused: b.pauseLeft > 0, animated: animated)
         }
         updateQueueBadge(waiting: b.queue.count - visible.count)
+        updatePauseBadge()
     }
 
     /// После хода: тает терпение у тех, кто у прилавка.
@@ -595,8 +601,36 @@ final class GameScene: SKScene {
         for c in b.queue.prefix(Board.counter) {
             guard let node = customerNodes[c.uid], !node.leaving else { continue }
             node.update(patience: c.patience, max: b.patienceMax, coins: Balance.coinsPerOrder + b.tip(for: c),
-                        tip: b.tip(for: c), animated: true)
+                        tip: b.tip(for: c), paused: b.pauseLeft > 0, animated: true)
         }
+        updatePauseBadge()
+    }
+
+    /// Плашка над прилавком, пока терпение на паузе.
+    private func updatePauseBadge() {
+        let left = session.board.pauseLeft
+        if left == 0 {
+            if let badge = pauseBadge {
+                pauseBadge = nil
+                badge.run(.sequence([.fadeOut(withDuration: 0.2), .removeFromParent()]))
+            }
+            return
+        }
+        pauseBadge?.removeFromParent()
+        let label = SKLabelNode(text: Lang.shared.t("game.pause", left))
+        label.fontName = "AvenirNext-Heavy"
+        label.fontSize = 13
+        label.fontColor = .white
+        label.verticalAlignmentMode = .center
+        let back = SKShapeNode(rectOf: CGSize(width: label.frame.width + 24, height: 24), cornerRadius: 12)
+        back.fillColor = UIColor(red: 0.25, green: 0.55, blue: 0.90, alpha: 0.95)
+        back.strokeColor = .white
+        back.lineWidth = 1.5
+        back.addChild(label)
+        back.position = CGPoint(x: size.width / 2, y: counterRect.minY - 2)
+        back.zPosition = 20
+        customersLayer.addChild(back)
+        pauseBadge = back
     }
 
     private func updateQueueBadge(waiting: Int) {

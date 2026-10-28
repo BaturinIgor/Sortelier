@@ -15,6 +15,7 @@ struct SortelierApp: App {
                 .onAppear {
                     Analytics.start()
                     Audio.shared.start()
+                    Store.shared.start()
                     PlayerProgress.shared.ensureWelcomeStart()
                 }
         }

@@ -393,6 +393,49 @@ S.update({
  "dish.bruschetta": ("Bruschetta", "Брускетта"),
 })
 
+# Магазин, VIP, новые бустеры
+S.update({
+ "booster.shuffle": ("Shuffle", "Перемешать"),
+ "booster.shuffle.text": ("Shuffles the products in the front rows", "Перемешивает продукты в передних рядах"),
+ "booster.pause": ("Patience pause", "Пауза терпения"),
+ "booster.pause.text": ("Customers don't lose patience for the next 5 moves", "Покупатели не теряют терпение следующие 5 ходов"),
+ "game.pause": ("Patience paused: {0}", "Терпение на паузе: {0}"),
+ "win.vip": ("VIP bonus: +{0} coins", "Бонус VIP: +{0} монет"),
+ "shop.title": ("Shop", "Магазин"),
+ "shop.coins": ("Coins", "Монеты"),
+ "shop.packs": ("Packs", "Наборы"),
+ "shop.boosters": ("Boosters for coins", "Бустеры за монеты"),
+ "shop.item.starter": ("Starter pack", "Стартовый набор"),
+ "shop.starter.once": ("One time only", "Только один раз"),
+ "shop.item.boosters": ("Booster pack", "Набор бустеров"),
+ "shop.item.lives": ("Unlimited lives for 2 hours", "Безлимитные жизни на 2 часа"),
+ "shop.have": ("You have: {0}", "Есть: {0}"),
+ "shop.restore": ("Restore purchases", "Восстановить покупки"),
+ "shop.restore.failed": ("Couldn't restore purchases. Check the connection and try again", "Не получилось восстановить покупки. Проверь интернет и попробуй еще раз"),
+ "shop.terms": ("Terms of use", "Условия использования"),
+ "shop.privacy": ("Privacy policy", "Политика конфиденциальности"),
+ "shop.thanks": ("Thank you!", "Спасибо!"),
+ "shop.test": ("Test build: purchases are free", "Тестовая сборка: покупки бесплатные"),
+ "shop.unavailable": ("Purchases work in the App Store version", "Покупки работают в версии из App Store"),
+ "shop.pending": ("The purchase is waiting for approval", "Покупка ждет подтверждения"),
+ "shop.failed": ("The purchase didn't go through. Try again", "Покупка не прошла. Попробуй еще раз"),
+ "vip.noads": ("VIP: rewards without ads", "VIP: награды без рекламы"),
+ "vip.daily": ("Daily VIP gift", "Ежедневный подарок VIP"),
+ "vip.active": ("Active: {0}", "Активен: {0}"),
+ "vip.perk.ads": ("All ad rewards instantly, no ads", "Все награды за рекламу сразу, без рекламы"),
+ "vip.perk.coins": ("x1.5 coins for levels", "Монеты за уровни x1.5"),
+ "vip.perk.lives": ("Up to {0} lives", "До {0} жизней"),
+ "vip.perk.daily": ("Hint, undo and shuffle every day", "Подсказка, отмена и перемешивание каждый день"),
+ "vip.week": ("Week", "Неделя"),
+ "vip.month": ("Month", "Месяц"),
+ "vip.save": ("-40%", "-40%"),
+ "vip.terms": ("The subscription renews automatically unless canceled at least 24 hours before the end of the period. Payment is charged to your Apple ID. You can manage or cancel it in App Store settings.", "Подписка продлевается автоматически, если не отменить ее минимум за 24 часа до конца периода. Оплата списывается с Apple ID. Управлять подпиской и отменить ее можно в настройках App Store."),
+ "vip.welcome": ("Welcome to VIP!", "Добро пожаловать в VIP!"),
+ "vip.welcome.text": ("Ad rewards now come instantly, coins for levels are x1.5, and a booster gift waits for you every day.", "Теперь награды за рекламу приходят сразу, монеты за уровни x1.5, а каждый день ждет подарок с бустерами."),
+ "event.pass.text": ("Unlocks the golden reward track of this event", "Открывает золотую ветку наград этого ивента"),
+ "event.pass.active": ("The golden track is open", "Золотая ветка открыта"),
+})
+
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 out = os.path.join(root, "Sortelier", "Resources", "Strings")
 os.makedirs(out, exist_ok=True)

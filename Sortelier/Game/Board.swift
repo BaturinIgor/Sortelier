@@ -80,6 +80,8 @@ struct Board {
     private(set) var locks: [Int]
     /// Сколько покупателей уже обслужено: по этому числу тает лед и открываются замки.
     private(set) var served = 0
+    /// Сколько ходов терпение еще стоит на паузе (бустер).
+    private(set) var pauseLeft = 0
     private var nextUid = 0
 
     /// Оставшиеся заказы в порядке очереди.
@@ -197,9 +199,13 @@ struct Board {
         }
         changed.append(dst)
         let events = settle(changed)
-        // у покупателей за прилавком тает терпение
-        for i in 0..<min(Board.counter, queue.count) {
-            queue[i].patience = max(0, queue[i].patience - 1)
+        // у покупателей за прилавком тает терпение, если оно не на паузе
+        if pauseLeft > 0 {
+            pauseLeft -= 1
+        } else {
+            for i in 0..<min(Board.counter, queue.count) {
+                queue[i].patience = max(0, queue[i].patience - 1)
+            }
         }
         return MoveOutcome(piece: piece, from: src, fromSlot: slot, to: dst, toSlot: target, events: events)
     }
@@ -207,6 +213,44 @@ struct Board {
     mutating func addShelf() {
         shelves.append([[nil, nil, nil]])
         locks.append(0)
+    }
+
+    /// Бустер "Пауза терпения".
+    mutating func pausePatience(_ moves: Int) {
+        pauseLeft += moves
+    }
+
+    /// Бустер "Перемешать": продукты передних рядов открытых полок меняются местами.
+    /// Лед и замки остаются на месте. Перемешивание не собирает наборы само.
+    mutating func shuffleFront() -> Bool {
+        var slots: [(Int, Int)] = []
+        var pieces: [Piece] = []
+        for s in shelves.indices where !isLocked(s) {
+            for k in 0..<Board.slots {
+                if let piece = shelves[s][0][k], !isFrozen(piece) {
+                    slots.append((s, k))
+                    pieces.append(piece)
+                }
+            }
+        }
+        guard Set(pieces.map(\.item)).count >= 2 else { return false }
+        for _ in 0..<40 {
+            let order = pieces.shuffled()
+            var copy = shelves
+            for (i, slot) in slots.enumerated() { copy[slot.0][0][slot.1] = order[i] }
+            let ready = copy.contains { layers in
+                let names = layers[0].compactMap { $0?.item }
+                guard names.count == Board.slots else { return false }
+                if catalog.transform(of: names) != nil { return true }
+                guard let result = catalog.result(of: names) else { return false }
+                return queue.contains { $0.order == result }
+            }
+            if !ready {
+                shelves = copy
+                return true
+            }
+        }
+        return false
     }
 
     private mutating func normalize(_ s: Int) {

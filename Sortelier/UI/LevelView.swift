@@ -163,13 +163,18 @@ struct LevelContent: View {
     }
 
     private var boosterBar: some View {
-        HStack(spacing: 18) {
+        let pause = session.pauseAvailable
+        return HStack(spacing: pause ? 10 : 14) {
             boosterButton(.undo) { session.undo() }
             boosterButton(.hint) { session.hint() }
+            boosterButton(.shuffle) { session.shuffle() }
             boosterButton(.shelf) { session.useExtraShelf() }
+            if pause {
+                boosterButton(.pause) { session.pausePatience() }
+            }
         }
         .padding(.vertical, 10)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 16)
         .background(Capsule().fill(Theme.card.opacity(0.92)).shadow(color: Theme.brown.opacity(0.2), radius: 8, y: 3))
     }
 
@@ -185,10 +190,11 @@ struct LevelContent: View {
         } label: {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: booster.symbol)
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.white)
-                    .frame(width: 58, height: 58)
-                    .background(Circle().fill(Theme.orange).shadow(color: Theme.orange.opacity(0.5), radius: 0, y: 4))
+                    .frame(width: 52, height: 52)
+                    .background(Circle().fill(booster == .pause ? Theme.blue : Theme.orange)
+                        .shadow(color: (booster == .pause ? Theme.blue : Theme.orange).opacity(0.5), radius: 0, y: 4))
                 Text(count > 0 ? "\(count)" : "+")
                     .font(Theme.rounded(13, .heavy))
                     .foregroundColor(.white)
@@ -323,7 +329,7 @@ struct StuckView: View {
                         Button {
                             session.continueWithAd { ok in if !ok { message = lang.t("ads.limit") } }
                         } label: {
-                            HStack { Image(systemName: "play.rectangle.fill"); Text(lang.t("stuck.ad")) }
+                            HStack { AdIcon(); Text(lang.t("stuck.ad")) }
                         }
                         .buttonStyle(BigButtonStyle(color: Theme.green))
                         AdsLeftLabel()
@@ -382,7 +388,7 @@ struct WinView: View {
                             Button {
                                 session.doubleCoins { ok in if !ok { message = lang.t("ads.limit") } }
                             } label: {
-                                HStack { Image(systemName: "play.rectangle.fill"); Text(lang.t("win.double")) }
+                                HStack { AdIcon(); Text(lang.t("win.double")) }
                             }
                             .buttonStyle(BigButtonStyle(color: Theme.green))
                             AdsLeftLabel()
@@ -443,6 +449,9 @@ struct WinView: View {
             if result.doubleBonus > 0 {
                 RewardLine(symbol: "2.circle.fill", color: Theme.green, title: lang.t("event.double.bonus", result.doubleBonus),
                            granted: nil)
+            }
+            if result.vipBonus > 0 {
+                RewardLine(symbol: "crown.fill", color: Theme.gold, title: lang.t("win.vip", result.vipBonus), granted: nil)
             }
             if let gift = result.gourmetGift {
                 RewardLine(symbol: "crown.fill", color: Theme.gold,
@@ -703,9 +712,15 @@ struct AdsLeftLabel: View {
     @EnvironmentObject private var progress: PlayerProgress
 
     var body: some View {
-        Text(lang.t("ads.left", progress.adsLeftToday, Balance.adDailyLimit))
-            .font(Theme.rounded(12, .semibold))
-            .foregroundColor(Theme.brownSoft)
+        if progress.isVIP {
+            Label(lang.t("vip.noads"), systemImage: "crown.fill")
+                .font(Theme.rounded(12, .bold))
+                .foregroundColor(Theme.gold)
+        } else {
+            Text(lang.t("ads.left", progress.adsLeftToday, Balance.adDailyLimit))
+                .font(Theme.rounded(12, .semibold))
+                .foregroundColor(Theme.brownSoft)
+        }
     }
 }
 

@@ -222,7 +222,7 @@ struct EnergyPopup: View {
                             if ok { progress.addMergeEnergy(MergeBalance.adEnergy) } else { message = lang.t("ads.limit") }
                         }
                     } label: {
-                        HStack { Image(systemName: "play.rectangle.fill"); Text(lang.t("merge.energy.ad", MergeBalance.adEnergy)) }
+                        HStack { AdIcon(); Text(lang.t("merge.energy.ad", MergeBalance.adEnergy)) }
                     }
                     .buttonStyle(BigButtonStyle(color: Theme.green))
                     AdsLeftLabel()

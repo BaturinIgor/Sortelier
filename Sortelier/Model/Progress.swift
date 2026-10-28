@@ -151,18 +151,21 @@ final class PlayerProgress: ObservableObject {
 
     // MARK: - Жизни
 
+    /// С VIP запас жизней больше.
+    var maxLives: Int { isVIP ? VIP.maxLives : Balance.maxLives }
+
     var unlimitedLives: Bool {
         if let until = data.unlimitedLivesUntil { return until > now }
         return false
     }
 
-    var lives: Int { unlimitedLives ? Balance.maxLives : data.lives }
+    var lives: Int { unlimitedLives ? maxLives : data.lives }
 
     var hasLife: Bool { unlimitedLives || data.lives > 0 }
 
     /// Секунды до следующей жизни, nil если жизни полные.
     var nextLifeIn: TimeInterval? {
-        guard !unlimitedLives, data.lives < Balance.maxLives else { return nil }
+        guard !unlimitedLives, data.lives < maxLives else { return nil }
         return max(0, data.livesUpdatedAt.addingTimeInterval(Balance.lifeRegen).timeIntervalSince(now))
     }
 
@@ -172,14 +175,14 @@ final class PlayerProgress: ObservableObject {
     }
 
     private func refreshLives() {
-        guard data.lives < Balance.maxLives else {
+        guard data.lives < maxLives else {
             return
         }
         let elapsed = Date().timeIntervalSince(data.livesUpdatedAt)
         let gained = Int(elapsed / Balance.lifeRegen)
         guard gained > 0 else { return }
-        data.lives = min(Balance.maxLives, data.lives + gained)
-        data.livesUpdatedAt = data.lives >= Balance.maxLives
+        data.lives = min(maxLives, data.lives + gained)
+        data.livesUpdatedAt = data.lives >= maxLives
             ? Date()
             : data.livesUpdatedAt.addingTimeInterval(Double(gained) * Balance.lifeRegen)
         save()
@@ -187,21 +190,21 @@ final class PlayerProgress: ObservableObject {
 
     func loseLife() {
         guard !unlimitedLives else { return }
-        if data.lives >= Balance.maxLives { data.livesUpdatedAt = Date() }
+        if data.lives >= maxLives { data.livesUpdatedAt = Date() }
         data.lives = max(0, data.lives - 1)
         save()
         if data.lives == 0 { Analytics.log("lives_out") }
     }
 
     func addLife(_ amount: Int = 1) {
-        data.lives = min(Balance.maxLives, data.lives + amount)
-        if data.lives >= Balance.maxLives { data.livesUpdatedAt = Date() }
+        data.lives = min(maxLives, data.lives + amount)
+        if data.lives >= maxLives { data.livesUpdatedAt = Date() }
         save()
     }
 
     func refillLives() -> Bool {
         guard spend(Balance.livesRefillPrice) else { return false }
-        addLife(Balance.maxLives)
+        addLife(maxLives)
         return true
     }
 
@@ -250,9 +253,9 @@ final class PlayerProgress: ObservableObject {
         data.coins += added
         let firstThree = newStars == 3 && previousStars < 3
         var lifeReturned = false
-        if firstThree && !unlimitedLives && data.lives < Balance.maxLives {
+        if firstThree && !unlimitedLives && data.lives < maxLives {
             data.lives += 1
-            if data.lives >= Balance.maxLives { data.livesUpdatedAt = Date() }
+            if data.lives >= maxLives { data.livesUpdatedAt = Date() }
             lifeReturned = true
         }
         save()

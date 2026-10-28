@@ -25,7 +25,7 @@ enum Notifications {
         let progress = PlayerProgress.shared
         let lang = Lang.shared
         if let next = progress.nextLifeIn {
-            let missing = max(0, Balance.maxLives - progress.lives - 1)
+            let missing = max(0, progress.maxLives - progress.lives - 1)
             let seconds = next + Double(missing) * Balance.lifeRegen
             add(id: "lives", title: lang.t("push.lives.title"), body: lang.t("push.lives.body"), after: seconds)
         }

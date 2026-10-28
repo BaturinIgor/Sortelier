@@ -44,6 +44,7 @@ struct EventsSheet: View {
     @EnvironmentObject private var lang: Lang
     @Environment(\.presentationMode) private var presentation
     @State private var granted: Granted?
+    @State private var passMessage: String?
 
     var body: some View {
         ZStack {
@@ -119,7 +120,7 @@ struct EventsSheet: View {
                     Text(lang.t("event.stamps", s.points)).font(Theme.rounded(16, .heavy)).foregroundColor(Theme.brown)
                 }
                 track(event, state: s)
-                passBanner
+                passBanner(event, state: s)
                 HStack {
                     Text(lang.t("event.levels", min(s.levels, levels.count), levels.count))
                         .font(Theme.rounded(14, .bold))
@@ -141,17 +142,47 @@ struct EventsSheet: View {
         }
     }
 
-    private var passBanner: some View {
+    @ViewBuilder
+    private func passBanner(_ event: GameEvent, state: EventState) -> some View {
         HStack(spacing: 10) {
             Image(systemName: "ticket.fill").foregroundColor(Theme.gold)
             VStack(alignment: .leading, spacing: 2) {
                 Text(lang.t("event.pass")).font(Theme.rounded(14, .heavy)).foregroundColor(Theme.brown)
-                Text(lang.t("event.pass.soon")).font(Theme.rounded(12, .semibold)).foregroundColor(Theme.brownSoft)
+                Text(lang.t(state.pass ? "event.pass.active" : "event.pass.text"))
+                    .font(Theme.rounded(12, .semibold))
+                    .foregroundColor(Theme.brownSoft)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+            if !state.pass {
+                Button {
+                    Task { @MainActor in
+                        if case .done = await Store.shared.buy(.eventPass) {
+                            Audio.shared.play(.chest)
+                            Haptics.success()
+                        } else if !Store.shared.canPurchase {
+                            passMessage = lang.t("shop.unavailable")
+                        }
+                    }
+                } label: {
+                    Text(Store.shared.price(.eventPass))
+                        .font(Theme.rounded(14, .heavy))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .frame(height: 32)
+                        .background(Capsule().fill(Theme.green))
+                }
+                .buttonStyle(.plain)
+            } else {
+                Image(systemName: "checkmark.seal.fill").foregroundColor(Theme.green)
             }
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 12).fill(Theme.gold.opacity(0.15)))
+        if let message = passMessage {
+            Text(message).font(Theme.rounded(12, .semibold)).foregroundColor(Theme.red)
+        }
     }
 
     /// Шкала наград: сверху платная ветка, снизу бесплатная.

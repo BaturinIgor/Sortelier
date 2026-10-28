@@ -24,6 +24,8 @@ final class GameSession: ObservableObject {
         let doubleBonus: Int
         /// Подарок довольного гурмана: фон кухни или монеты.
         let gourmetGift: Granted?
+        /// Монеты VIP сверх награды (x1.5).
+        let vipBonus: Int
     }
 
     let level: LevelData
@@ -50,6 +52,8 @@ final class GameSession: ObservableObject {
     var onReset: (() -> Void)?
     /// Сцена подсвечивает подсказку.
     var onHint: ((Int, Int, Int) -> Void)?
+    /// Сцена показывает паузу терпения.
+    var onPause: (() -> Void)?
 
     private var since = 99
     private var history: [Snapshot] = []
@@ -231,11 +235,13 @@ final class GameSession: ObservableObject {
                                maxCombo: bestCombo)
         let streak = progress.registerPlayDay()
         let gourmetGift = progress.gourmetServed(count: happyGourmets)
+        let vipBonus = progress.vipBonus(for: reward.coinsAdded)
         result = Result(orderCoins: orderCoins, served: level.orders.count, tips: tips, comboCoins: comboCoins,
                         efficiency: efficiency, total: total, stars: stars, reward: reward,
                         streakDay: streak?.day, streak: streak?.granted, chef: chef,
                         chefSeries: progress.chefSeries, challenge: challenge,
-                        events: events.gains, doubleBonus: events.bonus, gourmetGift: gourmetGift)
+                        events: events.gains, doubleBonus: events.bonus, gourmetGift: gourmetGift,
+                        vipBonus: vipBonus)
         Notifications.afterWin(level: level.id, mode: mode)
         phase = .won
         Haptics.success()
@@ -262,6 +268,25 @@ final class GameSession: ObservableObject {
     func hint() -> Bool {
         guard boostersAllowed, phase == .playing, let move = board.hint(), PlayerProgress.shared.use(.hint) else { return false }
         onHint?(move.from, move.slot, move.to)
+        return true
+    }
+
+    func shuffle() -> Bool {
+        guard boostersAllowed, phase == .playing, PlayerProgress.shared.count(.shuffle) > 0 else { return false }
+        var copy = board
+        guard copy.shuffleFront(), PlayerProgress.shared.use(.shuffle) else { return false }
+        board = copy
+        onReset?()
+        return true
+    }
+
+    /// Пауза терпения доступна, когда у покупателей есть терпение.
+    var pauseAvailable: Bool { board.patienceMax > 0 && level.biome >= 2 }
+
+    func pausePatience() -> Bool {
+        guard boostersAllowed, phase == .playing, pauseAvailable, PlayerProgress.shared.use(.pause) else { return false }
+        board.pausePatience(Balance.pauseMoves)
+        onPause?()
         return true
     }
 

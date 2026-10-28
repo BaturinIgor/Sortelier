@@ -138,10 +138,13 @@ final class CustomerNode: SKNode {
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     /// Обновить шкалу терпения, настроение и монеты.
-    func update(patience: Int, max: Int, coins: Int, tip: Int, animated: Bool) {
+    func update(patience: Int, max: Int, coins: Int, tip: Int, paused: Bool = false, animated: Bool) {
         let fraction: CGFloat = max > 0 ? CGFloat(patience) / CGFloat(max) : 1
         let color: UIColor
-        if max == 0 || fraction > 0.5 {
+        if paused && max > 0 {
+            // терпение на паузе: шкала голубая
+            color = UIColor(red: 0.35, green: 0.68, blue: 0.98, alpha: 1)
+        } else if max == 0 || fraction > 0.5 {
             color = UIColor(red: 0.36, green: 0.76, blue: 0.36, alpha: 1)
         } else if fraction > 0.25 {
             color = UIColor(red: 1.0, green: 0.74, blue: 0.18, alpha: 1)

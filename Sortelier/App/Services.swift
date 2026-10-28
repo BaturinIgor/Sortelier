@@ -24,9 +24,15 @@ enum Analytics {
 final class Ads {
     static let shared = Ads()
 
-    var canShow: Bool { PlayerProgress.shared.adsLeftToday > 0 }
+    var canShow: Bool { PlayerProgress.shared.isVIP || PlayerProgress.shared.adsLeftToday > 0 }
 
     func showRewarded(placement: String, completion: @escaping (Bool) -> Void) {
+        // VIP получает награду сразу, без рекламы и без расхода лимита
+        if PlayerProgress.shared.isVIP {
+            Analytics.log("ad_reward_vip", ["placement": placement])
+            completion(true)
+            return
+        }
         guard canShow else {
             completion(false)
             return
