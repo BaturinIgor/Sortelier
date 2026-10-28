@@ -52,12 +52,12 @@ final class Router: ObservableObject {
 
     func open(_ section: EventsSection) {
         eventsSection = section
-        open(.events)
+        open(AppTab.events)
     }
 
     func open(_ section: KitchenSection) {
         kitchenSection = section
-        open(.kitchen)
+        open(AppTab.kitchen)
     }
 }
 
