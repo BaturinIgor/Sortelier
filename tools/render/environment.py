@@ -238,6 +238,14 @@ STYLES = {
                      metal="steel", world=((0.96, 0.95, 1.0), 0.55), light=((0.98, 0.95, 1.0), 260), checker=False),
     "night": dict(tiles=((0.05, 0.08, 0.17), (0.04, 0.06, 0.14), (0.12, 0.15, 0.26)), cabinet=(0.20, 0.12, 0.07),
                   metal="brass", world=((0.30, 0.38, 0.65), 0.18), light=((1.0, 0.70, 0.40), 330), checker=False),
+    "autumn": dict(tiles=((0.80, 0.34, 0.10), (0.70, 0.28, 0.08), (0.96, 0.80, 0.60)), cabinet=(0.10, 0.24, 0.14),
+                   metal="brass", world=((1.0, 0.92, 0.80), 0.5), light=((1.0, 0.84, 0.62), 280), checker=False),
+    "winter": dict(tiles=((0.52, 0.74, 0.96), (0.44, 0.66, 0.90), (0.95, 0.97, 1.0)), cabinet=(0.95, 0.97, 1.0),
+                   metal="steel", world=((0.92, 0.96, 1.0), 0.6), light=((0.95, 0.97, 1.0), 250), checker=False),
+    "sweets": dict(tiles=((0.95, 0.42, 0.60), (0.88, 0.36, 0.55), (1.0, 0.86, 0.92)), cabinet=(0.62, 0.90, 0.80),
+                   metal="brass", world=((1.0, 0.95, 0.96), 0.55), light=((1.0, 0.94, 0.94), 260), checker=False),
+    "bbq": dict(tiles=((0.52, 0.14, 0.07), (0.44, 0.11, 0.05), (0.55, 0.52, 0.48)), cabinet=(0.24, 0.12, 0.05),
+                metal="steel", world=((1.0, 0.93, 0.85), 0.5), light=((1.0, 0.86, 0.70), 300), checker=False),
     "diner": dict(tiles=((0.90, 0.86, 0.78), (0.06, 0.06, 0.075), (0.5, 0.5, 0.5)), cabinet=(0.80, 0.06, 0.06),
                   metal="steel", world=((1.0, 0.97, 0.92), 0.55), light=((1.0, 0.95, 0.88), 260), checker=True),
 }
@@ -274,10 +282,10 @@ def steel_material(name):
     return mat
 
 
-def render_background(src, out_dir, preview=False, style="kitchen"):
+def render_background(src, out_dir, preview=False, style="kitchen", samples=64):
     st = STYLES[style]
     scene = R.reset_scene()
-    scene.cycles.samples = 24 if preview else 64
+    scene.cycles.samples = 24 if preview else samples
     scene.cycles.use_denoising = True
     width, height = (390, 844) if preview else (1170, 2532)
     scene.render.resolution_x = width
@@ -394,8 +402,9 @@ def main():
     elif args[0] == "background":
         os.makedirs(args[2], exist_ok=True)
         styles = [a.split("=", 1)[1] for a in args if a.startswith("--style=")] or ["kitchen"]
+        samples = int(next((a.split("=", 1)[1] for a in args if a.startswith("--samples=")), "64"))
         for style in styles[0].split(","):
-            render_background(args[1], args[2], preview="--preview" in args, style=style)
+            render_background(args[1], args[2], preview="--preview" in args, style=style, samples=samples)
 
 
 if __name__ == "__main__":

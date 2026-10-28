@@ -109,6 +109,7 @@ struct MetaData: Codable {
     var backgrounds: [String] = [KitchenStyle.defaultId]
     var background = KitchenStyle.defaultId
     var notificationsAsked = false
+    var events: [String: EventState] = [:]
 
     init() {}
 
@@ -130,6 +131,7 @@ struct MetaData: Codable {
         backgrounds = try c.decodeIfPresent([String].self, forKey: .backgrounds) ?? [KitchenStyle.defaultId]
         background = try c.decodeIfPresent(String.self, forKey: .background) ?? KitchenStyle.defaultId
         notificationsAsked = try c.decodeIfPresent(Bool.self, forKey: .notificationsAsked) ?? false
+        events = try c.decodeIfPresent([String: EventState].self, forKey: .events) ?? [:]
     }
 }
 
@@ -204,6 +206,8 @@ enum PlayMode: Equatable {
     case daily(String)
     /// Ключ недели и номер уровня в наборе (0...2).
     case weekly(String, Int)
+    /// Уровень сезонного ивента: id ивента, тема, номер уровня.
+    case event(String, String, Int)
 
     var isChallenge: Bool { self != .main }
 }
@@ -349,7 +353,11 @@ struct KitchenStyle: Identifiable {
         KitchenStyle(id: "peach", price: 800, source: .shop),
         KitchenStyle(id: "lavender", price: 1200, source: .shop),
         KitchenStyle(id: "night", price: 1800, source: .shop),
-        KitchenStyle(id: "diner", price: 0, source: .welcome)
+        KitchenStyle(id: "diner", price: 0, source: .welcome),
+        KitchenStyle(id: "autumn", price: 0, source: .event),
+        KitchenStyle(id: "winter", price: 0, source: .event),
+        KitchenStyle(id: "sweets", price: 0, source: .event),
+        KitchenStyle(id: "bbq", price: 0, source: .event)
     ]
 
     static func style(_ id: String) -> KitchenStyle? { all.first { $0.id == id } }

@@ -25,11 +25,13 @@ enum Theme {
 struct KitchenBackground: View {
     /// Светлая вуаль поверх, чтобы спокойнее читался интерфейс.
     var veil: Double = 0
+    /// Фон темы вместо выбранного игроком: уровни ивента.
+    var style: String?
     @EnvironmentObject private var progress: PlayerProgress
 
     var body: some View {
         GeometryReader { geo in
-            Image(uiImage: Art.image(KitchenStyle.image(progress.background)))
+            Image(uiImage: Art.image(KitchenStyle.image(style ?? progress.background)))
                 .resizable()
                 .scaledToFill()
                 .frame(width: geo.size.width, height: geo.size.height)

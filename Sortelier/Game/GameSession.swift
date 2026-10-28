@@ -20,6 +20,8 @@ final class GameSession: ObservableObject {
         let chef: Granted?
         let chefSeries: Int
         let challenge: Granted?
+        let events: [PlayerProgress.EventGain]
+        let doubleBonus: Int
     }
 
     let level: LevelData
@@ -93,6 +95,10 @@ final class GameSession: ObservableObject {
             guard index < 2, week == Day.weekKey(), let set = ChallengeStore.shared.weeklySet(),
                   set.levels.count > index + 1 else { return nil }
             return (level: set.levels[index + 1], mode: PlayMode.weekly(week, index + 1))
+        case let .event(id, theme, index):
+            let levels = EventLevelStore.shared.levels(theme: theme)
+            guard EventCalendar.event(id) != nil, levels.count > index + 1 else { return nil }
+            return (level: levels[index + 1], mode: PlayMode.event(id, theme, index + 1))
         }
     }
 
@@ -198,14 +204,22 @@ final class GameSession: ObservableObject {
             challenge = progress.completeWeekly(week, index: index)
             reward = PlayerProgress.LevelReward(coinsAdded: first ? total : 0, newRecord: false,
                                                 firstThreeStars: false, lifeReturned: false)
+        case let .event(id, _, index):
+            let first = progress.completeEventLevel(id, index: index)
+            if first { progress.addCoins(total) }
+            reward = PlayerProgress.LevelReward(coinsAdded: first ? total : 0, newRecord: false,
+                                                firstThreeStars: false, lifeReturned: false)
         }
+        let events = progress.eventsAfterWin(mode: mode, isNewLevel: mode == .main && !isReplay, stars: stars,
+                                             coinsAdded: reward.coinsAdded)
         progress.addLevelStats(served: servedCount, tips: tips, dishes: dishCount, triples: tripleCount,
                                maxCombo: bestCombo)
         let streak = progress.registerPlayDay()
         result = Result(orderCoins: orderCoins, served: level.orders.count, tips: tips, comboCoins: comboCoins,
                         efficiency: efficiency, total: total, stars: stars, reward: reward,
                         streakDay: streak?.day, streak: streak?.granted, chef: chef,
-                        chefSeries: progress.chefSeries, challenge: challenge)
+                        chefSeries: progress.chefSeries, challenge: challenge,
+                        events: events.gains, doubleBonus: events.bonus)
         Notifications.afterWin(level: level.id, mode: mode)
         phase = .won
         Haptics.success()
@@ -303,6 +317,7 @@ extension PlayMode {
         case .main: return "main"
         case .daily: return "daily"
         case .weekly: return "weekly"
+        case .event: return "event"
         }
     }
 }

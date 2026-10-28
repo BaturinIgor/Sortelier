@@ -14,6 +14,7 @@ struct MapView: View {
     @State private var showQuests = false
     @State private var showAchievements = false
     @State private var showBackgrounds = false
+    @State private var showEvents = false
     @State private var pendingLaunch: LevelLaunch?
     @State private var chest: Int?
 
@@ -61,6 +62,9 @@ struct MapView: View {
         .sheet(isPresented: $showAchievements) {
             AchievementsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
         }
+        .sheet(isPresented: $showEvents, onDismiss: launchPending) {
+            EventsSheet(launch: $pendingLaunch).environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+        }
         .sheet(isPresented: $showBackgrounds) {
             BackgroundsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
         }
@@ -77,6 +81,7 @@ struct MapView: View {
     private var sideRail: some View {
         VStack(spacing: 12) {
             railButton("book.fill", badge: false) { showBook = true }
+            railButton("sparkles", badge: progress.eventsClaimable) { showEvents = true }
             railButton("calendar", badge: !progress.dailyDone()) { showChallenges = true }
             if progress.welcomeActive {
                 railButton("gift.fill", badge: progress.questsClaimable) { showQuests = true }

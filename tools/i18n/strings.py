@@ -250,6 +250,50 @@ S.update({
  "push.comeback.body": ("Fresh ingredients have arrived. Come cook something tasty!", "Привезли свежие продукты. Заходи приготовить что-нибудь вкусное!"),
 })
 
+# Ивенты
+S.update({
+ "event.title": ("Events", "Ивенты"),
+ "event.subtitle": ("Several at once, each with its own timer and prizes", "Идут сразу несколько, у каждого свой срок и призы"),
+ "event.soon": ("Coming soon", "Скоро"),
+ "event.season.name": ("Big event", "Большой ивент"),
+ "event.hunt.name": ("Ingredient hunt", "Охота за ингредиентом"),
+ "event.race.name": ("Chef race", "Гонка поваров"),
+ "event.double.name": ("Double weekend", "Двойные выходные"),
+ "event.season.autumn": ("Autumn Fair", "Осенняя ярмарка"),
+ "event.season.winter": ("Winter Holidays", "Зимние праздники"),
+ "event.season.sweets": ("Sweet Week", "Сладкая неделя"),
+ "event.season.bbq": ("Summer BBQ", "Летнее барбекю"),
+ "event.season.text": ("Win any level to earn chef stamps", "Побеждай на любых уровнях и собирай печати шефа"),
+ "event.stamps": ("Chef stamps: {0}", "Печати шефа: {0}"),
+ "event.pass": ("Event pass: the golden lane", "Пропуск ивента: золотая ветка"),
+ "event.pass.soon": ("Will be available in the App Store version", "Появится в версии для App Store"),
+ "event.levels": ("Event levels: {0}/{1}", "Уровни ивента: {0} из {1}"),
+ "event.play": ("Play event level {0}", "Играть уровень ивента {0}"),
+ "event.levels.done": ("All event levels done!", "Все уровни ивента пройдены!"),
+ "event.level": ("{0}: level {1}", "{0}: уровень {1}"),
+ "event.hunt.title": ("Hunt for the golden {0}", "Охота: золотой продукт - {0}"),
+ "event.hunt.text": ("Every win brings golden {0}: one per star, plus one more for challenges.", "Каждая победа приносит золотой продукт ({0}): по одному за звезду и еще один за испытания."),
+ "event.hunt.count": ("Found: {0}", "Найдено: {0}"),
+ "event.race.title": ("Chef race", "Гонка поваров"),
+ "event.race.text": ("Race four chefs: the first to win {0} levels takes the top prize. Any level counts.", "Соревнуйся с четырьмя поварами: кто первым выиграет {0} уровней, заберет главный приз. Подходит любой уровень."),
+ "event.race.join": ("Join the race", "Участвовать"),
+ "event.race.place": ("You finished in place {0}!", "Ты финишировал {0}-м!"),
+ "event.race.you": ("You", "Ты"),
+ "event.race.chef": ("Chef {0}", "Шеф {0}"),
+ "event.double.title": ("Double weekend", "Двойные выходные"),
+ "event.double.text": ("Coins for won levels are doubled. Plus an hour of unlimited lives every day.", "Монеты за победы удваиваются. И каждый день - час жизней без ограничений."),
+ "event.double.claim": ("Take an hour of lives", "Забрать час жизней"),
+ "event.double.claimed": ("Today's bonus is taken", "Сегодняшний бонус получен"),
+ "event.double.bonus": ("Double weekend: +{0}", "Двойные выходные: +{0}"),
+ "event.gain.season": ("{0}: +{1} stamps ({2})", "{0}: +{1} печати ({2})"),
+ "event.gain.hunt": ("Hunt: +{0} golden {1} ({2})", "Охота: +{0} ({1}), всего {2}"),
+ "event.gain.race": ("Chef race: {0}/{1} wins", "Гонка поваров: {0} из {1} побед"),
+ "bg.autumn": ("Autumn kitchen", "Осенняя кухня"),
+ "bg.winter": ("Winter kitchen", "Зимняя кухня"),
+ "bg.sweets": ("Candy kitchen", "Конфетная кухня"),
+ "bg.bbq": ("Brick BBQ", "Кирпичное барбекю"),
+})
+
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 out = os.path.join(root, "Sortelier", "Resources", "Strings")
 os.makedirs(out, exist_ok=True)

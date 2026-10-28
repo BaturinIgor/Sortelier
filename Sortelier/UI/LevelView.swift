@@ -71,7 +71,7 @@ struct LevelContent: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                KitchenBackground()
+                KitchenBackground(style: eventStyle)
                 SpriteView(scene: scene, options: [.allowsTransparency])
                     .ignoresSafeArea()
                 VStack(spacing: 4) {
@@ -146,11 +146,18 @@ struct LevelContent: View {
         .frame(height: 52)
     }
 
+    /// Уровни ивента идут на фоне темы ивента.
+    private var eventStyle: String? {
+        if case let .event(_, theme, _) = session.mode { return theme }
+        return nil
+    }
+
     private var title: String {
         switch session.mode {
         case .main: return lang.t("level.title", session.level.id)
         case .daily: return lang.t("challenge.daily.title")
         case let .weekly(_, index): return lang.t("challenge.weekly.level", index + 1)
+        case let .event(_, theme, index): return lang.t("event.level", lang.t("event.season." + theme), index + 1)
         }
     }
 
@@ -428,6 +435,14 @@ struct WinView: View {
             if let granted = result.challenge {
                 RewardLine(symbol: "calendar", color: Theme.green, title: lang.t(challengeTitle), granted: granted)
             }
+            ForEach(result.events) { gain in
+                RewardLine(symbol: EventUI.symbol(gain.kind), color: EventUI.color(gain.kind),
+                           title: EventUI.gainText(gain, lang: lang), granted: nil)
+            }
+            if result.doubleBonus > 0 {
+                RewardLine(symbol: "2.circle.fill", color: Theme.green, title: lang.t("event.double.bonus", result.doubleBonus),
+                           granted: nil)
+            }
         }
     }
 
@@ -435,7 +450,7 @@ struct WinView: View {
         switch session.mode {
         case .daily: return "win.daily"
         case .weekly: return "win.weekly"
-        case .main: return ""
+        case .main, .event: return ""
         }
     }
 
