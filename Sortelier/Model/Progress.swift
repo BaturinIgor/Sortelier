@@ -35,6 +35,7 @@ struct SaveData: Codable {
     var seenIntros: [String] = []
     var playerId = UUID().uuidString
     var settings = GameSettings()
+    var meta = MetaData()
 
     init() {}
 
@@ -58,13 +59,14 @@ struct SaveData: Codable {
         seenIntros = try c.decodeIfPresent([String].self, forKey: .seenIntros) ?? []
         playerId = try c.decodeIfPresent(String.self, forKey: .playerId) ?? d.playerId
         settings = try c.decodeIfPresent(GameSettings.self, forKey: .settings) ?? GameSettings()
+        meta = try c.decodeIfPresent(MetaData.self, forKey: .meta) ?? MetaData()
     }
 }
 
 final class PlayerProgress: ObservableObject {
     static let shared = PlayerProgress()
 
-    @Published private(set) var data: SaveData
+    @Published var data: SaveData
     @Published private(set) var now = Date()
 
     private var timer: AnyCancellable?
@@ -132,6 +134,7 @@ final class PlayerProgress: ObservableObject {
     func use(_ booster: Booster) -> Bool {
         guard count(booster) > 0 else { return false }
         data.boosters[booster.rawValue, default: 0] -= 1
+        data.meta.stats[Stat.boostersUsed.rawValue, default: 0] += 1
         save()
         Analytics.log("booster_use", ["booster": booster.rawValue])
         return true
@@ -266,6 +269,7 @@ final class PlayerProgress: ObservableObject {
         guard chestReady(index) else { return }
         let chest = Balance.chests[index]
         data.chests.append(index)
+        data.meta.stats[Stat.chests.rawValue, default: 0] += 1
         data.coins += chest.coins
         for (booster, n) in chest.boosters { data.boosters[booster.rawValue, default: 0] += n }
         if chest.goldShelves { data.goldShelves = true }
@@ -283,6 +287,7 @@ final class PlayerProgress: ObservableObject {
     func discover(_ id: String) -> Bool {
         guard !data.discovered.contains(id) else { return false }
         data.discovered.append(id)
+        data.meta.stats[Stat.cards.rawValue] = data.discovered.count
         save()
         return true
     }

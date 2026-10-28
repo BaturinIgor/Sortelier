@@ -4,17 +4,20 @@ import SpriteKit
 /// Держит уровень и позволяет перейти к следующему без возврата на карту.
 struct LevelHost: View {
     @State private var level: LevelData
+    @State private var mode: PlayMode
     @State private var token = UUID()
     let close: () -> Void
 
-    init(level: LevelData, close: @escaping () -> Void) {
+    init(level: LevelData, mode: PlayMode = .main, close: @escaping () -> Void) {
         _level = State(initialValue: level)
+        _mode = State(initialValue: mode)
         self.close = close
     }
 
     var body: some View {
-        LevelScreen(level: level, next: { next in
+        LevelScreen(level: level, mode: mode, next: { next, nextMode in
             level = next
+            mode = nextMode
             token = UUID()
         }, close: close)
         .id(token)
@@ -25,19 +28,19 @@ final class LevelModel: ObservableObject {
     let session: GameSession
     let scene: GameScene
 
-    init(level: LevelData) {
-        session = GameSession(level: level)
+    init(level: LevelData, mode: PlayMode) {
+        session = GameSession(level: level, mode: mode)
         scene = GameScene(session: session)
     }
 }
 
 struct LevelScreen: View {
     @StateObject private var model: LevelModel
-    let next: (LevelData) -> Void
+    let next: (LevelData, PlayMode) -> Void
     let close: () -> Void
 
-    init(level: LevelData, next: @escaping (LevelData) -> Void, close: @escaping () -> Void) {
-        _model = StateObject(wrappedValue: LevelModel(level: level))
+    init(level: LevelData, mode: PlayMode, next: @escaping (LevelData, PlayMode) -> Void, close: @escaping () -> Void) {
+        _model = StateObject(wrappedValue: LevelModel(level: level, mode: mode))
         self.next = next
         self.close = close
     }
@@ -50,7 +53,7 @@ struct LevelScreen: View {
 struct LevelContent: View {
     @ObservedObject var session: GameSession
     let scene: GameScene
-    let next: (LevelData) -> Void
+    let next: (LevelData, PlayMode) -> Void
     let close: () -> Void
 
     @EnvironmentObject private var progress: PlayerProgress
@@ -59,9 +62,10 @@ struct LevelContent: View {
     @State private var showIntro = false
     @State private var buyBooster: Booster?
     @State private var toast: String?
+    @State private var ruleIntro: String?
 
     private var overlayVisible: Bool {
-        paused || showIntro || session.newDish != nil || session.phase != .playing || buyBooster != nil
+        paused || showIntro || ruleIntro != nil || session.newDish != nil || session.phase != .playing || buyBooster != nil
     }
 
     var body: some View {
@@ -74,7 +78,16 @@ struct LevelContent: View {
                     topBar
                     StarProgress(coins: session.orderCoins, thresholds: session.level.stars)
                     Spacer()
-                    boosterBar
+                    if session.boostersAllowed {
+                        boosterBar
+                    } else {
+                        Text(lang.t("rule.noboosters.bar"))
+                            .font(Theme.rounded(15, .heavy))
+                            .foregroundColor(Theme.brownSoft)
+                            .padding(.horizontal, 20)
+                            .frame(height: 58)
+                            .background(Capsule().fill(Theme.card.opacity(0.92)))
+                    }
                 }
                 .padding(.horizontal, 14)
                 .padding(.bottom, 6)
@@ -97,6 +110,9 @@ struct LevelContent: View {
                 if let intro = session.level.intro, !progress.seenIntro(intro) {
                     showIntro = true
                 }
+                if let rule = session.level.rule, case let .weekly(_, index) = session.mode, index == 0 {
+                    ruleIntro = rule
+                }
             }
         }
         .onChange(of: overlayVisible) { visible in
@@ -110,10 +126,12 @@ struct LevelContent: View {
         HStack(spacing: 10) {
             CircleIconButton(symbol: "pause.fill", size: 42) { paused = true }
             VStack(alignment: .leading, spacing: 0) {
-                Text(lang.t("level.title", session.level.id))
+                Text(title)
                     .font(Theme.rounded(19, .heavy))
                     .foregroundColor(Theme.brown)
-                if session.level.hard {
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                if session.level.hard && session.mode == .main {
                     Text(lang.t("map.hard"))
                         .font(Theme.rounded(12, .heavy))
                         .foregroundColor(Theme.red)
@@ -126,6 +144,14 @@ struct LevelContent: View {
         }
         .padding(.top, 6)
         .frame(height: 52)
+    }
+
+    private var title: String {
+        switch session.mode {
+        case .main: return lang.t("level.title", session.level.id)
+        case .daily: return lang.t("challenge.daily.title")
+        case let .weekly(_, index): return lang.t("challenge.weekly.level", index + 1)
+        }
     }
 
     private var boosterBar: some View {
@@ -192,6 +218,8 @@ struct LevelContent: View {
                 progress.markIntro(intro)
                 showIntro = false
             }
+        } else if let rule = ruleIntro {
+            IntroView(kind: "rule." + rule) { ruleIntro = nil }
         } else if paused {
             PauseView(session: session, resume: { paused = false }, restart: restart, exit: {
                 session.abandon()
@@ -204,21 +232,20 @@ struct LevelContent: View {
 
     private func restart() {
         session.abandon()
-        if session.isReplay || progress.hasLife {
-            next(session.level)
+        if !session.costsLife || progress.hasLife {
+            next(session.level, session.mode)
         } else {
             close()
         }
     }
 
     private func goNext() {
-        let nextId = session.level.id + 1
-        guard let level = LevelStore.shared.level(nextId) else {
+        guard let target = session.nextLevel else {
             close()
             return
         }
-        if progress.isPassed(nextId) || progress.hasLife {
-            next(level)
+        if target.mode != .main || progress.isPassed(target.level.id) || progress.hasLife {
+            next(target.level, target.mode)
         } else {
             close()
         }
@@ -242,7 +269,7 @@ struct PauseView: View {
                     Text(lang.t("pause.title"))
                         .font(Theme.rounded(26, .heavy))
                         .foregroundColor(Theme.brown)
-                    if !session.isReplay && session.hasMoves {
+                    if session.costsLife && session.hasMoves {
                         Text(lang.t("pause.lifewarning"))
                             .font(Theme.rounded(14, .semibold))
                             .foregroundColor(Theme.red)
@@ -293,7 +320,7 @@ struct StuckView: View {
                         .buttonStyle(BigButtonStyle(color: Theme.green))
                         AdsLeftLabel()
                     }
-                    Button(lang.t(session.isReplay ? "stuck.giveup.replay" : "stuck.giveup"), action: giveUp)
+                    Button(lang.t(session.costsLife ? "stuck.giveup" : "stuck.giveup.replay"), action: giveUp)
                         .buttonStyle(BigButtonStyle(color: Theme.brownSoft))
                     if let message = message {
                         Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)
@@ -342,6 +369,7 @@ struct WinView: View {
                         }
                         .padding(.horizontal, 6)
                         rewardText(result)
+                        extras(result)
                         if result.reward.coinsAdded > 0 && !session.doubled {
                             Button {
                                 session.doubleCoins { ok in if !ok { message = lang.t("ads.limit") } }
@@ -356,7 +384,7 @@ struct WinView: View {
                         }
                         HStack(spacing: 10) {
                             Button(lang.t("win.map"), action: close).buttonStyle(BigButtonStyle(color: Theme.brownSoft))
-                            if LevelStore.shared.level(session.level.id + 1) != nil {
+                            if session.nextLevel != nil {
                                 Button(lang.t("win.next"), action: next).buttonStyle(BigButtonStyle())
                             }
                         }
@@ -383,6 +411,31 @@ struct WinView: View {
             Spacer()
             CoinIcon(size: 18)
             Text("\(value)").font(Theme.rounded(17, bold ? .heavy : .bold)).foregroundColor(Theme.brown).monospacedDigit()
+        }
+    }
+
+    /// Стрик, серия шефа и награда испытания.
+    @ViewBuilder
+    private func extras(_ result: GameSession.Result) -> some View {
+        VStack(spacing: 6) {
+            if let day = result.streakDay, let granted = result.streak {
+                RewardLine(symbol: "flame.fill", color: Theme.orange, title: lang.t("win.streak", day), granted: granted)
+            }
+            if session.mode == .main && !session.isReplay && result.chefSeries > 1 {
+                RewardLine(symbol: "crown.fill", color: Theme.gold, title: lang.t("win.chef", result.chefSeries),
+                           granted: result.chef)
+            }
+            if let granted = result.challenge {
+                RewardLine(symbol: "calendar", color: Theme.green, title: lang.t(challengeTitle), granted: granted)
+            }
+        }
+    }
+
+    private var challengeTitle: String {
+        switch session.mode {
+        case .daily: return "win.daily"
+        case .weekly: return "win.weekly"
+        case .main: return ""
         }
     }
 
@@ -464,6 +517,34 @@ struct IntroView: View {
                 SpriteImage(name: "baguette", size: 56)
                 Image(systemName: "arrow.left.arrow.right").font(.system(size: 22, weight: .bold)).foregroundColor(Theme.orange)
                 SpriteImage(name: "dish_sub", size: 64)
+            }
+        case "rule.noboosters":
+            ZStack {
+                HStack(spacing: 8) {
+                    ForEach(Booster.allCases) { b in
+                        Image(systemName: b.symbol)
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 48, height: 48)
+                            .background(Circle().fill(Theme.brownSoft))
+                    }
+                }
+                Rectangle().fill(Theme.red).frame(width: 190, height: 5).rotationEffect(.degrees(-12))
+            }
+        case "rule.hidden":
+            HStack(spacing: 8) {
+                ForEach(0..<3, id: \.self) { _ in
+                    ZStack {
+                        Circle().fill(Color(red: 0.45, green: 0.30, blue: 0.20)).frame(width: 52, height: 52)
+                        Text("?").font(Theme.rounded(30, .heavy)).foregroundColor(.white)
+                    }
+                }
+            }
+        case "rule.recipes":
+            HStack(spacing: 4) {
+                SpriteImage(name: "dish_burger", size: 60)
+                SpriteImage(name: "dish_hotdog", size: 60)
+                SpriteImage(name: "dish_pancakes", size: 60)
             }
         default:
             HStack(spacing: 2) {

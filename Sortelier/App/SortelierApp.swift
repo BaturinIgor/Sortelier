@@ -15,10 +15,19 @@ struct SortelierApp: App {
                 .onAppear {
                     Analytics.start()
                     Audio.shared.start()
+                    PlayerProgress.shared.ensureWelcomeStart()
                 }
         }
         .onChange(of: scenePhase) { phase in
-            if phase == .active { Audio.shared.resume() }
+            switch phase {
+            case .active:
+                Audio.shared.resume()
+                Notifications.clearDelivered()
+            case .background:
+                Notifications.reschedule()
+            default:
+                break
+            }
         }
     }
 }
@@ -26,15 +35,16 @@ struct SortelierApp: App {
 struct LevelLaunch: Identifiable {
     let id = UUID()
     let level: LevelData
+    var mode: PlayMode = .main
 }
 
 struct RootView: View {
     @State private var launch: LevelLaunch?
 
     var body: some View {
-        MapView(play: { level in launch = LevelLaunch(level: level) })
+        MapView(play: { level, mode in launch = LevelLaunch(level: level, mode: mode) })
             .fullScreenCover(item: $launch) { item in
-                LevelHost(level: item.level, close: { launch = nil })
+                LevelHost(level: item.level, mode: item.mode, close: { launch = nil })
                     .environmentObject(PlayerProgress.shared)
                     .environmentObject(Lang.shared)
             }

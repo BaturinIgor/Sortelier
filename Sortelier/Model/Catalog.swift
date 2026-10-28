@@ -87,6 +87,8 @@ struct LevelData: Decodable, Identifiable {
     let best: Int
     let hard: Bool
     let intro: String?
+    /// Особое правило недельного испытания: noboosters, hidden, recipes.
+    let rule: String?
 }
 
 final class LevelStore {

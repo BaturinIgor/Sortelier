@@ -73,6 +73,13 @@ final class Lang: ObservableObject {
         order.kind == .dish ? dishName(order.target) : itemName(order.target)
     }
 
+    /// "30 мин", "2 ч", "1 ч 30 мин".
+    static func duration(minutes: Int) -> String {
+        if minutes >= 60 && minutes % 60 == 0 { return shared.t("time.hours", minutes / 60) }
+        if minutes >= 60 { return shared.t("time.hm", minutes / 60, minutes % 60) }
+        return shared.t("time.minutes", minutes)
+    }
+
     static func time(_ seconds: TimeInterval) -> String {
         let s = Int(seconds.rounded(.up))
         if s >= 3600 {

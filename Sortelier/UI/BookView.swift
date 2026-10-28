@@ -31,14 +31,18 @@ struct BookView: View {
                 HStack(spacing: 0) {
                     tabButton(0, lang.t("book.dishes"))
                     tabButton(1, lang.t("book.items"))
+                    tabButton(2, lang.t("book.rare"))
                 }
                 .background(Capsule().fill(Theme.card))
                 ScrollView(showsIndicators: false) {
+                    if tab == 2 { medalsRow }
                     LazyVGrid(columns: columns, spacing: 12) {
                         if tab == 0 {
                             ForEach(dishes, id: \.id) { dish in dishCard(dish) }
-                        } else {
+                        } else if tab == 1 {
                             ForEach(items, id: \.id) { item in itemCard(item) }
+                        } else {
+                            ForEach(RareCards.all, id: \.self) { id in rareCard(id) }
                         }
                     }
                     .padding(.bottom, 30)
@@ -101,6 +105,51 @@ struct BookView: View {
         .padding(10)
         .frame(maxWidth: .infinity)
         .background(card(gold: false))
+    }
+
+    private func rareCard(_ id: String) -> some View {
+        let open = progress.hasRare(id)
+        let name = Catalog.shared.dish(id) != nil ? lang.dishName(id) : lang.itemName(id)
+        return VStack(spacing: 6) {
+            if open {
+                GoldSprite(name: RareCards.sprite(id), size: 80)
+            } else {
+                SpriteImage(name: RareCards.sprite(id), size: 80, silhouette: true)
+            }
+            Text(open ? lang.t("book.rare.name", name) : "???")
+                .font(Theme.rounded(13, .heavy))
+                .foregroundColor(Theme.brown)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity)
+        .background(card(gold: open))
+    }
+
+    @ViewBuilder
+    private var medalsRow: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(lang.t("book.rare.hint"))
+                .font(Theme.rounded(13, .semibold))
+                .foregroundColor(Theme.brownSoft)
+                .fixedSize(horizontal: false, vertical: true)
+            if !progress.medals.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(progress.medals, id: \.self) { month in
+                            VStack(spacing: 2) {
+                                Image(systemName: "rosette").font(.system(size: 30)).foregroundColor(Theme.gold)
+                                Text(month).font(Theme.rounded(11, .bold)).foregroundColor(Theme.brownSoft)
+                            }
+                            .padding(8)
+                            .background(RoundedRectangle(cornerRadius: 12).fill(Theme.card))
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.bottom, 10)
     }
 
     private func card(gold: Bool) -> some View {

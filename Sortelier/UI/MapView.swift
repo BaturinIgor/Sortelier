@@ -2,13 +2,19 @@ import SwiftUI
 
 /// Карта биома 1: путь из 30 уровней, звезды и сундуки.
 struct MapView: View {
-    let play: (LevelData) -> Void
+    let play: (LevelData, PlayMode) -> Void
 
     @EnvironmentObject private var progress: PlayerProgress
     @EnvironmentObject private var lang: Lang
     @State private var showBook = false
     @State private var showLives = false
     @State private var showSettings = false
+    @State private var showStreak = false
+    @State private var showChallenges = false
+    @State private var showQuests = false
+    @State private var showAchievements = false
+    @State private var showBackgrounds = false
+    @State private var pendingLaunch: LevelLaunch?
     @State private var chest: Int?
 
     private let levels = LevelStore.shared.levels
@@ -20,6 +26,11 @@ struct MapView: View {
             path
             VStack(spacing: 0) {
                 topBar
+                HStack {
+                    Spacer()
+                    sideRail
+                }
+                .padding(.top, 10)
                 Spacer()
                 starsCard
             }
@@ -38,14 +49,56 @@ struct MapView: View {
         .sheet(isPresented: $showSettings) {
             SettingsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
         }
+        .sheet(isPresented: $showStreak) {
+            StreakSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+        }
+        .sheet(isPresented: $showChallenges, onDismiss: launchPending) {
+            ChallengesSheet(launch: $pendingLaunch).environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+        }
+        .sheet(isPresented: $showQuests) {
+            QuestsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+        }
+        .sheet(isPresented: $showAchievements) {
+            AchievementsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+        }
+        .sheet(isPresented: $showBackgrounds) {
+            BackgroundsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+        }
+    }
+
+    private func launchPending() {
+        guard let launch = pendingLaunch else { return }
+        pendingLaunch = nil
+        play(launch.level, launch.mode)
+    }
+
+    // MARK: - Боковые кнопки
+
+    private var sideRail: some View {
+        VStack(spacing: 12) {
+            railButton("book.fill", badge: false) { showBook = true }
+            railButton("calendar", badge: !progress.dailyDone()) { showChallenges = true }
+            if progress.welcomeActive {
+                railButton("gift.fill", badge: progress.questsClaimable) { showQuests = true }
+            }
+            railButton("trophy.fill", badge: progress.achievementsClaimable) { showAchievements = true }
+            railButton("paintpalette.fill", badge: false) { showBackgrounds = true }
+        }
+    }
+
+    private func railButton(_ symbol: String, badge: Bool, action: @escaping () -> Void) -> some View {
+        ZStack(alignment: .topTrailing) {
+            CircleIconButton(symbol: symbol, size: 48, action: action)
+            if badge { BadgeDot().offset(x: 2, y: -2) }
+        }
     }
 
     private var topBar: some View {
         HStack(spacing: 8) {
             Button { showLives = true } label: { LivesPill() }.buttonStyle(.plain)
             CoinsPill()
+            StreakButton { showStreak = true }
             Spacer()
-            CircleIconButton(symbol: "book.fill") { showBook = true }
             CircleIconButton(symbol: "gearshape.fill") { showSettings = true }
         }
         .padding(.top, 6)
@@ -83,7 +136,7 @@ struct MapView: View {
     }
 
     private func xOffset(_ id: Int, width: CGFloat) -> CGFloat {
-        let amplitude = min(110, width * 0.27)
+        let amplitude = min(92, width * 0.23)
         return CGFloat(sin(Double(id) * 0.9)) * amplitude
     }
 
@@ -110,7 +163,7 @@ struct MapView: View {
             Button {
                 guard unlocked else { return }
                 if progress.isPassed(level.id) || progress.hasLife {
-                    play(level)
+                    play(level, .main)
                 } else {
                     showLives = true
                 }
