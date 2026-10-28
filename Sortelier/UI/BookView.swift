@@ -33,22 +33,23 @@ struct BookView: View {
                 HStack(spacing: 0) {
                     tabButton(0, lang.t("book.dishes"))
                     tabButton(1, lang.t("book.items"))
-                    tabButton(2, lang.t("book.rare"))
+                    tabButton(2, lang.t("book.medals"))
                 }
                 .background(Capsule().fill(Theme.card))
                 if tab != 2 { biomePicker }
                 ScrollView(showsIndicators: false) {
-                    if tab == 2 { medalsRow }
-                    LazyVGrid(columns: columns, spacing: 12) {
-                        if tab == 0 {
-                            ForEach(dishes, id: \.id) { dish in dishCard(dish) }
-                        } else if tab == 1 {
-                            ForEach(items, id: \.id) { item in itemCard(item) }
-                        } else {
-                            ForEach(RareCards.all, id: \.self) { id in rareCard(id) }
+                    if tab == 2 {
+                        medalsRow
+                    } else {
+                        LazyVGrid(columns: columns, spacing: 12) {
+                            if tab == 0 {
+                                ForEach(dishes, id: \.id) { dish in dishCard(dish) }
+                            } else {
+                                ForEach(items, id: \.id) { item in itemCard(item) }
+                            }
                         }
+                        .padding(.bottom, 30)
                     }
-                    .padding(.bottom, 30)
                 }
             }
             .padding(.horizontal, 18)
@@ -138,30 +139,10 @@ struct BookView: View {
         }
     }
 
-    private func rareCard(_ id: String) -> some View {
-        let open = progress.hasRare(id)
-        let name = Catalog.shared.dish(id) != nil ? lang.dishName(id) : lang.itemName(id)
-        return VStack(spacing: 6) {
-            if open {
-                GoldSprite(name: RareCards.sprite(id), size: 80)
-            } else {
-                SpriteImage(name: RareCards.sprite(id), size: 80, silhouette: true)
-            }
-            Text(open ? lang.t("book.rare.name", name) : "???")
-                .font(Theme.rounded(13, .heavy))
-                .foregroundColor(Theme.brown)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-        }
-        .padding(10)
-        .frame(maxWidth: .infinity)
-        .background(card(gold: open))
-    }
-
     @ViewBuilder
     private var medalsRow: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(lang.t("book.rare.hint"))
+            Text(lang.t("book.medals.hint", ChallengeRewards.medalDaily, ChallengeRewards.medalWeekly))
                 .font(Theme.rounded(13, .semibold))
                 .foregroundColor(Theme.brownSoft)
                 .fixedSize(horizontal: false, vertical: true)

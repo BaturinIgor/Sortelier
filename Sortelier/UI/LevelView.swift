@@ -61,7 +61,6 @@ struct LevelContent: View {
     @State private var paused = false
     @State private var showIntro = false
     @State private var buyBooster: Booster?
-    @State private var toast: String?
     @State private var ruleIntro: String?
 
     private var overlayVisible: Bool {
@@ -91,17 +90,6 @@ struct LevelContent: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.bottom, 6)
-                if let text = toast {
-                    Text(text)
-                        .font(Theme.rounded(15, .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(Capsule().fill(Theme.brown.opacity(0.9)))
-                        .transition(.opacity)
-                        .frame(maxHeight: .infinity, alignment: .bottom)
-                        .padding(.bottom, 110)
-                }
                 overlays
             }
             .onAppear {
@@ -183,7 +171,7 @@ struct LevelContent: View {
         return Button {
             guard session.phase == .playing else { return }
             if count > 0 {
-                if !use() { flash(lang.t("booster.cant")) }
+                if !use() { Toast.error(lang.t("booster.cant")) }
             } else {
                 buyBooster = booster
             }
@@ -206,12 +194,6 @@ struct LevelContent: View {
         .buttonStyle(.plain)
     }
 
-    private func flash(_ text: String) {
-        withAnimation { toast = text }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
-            withAnimation { toast = nil }
-        }
-    }
 
     // MARK: - Окна
 
@@ -304,7 +286,6 @@ struct StuckView: View {
     let giveUp: () -> Void
     @EnvironmentObject private var lang: Lang
     @EnvironmentObject private var progress: PlayerProgress
-    @State private var message: String?
 
     var body: some View {
         ZStack {
@@ -320,14 +301,14 @@ struct StuckView: View {
                         .foregroundColor(Theme.brownSoft)
                         .multilineTextAlignment(.center)
                     Button {
-                        if !session.continueWithCoins() { message = lang.t("common.nocoins") }
+                        if !session.continueWithCoins() { Toast.error(lang.t("common.nocoins")) }
                     } label: {
                         HStack { Text(lang.t("stuck.shelf")); CoinIcon(size: 20); Text("\(session.continuePrice)") }
                     }
                     .buttonStyle(BigButtonStyle())
                     if !session.adContinueUsed {
                         Button {
-                            session.continueWithAd { ok in if !ok { message = lang.t("ads.limit") } }
+                            session.continueWithAd { ok in if !ok { Toast.error(lang.t("ads.limit")) } }
                         } label: {
                             HStack { AdIcon(); Text(lang.t("stuck.ad")) }
                         }
@@ -336,9 +317,6 @@ struct StuckView: View {
                     }
                     Button(lang.t(session.costsLife ? "stuck.giveup" : "stuck.giveup.replay"), action: giveUp)
                         .buttonStyle(BigButtonStyle(color: Theme.brownSoft))
-                    if let message = message {
-                        Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)
-                    }
                 }
                 .frame(maxWidth: 300)
             }
@@ -352,7 +330,6 @@ struct WinView: View {
     let close: () -> Void
     @EnvironmentObject private var lang: Lang
     @State private var shown = 0
-    @State private var message: String?
 
     var body: some View {
         ZStack {
@@ -386,15 +363,12 @@ struct WinView: View {
                         extras(result)
                         if result.reward.coinsAdded > 0 && !session.doubled {
                             Button {
-                                session.doubleCoins { ok in if !ok { message = lang.t("ads.limit") } }
+                                session.doubleCoins { ok in if !ok { Toast.error(lang.t("ads.limit")) } }
                             } label: {
                                 HStack { AdIcon(); Text(lang.t("win.double")) }
                             }
                             .buttonStyle(BigButtonStyle(color: Theme.green))
                             AdsLeftLabel()
-                        }
-                        if let message = message {
-                            Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)
                         }
                         HStack(spacing: 10) {
                             Button(lang.t("win.map"), action: close).buttonStyle(BigButtonStyle(color: Theme.brownSoft))
@@ -729,7 +703,6 @@ struct BuyBoosterView: View {
     let close: () -> Void
     @EnvironmentObject private var lang: Lang
     @EnvironmentObject private var progress: PlayerProgress
-    @State private var message: String?
 
     var body: some View {
         ZStack {
@@ -749,15 +722,12 @@ struct BuyBoosterView: View {
                         .foregroundColor(Theme.brownSoft)
                         .multilineTextAlignment(.center)
                     Button {
-                        if progress.buy(booster) { close() } else { message = lang.t("common.nocoins") }
+                        if progress.buy(booster) { close() } else { Toast.error(lang.t("common.nocoins")) }
                     } label: {
                         HStack { Text(lang.t("booster.buy")); CoinIcon(size: 20); Text("\(booster.price)") }
                     }
                     .buttonStyle(BigButtonStyle())
                     Button(lang.t("common.cancel"), action: close).buttonStyle(BigButtonStyle(color: Theme.brownSoft))
-                    if let message = message {
-                        Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)
-                    }
                 }
                 .frame(maxWidth: 290)
             }

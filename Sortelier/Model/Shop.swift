@@ -31,13 +31,14 @@ enum ShopItem: String, CaseIterable, Identifiable {
     var reward: Reward {
         switch self {
         case .starter:
-            return Reward(coins: 1000, boosters: [.hint: 2, .undo: 2, .shuffle: 2, .shelf: 2, .pause: 2], unlimitedMinutes: 60)
-        case .coinsS: return Reward(coins: 500)
-        case .coinsM: return Reward(coins: 1800)
-        case .coinsL: return Reward(coins: 3500)
-        case .coinsXL: return Reward(coins: 8000)
-        case .coinsXXL: return Reward(coins: 18000)
-        case .boosters: return Reward(boosters: [.hint: 3, .undo: 3, .shuffle: 3, .shelf: 3])
+            return Reward(coins: 1000, boosters: [.hint: 2, .undo: 2, .shuffle: 2, .shelf: 2, .pause: 2], unlimitedMinutes: 60,
+                          chests: [.silver: 1])
+        case .coinsS: return Reward(coins: 500, chests: [.bronze: 1])
+        case .coinsM: return Reward(coins: 1800, chests: [.silver: 1])
+        case .coinsL: return Reward(coins: 3500, chests: [.gold: 1])
+        case .coinsXL: return Reward(coins: 8000, chests: [.gold: 2])
+        case .coinsXXL: return Reward(coins: 18000, chests: [.gold: 2, .star: 1])
+        case .boosters: return Reward(boosters: [.hint: 3, .undo: 3, .shuffle: 3, .shelf: 3], chests: [.bronze: 1])
         case .lives: return Reward(unlimitedMinutes: 120)
         case .vipWeek, .vipMonth, .eventPass: return Reward()
         }
@@ -51,6 +52,17 @@ enum ShopItem: String, CaseIterable, Identifiable {
         case .coinsXL: return 60
         case .coinsXXL: return 80
         default: return nil
+        }
+    }
+
+    /// Картинка пака монет: стопка, горка, мешок, сундук, гора сокровищ.
+    var coinSprite: String {
+        switch self {
+        case .coinsS: return "coins_stack"
+        case .coinsM: return "coins_pile"
+        case .coinsL: return "coins_bag"
+        case .coinsXL: return "coins_chest"
+        default: return "coins_mountain"
         }
     }
 

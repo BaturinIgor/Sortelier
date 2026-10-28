@@ -14,7 +14,6 @@ struct ShopSheet: View {
     @Environment(\.presentationMode) private var presentation
     @State private var granted: Granted?
     @State private var vipActivated = false
-    @State private var message: String?
 
     private let columns = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
 
@@ -25,9 +24,6 @@ struct ShopSheet: View {
                 VStack(alignment: .leading, spacing: 14) {
                     SheetHeader(title: lang.t("shop.title"), subtitle: nil) { presentation.wrappedValue.dismiss() }
                     notice
-                    if let message = message {
-                        Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)
-                    }
                     VIPCard(buy: buy)
                     if !progress.starterBought { starter }
                     sectionTitle(lang.t("shop.coins"))
@@ -94,8 +90,8 @@ struct ShopSheet: View {
     private func coinTile(_ item: ShopItem) -> some View {
         VStack(spacing: 6) {
             ZStack(alignment: .topTrailing) {
-                CoinStack(count: ShopItem.coinPacks.firstIndex(of: item).map { $0 + 1 } ?? 1)
-                    .frame(height: 54)
+                SpriteImage(name: item.coinSprite, size: 74)
+                    .frame(height: 74)
                     .frame(maxWidth: .infinity)
                 if let bonus = item.bonusPercent {
                     Text("+\(bonus)%")
@@ -107,6 +103,14 @@ struct ShopSheet: View {
                 }
             }
             Text("\(item.reward.coins)").font(Theme.rounded(18, .heavy)).foregroundColor(Theme.brown).monospacedDigit()
+            HStack(spacing: 4) {
+                ForEach(item.reward.chestList.map { $0.0 }, id: \.self) { kind in
+                    SpriteImage(name: kind.sprite, size: 22)
+                    let n = item.reward.chests[kind.rawValue] ?? 1
+                    if n > 1 { Text("×\(n)").font(Theme.rounded(11, .heavy)).foregroundColor(Theme.brownSoft) }
+                }
+            }
+            .frame(height: 22)
             priceButton(item)
         }
         .padding(10)
@@ -145,9 +149,9 @@ struct ShopSheet: View {
             Button {
                 if progress.buy(booster) {
                     Audio.shared.play(.coin)
-                    message = nil
+                    Toast.success(lang.t("shop.bought", lang.t("booster." + booster.rawValue)))
                 } else {
-                    message = lang.t("common.nocoins")
+                    Toast.error(lang.t("common.nocoins"))
                 }
             } label: {
                 HStack(spacing: 4) { CoinIcon(size: 16); Text("\(booster.price)") }
@@ -187,7 +191,7 @@ struct ShopSheet: View {
             Button(lang.t("shop.restore")) {
                 Task { @MainActor in
                     let ok = await store.restore()
-                    message = ok ? nil : lang.t("shop.restore.failed")
+                    if ok { Toast.success(lang.t("shop.restored")) } else { Toast.error(lang.t("shop.restore.failed")) }
                 }
             }
             .font(Theme.rounded(15, .heavy))
@@ -205,7 +209,7 @@ struct ShopSheet: View {
 
     private func buy(_ item: ShopItem) {
         guard store.canPurchase else {
-            message = lang.t("shop.unavailable")
+            Toast.error(lang.t("shop.unavailable"))
             return
         }
         Task { @MainActor in
@@ -213,22 +217,21 @@ struct ShopSheet: View {
             case let .done(result):
                 Audio.shared.play(.chest)
                 Haptics.success()
-                message = nil
                 if item.isVIP {
                     vipActivated = true
                 } else if item == .eventPass {
-                    message = nil
+                    Toast.success(lang.t("event.pass.active"))
                 } else {
                     granted = result
                 }
             case .pending:
-                message = lang.t("shop.pending")
+                Toast.info(lang.t("shop.pending"), icon: "hourglass")
             case .cancelled:
                 break
             case .unavailable:
-                message = lang.t("shop.unavailable")
+                Toast.error(lang.t("shop.unavailable"))
             case .failed:
-                message = lang.t("shop.failed")
+                Toast.error(lang.t("shop.failed"))
             }
         }
     }

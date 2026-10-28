@@ -117,6 +117,7 @@ final class PlayerProgress: ObservableObject {
     func addCoins(_ amount: Int) {
         guard amount != 0 else { return }
         data.coins = max(0, data.coins + amount)
+        if amount > 0 { data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += amount }
         save()
     }
 
@@ -251,6 +252,7 @@ final class PlayerProgress: ObservableObject {
         data.best[String(level)] = max(previousBest, coins)
         data.stars[String(level)] = max(previousStars, newStars)
         data.coins += added
+        data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += added
         let firstThree = newStars == 3 && previousStars < 3
         var lifeReturned = false
         if firstThree && !unlimitedLives && data.lives < maxLives {
@@ -278,8 +280,10 @@ final class PlayerProgress: ObservableObject {
         data.chests.append(index)
         data.meta.stats[Stat.chests.rawValue, default: 0] += 1
         data.coins += chest.coins
+        data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += chest.coins
         for (booster, n) in chest.boosters { data.boosters[booster.rawValue, default: 0] += n }
         if chest.goldShelves { data.goldShelves = true }
+        if let album = chest.album { addChests([album.rawValue: 1]) }
         save()
         addUnlimitedLives(chest.unlimitedLives)
         Analytics.log("chest_open", ["stars": chest.stars])

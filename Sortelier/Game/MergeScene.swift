@@ -4,12 +4,13 @@ import UIKit
 /// Доска кладовой: клетки, предметы и генераторы. Перетаскивание сливает одинаковые предметы.
 final class MergeScene: SKScene {
     private let game: MergeGame
-    /// Тап по предмету: экран показывает цепочку.
-    var onSelect: ((MergeItem?) -> Void)?
+    /// Тап по предмету: экран показывает цепочку и кнопку продажи (клетка и предмет, nil - снять выбор).
+    var onSelect: ((Int?, MergeItem?) -> Void)?
     /// Тап по генератору без энергии или на полной доске.
     var onSpawnFail: ((MergeGame.SpawnResult) -> Void)?
 
     private let gridLayer = SKNode()
+    private let markLayer = SKNode()
     private let itemLayer = SKNode()
     private var itemNodes: [Int: SKSpriteNode] = [:]
     private var cell: CGFloat = 48
@@ -23,7 +24,9 @@ final class MergeScene: SKScene {
         scaleMode = .resizeFill
         backgroundColor = .clear
         addChild(gridLayer)
+        addChild(markLayer)
         addChild(itemLayer)
+        markLayer.zPosition = 1
         game.onChange = { [weak self] in self?.syncItems(animated: true) }
     }
 
@@ -135,6 +138,44 @@ final class MergeScene: SKScene {
                 node.removeFromParent()
             }
         }
+        updateMarks()
+    }
+
+    /// Предметы, которые нужны в заказах: зеленая клетка и галочка.
+    func updateMarks() {
+        markLayer.removeAllChildren()
+        itemLayer.children.filter { $0.name == "check" }.forEach { $0.removeFromParent() }
+        var wanted: [MergeItem: Int] = [:]
+        for order in game.data.orders {
+            for need in order.needs { wanted[need, default: 0] += 1 }
+        }
+        for i in 0..<MergeGame.cellCount {
+            guard let item = game.item(at: i), let left = wanted[item], left > 0 else { continue }
+            wanted[item] = left - 1
+            let tile = SKShapeNode(rectOf: CGSize(width: cell - 4, height: cell - 4), cornerRadius: 10)
+            tile.fillColor = UIColor(red: 0.55, green: 0.85, blue: 0.50, alpha: 0.55)
+            tile.strokeColor = UIColor(red: 0.30, green: 0.66, blue: 0.38, alpha: 1)
+            tile.lineWidth = 2
+            tile.position = center(of: i)
+            markLayer.addChild(tile)
+            let check = SKShapeNode(circleOfRadius: 7)
+            check.fillColor = UIColor(red: 0.30, green: 0.66, blue: 0.38, alpha: 1)
+            check.strokeColor = .white
+            check.lineWidth = 1.5
+            check.position = CGPoint(x: center(of: i).x + cell * 0.32, y: center(of: i).y - cell * 0.32)
+            check.zPosition = 60
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: -3, y: 0))
+            path.addLine(to: CGPoint(x: -1, y: -2.5))
+            path.addLine(to: CGPoint(x: 3.5, y: 2.5))
+            let mark = SKShapeNode(path: path)
+            mark.strokeColor = .white
+            mark.lineWidth = 1.8
+            mark.lineCap = .round
+            check.addChild(mark)
+            itemLayer.addChild(check)
+            check.name = "check"
+        }
     }
 
     // MARK: - Касания
@@ -147,7 +188,7 @@ final class MergeScene: SKScene {
         }
         guard let node = itemNodes[i] else {
             clearSelection()
-            onSelect?(nil)
+            onSelect?(nil, nil)
             return
         }
         node.zPosition = 50
@@ -192,12 +233,14 @@ final class MergeScene: SKScene {
             sparkle(at: center(of: target))
             Audio.shared.play(item.isMax ? .dish : .triple, volume: 0.8)
             Haptics.success()
-            onSelect?(item)
+            select(target)
         case .moved:
             itemNodes[target] = d.node
             itemNodes[d.index] = nil
             d.node.run(.group([.move(to: center(of: target), duration: 0.1), .scale(to: 1, duration: 0.1)]))
             Audio.shared.play(.place, volume: 0.7)
+            updateMarks()
+            onSelect?(nil, nil)
         case .swapped:
             let other = itemNodes[target]
             itemNodes[target] = d.node
@@ -205,6 +248,8 @@ final class MergeScene: SKScene {
             d.node.run(.group([.move(to: center(of: target), duration: 0.1), .scale(to: 1, duration: 0.1)]))
             other?.run(.move(to: center(of: d.index), duration: 0.12))
             Audio.shared.play(.place, volume: 0.7)
+            updateMarks()
+            onSelect?(nil, nil)
         }
     }
 
@@ -221,8 +266,21 @@ final class MergeScene: SKScene {
         switch game.spawn(from: index) {
         case let .spawned(cellIndex):
             if let node = itemNodes[cellIndex] {
-                node.position = center(of: index)
-                node.run(.move(to: center(of: cellIndex), duration: 0.18))
+                // полет по дуге: чем дальше клетка, тем дольше
+                let from = center(of: index)
+                let to = center(of: cellIndex)
+                let distance = hypot(to.x - from.x, to.y - from.y)
+                let duration = 0.16 + Double(distance) / 900
+                let path = CGMutablePath()
+                path.move(to: from)
+                path.addQuadCurve(to: to, control: CGPoint(x: (from.x + to.x) / 2, y: max(from.y, to.y) + cell * 0.8 + distance * 0.15))
+                node.removeAllActions()
+                node.position = from
+                node.setScale(0.4)
+                let fly = SKAction.follow(path, asOffset: false, orientToPath: false, duration: duration)
+                fly.timingMode = .easeInEaseOut
+                node.run(.sequence([.group([fly, .scale(to: 1, duration: duration)]),
+                                    .scale(to: 1.12, duration: 0.06), .scale(to: 1, duration: 0.08)]))
             }
             Audio.shared.play(.pick, volume: 0.7)
             Haptics.light()
@@ -237,7 +295,10 @@ final class MergeScene: SKScene {
 
     private func select(_ index: Int) {
         clearSelection()
-        guard let item = game.item(at: index) else { return }
+        guard let item = game.item(at: index) else {
+            onSelect?(nil, nil)
+            return
+        }
         let ring = SKShapeNode(rectOf: CGSize(width: cell - 2, height: cell - 2), cornerRadius: 11)
         ring.strokeColor = UIColor(red: 1, green: 0.7, blue: 0.15, alpha: 1)
         ring.lineWidth = 3
@@ -245,10 +306,10 @@ final class MergeScene: SKScene {
         ring.zPosition = 4
         gridLayer.addChild(ring)
         selection = ring
-        onSelect?(item)
+        onSelect?(index, item)
     }
 
-    private func clearSelection() {
+    func clearSelection() {
         selection?.removeFromParent()
         selection = nil
     }

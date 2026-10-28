@@ -2,7 +2,8 @@ import Foundation
 
 // MARK: - Награда
 
-/// Награда: монеты, бустеры, безлимитные жизни, жизни, редкая карточка, фон, энергия.
+/// Награда: монеты, бустеры, безлимитные жизни, жизни, фон, энергия, сундуки альбома.
+/// rareCard остался от старых сохранений: такая награда выдается медным сундуком.
 struct Reward: Codable, Hashable {
     var coins = 0
     var boosters: [String: Int] = [:]
@@ -11,9 +12,10 @@ struct Reward: Codable, Hashable {
     var rareCard = false
     var background: String?
     var energy = 0
+    var chests: [String: Int] = [:]
 
     init(coins: Int = 0, boosters: [Booster: Int] = [:], unlimitedMinutes: Int = 0, lives: Int = 0,
-         rareCard: Bool = false, background: String? = nil, energy: Int = 0) {
+         rareCard: Bool = false, background: String? = nil, energy: Int = 0, chests: [ChestKind: Int] = [:]) {
         self.coins = coins
         self.boosters = Dictionary(uniqueKeysWithValues: boosters.map { ($0.key.rawValue, $0.value) })
         self.unlimitedMinutes = unlimitedMinutes
@@ -21,6 +23,7 @@ struct Reward: Codable, Hashable {
         self.rareCard = rareCard
         self.background = background
         self.energy = energy
+        self.chests = Dictionary(uniqueKeysWithValues: chests.map { ($0.key.rawValue, $0.value) })
     }
 
     init(from decoder: Decoder) throws {
@@ -32,6 +35,14 @@ struct Reward: Codable, Hashable {
         rareCard = try c.decodeIfPresent(Bool.self, forKey: .rareCard) ?? false
         background = try c.decodeIfPresent(String.self, forKey: .background)
         energy = try c.decodeIfPresent(Int.self, forKey: .energy) ?? 0
+        chests = try c.decodeIfPresent([String: Int].self, forKey: .chests) ?? [:]
+    }
+
+    var chestList: [(ChestKind, Int)] {
+        ChestKind.allCases.compactMap { k in
+            guard let n = chests[k.rawValue], n > 0 else { return nil }
+            return (k, n)
+        }
     }
 
     var boosterList: [(Booster, Int)] {
@@ -43,6 +54,7 @@ struct Reward: Codable, Hashable {
 
     var isEmpty: Bool {
         coins == 0 && boosterList.isEmpty && unlimitedMinutes == 0 && lives == 0 && !rareCard && background == nil && energy == 0
+            && chestList.isEmpty
     }
 
     static func + (a: Reward, b: Reward) -> Reward {
@@ -54,6 +66,7 @@ struct Reward: Codable, Hashable {
         r.rareCard = a.rareCard || b.rareCard
         r.background = a.background ?? b.background
         r.energy += b.energy
+        for (k, v) in b.chests { r.chests[k, default: 0] += v }
         return r
     }
 }
@@ -71,6 +84,7 @@ enum Stat: String, CaseIterable {
     case levelsWon, served, tips, dishes, triples, threeStars, maxCombo, boostersUsed
     case dailyDone, weeklyDone, weeklyLevels, streakBest, rareCards, cards, chests, chefBest
     case merges, mergeOrders
+    case gourmets, eventRewards, medals, kitchens, coinsEarned, albumCards, booksDone, raceWins
 }
 
 // MARK: - Сохранение меты
@@ -121,6 +135,11 @@ struct MetaData: Codable {
     var starterBought = false
     var deliveredTx: [String] = []
     var passCredits = 0
+    // Альбом карточек, сундуки в запасе, короткие гонки, шкала звезд ачивок
+    var album = AlbumState()
+    var chestInventory: [String: Int] = [:]
+    var race = RaceState()
+    var achievementTrack: [Int] = []
 
     init() {}
 
@@ -150,6 +169,10 @@ struct MetaData: Codable {
         starterBought = try c.decodeIfPresent(Bool.self, forKey: .starterBought) ?? false
         deliveredTx = try c.decodeIfPresent([String].self, forKey: .deliveredTx) ?? []
         passCredits = try c.decodeIfPresent(Int.self, forKey: .passCredits) ?? 0
+        album = try c.decodeIfPresent(AlbumState.self, forKey: .album) ?? AlbumState()
+        chestInventory = try c.decodeIfPresent([String: Int].self, forKey: .chestInventory) ?? [:]
+        race = try c.decodeIfPresent(RaceState.self, forKey: .race) ?? RaceState()
+        achievementTrack = try c.decodeIfPresent([Int].self, forKey: .achievementTrack) ?? []
     }
 }
 
@@ -296,7 +319,7 @@ enum WelcomeQuests {
         Quest(id: "d3a", day: 3, stat: .levelsWon, target: 8, reward: Reward(coins: 80)),
         Quest(id: "d3b", day: 3, stat: .tips, target: 40, reward: Reward(coins: 60)),
         Quest(id: "d3c", day: 3, stat: .boostersUsed, target: 1, reward: Reward(boosters: [.shelf: 1])),
-        Quest(id: "d4a", day: 4, stat: .dailyDone, target: 1, reward: Reward(coins: 100)),
+        Quest(id: "d4a", day: 4, stat: .dailyDone, target: 1, reward: Reward(coins: 100, chests: [.bronze: 1])),
         Quest(id: "d4b", day: 4, stat: .levelsWon, target: 11, reward: Reward(coins: 80)),
         Quest(id: "d4c", day: 4, stat: .dishes, target: 8, reward: Reward(boosters: [.hint: 1, .undo: 1])),
         Quest(id: "d5a", day: 5, stat: .levelsWon, target: 14, reward: Reward(coins: 100)),
@@ -307,7 +330,7 @@ enum WelcomeQuests {
         Quest(id: "d6c", day: 6, stat: .tips, target: 200, reward: Reward(boosters: [.shelf: 1])),
         Quest(id: "d7a", day: 7, stat: .levelsWon, target: 20, reward: Reward(coins: 150)),
         Quest(id: "d7b", day: 7, stat: .dishes, target: 25, reward: Reward(coins: 150)),
-        Quest(id: "d7c", day: 7, stat: .threeStars, target: 10, reward: Reward(rareCard: true))
+        Quest(id: "d7c", day: 7, stat: .threeStars, target: 10, reward: Reward(chests: [.silver: 1]))
     ]
 
     /// Главный приз за все задания: эксклюзивный фон закусочной.
@@ -320,8 +343,12 @@ enum WelcomeQuests {
 
 // MARK: - Ачивки
 
+/// Ачивка: у каждой 5 звезд-ступеней. Категории - вкладки на экране ачивок.
 struct Achievement: Identifiable {
+    enum Category: String, CaseIterable { case kitchen, habits, collection, pantry }
+
     let id: String
+    let category: Category
     let stat: Stat
     let tiers: [Int]
     let symbol: String
@@ -329,31 +356,70 @@ struct Achievement: Identifiable {
 
 enum Achievements {
     static let all: [Achievement] = [
-        Achievement(id: "chef", stat: .levelsWon, tiers: [10, 30, 60, 90], symbol: "flag.checkered"),
-        Achievement(id: "host", stat: .served, tiers: [50, 250, 1000, 3000], symbol: "person.3.fill"),
-        Achievement(id: "tips", stat: .tips, tiers: [100, 500, 2000, 6000], symbol: "dollarsign.circle.fill"),
-        Achievement(id: "cook", stat: .dishes, tiers: [10, 50, 200, 600], symbol: "fork.knife"),
-        Achievement(id: "stars", stat: .threeStars, tiers: [5, 15, 30, 60], symbol: "star.fill"),
-        Achievement(id: "combo", stat: .maxCombo, tiers: [4, 6, 8, 10], symbol: "bolt.fill"),
-        Achievement(id: "streak", stat: .streakBest, tiers: [3, 7, 14, 30], symbol: "flame.fill"),
-        Achievement(id: "daily", stat: .dailyDone, tiers: [3, 10, 30, 100], symbol: "calendar"),
-        Achievement(id: "weekly", stat: .weeklyDone, tiers: [1, 4, 12, 26], symbol: "calendar.badge.clock"),
-        Achievement(id: "cards", stat: .cards, tiers: [10, 20, 31, 45], symbol: "book.fill"),
-        Achievement(id: "rare", stat: .rareCards, tiers: [1, 4, 8, 12], symbol: "sparkles"),
-        Achievement(id: "series", stat: .chefBest, tiers: [3, 6, 10, 15], symbol: "crown.fill"),
-        Achievement(id: "boosters", stat: .boostersUsed, tiers: [5, 20, 50, 120], symbol: "wand.and.stars"),
-        Achievement(id: "chests", stat: .chests, tiers: [1, 2, 3, 6], symbol: "gift.fill"),
-        Achievement(id: "merge", stat: .mergeOrders, tiers: [5, 20, 60, 150], symbol: "square.grid.3x3.fill")
+        // кухня
+        Achievement(id: "chef", category: .kitchen, stat: .levelsWon, tiers: [10, 30, 50, 70, 90], symbol: "flag.checkered"),
+        Achievement(id: "host", category: .kitchen, stat: .served, tiers: [50, 250, 1000, 3000, 8000], symbol: "person.3.fill"),
+        Achievement(id: "tips", category: .kitchen, stat: .tips, tiers: [100, 500, 2000, 6000, 15000], symbol: "dollarsign.circle.fill"),
+        Achievement(id: "cook", category: .kitchen, stat: .dishes, tiers: [10, 50, 200, 600, 1500], symbol: "fork.knife"),
+        Achievement(id: "trio", category: .kitchen, stat: .triples, tiers: [20, 100, 400, 1200, 3000], symbol: "square.stack.3d.up.fill"),
+        Achievement(id: "stars", category: .kitchen, stat: .threeStars, tiers: [5, 15, 30, 60, 90], symbol: "star.fill"),
+        Achievement(id: "combo", category: .kitchen, stat: .maxCombo, tiers: [4, 6, 8, 10, 12], symbol: "bolt.fill"),
+        Achievement(id: "gourmet", category: .kitchen, stat: .gourmets, tiers: [1, 5, 15, 40, 100], symbol: "crown.fill"),
+        // регулярность
+        Achievement(id: "streak", category: .habits, stat: .streakBest, tiers: [3, 7, 14, 30, 60], symbol: "flame.fill"),
+        Achievement(id: "daily", category: .habits, stat: .dailyDone, tiers: [3, 10, 30, 100, 200], symbol: "calendar"),
+        Achievement(id: "weekly", category: .habits, stat: .weeklyDone, tiers: [1, 4, 12, 26, 52], symbol: "calendar.badge.clock"),
+        Achievement(id: "series", category: .habits, stat: .chefBest, tiers: [3, 6, 10, 15, 25], symbol: "medal.fill"),
+        Achievement(id: "events", category: .habits, stat: .eventRewards, tiers: [3, 10, 25, 60, 120], symbol: "sparkles"),
+        Achievement(id: "racer", category: .habits, stat: .raceWins, tiers: [1, 5, 15, 40, 100], symbol: "flag.2.crossed.fill"),
+        // коллекция
+        Achievement(id: "cards", category: .collection, stat: .cards, tiers: [10, 30, 50, 70, 86], symbol: "book.fill"),
+        Achievement(id: "album", category: .collection, stat: .albumCards, tiers: [10, 25, 45, 65, 84], symbol: "rectangle.stack.fill"),
+        Achievement(id: "books", category: .collection, stat: .booksDone, tiers: [1, 3, 5, 7, 9], symbol: "books.vertical.fill"),
+        Achievement(id: "chests", category: .collection, stat: .chests, tiers: [5, 20, 60, 150, 400], symbol: "shippingbox.fill"),
+        Achievement(id: "kitchens", category: .collection, stat: .kitchens, tiers: [2, 4, 6, 9, 12], symbol: "paintpalette.fill"),
+        // кладовая и бустеры
+        Achievement(id: "merge", category: .pantry, stat: .mergeOrders, tiers: [5, 20, 60, 150, 400], symbol: "square.grid.3x3.fill"),
+        Achievement(id: "merges", category: .pantry, stat: .merges, tiers: [20, 100, 400, 1200, 3000], symbol: "arrow.triangle.merge"),
+        Achievement(id: "boosters", category: .pantry, stat: .boostersUsed, tiers: [5, 20, 50, 120, 300], symbol: "wand.and.stars"),
+        Achievement(id: "rich", category: .pantry, stat: .coinsEarned, tiers: [1000, 5000, 20000, 60000, 150000], symbol: "bitcoinsign.circle.fill")
     ]
+
+    static var maxStars: Int { all.reduce(0) { $0 + $1.tiers.count } }
 
     static func reward(tier: Int) -> Reward {
         switch tier {
         case 0: return Reward(coins: 50)
-        case 1: return Reward(coins: 150, boosters: [.hint: 1])
-        case 2: return Reward(coins: 400, boosters: [.hint: 1, .undo: 1, .shelf: 1])
-        default: return Reward(coins: 800, unlimitedMinutes: 60, rareCard: true)
+        case 1: return Reward(coins: 120, boosters: [.hint: 1])
+        case 2: return Reward(coins: 250, boosters: [.undo: 1, .shuffle: 1])
+        case 3: return Reward(coins: 500, chests: [.bronze: 1])
+        default: return Reward(coins: 900, unlimitedMinutes: 60, chests: [.silver: 1])
         }
     }
+}
+
+/// Шкала наград за общее число звезд ачивок.
+enum AchievementTrack {
+    struct Milestone: Identifiable {
+        let stars: Int
+        let reward: Reward
+        var id: Int { stars }
+    }
+
+    static let milestones: [Milestone] = [
+        Milestone(stars: 5, reward: Reward(coins: 200)),
+        Milestone(stars: 10, reward: Reward(boosters: [.hint: 1, .undo: 1, .shuffle: 1])),
+        Milestone(stars: 15, reward: Reward(coins: 300, chests: [.bronze: 1])),
+        Milestone(stars: 22, reward: Reward(unlimitedMinutes: 60, energy: 30)),
+        Milestone(stars: 30, reward: Reward(coins: 500, chests: [.silver: 1])),
+        Milestone(stars: 40, reward: Reward(boosters: [.hint: 2, .undo: 2, .shelf: 1, .pause: 1])),
+        Milestone(stars: 50, reward: Reward(coins: 800, chests: [.silver: 1])),
+        Milestone(stars: 62, reward: Reward(unlimitedMinutes: 180, energy: 60)),
+        Milestone(stars: 75, reward: Reward(coins: 1200, chests: [.gold: 1])),
+        Milestone(stars: 90, reward: Reward(coins: 1500, boosters: [.hint: 3, .undo: 3, .shuffle: 3, .shelf: 2])),
+        Milestone(stars: 105, reward: Reward(coins: 2000, chests: [.gold: 2])),
+        Milestone(stars: 115, reward: Reward(coins: 5000, unlimitedMinutes: 360, chests: [.star: 1]))
+    ]
 }
 
 // MARK: - Фоны кухни
@@ -397,7 +463,7 @@ enum StreakRewards {
 
     static func reward(day: Int) -> Reward {
         let i = max(1, min(7, day)) - 1
-        return Reward(coins: coins[i], rareCard: day == 7)
+        return Reward(coins: coins[i], chests: day == 7 ? [.silver: 1] : (day == 4 ? [.bronze: 1] : [:]))
     }
 }
 
@@ -411,10 +477,9 @@ enum ChefSeries {
 }
 
 enum ChallengeRewards {
-    static let daily = Reward(coins: 50)
-    static let dailyRareChance = 0.1
-    static let weekly = Reward(coins: 300, boosters: [.hint: 1, .undo: 1], rareCard: true)
-    static let medal = Reward(coins: 1500, boosters: [.hint: 2, .undo: 2, .shelf: 1], rareCard: true)
+    static let daily = Reward(coins: 50, chests: [.bronze: 1])
+    static let weekly = Reward(coins: 300, boosters: [.hint: 1, .undo: 1], chests: [.silver: 1])
+    static let medal = Reward(coins: 1500, boosters: [.hint: 2, .undo: 2, .shelf: 1], chests: [.gold: 1])
     static let medalDaily = 20
     static let medalWeekly = 4
 }

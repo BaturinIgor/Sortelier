@@ -21,6 +21,7 @@ struct MapView: View {
     @State private var chest: Int?
     @State private var openedBiome: Int?
     @State private var showShop = false
+    @State private var showAlbum = false
     @State private var vipDaily: Granted?
 
     private let rowHeight: CGFloat = 96
@@ -55,6 +56,9 @@ struct MapView: View {
             Audio.shared.setTrack(Biomes.music(progress.mapBiome))
             progress.applyPassCredit()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { vipDaily = progress.claimVIPDaily() }
+        }
+        .sheet(isPresented: $showAlbum) {
+            AlbumSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showShop) {
             ShopSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
@@ -104,6 +108,17 @@ struct MapView: View {
     private var sideRail: some View {
         VStack(spacing: 12) {
             railButton("cart.fill", badge: !progress.starterBought && progress.isPassed(5)) { showShop = true }
+            ZStack(alignment: .bottomTrailing) {
+                railButton("rectangle.stack.fill", badge: progress.albumClaimable) { showAlbum = true }
+                if progress.chestsWaiting > 0 {
+                    Text("\(progress.chestsWaiting)")
+                        .font(Theme.rounded(11, .heavy))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 5)
+                        .background(Capsule().fill(Theme.green))
+                        .offset(x: 4, y: 2)
+                }
+            }
             railButton("book.fill", badge: false) { showBook = true }
             railButton("sparkles", badge: progress.eventsClaimable) { showEvents = true }
             railButton("square.grid.3x3.fill", badge: progress.energy >= MergeBalance.maxEnergy) { showMerge = true }
@@ -391,7 +406,6 @@ struct BiomeGate: View {
     let opened: () -> Void
     @EnvironmentObject private var progress: PlayerProgress
     @EnvironmentObject private var lang: Lang
-    @State private var message: String?
 
     var body: some View {
         let reached = progress.biomeGateReached(biome)
@@ -433,9 +447,6 @@ struct BiomeGate: View {
                         }
                         .buttonStyle(BigButtonStyle())
                     }
-                    if let message = message {
-                        Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)
-                    }
                 }
             }
             .frame(maxWidth: .infinity)
@@ -448,7 +459,7 @@ struct BiomeGate: View {
             Audio.shared.play(.unlock)
             opened()
         } else {
-            message = lang.t("common.nocoins")
+            Toast.error(lang.t("common.nocoins"))
         }
     }
 }
@@ -543,6 +554,9 @@ struct ChestPopup: View {
                         if chest.goldShelves {
                             rewardRow(AnyView(SpriteImage(name: "shelf_gold", size: 34)), lang.t("chest.goldshelves"))
                         }
+                        if let album = chest.album {
+                            rewardRow(AnyView(SpriteImage(name: album.sprite, size: 34)), lang.t("chest.kind." + album.rawValue))
+                        }
                     }
                     if claimed {
                         Text(lang.t("chest.claimed"))
@@ -584,7 +598,6 @@ struct LivesSheet: View {
     @EnvironmentObject private var progress: PlayerProgress
     @EnvironmentObject private var lang: Lang
     @Environment(\.presentationMode) private var presentation
-    @State private var message: String?
 
     var body: some View {
         ZStack {
@@ -610,7 +623,7 @@ struct LivesSheet: View {
                         if progress.refillLives() {
                             presentation.wrappedValue.dismiss()
                         } else {
-                            message = lang.t("common.nocoins")
+                            Toast.error(lang.t("common.nocoins"))
                         }
                     } label: {
                         HStack { Text(lang.t("lives.refill")); CoinIcon(size: 20); Text("\(Balance.livesRefillPrice)") }
@@ -618,7 +631,7 @@ struct LivesSheet: View {
                     .buttonStyle(BigButtonStyle())
                     Button {
                         Ads.shared.showRewarded(placement: "life") { ok in
-                            if ok { progress.addLife() } else { message = lang.t("ads.limit") }
+                            if ok { progress.addLife() } else { Toast.error(lang.t("ads.limit")) }
                         }
                     } label: {
                         HStack { AdIcon(); Text(lang.t("lives.ad")) }
@@ -634,9 +647,9 @@ struct LivesSheet: View {
                                 Audio.shared.play(.chest)
                                 presentation.wrappedValue.dismiss()
                             case .unavailable:
-                                message = lang.t("shop.unavailable")
+                                Toast.error(lang.t("shop.unavailable"))
                             case .failed:
-                                message = lang.t("shop.failed")
+                                Toast.error(lang.t("shop.failed"))
                             default:
                                 break
                             }
@@ -645,9 +658,6 @@ struct LivesSheet: View {
                         HStack { Image(systemName: "infinity"); Text(lang.t("lives.buy")); Text(Store.shared.price(.lives)) }
                     }
                     .buttonStyle(BigButtonStyle(color: Theme.vip))
-                }
-                if let message = message {
-                    Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)
                 }
                 Spacer()
             }
@@ -672,22 +682,33 @@ struct SettingsSheet: View {
                 toggle(lang.t("settings.music"), "music.note", \.music)
                 toggle(lang.t("settings.sound"), "speaker.wave.2.fill", \.sound)
                 toggle(lang.t("settings.haptics"), "iphone.radiowaves.left.and.right", \.haptics)
-                Text(lang.t("settings.language"))
-                    .font(Theme.rounded(16, .bold))
-                    .foregroundColor(Theme.brownSoft)
-                ForEach(Lang.options) { option in
-                    Button { lang.set(option.code) } label: {
-                        HStack {
-                            Text(option.name).font(Theme.rounded(18, .bold)).foregroundColor(Theme.brown)
-                            Spacer()
+                Menu {
+                    ForEach(Lang.options) { option in
+                        Button {
+                            lang.set(option.code)
+                        } label: {
                             if option.code == lang.code {
-                                Image(systemName: "checkmark.circle.fill").foregroundColor(Theme.green)
+                                Label(option.name, systemImage: "checkmark")
+                            } else {
+                                Text(option.name)
                             }
                         }
-                        .padding(14)
-                        .background(RoundedRectangle(cornerRadius: 14).fill(Theme.card))
                     }
-                    .buttonStyle(.plain)
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "globe")
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(Theme.orange)
+                            .frame(width: 26)
+                        Text(lang.t("settings.language")).font(Theme.rounded(18, .bold)).foregroundColor(Theme.brown)
+                        Spacer()
+                        Text(lang.name).font(Theme.rounded(16, .semibold)).foregroundColor(Theme.brownSoft)
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(Theme.brownSoft)
+                    }
+                    .padding(14)
+                    .background(RoundedRectangle(cornerRadius: 14).fill(Theme.card))
                 }
                 Text(lang.t("settings.player", String(progress.playerId.prefix(8))))
                     .font(Theme.rounded(13, .medium))

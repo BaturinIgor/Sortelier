@@ -3030,6 +3030,255 @@ def focaccia():
     return rotate_all(parts, (math.radians(30), 0, math.radians(-12)))
 
 
+# MARK: - Монеты и сундуки (магазин, альбом)
+
+def gold_mat(name="CoinGold"):
+    return material(name, [(0.0, (0.86, 0.55, 0.10)), (0.5, (1.0, 0.80, 0.25)), (1.0, (1.0, 0.92, 0.55))],
+                    coord="nz", lo=-1, hi=1, rough=0.22, metal=1.0)
+
+
+def coin_obj(name, x=0.0, y=0.0, z=0.0, rot=(0, 0, 0), r=0.42, mat=None):
+    """Монета: диск с фаской, бортиком и выпуклой звездой."""
+    mat = mat or gold_mat()
+    body = cylinder(name, r, 0.09, 40)
+    bevel(body, 0.025, 2, 30)
+    smooth(body, 35)
+    assign(body, mat)
+    rim = torus(name + "Rim", r * 0.86, 0.018, 40, 8)
+    rim.location = (0, 0, 0.045)
+    apply_transform(rim)
+    assign(smooth(rim), mat)
+    pts = []
+    for k in range(10):
+        a = math.pi / 2 + k * math.pi / 5
+        rr = r * (0.5 if k % 2 == 0 else 0.22)
+        pts.append((rr * math.cos(a), rr * math.sin(a)))
+    star = profile_prism(name + "Star", pts, 0.025, 0.04)
+    bevel(star, 0.006, 1, 30)
+    assign(star, mat)
+    parts = [body, rim, star]
+    rotate_all(parts, rot)
+    for o in parts:
+        o.location = (o.location.x + x, o.location.y + y, o.location.z + z)
+    return parts
+
+
+def coin_heap(seed, n, radius, height, z0=0.0, cx=0.0, cy=0.0):
+    """Горка монет: монеты лежат на поверхности конуса под случайными углами."""
+    rnd = random.Random(seed)
+    parts = []
+    mat = gold_mat(f"HeapGold{seed}")
+    for i in range(n):
+        a = rnd.uniform(0, 6.28)
+        d = radius * math.sqrt(rnd.random())
+        z = z0 + height * (1 - d / radius) + rnd.uniform(-0.02, 0.05)
+        rot = (rnd.uniform(-0.6, 0.6), rnd.uniform(-0.6, 0.6), rnd.uniform(0, 6.28))
+        parts += coin_obj(f"Heap{seed}_{i}", cx + d * math.cos(a), cy + d * math.sin(a), z, rot, r=0.3, mat=mat)
+    return parts
+
+
+def coins_stack():
+    parts = []
+    mat = gold_mat()
+    rnd = random.Random(2)
+    for si, (x, y, n) in enumerate(((-0.35, 0.1, 7), (0.32, -0.05, 5), (0.0, -0.45, 3))):
+        for k in range(n):
+            parts += coin_obj(f"S{si}_{k}", x + rnd.uniform(-0.03, 0.03), y + rnd.uniform(-0.03, 0.03), k * 0.095,
+                              (0, 0, rnd.uniform(0, 6.28)), mat=mat)
+    parts += coin_obj("Lean", 0.55, 0.45, 0.25, (math.radians(70), 0, math.radians(-30)), mat=mat)
+    return rotate_all(parts, (math.radians(10), 0, 0))
+
+
+def coins_pile():
+    parts = coin_heap(4, 46, 1.0, 0.75)
+    return rotate_all(parts, (math.radians(8), 0, 0))
+
+
+def coins_bag():
+    cloth = material("Sack", [(0.0, (0.62, 0.42, 0.22)), (1.0, (0.86, 0.66, 0.40))], coord="z", lo=0.0, hi=1.8,
+                     rough=0.85, bump=0.35, bump_scale=40, bump_detail=6)
+    bag = lathe("Bag", [(0.0, 0.0), (0.55, 0.02), (0.85, 0.25), (0.95, 0.6), (0.85, 1.0), (0.45, 1.3), (0.28, 1.42),
+                        (0.42, 1.62), (0.5, 1.78), (0.3, 1.82), (0.0, 1.75)], 64)
+    def wrinkle(co, n):
+        a = math.atan2(co.y, co.x)
+        return 0.035 * math.sin(a * 9 + co.z * 3) * (1 if co.z > 1.25 else 0.3)
+    push_normals(bag, wrinkle)
+    subdivide(bag, 1)
+    smooth(bag)
+    assign(bag, cloth)
+    rope = torus("Rope", 0.31, 0.06, 48, 12)
+    rope.location = (0, 0, 1.42)
+    apply_transform(rope)
+    assign(smooth(rope), material("RopeMat", [(0.0, (0.55, 0.20, 0.12)), (1.0, (0.80, 0.30, 0.18))], coord="z",
+                                  lo=1.35, hi=1.5, rough=0.6, bump=0.4, bump_scale=60))
+    # знак монеты на мешке
+    emblem = coin_obj("Emblem", 0, -0.93, 0.62, (math.radians(90), 0, 0), r=0.32)
+    parts = [bag, rope] + emblem
+    parts += coin_heap(7, 14, 0.7, 0.15, 0.0, 0.85, -0.55)
+    return rotate_all(parts, (0, 0, math.radians(-15)))
+
+
+GLOW = False
+
+
+def chest_obj(kind="bronze", is_open=False, filled="cards"):
+    """Сундук: деревянный корпус, полукруглая крышка, металлические полосы и замок."""
+    palette = {
+        "bronze": ((0.45, 0.25, 0.12), (0.62, 0.38, 0.18), ((0.62, 0.32, 0.14), (0.92, 0.58, 0.30))),
+        "silver": ((0.20, 0.32, 0.52), (0.32, 0.48, 0.72), ((0.62, 0.66, 0.72), (0.95, 0.97, 1.0))),
+        "gold": ((0.55, 0.12, 0.10), (0.78, 0.22, 0.16), ((0.86, 0.55, 0.10), (1.0, 0.88, 0.40))),
+        "star": ((0.30, 0.14, 0.50), (0.50, 0.26, 0.78), ((0.86, 0.55, 0.10), (1.0, 0.88, 0.40))),
+        "coins": ((0.42, 0.24, 0.12), (0.62, 0.38, 0.18), ((0.86, 0.55, 0.10), (1.0, 0.88, 0.40))),
+    }[kind]
+    wood = material(f"Wood{kind}", [(0.0, palette[0]), (1.0, palette[1])], coord="z", lo=0.0, hi=1.6, rough=0.55,
+                    coat=0.3, bump=0.2, bump_scale=8, vary=0.15, vary_scale=6)
+    metal = material(f"Metal{kind}", [(0.0, palette[2][0]), (1.0, palette[2][1])], coord="nz", lo=-1, hi=1,
+                     rough=0.25, metal=1.0)
+    w, d, h = 1.7, 1.1, 0.85
+    # корпус ниже кромки: внутри сундука видно дно, кромка из досок вокруг
+    body = box_mesh("Body", w, d, h - 0.14, 0.0)
+    bevel(body, 0.05, 3, 30)
+    assign(smooth(body, 30), wood)
+    parts = [body]
+    for i, (sx, sy, x, y) in enumerate(((w, 0.12, 0, -d / 2 + 0.06), (w, 0.12, 0, d / 2 - 0.06),
+                                        (0.12, d, -w / 2 + 0.06, 0), (0.12, d, w / 2 - 0.06, 0))):
+        wall = box_mesh(f"Wall{i}", sx, sy, 0.3, h - 0.3)
+        wall.location = (x, y, 0)
+        apply_transform(wall)
+        bevel(wall, 0.03, 2, 30)
+        assign(smooth(wall, 30), wood)
+        parts.append(wall)
+    # полосы и уголки корпуса
+    for x in (-0.55, 0.55):
+        for side in (-1, 1):
+            band = box_mesh(f"Band{x}{side}", 0.14, 0.04, h + 0.02, -0.01)
+            band.location = (x, side * (d / 2 + 0.01), 0)
+            apply_transform(band)
+            bevel(band, 0.015, 2, 30)
+            assign(smooth(band, 30), metal)
+            parts.append(band)
+        under = box_mesh(f"BandBottom{x}", 0.14, d + 0.04, 0.03, -0.02)
+        under.location = (x, 0, 0)
+        apply_transform(under)
+        assign(under, metal)
+        parts.append(under)
+    # окантовка верха - рамка, чтобы внутри был виден темный деревянный пол
+    for i, (sx, sy, x, y) in enumerate(((w + 0.04, 0.08, 0, -d / 2), (w + 0.04, 0.08, 0, d / 2),
+                                        (0.08, d + 0.04, -w / 2, 0), (0.08, d + 0.04, w / 2, 0))):
+        rim = box_mesh(f"Rim{i}", sx, sy, 0.1, h - 0.1)
+        rim.location = (x, y, 0)
+        apply_transform(rim)
+        bevel(rim, 0.02, 2, 30)
+        assign(smooth(rim, 30), metal)
+        parts.append(rim)
+
+    # крышка: половина цилиндра вдоль X
+    lid_parts = []
+    lid = cylinder("Lid", d / 2, w, 48)
+    lid.rotation_euler = (0, math.radians(90), 0)
+    apply_transform(lid)
+    bisect(lid, (0, 0, 0), (0, 0, -1))
+    lid.location = (0, 0, h)
+    apply_transform(lid)
+    bevel(lid, 0.04, 3, 30)
+    assign(smooth(lid, 30), wood)
+    lid_parts.append(lid)
+    for x in (-0.55, 0.55):
+        b = cylinder(f"LidBand{x}", d / 2 + 0.025, 0.14, 48)
+        b.rotation_euler = (0, math.radians(90), 0)
+        apply_transform(b)
+        bisect(b, (0, 0, 0), (0, 0, -1))
+        b.location = (x, 0, h)
+        apply_transform(b)
+        assign(smooth(b, 30), metal)
+        lid_parts.append(b)
+    lock = box_mesh("Lock", 0.3, 0.08, 0.36, h - 0.25)
+    lock.location = (0, -d / 2 - 0.04, 0)
+    apply_transform(lock)
+    bevel(lock, 0.04, 3, 30)
+    assign(smooth(lock, 30), metal)
+    hole = cylinder("KeyHole", 0.04, 0.04, 16)
+    hole.rotation_euler = (math.radians(90), 0, 0)
+    hole.location = (0, -d / 2 - 0.09, h - 0.1)
+    apply_transform(hole)
+    assign(hole, flat("HoleMat", (0.08, 0.05, 0.03), rough=0.6))
+    parts += [lock, hole]
+    if kind == "star":
+        pts = []
+        for k in range(10):
+            a = math.pi / 2 + k * math.pi / 5
+            rr = 0.32 if k % 2 == 0 else 0.13
+            pts.append((rr * math.cos(a), rr * math.sin(a)))
+        star = profile_prism("StarEmblem", pts, 0.05)
+        star.rotation_euler = (math.radians(90), 0, 0)
+        star.location = (0, -d / 2 - 0.02, h * 0.42)
+        apply_transform(star)
+        bevel(star, 0.01, 1, 30)
+        assign(star, metal)
+        parts.append(star)
+    if is_open:
+        rotate_all(lid_parts, (math.radians(-105), 0, 0), pivot=(0, d / 2, h))
+        # содержимое и свечение
+        if filled == "coins":
+            parts += coin_heap(11, 40, 0.75, 0.38, h - 0.05)
+        else:
+            colors = [(0.95, 0.35, 0.30), (0.35, 0.65, 0.95), (0.45, 0.85, 0.45), (1.0, 0.80, 0.25), (0.75, 0.45, 0.95)]
+            for i in range(5):
+                c = box_mesh(f"Card{i}", 0.42, 0.04, 0.58, 0.0)
+                bevel(c, 0.02, 2, 30)
+                c.rotation_euler = (math.radians(-15 + 8 * i), math.radians(-30 + 15 * i), math.radians(-20 + 10 * i))
+                c.location = (-0.5 + 0.25 * i, 0.0, h - 0.1)
+                apply_transform(c)
+                assign(c, flat(f"CardMat{i}", colors[i], rough=0.35, coat=0.5))
+                parts.append(c)
+    if is_open and GLOW:
+        glow = sphere("Glow", 0.5, 24, 12)
+        glow.scale = (1.3, 0.75, 0.6)
+        glow.location = (0, 0, h + 0.05)
+        apply_transform(glow)
+        gmat = bpy.data.materials.new("GlowMat")
+        gmat.use_nodes = True
+        nt = gmat.node_tree
+        for n in list(nt.nodes):
+            if n.type != "OUTPUT_MATERIAL":
+                nt.nodes.remove(n)
+        em = nt.nodes.new("ShaderNodeEmission")
+        em.inputs["Color"].default_value = (1.0, 0.85, 0.4, 1)
+        em.inputs["Strength"].default_value = 2.5
+        tr = nt.nodes.new("ShaderNodeBsdfTransparent")
+        mix = nt.nodes.new("ShaderNodeMixShader")
+        mix.inputs["Fac"].default_value = 0.7
+        nt.links.new(tr.outputs[0], mix.inputs[1])
+        nt.links.new(em.outputs[0], mix.inputs[2])
+        nt.links.new(mix.outputs[0], nt.nodes["Material Output"].inputs["Surface"])
+        gmat.blend_method = "BLEND"
+        glow.data.materials.append(gmat)
+        parts.append(glow)
+    parts += lid_parts
+    return rotate_all(parts, (0, 0, math.radians(-18)))
+
+
+def coins_chest():
+    return chest_obj("coins", is_open=True, filled="coins")
+
+
+def coins_mountain():
+    parts = coin_heap(21, 150, 1.45, 1.5)
+    rnd = random.Random(5)
+    gems = [(0.85, 0.12, 0.22), (0.15, 0.55, 0.95), (0.20, 0.80, 0.35), (0.70, 0.30, 0.95)]
+    for i in range(9):
+        g = sphere(f"Gem{i}", 0.16, 6, 4)
+        a = rnd.uniform(0, 6.28)
+        dd = rnd.uniform(0.2, 0.9)
+        g.location = (dd * math.cos(a), dd * math.sin(a), 1.5 * (1 - dd / 1.45) + 0.1)
+        g.rotation_euler = (rnd.uniform(0, 1), rnd.uniform(0, 1), rnd.uniform(0, 3))
+        apply_transform(g)
+        assign(g, material(f"GemMat{i}", [(0.0, tuple(c * 0.6 for c in gems[i % 4])), (1.0, gems[i % 4])],
+                           coord="nz", lo=-1, hi=1, rough=0.05, coat=1.0, transmission=0.6))
+        parts.append(g)
+    return rotate_all(parts, (math.radians(8), 0, 0))
+
+
 MODELS = {
     "bun": whole_bun,
     "rice": rice,
@@ -3064,6 +3313,19 @@ MODELS = {
     "olives": olives,
     "focaccia": focaccia,
     "gen_oven": gen_oven,
+    "coins_stack": coins_stack,
+    "coins_pile": coins_pile,
+    "coins_bag": coins_bag,
+    "coins_chest": coins_chest,
+    "coins_mountain": coins_mountain,
+    "chest_bronze": lambda: chest_obj("bronze"),
+    "chest_silver": lambda: chest_obj("silver"),
+    "chest_gold": lambda: chest_obj("gold"),
+    "chest_star": lambda: chest_obj("star"),
+    "chest_bronze_open": lambda: chest_obj("bronze", True),
+    "chest_silver_open": lambda: chest_obj("silver", True),
+    "chest_gold_open": lambda: chest_obj("gold", True),
+    "chest_star_open": lambda: chest_obj("star", True),
     "gen_grill": gen_grill,
     "gen_crate": gen_crate,
     "patty": patty,

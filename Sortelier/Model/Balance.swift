@@ -28,12 +28,16 @@ enum Balance {
         let boosters: [Booster: Int]
         let unlimitedLives: TimeInterval
         let goldShelves: Bool
+        /// Сундук альбома в придачу.
+        var album: ChestKind? = nil
     }
 
     static let chests: [Chest] = [
         Chest(stars: 30, coins: 200, boosters: [.hint: 1, .undo: 1], unlimitedLives: 0, goldShelves: false),
-        Chest(stars: 60, coins: 500, boosters: [.hint: 1, .undo: 1, .shelf: 1], unlimitedLives: 3600, goldShelves: false),
-        Chest(stars: 90, coins: 1500, boosters: [.hint: 2, .undo: 2, .shelf: 2], unlimitedLives: 3 * 3600, goldShelves: true)
+        Chest(stars: 60, coins: 500, boosters: [.hint: 1, .undo: 1, .shelf: 1], unlimitedLives: 3600, goldShelves: false,
+              album: .silver),
+        Chest(stars: 90, coins: 1500, boosters: [.hint: 2, .undo: 2, .shelf: 2], unlimitedLives: 3 * 3600, goldShelves: true,
+              album: .gold)
     ]
 }
 

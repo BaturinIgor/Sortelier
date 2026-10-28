@@ -31,6 +31,8 @@ struct MergeItem: Codable, Hashable {
     var next: MergeItem? { isMax ? nil : MergeItem(chain: chain, tier: tier + 1) }
     /// Ценность для заказа: каждая ступень вдвое дороже.
     var value: Int { 1 << (tier + 1) }
+    /// Цена продажи с доски: 1, 2, 5, 10, 20, 40, 80.
+    var sellPrice: Int { tier == 0 ? 1 : (tier == 1 ? 2 : 5 << (tier - 2)) }
 }
 
 struct MergeOrder: Codable, Identifiable, Equatable {
@@ -71,6 +73,8 @@ enum MergeBalance {
     static let buyEnergy = 10
     static let buyEnergyPrice = 60
     static let orderSlots = 3
+    /// Ящик с припасами за рекламу: столько предметов первых ступеней.
+    static let supplyItems = 3
 
     /// Генераторы стоят в нижнем ряду.
     static let generators: [Int: MergeChain] = [
@@ -86,8 +90,8 @@ enum MergeBalance {
         case ..<5: return Reward(coins: 20 * value)
         case ..<9: return Reward(coins: 30, boosters: [booster: 1])
         case ..<17: return Reward(coins: 40, unlimitedMinutes: 15)
-        case ..<33: return Reward(boosters: [booster: 1], unlimitedMinutes: 30)
-        default: return Reward(boosters: [booster: 2], unlimitedMinutes: 60)
+        case ..<33: return Reward(unlimitedMinutes: 30, chests: [.bronze: 1])
+        default: return Reward(unlimitedMinutes: 60, chests: [.silver: 1])
         }
     }
 }
@@ -186,6 +190,36 @@ final class MergeGame: ObservableObject {
         data.cells[from] = nil
         commit(notify: false)
         return .moved
+    }
+
+    // MARK: - Продажа и припасы
+
+    /// Продает предмет с доски. Возвращает полученные монеты.
+    func sell(at index: Int) -> Int {
+        guard let item = item(at: index) else { return 0 }
+        data.cells[index] = nil
+        commit()
+        PlayerProgress.shared.addCoins(item.sellPrice)
+        Analytics.log("merge_sell", ["tier": item.tier, "chain": item.chain.rawValue])
+        return item.sellPrice
+    }
+
+    /// Ящик с припасами: несколько случайных предметов первых ступеней в свободные клетки.
+    /// Возвращает, сколько предметов поместилось.
+    func addSupply() -> Int {
+        var added = 0
+        for _ in 0..<MergeBalance.supplyItems {
+            guard let cell = data.cells.indices.filter({ data.cells[$0] == nil && generator(at: $0) == nil }).randomElement()
+            else { break }
+            let chain = MergeChain.allCases.randomElement() ?? .desserts
+            data.cells[cell] = MergeItem(chain: chain, tier: Int.random(in: 0..<3) == 0 ? 1 : 0)
+            added += 1
+        }
+        if added > 0 {
+            commit()
+            Analytics.log("merge_supply", ["items": added])
+        }
+        return added
     }
 
     // MARK: - Заказы

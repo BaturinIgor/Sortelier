@@ -76,7 +76,7 @@ def main():
         elif name.startswith("shelf"):
             w, h = Image.open(f).size
             finish(f, os.path.join(DST, name), (600, int(600 * h / w)), boost=False)
-        elif name.startswith("dish_"):
+        elif name.startswith("dish_") or name.startswith("chest_"):
             finish(f, os.path.join(DST, name), (400, 400))
         else:
             finish(f, os.path.join(DST, name), (288, 288), standing=True)

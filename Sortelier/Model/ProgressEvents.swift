@@ -30,10 +30,12 @@ extension PlayerProgress {
                 s.points += n
                 gains.append(EventGain(id: event.id, kind: .hunt, theme: event.theme, amount: n, total: s.points))
             case .race:
-                if s.joined != nil && s.finished == nil {
-                    s.wins += 1
-                    if s.wins >= RaceEvent.goal { s.finished = date }
-                    gains.append(EventGain(id: event.id, kind: .race, theme: "", amount: 1, total: s.wins))
+                var r = data.meta.race
+                if r.joined != nil && r.finished == nil && !r.claimed && !raceOver {
+                    r.wins += 1
+                    if r.wins >= RaceEvent.goal { r.finished = date }
+                    data.meta.race = r
+                    gains.append(EventGain(id: event.id, kind: .race, theme: "", amount: 1, total: r.wins))
                 }
             case .double:
                 break
@@ -44,6 +46,7 @@ extension PlayerProgress {
         if EventCalendar.double(date) != nil && coinsAdded > 0 {
             bonus = coinsAdded * (DoubleEvent.multiplier - 1)
             data.coins += bonus
+            data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += bonus
         }
         save()
         return (gains, bonus)
@@ -74,6 +77,7 @@ extension PlayerProgress {
         data.meta.events[event.id] = s
         save()
         let tier = tiers(event)[index]
+        data.meta.stats[Stat.eventRewards.rawValue, default: 0] += 1
         return grant(pass ? tier.pass : tier.free, source: "event_\(event.kind.rawValue)")
     }
 
@@ -90,13 +94,37 @@ extension PlayerProgress {
 
     // MARK: - Гонка поваров
 
-    func joinRace(_ event: GameEvent) {
-        var s = eventState(event.id)
-        guard s.joined == nil else { return }
-        s.joined = Date()
-        data.meta.events[event.id] = s
+    var race: RaceState { data.meta.race }
+
+    /// Сколько заездов уже начато сегодня.
+    var racesToday: Int { data.meta.race.day == Day.key() ? data.meta.race.started : 0 }
+
+    /// Заезд идет: начат, награда не забрана и он еще не закончился.
+    var raceActive: Bool { race.joined != nil && !race.claimed }
+
+    /// Заезд закончился: игрок дошел до финиша или все соперники финишировали раньше.
+    var raceOver: Bool {
+        guard let joined = race.joined, !race.claimed else { return false }
+        if race.finished != nil { return true }
+        return RaceEvent.rivals(seed: race.seed).allSatisfy { $0.finishTime(joined: joined) <= now }
+    }
+
+    /// Можно начать новый заезд: прошлый закончен и не исчерпан лимит на сегодня.
+    var canStartRace: Bool {
+        (race.joined == nil || race.claimed || (raceOver && race.finished == nil)) && racesToday < RaceEvent.perDay
+    }
+
+    func startRace() {
+        guard canStartRace else { return }
+        var r = RaceState()
+        let today = Day.key()
+        r.day = today
+        r.started = racesToday + 1
+        r.joined = Date()
+        r.seed = UInt64.random(in: 1...UInt64.max)
+        data.meta.race = r
         save()
-        Analytics.log("race_join")
+        Analytics.log("race_join", ["number": r.started])
     }
 
     struct RaceRow: Identifiable {
@@ -108,16 +136,14 @@ extension PlayerProgress {
         let isPlayer: Bool
     }
 
-    func raceStandings(_ event: GameEvent) -> [RaceRow] {
-        let s = eventState(event.id)
-        guard let joined = s.joined else { return [] }
-        let at = min(now, event.end)
-        var rows = RaceEvent.rivals(eventId: event.id).map { r -> RaceRow in
+    func raceStandings() -> [RaceRow] {
+        guard let joined = race.joined else { return [] }
+        var rows = RaceEvent.rivals(seed: race.seed).map { r -> RaceRow in
             let finish = r.finishTime(joined: joined)
-            return RaceRow(id: "rival\(r.id)", name: r.name, look: r.look, wins: r.wins(joined: joined, now: at),
-                           finished: finish <= at ? finish : nil, isPlayer: false)
+            return RaceRow(id: "rival\(r.id)", name: r.name, look: r.look, wins: r.wins(joined: joined, now: now),
+                           finished: finish <= now ? finish : nil, isPlayer: false)
         }
-        rows.append(RaceRow(id: "player", name: "", look: nil, wins: s.wins, finished: s.finished, isPlayer: true))
+        rows.append(RaceRow(id: "player", name: "", look: nil, wins: race.wins, finished: race.finished, isPlayer: true))
         return rows.sorted { a, b in
             switch (a.finished, b.finished) {
             case let (fa?, fb?): return fa < fb
@@ -129,21 +155,20 @@ extension PlayerProgress {
     }
 
     /// Место игрока, когда он дошел до финиша.
-    func racePlace(_ event: GameEvent) -> Int? {
-        guard eventState(event.id).finished != nil else { return nil }
-        return (raceStandings(event).firstIndex { $0.isPlayer } ?? 4) + 1
+    var racePlace: Int? {
+        guard race.finished != nil else { return nil }
+        return (raceStandings().firstIndex { $0.isPlayer } ?? 4) + 1
     }
 
-    func canClaimRace(_ event: GameEvent) -> Bool {
-        racePlace(event) != nil && !eventState(event.id).raceClaimed
-    }
+    var canClaimRace: Bool { racePlace != nil && !race.claimed }
 
-    func claimRace(_ event: GameEvent) -> Granted? {
-        guard canClaimRace(event), let place = racePlace(event) else { return nil }
-        var s = eventState(event.id)
-        s.raceClaimed = true
-        data.meta.events[event.id] = s
+    func claimRace() -> Granted? {
+        guard canClaimRace, let place = racePlace else { return nil }
+        data.meta.race.claimed = true
+        if place == 1 { data.meta.stats[Stat.raceWins.rawValue, default: 0] += 1 }
+        data.meta.stats[Stat.eventRewards.rawValue, default: 0] += 1
         save()
+        Analytics.log("race_finish", ["place": place])
         return grant(RaceEvent.reward(place: place), source: "race")
     }
 
@@ -172,7 +197,7 @@ extension PlayerProgress {
                     return true
                 }
             case .race:
-                if canClaimRace(event) || eventState(event.id).joined == nil { return true }
+                if canClaimRace || (canStartRace && !raceActive) { return true }
             case .double:
                 if canClaimDoubleBonus(event) { return true }
             }

@@ -112,8 +112,18 @@ final class Lang: ObservableObject {
         return shared.t("time.minutes", minutes)
     }
 
+    /// Коротко для узких плашек: "30м", "2ч".
+    static func durationShort(minutes: Int) -> String {
+        minutes >= 60 && minutes % 60 == 0 ? shared.t("time.h.short", minutes / 60) : shared.t("time.m.short", minutes)
+    }
+
+    /// Таймер: "4:05", "1:02:03", больше суток - "2 д 05:12:33".
     static func time(_ seconds: TimeInterval) -> String {
         let s = Int(seconds.rounded(.up))
+        if s >= 86400 {
+            let rest = s % 86400
+            return shared.t("time.days.short", s / 86400) + " " + String(format: "%02d:%02d:%02d", rest / 3600, (rest % 3600) / 60, rest % 60)
+        }
         if s >= 3600 {
             return String(format: "%d:%02d:%02d", s / 3600, (s % 3600) / 60, s % 60)
         }

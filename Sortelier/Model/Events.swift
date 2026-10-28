@@ -1,8 +1,8 @@
 import Foundation
 
 /// Ивенты идут по календарю на устройстве, одновременно несколько штук с разной длительностью:
-/// большой сезонный (полмесяца), охота за ингредиентом (3 дня из 4), гонка поваров (2 дня из 3)
-/// и двойные выходные. Позже расписание переедет в удаленный конфиг.
+/// большой сезонный (полмесяца), охота за ингредиентом (3 дня из 4), гонка поваров (каждый день,
+/// до 3 коротких заездов) и двойные выходные. Позже расписание переедет в удаленный конфиг.
 enum EventKind: String, CaseIterable {
     case season, hunt, race, double
 }
@@ -61,14 +61,11 @@ enum EventCalendar {
         return GameEvent(kind: .hunt, theme: item, start: start, end: end)
     }
 
-    /// Гонка: 2 дня из каждых 3.
+    /// Гонка поваров: каждый день, заезды обновляются в полночь.
     static func race(_ now: Date) -> GameEvent? {
-        let phase = (Day.index(now) + 1) % 3
-        guard phase < 2 else { return nil }
         let today = calendar.startOfDay(for: now)
-        let start = calendar.date(byAdding: .day, value: -phase, to: today) ?? today
-        let end = calendar.date(byAdding: .day, value: 2, to: start) ?? today
-        return GameEvent(kind: .race, theme: "", start: start, end: end)
+        let end = calendar.date(byAdding: .day, value: 1, to: today) ?? today
+        return GameEvent(kind: .race, theme: "", start: today, end: end)
     }
 
     /// Двойные выходные: суббота и воскресенье.
@@ -79,6 +76,18 @@ enum EventCalendar {
         let start = calendar.date(byAdding: .day, value: weekday == 7 ? 0 : -1, to: today) ?? today
         let end = calendar.date(byAdding: .day, value: 2, to: start) ?? today
         return GameEvent(kind: .double, theme: "", start: start, end: end)
+    }
+
+    /// Следующий ивент этого вида: тема и время начала (для карточек "скоро").
+    static func next(_ kind: EventKind, _ now: Date = Date()) -> GameEvent? {
+        guard let start = nextStart(kind, now) else { return nil }
+        let probe = start.addingTimeInterval(3600)
+        switch kind {
+        case .season: return season(probe)
+        case .hunt: return hunt(probe)
+        case .race: return race(probe)
+        case .double: return double(probe)
+        }
     }
 
     /// Когда начнется следующий ивент этого вида (для "скоро").
@@ -148,14 +157,14 @@ enum SeasonEvent {
             EventTier(points: 6, free: Reward(boosters: [.hint: 1]), pass: Reward(boosters: [.hint: 1, .undo: 1])),
             EventTier(points: 10, free: Reward(coins: 100), pass: Reward(unlimitedMinutes: 60)),
             EventTier(points: 15, free: Reward(boosters: [.undo: 1]), pass: Reward(coins: 300)),
-            EventTier(points: 20, free: Reward(unlimitedMinutes: 30), pass: Reward(rareCard: true)),
+            EventTier(points: 20, free: Reward(unlimitedMinutes: 30), pass: Reward(chests: [.silver: 1])),
             EventTier(points: 26, free: Reward(coins: 150), pass: Reward(boosters: [.shelf: 2])),
             EventTier(points: 32, free: Reward(boosters: [.shelf: 1]), pass: Reward(coins: 400)),
-            EventTier(points: 40, free: Reward(coins: 200), pass: Reward(rareCard: true)),
+            EventTier(points: 40, free: Reward(coins: 200, chests: [.bronze: 1]), pass: Reward(chests: [.gold: 1])),
             EventTier(points: 48, free: Reward(boosters: [.hint: 1, .undo: 1]), pass: Reward(unlimitedMinutes: 120)),
-            EventTier(points: 56, free: Reward(rareCard: true), pass: Reward(boosters: [.hint: 2, .undo: 2, .shelf: 2])),
+            EventTier(points: 56, free: Reward(chests: [.silver: 1]), pass: Reward(boosters: [.hint: 2, .undo: 2, .shelf: 2])),
             EventTier(points: 65, free: Reward(coins: 300), pass: Reward(coins: 600)),
-            EventTier(points: 75, free: Reward(background: theme), pass: Reward(coins: 800, rareCard: true))
+            EventTier(points: 75, free: Reward(background: theme), pass: Reward(coins: 800, chests: [.gold: 1]))
         ]
     }
 
@@ -174,44 +183,70 @@ enum HuntEvent {
     static let tiers: [EventTier] = [
         EventTier(points: 5, free: Reward(coins: 100), pass: Reward()),
         EventTier(points: 12, free: Reward(boosters: [.hint: 1, .undo: 1]), pass: Reward()),
-        EventTier(points: 20, free: Reward(rareCard: true), pass: Reward()),
+        EventTier(points: 20, free: Reward(chests: [.silver: 1]), pass: Reward()),
         EventTier(points: 30, free: Reward(unlimitedMinutes: 60), pass: Reward()),
-        EventTier(points: 42, free: Reward(coins: 500, rareCard: true), pass: Reward())
+        EventTier(points: 42, free: Reward(coins: 500, chests: [.gold: 1]), pass: Reward())
     ]
 }
 
-/// Соперник в гонке поваров. Прогресс считается от времени вступления, одинаково при каждом запуске.
+/// Соперник в гонке поваров. Прогресс считается от начала заезда, одинаково при каждом запуске.
 struct Rival: Identifiable {
     let id: Int
     let name: String
     let look: Int
-    /// Часов на одну победу.
+    /// Минут на одну победу.
     let pace: Double
 
     func wins(joined: Date, now: Date) -> Int {
-        let hours = now.timeIntervalSince(joined) / 3600
-        return min(RaceEvent.goal, Int(hours / pace))
+        let minutes = now.timeIntervalSince(joined) / 60
+        return min(RaceEvent.goal, Int(minutes / pace))
     }
 
     func finishTime(joined: Date) -> Date {
-        joined.addingTimeInterval(Double(RaceEvent.goal) * pace * 3600)
+        joined.addingTimeInterval(Double(RaceEvent.goal) * pace * 60)
+    }
+}
+
+/// Заезд гонки поваров: до 3 в день, кто первым выиграет 5 уровней. Места 1-3 получают сундуки.
+struct RaceState: Codable {
+    var day = ""
+    /// Сколько заездов начато в этот день.
+    var started = 0
+    var joined: Date?
+    var wins = 0
+    var finished: Date?
+    var claimed = false
+    var seed: UInt64 = 0
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        day = try c.decodeIfPresent(String.self, forKey: .day) ?? ""
+        started = try c.decodeIfPresent(Int.self, forKey: .started) ?? 0
+        joined = try c.decodeIfPresent(Date.self, forKey: .joined)
+        wins = try c.decodeIfPresent(Int.self, forKey: .wins) ?? 0
+        finished = try c.decodeIfPresent(Date.self, forKey: .finished)
+        claimed = try c.decodeIfPresent(Bool.self, forKey: .claimed) ?? false
+        seed = try c.decodeIfPresent(UInt64.self, forKey: .seed) ?? 0
     }
 }
 
 enum RaceEvent {
-    static let goal = 10
-    static let names = ["Marco", "Yuki", "Ana", "Leo", "Priya", "Omar", "Sofia", "Chen"]
+    static let goal = 5
+    static let perDay = 3
+    static let names = ["Marco", "Yuki", "Ana", "Leo", "Priya", "Omar", "Sofia", "Chen", "Lena", "Diego"]
 
-    static func rivals(eventId: String) -> [Rival] {
-        var rng = SeededRandom(seed: stableHash(eventId))
+    static func rivals(seed: UInt64) -> [Rival] {
+        var rng = SeededRandom(seed: seed)
         var used = Set<Int>()
         var list: [Rival] = []
-        let paces = [2.6, 3.4, 4.3, 5.6]
+        let paces = [3.2, 4.6, 6.4, 9.0]
         for i in 0..<4 {
             var n = Int(rng.next() % UInt64(names.count))
             while used.contains(n) { n = (n + 1) % names.count }
             used.insert(n)
-            let jitter = Double(rng.next() % 100) / 100.0 * 0.8
+            let jitter = Double(rng.next() % 100) / 100.0 * 1.5
             list.append(Rival(id: i, name: names[n], look: Int(rng.next() % UInt64(CustomerNode.looks)),
                               pace: paces[i] + jitter))
         }
@@ -220,10 +255,10 @@ enum RaceEvent {
 
     static func reward(place: Int) -> Reward {
         switch place {
-        case 1: return Reward(coins: 600, boosters: [.hint: 1, .undo: 1, .shelf: 1], rareCard: true)
-        case 2: return Reward(coins: 300, boosters: [.hint: 1])
-        case 3: return Reward(coins: 150)
-        default: return Reward(coins: 50)
+        case 1: return Reward(coins: 100, chests: [.gold: 1])
+        case 2: return Reward(coins: 50, chests: [.silver: 1])
+        case 3: return Reward(coins: 20, chests: [.bronze: 1])
+        default: return Reward(coins: 10)
         }
     }
 }

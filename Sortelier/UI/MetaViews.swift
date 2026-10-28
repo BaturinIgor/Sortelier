@@ -22,78 +22,105 @@ struct GoldSprite: View {
     }
 }
 
-/// Плашки с содержимым награды, по 3 в ряд.
+/// Содержимое награды плитками: значок сверху, подпись снизу (до двух строк, не обрезается).
+/// Плитки идут рядами по perRow и стоят по центру доступной ширины.
 struct RewardChips: View {
     let reward: Reward
     var card: String?
+    var perRow = 3
+    var tileWidth: CGFloat = 78
+    /// Компактно: только значок и число (узкие карточки заказов кладовой).
+    var compact = false
     @EnvironmentObject private var lang: Lang
 
+    private struct Tile: Identifiable {
+        let id: Int
+        let view: AnyView
+    }
+
     var body: some View {
-        let chips = makeChips()
-        let rows = stride(from: 0, to: chips.count, by: 3).map { Array(chips[$0..<min($0 + 3, chips.count)]) }
+        let tiles = makeTiles()
+        let rows = stride(from: 0, to: tiles.count, by: max(1, perRow)).map { Array(tiles[$0..<min($0 + max(1, perRow), tiles.count)]) }
         return VStack(spacing: 6) {
             ForEach(rows.indices, id: \.self) { r in
                 HStack(spacing: 6) {
-                    ForEach(rows[r].indices, id: \.self) { i in rows[r][i] }
+                    ForEach(rows[r]) { tile in tile.view }
                 }
             }
         }
+        .frame(maxWidth: .infinity)
     }
 
-    private func chip<Icon: View>(_ text: String, @ViewBuilder icon: () -> Icon) -> AnyView {
-        AnyView(
-            HStack(spacing: 4) {
-                icon()
+    private func tile<Icon: View>(_ id: Int, _ text: String, @ViewBuilder icon: () -> Icon) -> Tile {
+        Tile(id: id, view: AnyView(
+            VStack(spacing: 2) {
+                icon().frame(height: compact ? 20 : 26)
                 Text(text)
-                    .font(Theme.rounded(13, .heavy))
+                    .font(Theme.rounded(compact ? 11 : 12, .heavy))
                     .foregroundColor(Theme.brown)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.6)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .padding(.horizontal, 8)
-            .frame(height: 28)
-            .background(Capsule().fill(Theme.cream))
-        )
+            .padding(.vertical, compact ? 3 : 6)
+            .padding(.horizontal, 4)
+            .frame(width: tileWidth)
+            .frame(minHeight: compact ? 42 : 60)
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.cream))
+        ))
     }
 
-    private func makeChips() -> [AnyView] {
-        var chips: [AnyView] = []
+    private func makeTiles() -> [Tile] {
+        var tiles: [Tile] = []
         if reward.coins > 0 {
-            chips.append(chip("\(reward.coins)") { CoinIcon(size: 16) })
+            tiles.append(tile(0, "\(reward.coins)") { CoinIcon(size: 22) })
         }
-        for (booster, n) in reward.boosterList {
-            chips.append(chip("×\(n)") {
-                Image(systemName: booster.symbol).font(.system(size: 12, weight: .bold)).foregroundColor(Theme.orange)
+        for (i, item) in reward.boosterList.enumerated() {
+            tiles.append(tile(10 + i, compact ? "×\(item.1)" : lang.t("booster." + item.0.rawValue) + " ×\(item.1)") {
+                Image(systemName: item.0.symbol).font(.system(size: 18, weight: .bold))
+                    .foregroundColor(item.0 == .pause ? Theme.blue : Theme.orange)
             })
         }
         if reward.unlimitedMinutes > 0 {
-            chips.append(chip(Lang.duration(minutes: reward.unlimitedMinutes)) {
-                Image(systemName: "heart.fill").font(.system(size: 12)).foregroundColor(Theme.red)
+            tiles.append(tile(20, compact ? Lang.durationShort(minutes: reward.unlimitedMinutes) : Lang.duration(minutes: reward.unlimitedMinutes)) {
+                ZStack {
+                    Image(systemName: "heart.fill").font(.system(size: 22)).foregroundColor(Theme.red)
+                    Image(systemName: "infinity").font(.system(size: 10, weight: .heavy)).foregroundColor(.white)
+                }
             })
         }
         if reward.lives > 0 {
-            chips.append(chip("+\(reward.lives)") {
-                Image(systemName: "heart.fill").font(.system(size: 12)).foregroundColor(Theme.red)
+            tiles.append(tile(21, "+\(reward.lives)") {
+                Image(systemName: "heart.fill").font(.system(size: 20)).foregroundColor(Theme.red)
             })
         }
         if reward.energy > 0 {
-            chips.append(chip("+\(reward.energy)") {
-                Image(systemName: "bolt.fill").font(.system(size: 12)).foregroundColor(Theme.gold)
+            tiles.append(tile(22, "+\(reward.energy)") {
+                Image(systemName: "bolt.fill").font(.system(size: 20)).foregroundColor(Theme.gold)
             })
         }
-        if let card = card {
-            chips.append(chip(lang.t("reward.card")) { GoldSprite(name: RareCards.sprite(card), size: 22) })
-        } else if reward.rareCard {
-            chips.append(chip(lang.t("reward.card")) {
-                Image(systemName: "sparkles").font(.system(size: 12, weight: .bold)).foregroundColor(Theme.gold)
+        if reward.rareCard {
+            tiles.append(tile(30, compact ? "×1" : lang.t("chest.kind.bronze")) {
+                SpriteImage(name: ChestKind.bronze.sprite, size: compact ? 22 : 30)
+            })
+        }
+        for (i, item) in reward.chestList.enumerated() {
+            let label = lang.t("chest.kind." + item.0.rawValue) + (item.1 > 1 ? " ×\(item.1)" : "")
+            tiles.append(tile(50 + i, compact ? "×\(item.1)" : label) {
+                SpriteImage(name: item.0.sprite, size: compact ? 22 : 30)
             })
         }
         if let bg = reward.background {
-            chips.append(chip(lang.t("bg." + bg)) {
-                Image(systemName: "photo.fill").font(.system(size: 12)).foregroundColor(Theme.green)
+            tiles.append(tile(40, compact ? "" : lang.t("bg." + bg)) {
+                Image(uiImage: Art.image(KitchenStyle.image(bg)))
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 18, height: 26)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
             })
         }
-        return chips
+        return tiles
     }
 }
 
@@ -117,21 +144,28 @@ struct RewardLine: View {
     }
 }
 
-/// Окно "Получено" после нажатия "Забрать".
+/// Окно "Получено" после нажатия "Забрать". Если в награде сундуки, их можно открыть сразу.
 struct RewardPopup: View {
     let title: String
     let granted: Granted
     let close: () -> Void
     @EnvironmentObject private var lang: Lang
+    @EnvironmentObject private var progress: PlayerProgress
     @State private var appear = false
+    @State private var opening: ChestOpening?
+    @State private var openedCount = 0
+
+    private var chests: [ChestKind] {
+        granted.reward.chestList.flatMap { Array(repeating: $0.0, count: $0.1) }
+    }
 
     var body: some View {
         ZStack {
             Dim().onTapGesture(perform: close)
             Panel(padding: 22) {
                 VStack(spacing: 14) {
-                    if let card = granted.card {
-                        GoldSprite(name: RareCards.sprite(card), size: 110)
+                    if let chest = chests.first {
+                        SpriteImage(name: chest.sprite, size: 110)
                             .scaleEffect(appear ? 1 : 0.4)
                     } else {
                         Image(systemName: "gift.fill")
@@ -143,19 +177,27 @@ struct RewardPopup: View {
                         .font(Theme.rounded(22, .heavy))
                         .foregroundColor(Theme.brown)
                         .multilineTextAlignment(.center)
-                    if let card = granted.card {
-                        Text(lang.t("reward.card.name", lang.t(Catalog.shared.dish(card) != nil ? "dish." + card : "item." + card)))
-                            .font(Theme.rounded(15, .bold))
-                            .foregroundColor(Theme.orange)
+                    RewardChips(reward: granted.reward)
+                    if openedCount < chests.count && progress.chestCount(chests[openedCount]) > 0 {
+                        Button(lang.t(openedCount == 0 ? "chest.open.now" : "chest.open.next")) {
+                            if let result = progress.openChest(chests[openedCount]) {
+                                openedCount += 1
+                                withAnimation { opening = result }
+                            }
+                        }
+                        .buttonStyle(BigButtonStyle(color: Theme.green))
                     }
-                    RewardChips(reward: granted.reward, card: granted.card)
                     Button(lang.t("common.ok"), action: close).buttonStyle(BigButtonStyle())
                 }
                 .frame(maxWidth: 300)
             }
+            if let opening = opening {
+                ChestOpenView(opening: opening) { withAnimation { self.opening = nil } }
+                    .transition(.opacity)
+            }
         }
         .onAppear {
-            Audio.shared.play(granted.card != nil ? .unlock : .chest)
+            Audio.shared.play(.chest)
             Haptics.success()
             withAnimation(.spring(response: 0.4, dampingFraction: 0.5)) { appear = true }
         }
@@ -258,7 +300,6 @@ struct StreakSheet: View {
     @EnvironmentObject private var progress: PlayerProgress
     @EnvironmentObject private var lang: Lang
     @Environment(\.presentationMode) private var presentation
-    @State private var message: String?
 
     var body: some View {
         ZStack {
@@ -299,14 +340,11 @@ struct StreakSheet: View {
                                 .fixedSize(horizontal: false, vertical: true)
                             if progress.streakFreezes < StreakRewards.maxFreezes {
                                 Button {
-                                    if progress.buyFreeze() { Audio.shared.play(.coin) } else { message = lang.t("common.nocoins") }
+                                    if progress.buyFreeze() { Audio.shared.play(.coin) } else { Toast.error(lang.t("common.nocoins")) }
                                 } label: {
                                     HStack { Text(lang.t("streak.freeze.buy")); CoinIcon(size: 20); Text("\(StreakRewards.freezePrice)") }
                                 }
                                 .buttonStyle(BigButtonStyle(color: Color(red: 0.3, green: 0.6, blue: 0.95)))
-                            }
-                            if let message = message {
-                                Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)
                             }
                         }
                     }
@@ -402,12 +440,7 @@ struct ChallengesSheet: View {
                     .font(Theme.rounded(13, .semibold))
                     .foregroundColor(Theme.brownSoft)
                     .fixedSize(horizontal: false, vertical: true)
-                HStack(spacing: 8) {
-                    RewardChips(reward: ChallengeRewards.daily)
-                    Text(lang.t("challenge.daily.card"))
-                        .font(Theme.rounded(12, .bold))
-                        .foregroundColor(Theme.brownSoft)
-                }
+                RewardChips(reward: ChallengeRewards.daily)
                 if done {
                     Label(lang.t("challenge.done"), systemImage: "checkmark.seal.fill")
                         .font(Theme.rounded(16, .heavy))
@@ -514,6 +547,7 @@ struct QuestsSheet: View {
     @Environment(\.presentationMode) private var presentation
     @State private var granted: Granted?
     @State private var grand = false
+    @State private var day = min(max(1, PlayerProgress.shared.welcomeDay), WelcomeQuests.days)
 
     var body: some View {
         ZStack {
@@ -525,9 +559,8 @@ struct QuestsSheet: View {
                         presentation.wrappedValue.dismiss()
                     }
                     grandCard
-                    ForEach(1...WelcomeQuests.days, id: \.self) { day in
-                        dayBlock(day)
-                    }
+                    dayTabs
+                    dayBlock(day)
                 }
                 .padding(20)
             }
@@ -536,6 +569,67 @@ struct QuestsSheet: View {
                     self.granted = nil
                 }
             }
+        }
+    }
+
+    private enum DayState { case locked, open, done }
+
+    private func state(_ d: Int) -> DayState {
+        if d > progress.welcomeDay { return .locked }
+        let quests = WelcomeQuests.all.filter { $0.day == d }
+        return quests.allSatisfy { progress.questClaimed($0) } ? .done : .open
+    }
+
+    /// Табы дней: будущие серые с замком и не открываются, закрытые зеленые.
+    private var dayTabs: some View {
+        HStack(spacing: 6) {
+            ForEach(1...WelcomeQuests.days, id: \.self) { d in
+                let st = state(d)
+                let claimable = WelcomeQuests.all.contains { $0.day == d && progress.canClaim($0) }
+                Button {
+                    guard st != .locked else {
+                        Toast.info(lang.t("quests.in", d - progress.welcomeDay), icon: "lock.fill")
+                        return
+                    }
+                    withAnimation(.easeOut(duration: 0.15)) { day = d }
+                } label: {
+                    VStack(spacing: 2) {
+                        Text(lang.t("streak.short", d))
+                            .font(Theme.rounded(11, .heavy))
+                        Group {
+                            switch st {
+                            case .locked: Image(systemName: "lock.fill")
+                            case .done: Image(systemName: "checkmark")
+                            case .open: Text("\(d)")
+                            }
+                        }
+                        .font(.system(size: 15, weight: .heavy, design: .rounded))
+                    }
+                    .foregroundColor(st == .locked ? Theme.brownSoft.opacity(0.6) : (st == .done || day == d ? .white : Theme.brown))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 52)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(tabColor(st, selected: day == d))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(day == d ? Theme.brown.opacity(0.5) : Color.clear, lineWidth: 2)
+                    )
+                    .overlay(alignment: .topTrailing) {
+                        if claimable { BadgeDot().offset(x: 3, y: -3) }
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func tabColor(_ st: DayState, selected: Bool) -> Color {
+        switch st {
+        case .locked: return Theme.brown.opacity(0.08)
+        case .done: return Theme.green
+        case .open: return selected ? Theme.orange : Theme.card
         }
     }
 
@@ -550,7 +644,7 @@ struct QuestsSheet: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 VStack(alignment: .leading, spacing: 8) {
                     Text(lang.t("quests.grand")).font(Theme.rounded(17, .heavy)).foregroundColor(Theme.brown)
-                    RewardChips(reward: WelcomeQuests.grand)
+                    RewardChips(reward: WelcomeQuests.grand, perRow: 3, tileWidth: 66)
                     ProgressBar(value: done, target: WelcomeQuests.all.count, color: Theme.green)
                     Text("\(done) / \(WelcomeQuests.all.count)")
                         .font(Theme.rounded(12, .bold)).foregroundColor(Theme.brownSoft)
@@ -568,51 +662,38 @@ struct QuestsSheet: View {
 
     private func dayBlock(_ day: Int) -> some View {
         let quests = WelcomeQuests.all.filter { $0.day == day }
-        let unlocked = day <= progress.welcomeDay
         return VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text(lang.t("quests.day", day)).font(Theme.rounded(17, .heavy)).foregroundColor(Theme.brown)
-                Spacer()
-                if !unlocked {
-                    Label(lang.t("quests.in", day - progress.welcomeDay), systemImage: "lock.fill")
-                        .font(Theme.rounded(13, .bold))
-                        .foregroundColor(Theme.brownSoft)
-                }
-            }
-            ForEach(quests) { q in questRow(q, unlocked: unlocked) }
+            Text(lang.t("quests.day", day)).font(Theme.rounded(17, .heavy)).foregroundColor(Theme.brown)
+            ForEach(quests) { q in questRow(q) }
         }
-        .opacity(unlocked ? 1 : 0.6)
     }
 
-    private func questRow(_ q: Quest, unlocked: Bool) -> some View {
+    private func questRow(_ q: Quest) -> some View {
         let value = progress.stat(q.stat)
         let claimed = progress.questClaimed(q)
         return MetaCard(highlight: progress.canClaim(q)) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(lang.t("task." + q.stat.rawValue, q.target))
-                    .font(Theme.rounded(15, .heavy))
-                    .foregroundColor(Theme.brown)
+                HStack {
+                    Text(lang.t("task." + q.stat.rawValue, q.target))
+                        .font(Theme.rounded(15, .heavy))
+                        .foregroundColor(Theme.brown)
+                    Spacer()
+                    if claimed {
+                        Image(systemName: "checkmark.seal.fill").font(.system(size: 22)).foregroundColor(Theme.green)
+                    }
+                }
                 HStack {
                     ProgressBar(value: value, target: q.target, color: claimed ? Theme.green : Theme.orange)
                     Text("\(min(value, q.target))/\(q.target)")
                         .font(Theme.rounded(12, .bold)).foregroundColor(Theme.brownSoft).monospacedDigit()
                 }
-                HStack {
-                    RewardChips(reward: q.reward)
-                    Spacer()
-                    if claimed {
-                        Image(systemName: "checkmark.seal.fill").font(.system(size: 22)).foregroundColor(Theme.green)
-                    } else if progress.canClaim(q) {
-                        Button(lang.t("common.claim")) {
-                            grand = false
-                            granted = progress.claim(q)
-                        }
-                        .font(Theme.rounded(15, .heavy))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 14)
-                        .frame(height: 34)
-                        .background(Capsule().fill(Theme.green))
+                RewardChips(reward: q.reward)
+                if progress.canClaim(q) {
+                    Button(lang.t("common.claim")) {
+                        grand = false
+                        granted = progress.claim(q)
                     }
+                    .buttonStyle(BigButtonStyle(color: Theme.green))
                 }
             }
         }
@@ -626,6 +707,7 @@ struct AchievementsSheet: View {
     @EnvironmentObject private var lang: Lang
     @Environment(\.presentationMode) private var presentation
     @State private var granted: Granted?
+    @State private var category: Achievement.Category = .kitchen
 
     var body: some View {
         ZStack {
@@ -635,13 +717,114 @@ struct AchievementsSheet: View {
                     SheetHeader(title: lang.t("ach.title"), subtitle: lang.t("ach.subtitle")) {
                         presentation.wrappedValue.dismiss()
                     }
-                    ForEach(Achievements.all) { a in row(a) }
+                    starTrack
+                    categoryTabs
+                    ForEach(Achievements.all.filter { $0.category == category }) { a in row(a) }
                 }
                 .padding(20)
             }
             if let granted = granted {
                 RewardPopup(title: lang.t("common.received"), granted: granted) { self.granted = nil }
             }
+        }
+    }
+
+    // MARK: Звезды ачивок и шкала наград
+
+    private var starTrack: some View {
+        let stars = progress.achievementStars
+        return MetaCard(highlight: AchievementTrack.milestones.contains { progress.canClaimMilestone($0) }) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 8) {
+                    Image(systemName: "star.circle.fill").font(.system(size: 28)).foregroundColor(Theme.gold)
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(lang.t("achv.total", stars, Achievements.maxStars))
+                            .font(Theme.rounded(18, .heavy))
+                            .foregroundColor(Theme.brown)
+                        Text(lang.t("achv.total.text"))
+                            .font(Theme.rounded(12, .semibold))
+                            .foregroundColor(Theme.brownSoft)
+                    }
+                }
+                ScrollViewReader { proxy in
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(alignment: .top, spacing: 8) {
+                            ForEach(AchievementTrack.milestones) { m in milestoneCell(m, stars: stars).id(m.stars) }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                    .onAppear {
+                        let next = AchievementTrack.milestones.first { !progress.milestoneClaimed($0) }
+                        if let next = next { proxy.scrollTo(next.stars, anchor: .center) }
+                    }
+                }
+            }
+        }
+    }
+
+    private func milestoneCell(_ m: AchievementTrack.Milestone, stars: Int) -> some View {
+        let reached = stars >= m.stars
+        let claimed = progress.milestoneClaimed(m)
+        return VStack(spacing: 6) {
+            HStack(spacing: 3) {
+                Image(systemName: "star.fill").font(.system(size: 12)).foregroundColor(reached ? Theme.gold : Theme.brownSoft)
+                Text("\(m.stars)").font(Theme.rounded(14, .heavy)).foregroundColor(reached ? Theme.brown : Theme.brownSoft)
+            }
+            RewardChips(reward: m.reward, perRow: 1, tileWidth: 92)
+            Group {
+                if claimed {
+                    Image(systemName: "checkmark.circle.fill").foregroundColor(Theme.green)
+                } else if reached {
+                    Button(lang.t("common.claim")) { granted = progress.claimMilestone(m) }
+                        .font(Theme.rounded(12, .heavy))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 10)
+                        .frame(height: 26)
+                        .background(Capsule().fill(Theme.green))
+                } else {
+                    Image(systemName: "lock.fill").foregroundColor(Theme.brownSoft.opacity(0.6))
+                }
+            }
+            .frame(height: 26)
+        }
+        .frame(width: 100)
+        .padding(.vertical, 6)
+        .background(RoundedRectangle(cornerRadius: 12).fill(reached ? Theme.gold.opacity(0.16) : Theme.cream.opacity(0.7)))
+    }
+
+    // MARK: Категории
+
+    private var categoryTabs: some View {
+        HStack(spacing: 6) {
+            ForEach(Achievement.Category.allCases, id: \.self) { c in
+                let claimable = Achievements.all.contains { $0.category == c && progress.canClaim($0) }
+                Button { withAnimation(.easeOut(duration: 0.15)) { category = c } } label: {
+                    VStack(spacing: 2) {
+                        Image(systemName: symbol(c)).font(.system(size: 16, weight: .bold))
+                        Text(lang.t("ach.cat." + c.rawValue))
+                            .font(Theme.rounded(11, .heavy))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                    }
+                    .foregroundColor(category == c ? .white : Theme.brownSoft)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(category == c ? Theme.orange : Theme.card))
+                    .overlay(alignment: .topTrailing) {
+                        if claimable { BadgeDot().offset(x: 3, y: -3) }
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func symbol(_ c: Achievement.Category) -> String {
+        switch c {
+        case .kitchen: return "fork.knife"
+        case .habits: return "calendar"
+        case .collection: return "books.vertical.fill"
+        case .pantry: return "square.grid.3x3.fill"
         }
     }
 
@@ -660,11 +843,13 @@ struct AchievementsSheet: View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
                         Text(lang.t("ach." + a.id)).font(Theme.rounded(16, .heavy)).foregroundColor(Theme.brown)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
                         Spacer()
                         HStack(spacing: 1) {
                             ForEach(0..<a.tiers.count, id: \.self) { i in
                                 Image(systemName: "star.fill")
-                                    .font(.system(size: 10))
+                                    .font(.system(size: 11))
                                     .foregroundColor(i < tier ? Theme.gold : Theme.brown.opacity(0.15))
                             }
                         }
@@ -678,17 +863,10 @@ struct AchievementsSheet: View {
                             .font(Theme.rounded(12, .bold)).foregroundColor(Theme.brownSoft).monospacedDigit()
                     }
                     if !complete {
-                        HStack {
-                            RewardChips(reward: Achievements.reward(tier: tier))
-                            Spacer()
-                            if progress.canClaim(a) {
-                                Button(lang.t("common.claim")) { granted = progress.claim(a) }
-                                    .font(Theme.rounded(15, .heavy))
-                                    .foregroundColor(.white)
-                                    .padding(.horizontal, 14)
-                                    .frame(height: 34)
-                                    .background(Capsule().fill(Theme.green))
-                            }
+                        RewardChips(reward: Achievements.reward(tier: tier), perRow: 3, tileWidth: 70)
+                        if progress.canClaim(a) {
+                            Button(lang.t("common.claim")) { granted = progress.claim(a) }
+                                .buttonStyle(BigButtonStyle(color: Theme.green))
                         }
                     }
                 }
@@ -703,7 +881,6 @@ struct BackgroundsSheet: View {
     @EnvironmentObject private var progress: PlayerProgress
     @EnvironmentObject private var lang: Lang
     @Environment(\.presentationMode) private var presentation
-    @State private var message: String?
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -714,9 +891,6 @@ struct BackgroundsSheet: View {
                 VStack(alignment: .leading, spacing: 14) {
                     SheetHeader(title: lang.t("bg.title"), subtitle: lang.t("bg.subtitle")) {
                         presentation.wrappedValue.dismiss()
-                    }
-                    if let message = message {
-                        Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)
                     }
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(KitchenStyle.all) { style in tile(style) }
@@ -759,9 +933,9 @@ struct BackgroundsSheet: View {
             Button {
                 if progress.buy(style) {
                     Audio.shared.play(.chest)
-                    message = nil
+                    Toast.success(lang.t("bg.bought"))
                 } else {
-                    message = lang.t("common.nocoins")
+                    Toast.error(lang.t("common.nocoins"))
                 }
             } label: {
                 HStack(spacing: 4) { CoinIcon(size: 18); Text("\(style.price)") }

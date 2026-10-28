@@ -234,6 +234,7 @@ final class GameSession: ObservableObject {
         progress.addLevelStats(served: servedCount, tips: tips, dishes: dishCount, triples: tripleCount,
                                maxCombo: bestCombo)
         let streak = progress.registerPlayDay()
+        if happyGourmets > 0 { progress.bump(.gourmets, by: happyGourmets) }
         let gourmetGift = progress.gourmetServed(count: happyGourmets)
         let vipBonus = progress.vipBonus(for: reward.coinsAdded)
         result = Result(orderCoins: orderCoins, served: level.orders.count, tips: tips, comboCoins: comboCoins,

@@ -33,42 +33,26 @@ extension PlayerProgress {
     /// Выдает награду. Возвращает, что выдано, с выбранной редкой карточкой.
     @discardableResult
     func grant(_ reward: Reward, source: String) -> Granted {
+        var reward = reward
+        // старая награда "редкая карточка" теперь медный сундук альбома
+        if reward.rareCard {
+            reward.rareCard = false
+            reward.chests[ChestKind.bronze.rawValue, default: 0] += 1
+        }
         data.coins += reward.coins
+        if reward.coins > 0 { data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += reward.coins }
         for (k, v) in reward.boosters { data.boosters[k, default: 0] += v }
         if reward.lives > 0 { addLife(reward.lives) }
-        var card: String?
-        var reward = reward
-        if reward.rareCard {
-            card = drawRareCard()
-            if card == nil {
-                // все редкие карточки уже есть: вместо карточки монеты
-                reward.rareCard = false
-                reward.coins += 200
-                data.coins += 200
-            }
-        }
         if let bg = reward.background, !data.meta.backgrounds.contains(bg) {
             data.meta.backgrounds.append(bg)
+            data.meta.stats[Stat.kitchens.rawValue] = data.meta.backgrounds.count
         }
         if reward.energy > 0 { addEnergy(reward.energy) }
+        addChests(reward.chests)
         save()
         if reward.unlimitedMinutes > 0 { addUnlimitedLives(TimeInterval(reward.unlimitedMinutes * 60)) }
-        Analytics.log("reward", ["source": source, "coins": reward.coins, "card": card ?? ""])
-        return Granted(reward: reward, card: card)
-    }
-
-    // MARK: - Редкие карточки
-
-    var rareCards: [String] { data.meta.rareCards }
-
-    func hasRare(_ id: String) -> Bool { data.meta.rareCards.contains(id) }
-
-    private func drawRareCard() -> String? {
-        let missing = RareCards.all.filter { !data.meta.rareCards.contains($0) }
-        guard let card = missing.randomElement() else { return nil }
-        data.meta.rareCards.append(card)
-        data.meta.stats[Stat.rareCards.rawValue] = data.meta.rareCards.count
-        return card
+        Analytics.log("reward", ["source": source, "coins": reward.coins, "chests": reward.chests.count])
+        return Granted(reward: reward, card: nil)
     }
 
     // MARK: - Стрик
@@ -159,9 +143,7 @@ extension PlayerProgress {
         data.meta.dailyDone.append(key)
         data.meta.stats[Stat.dailyDone.rawValue, default: 0] += 1
         save()
-        var reward = ChallengeRewards.daily
-        reward.rareCard = Double.random(in: 0..<1) < ChallengeRewards.dailyRareChance
-        return grant(reward, source: "daily")
+        return grant(ChallengeRewards.daily, source: "daily")
     }
 
     func weeklyDone(_ week: String = Day.weekKey()) -> Int { data.meta.weeklyProgress[week] ?? 0 }
@@ -200,16 +182,20 @@ extension PlayerProgress {
     func claimMedal(_ month: String = Day.monthKey()) -> Granted? {
         guard medalReady(month) else { return nil }
         data.meta.medals.append(month)
+        data.meta.stats[Stat.medals.rawValue] = data.meta.medals.count
         save()
         return grant(ChallengeRewards.medal, source: "medal")
     }
 
     // MARK: - Приветственные задания
 
-    /// Запоминает день первого запуска для набора новичка.
+    /// Запоминает день первого запуска для набора новичка и досчитывает счетчики,
+    /// которые появились в обновлениях (у старых игроков они уже набраны).
     func ensureWelcomeStart() {
-        guard data.meta.welcomeStart == nil else { return }
-        data.meta.welcomeStart = Day.key()
+        if data.meta.welcomeStart == nil { data.meta.welcomeStart = Day.key() }
+        data.meta.stats[Stat.kitchens.rawValue] = max(stat(.kitchens), data.meta.backgrounds.count)
+        data.meta.stats[Stat.medals.rawValue] = max(stat(.medals), data.meta.medals.count)
+        if stat(.coinsEarned) == 0 { data.meta.stats[Stat.coinsEarned.rawValue] = data.best.values.reduce(0, +) }
         save()
     }
 
@@ -269,7 +255,27 @@ extension PlayerProgress {
         return grant(Achievements.reward(tier: tier), source: "achievement")
     }
 
-    var achievementsClaimable: Bool { Achievements.all.contains { canClaim($0) } }
+    /// Звезды ачивок: сколько ступеней забрано всего.
+    var achievementStars: Int {
+        Achievements.all.reduce(0) { $0 + min(claimedTiers($1), $1.tiers.count) }
+    }
+
+    func canClaimMilestone(_ m: AchievementTrack.Milestone) -> Bool {
+        achievementStars >= m.stars && !data.meta.achievementTrack.contains(m.stars)
+    }
+
+    func milestoneClaimed(_ m: AchievementTrack.Milestone) -> Bool { data.meta.achievementTrack.contains(m.stars) }
+
+    func claimMilestone(_ m: AchievementTrack.Milestone) -> Granted? {
+        guard canClaimMilestone(m) else { return nil }
+        data.meta.achievementTrack.append(m.stars)
+        save()
+        return grant(m.reward, source: "achievement_track")
+    }
+
+    var achievementsClaimable: Bool {
+        Achievements.all.contains { canClaim($0) } || AchievementTrack.milestones.contains { canClaimMilestone($0) }
+    }
 
     // MARK: - Фоны
 
@@ -281,6 +287,7 @@ extension PlayerProgress {
         guard style.source == .shop, !owns(style), spend(style.price) else { return false }
         data.meta.backgrounds.append(style.id)
         data.meta.background = style.id
+        data.meta.stats[Stat.kitchens.rawValue] = data.meta.backgrounds.count
         save()
         Analytics.log("background_buy", ["id": style.id])
         return true

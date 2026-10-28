@@ -51,17 +51,17 @@ enum Biomes {
             return [
                 Balance.Chest(stars: 30, coins: 300, boosters: [.hint: 1, .undo: 1], unlimitedLives: 0, goldShelves: false),
                 Balance.Chest(stars: 60, coins: 700, boosters: [.hint: 1, .undo: 1, .shelf: 1], unlimitedLives: 3600,
-                              goldShelves: false),
+                              goldShelves: false, album: .silver),
                 Balance.Chest(stars: 90, coins: 2000, boosters: [.hint: 2, .undo: 2, .shelf: 2],
-                              unlimitedLives: 4 * 3600, goldShelves: false)
+                              unlimitedLives: 4 * 3600, goldShelves: false, album: .gold)
             ]
         default:
             return [
                 Balance.Chest(stars: 30, coins: 400, boosters: [.hint: 1, .undo: 1], unlimitedLives: 0, goldShelves: false),
                 Balance.Chest(stars: 60, coins: 900, boosters: [.hint: 1, .undo: 1, .shelf: 1], unlimitedLives: 2 * 3600,
-                              goldShelves: false),
+                              goldShelves: false, album: .silver),
                 Balance.Chest(stars: 90, coins: 2500, boosters: [.hint: 3, .undo: 3, .shelf: 2],
-                              unlimitedLives: 6 * 3600, goldShelves: false)
+                              unlimitedLives: 6 * 3600, goldShelves: false, album: .star)
             ]
         }
     }
