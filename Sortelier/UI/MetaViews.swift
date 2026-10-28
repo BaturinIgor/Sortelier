@@ -51,76 +51,46 @@ struct RewardChips: View {
         .frame(maxWidth: .infinity)
     }
 
-    private func tile<Icon: View>(_ id: Int, _ text: String, @ViewBuilder icon: () -> Icon) -> Tile {
+    private func tile(_ id: Int, _ item: RewardItem, _ text: String) -> Tile {
         Tile(id: id, view: AnyView(
-            VStack(spacing: 2) {
-                icon().frame(height: compact ? 20 : 26)
-                Text(text)
-                    .font(Theme.rounded(compact ? 11 : 12, .heavy))
-                    .foregroundColor(Theme.brown)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.6)
-                    .fixedSize(horizontal: false, vertical: true)
+            Button { RewardInfo.show(item) } label: {
+                VStack(spacing: 2) {
+                    RewardItemIcon(item: item, size: compact ? 20 : 28).frame(height: compact ? 20 : 26)
+                    if !text.isEmpty {
+                        Text(text)
+                            .font(Theme.rounded(compact ? 11 : 12, .heavy))
+                            .foregroundColor(Theme.brown)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .minimumScaleFactor(0.6)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .padding(.vertical, compact ? 3 : 6)
+                .padding(.horizontal, 4)
+                .frame(width: tileWidth)
+                .frame(minHeight: compact ? 42 : 60)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.cream))
+                .contentShape(Rectangle())
             }
-            .padding(.vertical, compact ? 3 : 6)
-            .padding(.horizontal, 4)
-            .frame(width: tileWidth)
-            .frame(minHeight: compact ? 42 : 60)
-            .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Theme.cream))
+            .buttonStyle(.plain)
         ))
     }
 
     private func makeTiles() -> [Tile] {
-        var tiles: [Tile] = []
-        if reward.coins > 0 {
-            tiles.append(tile(0, "\(reward.coins)") { CoinIcon(size: 22) })
+        reward.items.enumerated().map { i, item in
+            let text: String
+            switch item {
+            case let .coins(n): text = "\(n)"
+            case let .booster(b, n): text = compact ? "×\(n)" : lang.t("booster." + b.rawValue) + " ×\(n)"
+            case let .unlimited(m): text = compact ? Lang.durationShort(minutes: m) : Lang.duration(minutes: m)
+            case let .lives(n): text = "+\(n)"
+            case let .energy(n): text = "+\(n)"
+            case let .chest(k, n): text = compact ? "×\(n)" : lang.t("chest.kind." + k.rawValue) + (n > 1 ? " ×\(n)" : "")
+            case let .background(bg): text = compact ? "" : lang.t("bg." + bg)
+            }
+            return tile(i, item, text)
         }
-        for (i, item) in reward.boosterList.enumerated() {
-            tiles.append(tile(10 + i, compact ? "×\(item.1)" : lang.t("booster." + item.0.rawValue) + " ×\(item.1)") {
-                Image(systemName: item.0.symbol).font(.system(size: 18, weight: .bold))
-                    .foregroundColor(item.0 == .pause ? Theme.blue : Theme.orange)
-            })
-        }
-        if reward.unlimitedMinutes > 0 {
-            tiles.append(tile(20, compact ? Lang.durationShort(minutes: reward.unlimitedMinutes) : Lang.duration(minutes: reward.unlimitedMinutes)) {
-                ZStack {
-                    Image(systemName: "heart.fill").font(.system(size: 22)).foregroundColor(Theme.red)
-                    Image(systemName: "infinity").font(.system(size: 10, weight: .heavy)).foregroundColor(.white)
-                }
-            })
-        }
-        if reward.lives > 0 {
-            tiles.append(tile(21, "+\(reward.lives)") {
-                Image(systemName: "heart.fill").font(.system(size: 20)).foregroundColor(Theme.red)
-            })
-        }
-        if reward.energy > 0 {
-            tiles.append(tile(22, "+\(reward.energy)") {
-                Image(systemName: "bolt.fill").font(.system(size: 20)).foregroundColor(Theme.gold)
-            })
-        }
-        if reward.rareCard {
-            tiles.append(tile(30, compact ? "×1" : lang.t("chest.kind.bronze")) {
-                SpriteImage(name: ChestKind.bronze.sprite, size: compact ? 22 : 30)
-            })
-        }
-        for (i, item) in reward.chestList.enumerated() {
-            let label = lang.t("chest.kind." + item.0.rawValue) + (item.1 > 1 ? " ×\(item.1)" : "")
-            tiles.append(tile(50 + i, compact ? "×\(item.1)" : label) {
-                SpriteImage(name: item.0.sprite, size: compact ? 22 : 30)
-            })
-        }
-        if let bg = reward.background {
-            tiles.append(tile(40, compact ? "" : lang.t("bg." + bg)) {
-                Image(uiImage: Art.image(KitchenStyle.image(bg)))
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 18, height: 26)
-                    .clipShape(RoundedRectangle(cornerRadius: 4))
-            })
-        }
-        return tiles
     }
 }
 
@@ -708,6 +678,15 @@ struct AchievementsSheet: View {
     @Environment(\.presentationMode) private var presentation
     @State private var granted: Granted?
     @State private var category: Achievement.Category = .kitchen
+    /// Порядок карточек замораживается, пока открыто окно награды: после закрытия карточка плавно уезжает на место.
+    @State private var frozen: [String]?
+
+    private var shown: [Achievement] {
+        let sorted = progress.sortedAchievements(category)
+        guard let frozen = frozen else { return sorted }
+        let rest = sorted.filter { !frozen.contains($0.id) }
+        return frozen.compactMap { id in sorted.first { $0.id == id } } + rest
+    }
 
     var body: some View {
         ZStack {
@@ -719,12 +698,15 @@ struct AchievementsSheet: View {
                     }
                     starTrack
                     categoryTabs
-                    ForEach(Achievements.all.filter { $0.category == category }) { a in row(a) }
+                    ForEach(shown) { a in row(a) }
                 }
                 .padding(20)
             }
             if let granted = granted {
-                RewardPopup(title: lang.t("common.received"), granted: granted) { self.granted = nil }
+                RewardPopup(title: lang.t("common.received"), granted: granted) {
+                    self.granted = nil
+                    withAnimation(.spring(response: 0.55, dampingFraction: 0.85)) { frozen = nil }
+                }
             }
         }
     }
@@ -798,7 +780,7 @@ struct AchievementsSheet: View {
         HStack(spacing: 6) {
             ForEach(Achievement.Category.allCases, id: \.self) { c in
                 let claimable = Achievements.all.contains { $0.category == c && progress.canClaim($0) }
-                Button { withAnimation(.easeOut(duration: 0.15)) { category = c } } label: {
+                Button { withAnimation(.easeOut(duration: 0.15)) { category = c; frozen = nil } } label: {
                     VStack(spacing: 2) {
                         Image(systemName: symbol(c)).font(.system(size: 16, weight: .bold))
                         Text(lang.t("ach.cat." + c.rawValue))
@@ -834,44 +816,49 @@ struct AchievementsSheet: View {
         let complete = tier >= a.tiers.count
         let target = complete ? a.tiers.last ?? 1 : a.tiers[tier]
         return MetaCard(highlight: progress.canClaim(a)) {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: a.symbol)
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(width: 46, height: 46)
-                    .background(Circle().fill(complete ? Theme.gold : Theme.orange))
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 12) {
+                    Image(systemName: a.symbol)
+                        .font(.system(size: 20, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 44, height: 44)
+                        .background(Circle().fill(complete ? Theme.gold : Theme.orange))
+                    VStack(alignment: .leading, spacing: 3) {
                         Text(lang.t("ach." + a.id)).font(Theme.rounded(16, .heavy)).foregroundColor(Theme.brown)
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
-                        Spacer()
-                        HStack(spacing: 1) {
+                        HStack(spacing: 2) {
                             ForEach(0..<a.tiers.count, id: \.self) { i in
                                 Image(systemName: "star.fill")
-                                    .font(.system(size: 11))
+                                    .font(.system(size: 12))
                                     .foregroundColor(i < tier ? Theme.gold : Theme.brown.opacity(0.15))
                             }
                         }
                     }
-                    Text(lang.t("task." + a.stat.rawValue, target))
-                        .font(Theme.rounded(13, .semibold))
-                        .foregroundColor(Theme.brownSoft)
-                    HStack {
-                        ProgressBar(value: value, target: target, color: complete ? Theme.gold : Theme.orange)
-                        Text("\(min(value, target))/\(target)")
-                            .font(Theme.rounded(12, .bold)).foregroundColor(Theme.brownSoft).monospacedDigit()
-                    }
-                    if !complete {
-                        RewardChips(reward: Achievements.reward(tier: tier), perRow: 3, tileWidth: 70)
-                        if progress.canClaim(a) {
-                            Button(lang.t("common.claim")) { granted = progress.claim(a) }
-                                .buttonStyle(BigButtonStyle(color: Theme.green))
+                    Spacer(minLength: 0)
+                }
+                Text(lang.t("task." + a.stat.rawValue, target))
+                    .font(Theme.rounded(14, .semibold))
+                    .foregroundColor(Theme.brownSoft)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 8) {
+                    ProgressBar(value: value, target: target, color: complete ? Theme.gold : Theme.orange)
+                    Text("\(min(value, target))/\(target)")
+                        .font(Theme.rounded(13, .bold)).foregroundColor(Theme.brownSoft).monospacedDigit()
+                }
+                if !complete {
+                    RewardChips(reward: Achievements.reward(tier: tier), perRow: 4, tileWidth: 72)
+                    if progress.canClaim(a) {
+                        Button(lang.t("common.claim")) {
+                            frozen = shown.map(\.id)
+                            granted = progress.claim(a)
                         }
+                        .buttonStyle(BigButtonStyle(color: Theme.green))
                     }
                 }
             }
         }
+        .id(a.id)
     }
 }
 

@@ -36,20 +36,29 @@ struct BookView: View {
                     tabButton(2, lang.t("book.medals"))
                 }
                 .background(Capsule().fill(Theme.card))
-                if tab != 2 { biomePicker }
+                // выбор кухни не исчезает, а гаснет: высота шапки не прыгает при смене вкладки
+                biomePicker
+                    .opacity(tab == 2 ? 0 : 1)
+                    .allowsHitTesting(tab != 2)
                 ScrollView(showsIndicators: false) {
-                    if tab == 2 {
-                        medalsRow
-                    } else {
-                        LazyVGrid(columns: columns, spacing: 12) {
-                            if tab == 0 {
-                                ForEach(dishes, id: \.id) { dish in dishCard(dish) }
-                            } else {
-                                ForEach(items, id: \.id) { item in itemCard(item) }
+                    Group {
+                        if tab == 2 {
+                            medalsGrid
+                        } else {
+                            LazyVGrid(columns: columns, spacing: 12) {
+                                if tab == 0 {
+                                    ForEach(dishes, id: \.id) { dish in dishCard(dish) }
+                                } else {
+                                    ForEach(items, id: \.id) { item in itemCard(item) }
+                                }
                             }
+                            .padding(.bottom, 30)
                         }
-                        .padding(.bottom, 30)
                     }
+                    // вкладка целиком сменяется плавным переходом, карточки не разлетаются по одной
+                    .id("\(tab)-\(biome)")
+                    .transition(.opacity)
+                    .frame(maxWidth: .infinity)
                 }
             }
             .padding(.horizontal, 18)
@@ -139,29 +148,66 @@ struct BookView: View {
         }
     }
 
-    @ViewBuilder
-    private var medalsRow: some View {
-        VStack(alignment: .leading, spacing: 8) {
+    /// Медали за месяцы текущего года: полученные золотые, остальные силуэтом, у текущего месяца прогресс.
+    private var medalsGrid: some View {
+        let year = String(Day.monthKey().prefix(4))
+        let current = Day.monthKey()
+        let names = monthNames
+        return VStack(alignment: .leading, spacing: 12) {
             Text(lang.t("book.medals.hint", ChallengeRewards.medalDaily, ChallengeRewards.medalWeekly))
                 .font(Theme.rounded(13, .semibold))
                 .foregroundColor(Theme.brownSoft)
                 .fixedSize(horizontal: false, vertical: true)
-            if !progress.medals.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        ForEach(progress.medals, id: \.self) { month in
-                            VStack(spacing: 2) {
-                                Image(systemName: "rosette").font(.system(size: 30)).foregroundColor(Theme.gold)
-                                Text(month).font(Theme.rounded(11, .bold)).foregroundColor(Theme.brownSoft)
-                            }
-                            .padding(8)
-                            .background(RoundedRectangle(cornerRadius: 12).fill(Theme.card))
-                        }
-                    }
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10),
+                                GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                ForEach(1...12, id: \.self) { m in
+                    let key = year + "-" + String(format: "%02d", m)
+                    medalCell(name: names[m - 1], earned: progress.medalClaimed(key), isCurrent: key == current,
+                              future: key > current, progress: key == current ? progress.medalProgress(key) : nil)
                 }
             }
         }
-        .padding(.bottom, 10)
+        .padding(.bottom, 30)
+    }
+
+    private var monthNames: [String] {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: lang.code)
+        return f.standaloneMonthSymbols.map { $0.prefix(1).uppercased() + $0.dropFirst() }
+    }
+
+    private func medalCell(name: String, earned: Bool, isCurrent: Bool, future: Bool,
+                           progress p: (daily: Int, weekly: Int)?) -> some View {
+        VStack(spacing: 4) {
+            ZStack {
+                Image(systemName: "rosette")
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundColor(earned ? Theme.gold : Theme.brown.opacity(0.14))
+                if !earned && !isCurrent {
+                    Image(systemName: "lock.fill").font(.system(size: 12, weight: .bold))
+                        .foregroundColor(Theme.brown.opacity(future ? 0.25 : 0.4))
+                        .offset(y: 16)
+                }
+            }
+            .frame(height: 44)
+            Text(name)
+                .font(Theme.rounded(12, .heavy))
+                .foregroundColor(earned || isCurrent ? Theme.brown : Theme.brownSoft)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            if let p = p, !earned {
+                Text("\(min(p.daily, ChallengeRewards.medalDaily))/\(ChallengeRewards.medalDaily) · \(min(p.weekly, ChallengeRewards.medalWeekly))/\(ChallengeRewards.medalWeekly)")
+                    .font(Theme.rounded(10, .bold))
+                    .foregroundColor(Theme.orange)
+                    .monospacedDigit()
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(isCurrent ? Theme.gold.opacity(0.18) : Theme.card))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .stroke(isCurrent ? Theme.gold : Color.clear, lineWidth: 2))
     }
 
     private func card(gold: Bool) -> some View {

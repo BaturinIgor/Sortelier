@@ -234,7 +234,8 @@ struct RaceState: Codable {
 
 enum RaceEvent {
     static let goal = 5
-    static let perDay = 3
+    /// Заезды без ограничений, но сундуки за места 1-3 дают только в первых трех заездах дня.
+    static let chestRaces = 3
     static let names = ["Marco", "Yuki", "Ana", "Leo", "Priya", "Omar", "Sofia", "Chen", "Lena", "Diego"]
 
     static func rivals(seed: UInt64) -> [Rival] {
@@ -253,11 +254,11 @@ enum RaceEvent {
         return list
     }
 
-    static func reward(place: Int) -> Reward {
+    static func reward(place: Int, chests: Bool = true) -> Reward {
         switch place {
-        case 1: return Reward(coins: 100, chests: [.gold: 1])
-        case 2: return Reward(coins: 50, chests: [.silver: 1])
-        case 3: return Reward(coins: 20, chests: [.bronze: 1])
+        case 1: return Reward(coins: 100, chests: chests ? [.gold: 1] : [:])
+        case 2: return Reward(coins: 50, chests: chests ? [.silver: 1] : [:])
+        case 3: return Reward(coins: 20, chests: chests ? [.bronze: 1] : [:])
         default: return Reward(coins: 10)
         }
     }

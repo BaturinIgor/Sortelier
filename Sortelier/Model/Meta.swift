@@ -4,6 +4,29 @@ import Foundation
 
 /// Награда: монеты, бустеры, безлимитные жизни, жизни, фон, энергия, сундуки альбома.
 /// rareCard остался от старых сохранений: такая награда выдается медным сундуком.
+/// Один предмет награды.
+enum RewardItem: Identifiable, Hashable {
+    case coins(Int)
+    case booster(Booster, Int)
+    case unlimited(Int)
+    case lives(Int)
+    case energy(Int)
+    case chest(ChestKind, Int)
+    case background(String)
+
+    var id: String {
+        switch self {
+        case .coins: return "coins"
+        case let .booster(b, _): return "booster." + b.rawValue
+        case .unlimited: return "unlimited"
+        case .lives: return "lives"
+        case .energy: return "energy"
+        case let .chest(k, _): return "chest." + k.rawValue
+        case let .background(bg): return "bg." + bg
+        }
+    }
+}
+
 struct Reward: Codable, Hashable {
     var coins = 0
     var boosters: [String: Int] = [:]
@@ -50,6 +73,27 @@ struct Reward: Codable, Hashable {
             guard let n = boosters[b.rawValue], n > 0 else { return nil }
             return (b, n)
         }
+    }
+
+    /// Награда по отдельным предметам: из них собираются плитки наград и карточки с описанием.
+    var items: [RewardItem] {
+        var out: [RewardItem] = []
+        if coins > 0 { out.append(.coins(coins)) }
+        for (b, n) in boosterList { out.append(.booster(b, n)) }
+        if unlimitedMinutes > 0 { out.append(.unlimited(unlimitedMinutes)) }
+        if lives > 0 { out.append(.lives(lives)) }
+        if energy > 0 { out.append(.energy(energy)) }
+        var chestsAll = chestList
+        if rareCard {
+            if let i = chestsAll.firstIndex(where: { $0.0 == .bronze }) {
+                chestsAll[i].1 += 1
+            } else {
+                chestsAll.insert((.bronze, 1), at: 0)
+            }
+        }
+        for (k, n) in chestsAll { out.append(.chest(k, n)) }
+        if let bg = background { out.append(.background(bg)) }
+        return out
     }
 
     var isEmpty: Bool {

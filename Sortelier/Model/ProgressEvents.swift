@@ -111,8 +111,17 @@ extension PlayerProgress {
 
     /// Можно начать новый заезд: прошлый закончен и не исчерпан лимит на сегодня.
     var canStartRace: Bool {
-        (race.joined == nil || race.claimed || (raceOver && race.finished == nil)) && racesToday < RaceEvent.perDay
+        race.joined == nil || race.claimed || (raceOver && race.finished == nil)
     }
+
+    /// Дает ли текущий заезд сундуки (первые три заезда дня).
+    var raceGivesChests: Bool { race.started <= RaceEvent.chestRaces }
+
+    /// Даст ли сундуки следующий заезд.
+    var nextRaceGivesChests: Bool { racesToday < RaceEvent.chestRaces }
+
+    /// Сколько заездов с сундуками осталось сегодня.
+    var chestRacesLeft: Int { max(0, RaceEvent.chestRaces - racesToday) }
 
     func startRace() {
         guard canStartRace else { return }
@@ -169,7 +178,7 @@ extension PlayerProgress {
         data.meta.stats[Stat.eventRewards.rawValue, default: 0] += 1
         save()
         Analytics.log("race_finish", ["place": place])
-        return grant(RaceEvent.reward(place: place), source: "race")
+        return grant(RaceEvent.reward(place: place, chests: raceGivesChests), source: "race")
     }
 
     // MARK: - Двойные выходные
@@ -197,7 +206,7 @@ extension PlayerProgress {
                     return true
                 }
             case .race:
-                if canClaimRace || (canStartRace && !raceActive) { return true }
+                if canClaimRace || (canStartRace && !raceActive && nextRaceGivesChests) { return true }
             case .double:
                 if canClaimDoubleBonus(event) { return true }
             }

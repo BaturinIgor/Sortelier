@@ -314,3 +314,32 @@ extension PlayerProgress {
         addMergeEnergy(amount)
     }
 }
+
+// MARK: - Порядок достижений
+
+extension PlayerProgress {
+    /// Достижения категории: сначала те, где можно забрать награду, потом в процессе (ближе к цели выше),
+    /// в конце полностью пройденные. Внутри групп порядок как в списке.
+    func sortedAchievements(_ category: Achievement.Category) -> [Achievement] {
+        let list = Achievements.all.filter { $0.category == category }
+        func group(_ a: Achievement) -> Int {
+            if canClaim(a) { return 0 }
+            return claimedTiers(a) >= a.tiers.count ? 2 : 1
+        }
+        func share(_ a: Achievement) -> Double {
+            let tier = claimedTiers(a)
+            guard tier < a.tiers.count else { return 1 }
+            return Double(stat(a.stat)) / Double(max(1, a.tiers[tier]))
+        }
+        return list.enumerated().sorted { x, y in
+            let gx = group(x.element), gy = group(y.element)
+            if gx != gy { return gx < gy }
+            if gx == 1 {
+                let sx = share(x.element), sy = share(y.element)
+                if abs(sx - sy) > 0.001 { return sx > sy }
+            }
+            return x.offset < y.offset
+        }.map(\.element)
+    }
+}
+

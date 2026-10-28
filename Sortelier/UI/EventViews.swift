@@ -265,16 +265,16 @@ struct EventsSheet: View {
         return MetaCard(highlight: progress.canClaimRace || (progress.canStartRace && !progress.raceActive)) {
             VStack(alignment: .leading, spacing: 10) {
                 header(event)
-                Text(lang.t("event.race.rules", RaceEvent.goal, RaceEvent.perDay))
+                Text(lang.t("event.race.rules2", RaceEvent.goal, RaceEvent.chestRaces))
                     .font(Theme.rounded(13, .semibold))
                     .foregroundColor(Theme.brownSoft)
                     .fixedSize(horizontal: false, vertical: true)
-                HStack(spacing: 6) {
-                    ForEach(1...RaceEvent.perDay, id: \.self) { i in
-                        Capsule()
-                            .fill(i <= progress.racesToday ? EventUI.color(.race) : Theme.brown.opacity(0.12))
-                            .frame(height: 8)
-                    }
+                HStack(spacing: 8) {
+                    SpriteImage(name: ChestKind.gold.sprite, size: 26)
+                    Text(lang.t("event.race.chests", progress.chestRacesLeft, RaceEvent.chestRaces))
+                        .font(Theme.rounded(13, .heavy))
+                        .foregroundColor(progress.chestRacesLeft > 0 ? Theme.brown : Theme.brownSoft)
+                    Spacer(minLength: 0)
                 }
                 if progress.raceActive {
                     ForEach(Array(progress.raceStandings().enumerated()), id: \.element.id) { i, row in
@@ -282,7 +282,7 @@ struct EventsSheet: View {
                     }
                     if let place = progress.racePlace {
                         Text(lang.t("event.race.place", place)).font(Theme.rounded(16, .heavy)).foregroundColor(Theme.brown)
-                        RewardChips(reward: RaceEvent.reward(place: place))
+                        RewardChips(reward: RaceEvent.reward(place: place, chests: progress.raceGivesChests))
                         Button(lang.t("common.claim")) { granted = progress.claimRace() }
                             .buttonStyle(BigButtonStyle(color: Theme.green))
                     } else if progress.raceOver {
@@ -301,7 +301,8 @@ struct EventsSheet: View {
                                 Text(lang.t("event.race.placeShort", place))
                                     .font(Theme.rounded(12, .heavy))
                                     .foregroundColor(Theme.brownSoft)
-                                RewardChips(reward: RaceEvent.reward(place: place), perRow: 1, tileWidth: 92)
+                                RewardChips(reward: RaceEvent.reward(place: place, chests: progress.nextRaceGivesChests),
+                                            perRow: 1, tileWidth: 92)
                             }
                         }
                     }
@@ -314,18 +315,20 @@ struct EventsSheet: View {
 
     @ViewBuilder
     private var startButton: some View {
+        if !progress.nextRaceGivesChests && !progress.raceActive {
+            Label(lang.t("event.race.coinsOnly", Lang.time(Day.secondsToMidnight(progress.now))), systemImage: "moon.zzz.fill")
+                .font(Theme.rounded(12, .bold))
+                .foregroundColor(Theme.brownSoft)
+                .monospacedDigit()
+                .fixedSize(horizontal: false, vertical: true)
+        }
         if progress.canStartRace {
-            Button(lang.t("event.race.start", progress.racesToday + 1, RaceEvent.perDay)) {
+            Button(lang.t("event.race.startNext")) {
                 progress.startRace()
                 Audio.shared.play(.unlock)
                 withAnimation { raceIntro = true }
             }
             .buttonStyle(BigButtonStyle(color: Theme.red))
-        } else {
-            Label(lang.t("event.race.tomorrow", Lang.time(Day.secondsToMidnight(progress.now))), systemImage: "moon.zzz.fill")
-                .font(Theme.rounded(13, .bold))
-                .foregroundColor(Theme.brownSoft)
-                .monospacedDigit()
         }
     }
 
