@@ -115,6 +115,8 @@ def main():
             finish(f, os.path.join(DST, name), (600, int(600 * h / w)), boost=False)
         elif name.startswith("dish_") or name.startswith("chest_"):
             finish(f, os.path.join(DST, name), (400, 400))
+        elif name.startswith("icon_"):
+            finish(f, os.path.join(DST, name), (192, 192), centered=True)
         elif name == "coin_icon.png":
             finish(f, os.path.join(DST, name), (128, 128), centered=True)
         elif name.startswith("coins_"):
