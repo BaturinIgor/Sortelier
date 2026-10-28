@@ -304,6 +304,6 @@ extension PlayerProgress {
     // MARK: - Энергия (мини-игра, этап 5)
 
     func addEnergy(_ amount: Int) {
-        data.meta.stats["energyBonus", default: 0] += amount
+        addMergeEnergy(amount)
     }
 }

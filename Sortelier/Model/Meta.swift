@@ -70,6 +70,7 @@ struct Granted: Equatable {
 enum Stat: String, CaseIterable {
     case levelsWon, served, tips, dishes, triples, threeStars, maxCombo, boostersUsed
     case dailyDone, weeklyDone, weeklyLevels, streakBest, rareCards, cards, chests, chefBest
+    case merges, mergeOrders
 }
 
 // MARK: - Сохранение меты
@@ -324,7 +325,8 @@ enum Achievements {
         Achievement(id: "rare", stat: .rareCards, tiers: [1, 4, 8, 12], symbol: "sparkles"),
         Achievement(id: "series", stat: .chefBest, tiers: [3, 6, 10, 15], symbol: "crown.fill"),
         Achievement(id: "boosters", stat: .boostersUsed, tiers: [5, 20, 50, 120], symbol: "wand.and.stars"),
-        Achievement(id: "chests", stat: .chests, tiers: [1, 2, 3, 6], symbol: "gift.fill")
+        Achievement(id: "chests", stat: .chests, tiers: [1, 2, 3, 6], symbol: "gift.fill"),
+        Achievement(id: "merge", stat: .mergeOrders, tiers: [5, 20, 60, 150], symbol: "square.grid.3x3.fill")
     ]
 
     static func reward(tier: Int) -> Reward {

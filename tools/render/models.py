@@ -1792,8 +1792,136 @@ def dish_pancakes():
     return parts
 
 
+# MARK: - Генераторы мерж-доски
+
+def gen_oven():
+    """Духовка: скругленный корпус, стеклянная дверца со светом, ручки."""
+    body = box_mesh("Oven", 1.6, 1.1, 1.35, 0.0, cuts=4)
+    bevel(body, 0.16, 6, 30)
+    subdivide(body, 1)
+    smooth(body)
+    assign(body, material("OvenBody", [(0.0, (0.80, 0.16, 0.12)), (1.0, (0.96, 0.30, 0.22))], coord="z", lo=0.0, hi=1.35,
+                          rough=0.22, coat=0.7, coat_rough=0.06))
+    door = box_mesh("Door", 1.18, 0.06, 0.72, 0.18)
+    door.location = (0, -0.55, 0)
+    apply_transform(door)
+    bevel(door, 0.08, 4, 30)
+    smooth(door, 40)
+    assign(door, material("DoorGlass", [(0.0, (1.0, 0.55, 0.12)), (1.0, (0.35, 0.12, 0.04))], coord="z", lo=0.2, hi=0.9,
+                          rough=0.08, coat=0.9, coat_rough=0.02))
+    handle = capsule("Handle", 0.9, 0.045, 24, 16)
+    handle.location = (0, -0.66, 0.98)
+    smooth(handle)
+    steel = flat("Steel", (0.86, 0.86, 0.9), rough=0.2, metal=0.9)
+    assign(handle, steel)
+    parts = [body, door, handle]
+    for i, x in enumerate((-0.5, 0.0, 0.5)):
+        k = cylinder(f"Knob{i}", 0.09, 0.08, 32)
+        k.rotation_euler = (math.radians(90), 0, 0)
+        k.location = (x, -0.58, 1.17)
+        apply_transform(k)
+        bevel(k, 0.02, 3, 30)
+        smooth(k, 40)
+        assign(k, steel)
+        parts.append(k)
+    return rotate_all(parts, (0, 0, math.radians(-20)))
+
+
+def gen_grill():
+    """Гриль: чаша на ножках, решетка и угли."""
+    bowl = sphere("GrillBowl", 0.85, 64, 32)
+    deform(bowl, lambda co: Vector((co.x, co.y, min(co.z, 0.0) * 0.75 + 1.05)))
+    smooth(bowl)
+    assign(bowl, material("GrillBody", [(0.0, (0.10, 0.10, 0.12)), (1.0, (0.24, 0.24, 0.28))], coord="z", lo=0.4,
+                          hi=1.05, rough=0.25, coat=0.6))
+    rim = torus("GrillRim", 0.85, 0.04, 96, 16)
+    rim.location = (0, 0, 1.05)
+    smooth(rim)
+    steel = flat("GSteel", (0.8, 0.8, 0.84), rough=0.25, metal=0.9)
+    assign(rim, steel)
+    parts = [bowl, rim]
+    for i in range(7):
+        x = -0.6 + 0.2 * i
+        half = math.sqrt(max(0.0, 0.82 ** 2 - x * x))
+        bar = capsule(f"Bar{i}", 2 * half, 0.018, 12, 8)
+        bar.rotation_euler = (0, 0, math.radians(90))
+        bar.location = (x, 0, 1.06)
+        apply_transform(bar)
+        assign(smooth(bar), steel)
+        parts.append(bar)
+    coal = material("Coal", [(0.0, (1.0, 0.35, 0.05)), (1.0, (1.0, 0.75, 0.2))], coord="z", lo=0.9, hi=1.0, rough=0.4)
+    rnd = random.Random(3)
+    for i in range(9):
+        c = sphere(f"Coal{i}", 0.12, 20, 12)
+        a = rnd.uniform(0, 6.28)
+        r = rnd.uniform(0, 0.5)
+        c.location = (r * math.cos(a), r * math.sin(a), 0.93)
+        assign(smooth(c), coal)
+        parts.append(c)
+    for i in range(3):
+        a = math.radians(90 + 120 * i)
+        leg = capsule(f"Leg{i}", 1.0, 0.035, 12, 8)
+        leg.rotation_euler = (0, math.radians(90 - 12), a)
+        leg.location = (0.38 * math.cos(a), 0.38 * math.sin(a), 0.42)
+        apply_transform(leg)
+        assign(smooth(leg), steel)
+        parts.append(leg)
+    lid = sphere("Lid", 0.85, 64, 32)
+    deform(lid, lambda co: Vector((co.x, co.y, max(co.z, 0.0) * 0.6)))
+    lid.rotation_euler = (math.radians(-70), 0, 0)
+    lid.location = (0, 0.72, 1.35)
+    smooth(lid)
+    assign(lid, material("LidMat", [(0.0, (0.80, 0.14, 0.10)), (1.0, (0.95, 0.28, 0.2))], coord="z", lo=0.0, hi=0.5,
+                         rough=0.2, coat=0.7))
+    parts.append(lid)
+    return rotate_all(parts, (0, 0, math.radians(15)))
+
+
+def gen_crate():
+    """Ящик с грядки: деревянные планки, салат и помидоры."""
+    wood = material("CrateWood", [(0.0, (0.72, 0.48, 0.24)), (1.0, (0.88, 0.64, 0.36))], coord="z", lo=0.0, hi=0.9,
+                    rough=0.6, bump=0.15, bump_scale=6)
+    parts = []
+    for side in (-1, 1):
+        for k in range(2):
+            pl = box_mesh(f"PlankX{side}{k}", 1.7, 0.08, 0.32, 0.08 + k * 0.4)
+            pl.location = (0, side * 0.56, 0)
+            apply_transform(pl)
+            bevel(pl, 0.03, 3, 30)
+            smooth(pl, 40)
+            assign(pl, wood)
+            parts.append(pl)
+            pl2 = box_mesh(f"PlankY{side}{k}", 0.08, 1.06, 0.32, 0.08 + k * 0.4)
+            pl2.location = (side * 0.82, 0, 0)
+            apply_transform(pl2)
+            bevel(pl2, 0.03, 3, 30)
+            smooth(pl2, 40)
+            assign(pl2, wood)
+            parts.append(pl2)
+    bottom = box_mesh("CrateBottom", 1.6, 1.08, 0.08, 0.04)
+    assign(bottom, wood)
+    parts.append(bottom)
+    leaf_parts = lettuce_leaf("CrateLeaf", 0.7, 0.42, cup=0.3, curl=0.15, ruffle=0.06, waves=12)
+    rotate_all(leaf_parts, (math.radians(25), 0, math.radians(20)))
+    for o in leaf_parts:
+        o.location = (o.location.x - 0.35, o.location.y + 0.05, o.location.z + 0.62)
+    parts += leaf_parts
+    for i, (x, y) in enumerate(((0.35, -0.12), (0.62, 0.15), (0.15, 0.2))):
+        before = set(bpy.data.objects)
+        tomato()
+        new = [o for o in bpy.data.objects if o not in before and o.type == "MESH"]
+        for o in new:
+            o.scale = (0.32, 0.32, 0.32)
+            o.location = (o.location.x * 0.32 + x, o.location.y * 0.32 + y, o.location.z * 0.32 + 0.68)
+        parts += new
+    return rotate_all(parts, (0, 0, math.radians(-18)))
+
+
 MODELS = {
     "bun": whole_bun,
+    "gen_oven": gen_oven,
+    "gen_grill": gen_grill,
+    "gen_crate": gen_crate,
     "patty": patty,
     "lettuce": lettuce,
     "cheese": cheese_wedge,

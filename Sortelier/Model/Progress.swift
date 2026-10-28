@@ -36,6 +36,7 @@ struct SaveData: Codable {
     var playerId = UUID().uuidString
     var settings = GameSettings()
     var meta = MetaData()
+    var merge = MergeData()
 
     init() {}
 
@@ -60,6 +61,7 @@ struct SaveData: Codable {
         playerId = try c.decodeIfPresent(String.self, forKey: .playerId) ?? d.playerId
         settings = try c.decodeIfPresent(GameSettings.self, forKey: .settings) ?? GameSettings()
         meta = try c.decodeIfPresent(MetaData.self, forKey: .meta) ?? MetaData()
+        merge = try c.decodeIfPresent(MergeData.self, forKey: .merge) ?? MergeData()
     }
 }
 
@@ -88,6 +90,7 @@ final class PlayerProgress: ObservableObject {
         timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect().sink { [weak self] date in
             self?.now = date
             self?.refreshLives()
+            self?.refreshEnergy()
         }
     }
 

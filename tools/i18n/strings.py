@@ -294,6 +294,23 @@ S.update({
  "bg.bbq": ("Brick BBQ", "Кирпичное барбекю"),
 })
 
+# Кладовая: мерж-доска
+S.update({
+ "merge.title": ("Pantry", "Кладовая"),
+ "merge.hint": ("Tap the oven, grill or crate to get food. Drag two identical items onto each other to make the next one.", "Нажми на духовку, гриль или ящик - появятся продукты. Перетащи два одинаковых друг на друга - получится следующий."),
+ "merge.give": ("Give", "Отдать"),
+ "merge.full": ("The board is full: merge or deliver something", "Доска заполнена: слей или отдай что-нибудь"),
+ "merge.order.done": ("Order delivered!", "Заказ выполнен!"),
+ "merge.energy": ("Energy: {0}/{1}", "Энергия: {0} из {1}"),
+ "merge.energy.next": ("+1 in {0}", "+1 через {0}"),
+ "merge.energy.text": ("Every tap on the oven, grill or crate costs 1 energy. It refills by itself.", "Каждое нажатие на духовку, гриль или ящик стоит 1 энергию. Она восполняется сама."),
+ "merge.energy.ad": ("+{0} energy for an ad", "+{0} энергии за рекламу"),
+ "merge.energy.buy": ("+{0} energy for", "+{0} энергии за"),
+ "ach.merge": ("Pantry keeper", "Хозяин кладовой"),
+ "task.merges": ("Merge {0} times", "Сделай {0} слияний"),
+ "task.mergeOrders": ("Deliver {0} pantry orders", "Выполни {0} заказов в кладовой"),
+})
+
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 out = os.path.join(root, "Sortelier", "Resources", "Strings")
 os.makedirs(out, exist_ok=True)
