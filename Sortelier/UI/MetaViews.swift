@@ -773,7 +773,7 @@ struct BackgroundsSheet: View {
             }
             .buttonStyle(.plain)
         } else {
-            Text(lang.t("bg.source." + sourceKey(style.source)))
+            Text(lang.t("bg.source." + sourceKey(style)))
                 .font(Theme.rounded(12, .bold))
                 .foregroundColor(Theme.brownSoft)
                 .multilineTextAlignment(.center)
@@ -781,13 +781,14 @@ struct BackgroundsSheet: View {
         }
     }
 
-    private func sourceKey(_ s: KitchenStyle.Source) -> String {
-        switch s {
+    private func sourceKey(_ style: KitchenStyle) -> String {
+        switch style.source {
         case .free: return "free"
         case .shop: return "shop"
         case .welcome: return "welcome"
         case .event: return "event"
         case .gourmet: return "gourmet"
+        case .biome: return style.id
         }
     }
 

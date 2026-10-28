@@ -71,7 +71,7 @@ struct LevelContent: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                KitchenBackground(style: eventStyle)
+                KitchenBackground(style: eventStyle ?? progress.background(forBiome: session.level.biome))
                 SpriteView(scene: scene, options: [.allowsTransparency])
                     .ignoresSafeArea()
                 VStack(spacing: 4) {
@@ -105,6 +105,7 @@ struct LevelContent: View {
                 overlays
             }
             .onAppear {
+                Audio.shared.setTrack(eventStyle == nil ? Biomes.music(session.level.biome) : Biomes.music(1))
                 scene.hudHeight = geo.safeAreaInsets.top + 96
                 scene.bottomReserved = geo.safeAreaInsets.bottom + 96
                 if let intro = session.level.intro, !progress.seenIntro(intro) {
@@ -443,6 +444,10 @@ struct WinView: View {
                 RewardLine(symbol: "2.circle.fill", color: Theme.green, title: lang.t("event.double.bonus", result.doubleBonus),
                            granted: nil)
             }
+            if let gift = result.gourmetGift {
+                RewardLine(symbol: "crown.fill", color: Theme.gold,
+                           title: lang.t(gift.reward.background != nil ? "win.gourmet.bg" : "win.gourmet"), granted: gift)
+            }
         }
     }
 
@@ -476,6 +481,7 @@ struct IntroView: View {
     let kind: String
     let close: () -> Void
     @EnvironmentObject private var lang: Lang
+    @EnvironmentObject private var progress: PlayerProgress
 
     var body: some View {
         ZStack {
@@ -526,6 +532,66 @@ struct IntroView: View {
             ZStack {
                 Circle().fill(Color(red: 0.45, green: 0.30, blue: 0.20)).frame(width: 64, height: 64)
                 Text("?").font(Theme.rounded(36, .heavy)).foregroundColor(.white)
+            }
+        case "onigiri":
+            HStack(spacing: 4) {
+                SpriteImage(name: "rice", size: 46)
+                SpriteImage(name: "rice", size: 46)
+                SpriteImage(name: "rice", size: 46)
+                Text("=").font(Theme.rounded(22, .heavy)).foregroundColor(Theme.brownSoft)
+                SpriteImage(name: "dish_onigiri", size: 64)
+            }
+        case "juice":
+            HStack(spacing: 4) {
+                SpriteImage(name: "grapes", size: 46)
+                SpriteImage(name: "grapes", size: 46)
+                SpriteImage(name: "grapes", size: 46)
+                Text("=").font(Theme.rounded(22, .heavy)).foregroundColor(Theme.brownSoft)
+                SpriteImage(name: "dish_juice", size: 64)
+            }
+        case "dough":
+            VStack(spacing: 6) {
+                HStack(spacing: 4) {
+                    SpriteImage(name: "flour", size: 40)
+                    SpriteImage(name: "flour", size: 40)
+                    SpriteImage(name: "flour", size: 40)
+                    Image(systemName: "arrow.right").font(.system(size: 18, weight: .heavy)).foregroundColor(Theme.orange)
+                    SpriteImage(name: "dough", size: 50)
+                }
+                HStack(spacing: 4) {
+                    SpriteImage(name: "dough", size: 40)
+                    Text("+").font(Theme.rounded(18, .heavy)).foregroundColor(Theme.brownSoft)
+                    SpriteImage(name: "tomato", size: 40)
+                    Text("+").font(Theme.rounded(18, .heavy)).foregroundColor(Theme.brownSoft)
+                    SpriteImage(name: "mozzarella", size: 40)
+                    Text("=").font(Theme.rounded(18, .heavy)).foregroundColor(Theme.brownSoft)
+                    SpriteImage(name: "dish_pizza", size: 56)
+                }
+            }
+        case "ice":
+            ZStack(alignment: .topTrailing) {
+                SpriteImage(name: "fish", size: 70)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(red: 0.72, green: 0.90, blue: 1.0).opacity(0.5))
+                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.white, lineWidth: 2))
+                    .frame(width: 72, height: 74)
+                Text("2")
+                    .font(Theme.rounded(15, .heavy))
+                    .foregroundColor(.white)
+                    .frame(width: 26, height: 26)
+                    .background(Circle().fill(Color(red: 0.20, green: 0.55, blue: 0.90)))
+                    .offset(x: 8, y: -8)
+            }
+        case "gourmet":
+            ZStack(alignment: .topLeading) {
+                SpriteImage(name: "customer_10_happy", size: 90)
+                Image(systemName: "crown.fill").font(.system(size: 22)).foregroundColor(Theme.gold).offset(x: 4, y: 0)
+            }
+        case "lock":
+            ZStack {
+                SpriteImage(name: progress.goldShelves ? "shelf_gold" : "shelf", size: 120)
+                    .overlay(Color.black.opacity(0.25).clipShape(RoundedRectangle(cornerRadius: 10)))
+                Image(systemName: "lock.fill").font(.system(size: 34, weight: .bold)).foregroundColor(Theme.gold)
             }
         case "conflict":
             HStack(spacing: 6) {

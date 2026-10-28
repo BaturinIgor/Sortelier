@@ -39,7 +39,7 @@ PARAMS = [
 def themed_orders(theme):
     cfg = THEMES[theme]
 
-    def pick(rng, level_no, n_orders, n_dishes, n_ing_triples):
+    def pick(rng, level_no, n_orders, n_dishes, n_ing_triples, biome=1):
         orders = [Order("dish", rng.choice(cfg["dishes"])) for _ in range(n_dishes)]
         used = sorted({ing for o in orders for ing in G.CAT.dishes[o.target]["ingredients"]})
         for _ in range(n_ing_triples):

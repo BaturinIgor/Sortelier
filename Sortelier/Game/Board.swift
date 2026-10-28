@@ -5,6 +5,8 @@ struct Piece: Hashable {
     let uid: Int
     let item: String
     var hidden: Bool
+    /// Лед: продукт нельзя брать, пока не обслужено столько покупателей. 0 - без льда.
+    var ice: Int = 0
 }
 
 /// Покупатель в очереди: заказ и оставшееся терпение в ходах.
@@ -12,6 +14,8 @@ struct Customer: Hashable {
     let uid: Int
     let order: Order
     var patience: Int
+    /// Гурман: чаевые в несколько раз больше, иногда дарит фон.
+    var gourmet: Bool = false
 }
 
 /// Срабатывание полки: тройка или рецепт ушли покупателю.
@@ -26,13 +30,35 @@ struct Fire {
     let tip: Int
 }
 
+/// Цепочка: три сырых продукта превратились в один (мука x3 -> тесто).
+struct Transform {
+    let shelf: Int
+    let pieces: [Piece]
+    let result: Piece
+    let slot: Int
+}
+
+/// Что случилось на поле после хода, по порядку.
+enum BoardEvent {
+    case fire(Fire)
+    case transform(Transform)
+}
+
 struct MoveOutcome {
     let piece: Piece
     let from: Int
     let fromSlot: Int
     let to: Int
     let toSlot: Int
-    let fires: [Fire]
+    let events: [BoardEvent]
+
+    var fires: [Fire] {
+        events.compactMap { if case let .fire(f) = $0 { return f } else { return nil } }
+    }
+
+    var transforms: [Transform] {
+        events.compactMap { if case let .transform(t) = $0 { return t } else { return nil } }
+    }
 }
 
 /// Правила поля. Должны совпадать с tools/levels/rules.py, по которому проверены уровни.
@@ -40,6 +66,8 @@ struct Board {
     static let slots = 3
     /// Сколько покупателей стоит у прилавка: у них тает терпение.
     static let counter = 3
+    /// Во сколько раз больше чаевые у гурмана. Совпадает с GOURMET_MULT в rules.py.
+    static let gourmetTip = 5
 
     /// полка -> ряд (0 - передний) -> слот
     private(set) var shelves: [[[Piece?]]]
@@ -48,6 +76,11 @@ struct Board {
     /// Терпение покупателя в ходах и максимум чаевых. 0 - без терпения и чаевых.
     let patienceMax: Int
     let tipMax: Int
+    /// Замки полок: сколько покупателей надо обслужить, чтобы открыть полку.
+    private(set) var locks: [Int]
+    /// Сколько покупателей уже обслужено: по этому числу тает лед и открываются замки.
+    private(set) var served = 0
+    private var nextUid = 0
 
     /// Оставшиеся заказы в порядке очереди.
     var orders: [Order] { queue.map(\.order) }
@@ -64,9 +97,15 @@ struct Board {
                 for cell in layer {
                     if let cell = cell {
                         uid += 1
+                        // формат клетки: "?" - загадка, "@2" - лед до 2 обслуженных
                         let hidden = cell.hasPrefix("?")
-                        let item = hidden ? String(cell.dropFirst()) : cell
-                        row.append(Piece(uid: uid, item: item, hidden: hidden))
+                        var body = hidden ? String(cell.dropFirst()) : cell
+                        var ice = 0
+                        if let at = body.firstIndex(of: "@") {
+                            ice = Int(body[body.index(after: at)...]) ?? 0
+                            body = String(body[..<at])
+                        }
+                        row.append(Piece(uid: uid, item: body, hidden: hidden, ice: ice))
                     } else {
                         row.append(nil)
                     }
@@ -81,7 +120,14 @@ struct Board {
         let patience = level.patience ?? 0
         self.patienceMax = patience
         self.tipMax = level.tipMax ?? 0
-        self.queue = level.orders.enumerated().map { Customer(uid: $0.offset + 1, order: $0.element, patience: patience) }
+        let gourmets = Set(level.gourmet ?? [])
+        self.queue = level.orders.enumerated().map {
+            Customer(uid: $0.offset + 1, order: $0.element, patience: patience, gourmet: gourmets.contains($0.offset))
+        }
+        var locks = level.locks ?? []
+        while locks.count < built.count { locks.append(0) }
+        self.locks = locks
+        self.nextUid = uid + 1000
         self.catalog = catalog
         for s in shelves.indices { normalize(s) }
         _ = settle(Array(shelves.indices))
@@ -94,14 +140,37 @@ struct Board {
     /// Чаевые, если обслужить покупателя сейчас. Совпадает с tip_for в rules.py.
     func tip(for customer: Customer) -> Int {
         guard patienceMax > 0, tipMax > 0, customer.patience > 0 else { return 0 }
-        return Int((Double(tipMax) * Double(customer.patience) / Double(patienceMax) - 1e-9).rounded(.up))
+        let tip = Int((Double(tipMax) * Double(customer.patience) / Double(patienceMax) - 1e-9).rounded(.up))
+        return customer.gourmet ? tip * Board.gourmetTip : tip
     }
 
     var hasFreeSlot: Bool {
-        shelves.contains { $0[0].contains { $0 == nil } }
+        shelves.indices.contains { !isLocked($0) && freeSlot(in: $0) != nil }
     }
 
-    var isStuck: Bool { !isWon && !hasFreeSlot }
+    /// Нет ни одного хода: все продукты во льду или нет свободного места на другой полке.
+    var isStuck: Bool { !isWon && !hasMove }
+
+    var hasMove: Bool {
+        for s in shelves.indices where !isLocked(s) {
+            guard shelves[s][0].contains(where: { $0 != nil && !isFrozen($0!) }) else { continue }
+            if shelves.indices.contains(where: { $0 != s && !isLocked($0) && freeSlot(in: $0) != nil }) { return true }
+        }
+        return false
+    }
+
+    func isLocked(_ shelf: Int) -> Bool { locks.indices.contains(shelf) && locks[shelf] > served }
+
+    /// Сколько еще покупателей до открытия полки.
+    func lockLeft(_ shelf: Int) -> Int { locks.indices.contains(shelf) ? max(0, locks[shelf] - served) : 0 }
+
+    func isFrozen(_ piece: Piece) -> Bool { piece.ice > served }
+
+    /// Сколько еще покупателей до того, как растает лед.
+    func iceLeft(_ piece: Piece) -> Int { max(0, piece.ice - served) }
+
+    /// Можно ли положить продукт на полку.
+    func canPlace(on shelf: Int) -> Bool { !isLocked(shelf) && freeSlot(in: shelf) != nil }
 
     func front(_ shelf: Int) -> [Piece?] { shelves[shelf][0] }
 
@@ -115,8 +184,8 @@ struct Board {
 
     mutating func move(from src: Int, slot: Int, to dst: Int) -> MoveOutcome? {
         guard src != dst, shelves.indices.contains(src), shelves.indices.contains(dst),
-              slot >= 0, slot < Board.slots,
-              let piece = shelves[src][0][slot],
+              slot >= 0, slot < Board.slots, !isLocked(src), !isLocked(dst),
+              let piece = shelves[src][0][slot], !isFrozen(piece),
               let target = freeSlot(in: dst) else { return nil }
         shelves[src][0][slot] = nil
         shelves[dst][0][target] = piece
@@ -127,16 +196,17 @@ struct Board {
             changed.append(src)
         }
         changed.append(dst)
-        let fires = settle(changed)
+        let events = settle(changed)
         // у покупателей за прилавком тает терпение
         for i in 0..<min(Board.counter, queue.count) {
             queue[i].patience = max(0, queue[i].patience - 1)
         }
-        return MoveOutcome(piece: piece, from: src, fromSlot: slot, to: dst, toSlot: target, fires: fires)
+        return MoveOutcome(piece: piece, from: src, fromSlot: slot, to: dst, toSlot: target, events: events)
     }
 
     mutating func addShelf() {
         shelves.append([[nil, nil, nil]])
+        locks.append(0)
     }
 
     private mutating func normalize(_ s: Int) {
@@ -155,18 +225,27 @@ struct Board {
         }
     }
 
-    private mutating func settle(_ changed: [Int]) -> [Fire] {
-        var fires: [Fire] = []
+    private mutating func settle(_ changed: [Int]) -> [BoardEvent] {
+        var events: [BoardEvent] = []
         var pending = changed
         while let s = pending.popLast() {
             let front = shelves[s][0]
             let names = front.compactMap { $0?.item }
-            guard names.count == Board.slots,
-                  let result = catalog.result(of: names),
+            guard names.count == Board.slots else { continue }
+            // цепочка: три сырых превращаются в один продукт в среднем слоте
+            if let made = catalog.transform(of: names) {
+                nextUid += 1
+                let piece = Piece(uid: nextUid, item: made, hidden: false)
+                shelves[s][0] = [nil, piece, nil]
+                events.append(.transform(Transform(shelf: s, pieces: front.compactMap { $0 }, result: piece, slot: 1)))
+                continue
+            }
+            guard let result = catalog.result(of: names),
                   let index = queue.firstIndex(where: { $0.order == result }) else { continue }
             let customer = queue.remove(at: index)
-            fires.append(Fire(shelf: s, pieces: front.compactMap { $0 }, order: result, queueIndex: index,
-                              customer: customer, tip: tip(for: customer)))
+            served += 1
+            events.append(.fire(Fire(shelf: s, pieces: front.compactMap { $0 }, order: result, queueIndex: index,
+                                     customer: customer, tip: tip(for: customer))))
             shelves[s][0] = [nil, nil, nil]
             if shelves[s].count > 1 {
                 shelves[s].removeFirst()
@@ -174,7 +253,7 @@ struct Board {
             }
             pending.append(s)
         }
-        return fires
+        return events
     }
 
     // MARK: - Подсказка
@@ -182,12 +261,12 @@ struct Board {
     /// Лучший ход на один шаг вперед: срабатывание, потом заготовка тройки или рецепта.
     func hint() -> (from: Int, slot: Int, to: Int)? {
         var best: (score: Double, move: (Int, Int, Int))?
-        for s in shelves.indices {
+        for s in shelves.indices where !isLocked(s) {
             var seen = Set<String>()
             for k in 0..<Board.slots {
-                guard let piece = shelves[s][0][k], !seen.contains(piece.item) else { continue }
+                guard let piece = shelves[s][0][k], !isFrozen(piece), !seen.contains(piece.item) else { continue }
                 seen.insert(piece.item)
-                for d in shelves.indices where d != s && freeSlot(in: d) != nil {
+                for d in shelves.indices where d != s && canPlace(on: d) {
                     var copy = self
                     guard let outcome = copy.move(from: s, slot: k, to: d) else { continue }
                     var score = Double(outcome.fires.count) * 100

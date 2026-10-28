@@ -111,6 +111,10 @@ struct MetaData: Codable {
     var background = KitchenStyle.defaultId
     var notificationsAsked = false
     var events: [String: EventState] = [:]
+    /// Открытые биомы (первый открыт всегда).
+    var biomes: [Int] = []
+    /// Обслуженные гурманы с последнего подарка: для гарантии подарка.
+    var gourmetSinceGift = 0
 
     init() {}
 
@@ -133,6 +137,8 @@ struct MetaData: Codable {
         background = try c.decodeIfPresent(String.self, forKey: .background) ?? KitchenStyle.defaultId
         notificationsAsked = try c.decodeIfPresent(Bool.self, forKey: .notificationsAsked) ?? false
         events = try c.decodeIfPresent([String: EventState].self, forKey: .events) ?? [:]
+        biomes = try c.decodeIfPresent([Int].self, forKey: .biomes) ?? []
+        gourmetSinceGift = try c.decodeIfPresent(Int.self, forKey: .gourmetSinceGift) ?? 0
     }
 }
 
@@ -342,7 +348,7 @@ enum Achievements {
 // MARK: - Фоны кухни
 
 struct KitchenStyle: Identifiable {
-    enum Source { case free, shop, welcome, event, gourmet }
+    enum Source { case free, shop, welcome, event, gourmet, biome }
 
     let id: String
     let price: Int
@@ -359,7 +365,10 @@ struct KitchenStyle: Identifiable {
         KitchenStyle(id: "autumn", price: 0, source: .event),
         KitchenStyle(id: "winter", price: 0, source: .event),
         KitchenStyle(id: "sweets", price: 0, source: .event),
-        KitchenStyle(id: "bbq", price: 0, source: .event)
+        KitchenStyle(id: "bbq", price: 0, source: .event),
+        KitchenStyle(id: "japan", price: 0, source: .biome),
+        KitchenStyle(id: "italy", price: 0, source: .biome),
+        KitchenStyle(id: "gourmet", price: 0, source: .gourmet)
     ]
 
     static func style(_ id: String) -> KitchenStyle? { all.first { $0.id == id } }

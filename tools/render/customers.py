@@ -38,6 +38,8 @@ CUSTOMERS = [
     ("light", "pony", (0.72, 0.36, 0.14), (1.0, 0.62, 0.22), None),
     ("tan", "bangs", (0.12, 0.08, 0.06), (0.92, 0.28, 0.42), None),
     ("brown", "bald", (0.10, 0.07, 0.05), (0.32, 0.46, 0.72), "moustache"),
+    # гурман: цилиндр, монокль, усы, бабочка, фрак
+    ("fair", "tophat", (0.82, 0.80, 0.78), (0.10, 0.10, 0.13), "gourmet"),
 ]
 
 HEAD_Z = 1.25
@@ -265,6 +267,60 @@ def build(spec, mood):
         pom = ellipsoid("Pom", (0.22, 0.22, 0.22), M.flat("PomMat", (1.0, 0.98, 0.95), rough=0.7))
         pom.location = (0, 0.02, HEAD_Z + 1.2)
         parts += [crown, cuff, pom]
+    if style == "tophat":
+        parts.append(hair_shell("Hair", hair_mat, low=-0.3, front_cut=0.2))
+        felt = M.material("Felt", [(0.0, (0.05, 0.05, 0.07)), (1.0, (0.16, 0.16, 0.20))], coord="z",
+                          lo=HEAD_Z + 0.5, hi=HEAD_Z + 1.9, rough=0.35, coat=0.5, coat_rough=0.2, sheen=0.4)
+        brim = M.cylinder("HatBrim", 1.25, 0.06, 64)
+        brim.location = (0, 0.04, HEAD_Z + 0.62)
+        brim.rotation_euler = (math.radians(-8), 0, 0)
+        M.apply_transform(brim)
+        M.bevel(brim, 0.03, 3, 30)
+        M.smooth(brim, 40)
+        M.assign(brim, felt)
+        crown = M.cylinder("HatCrown", 0.78, 0.95, 64)
+        crown.location = (0, 0.1, HEAD_Z + 1.12)
+        crown.rotation_euler = (math.radians(-8), 0, 0)
+        M.apply_transform(crown)
+        M.bevel(crown, 0.06, 4, 30)
+        M.smooth(crown, 40)
+        M.assign(crown, felt)
+        band = M.cylinder("HatBand", 0.815, 0.17, 64)
+        band.location = (0, 0.085, HEAD_Z + 0.8)
+        band.rotation_euler = (math.radians(-8), 0, 0)
+        M.apply_transform(band)
+        M.smooth(band, 40)
+        M.assign(band, M.flat("BandMat", (0.80, 0.10, 0.12), rough=0.4, sheen=0.4))
+        parts += [brim, crown, band]
+    if acc == "gourmet":
+        gold = M.material("Monocle", [(0.0, (0.80, 0.55, 0.12)), (1.0, (1.0, 0.85, 0.40))], coord="z",
+                          lo=HEAD_Z - 0.2, hi=HEAD_Z + 0.3, rough=0.2, metal=1.0)
+        ring = M.torus("MonocleRing", 0.19, 0.03, 48, 12)
+        ring.rotation_euler = (math.radians(90), 0, 0)
+        at_face(ring, 0.34, 0.02, -0.08)
+        M.smooth(ring)
+        M.assign(ring, gold)
+        chain = M.tube("MonocleChain", [(0.5, -0.82, HEAD_Z - 0.05), (0.62, -0.7, HEAD_Z - 0.45), (0.6, -0.62, HEAD_Z - 0.8)],
+                       0.012)
+        M.assign(M.smooth(chain), gold)
+        mus = arc_tube("Moustache", 0.0, HEAD_Z - 0.25, 0.5, 0.09, 0.06, hair_mat, y_off=-0.05)
+        bow_mat = M.flat("BowMat", (0.80, 0.10, 0.12), rough=0.35, sheen=0.4)
+        bow = []
+        for side in (-1, 1):
+            w = M.sphere(f"Bow{side}", 1.0, 32, 16)
+            M.deform(w, lambda co, side=side: Vector((co.x * 0.2 * (1 + 0.5 * side * co.x), co.y * 0.08, co.z * 0.13 * (1 + 0.6 * side * co.x))))
+            w.location = (side * 0.17, -0.77, 0.24)
+            M.apply_transform(w)
+            M.assign(M.smooth(w), bow_mat)
+            bow.append(w)
+        knot = ellipsoid("BowKnot", (0.07, 0.07, 0.08), bow_mat)
+        knot.location = (0, -0.82, 0.24)
+        shirt_front = M.sphere("ShirtFront", 1.0, 32, 20)
+        M.deform(shirt_front, lambda co: Vector((co.x * 0.4, co.y * 0.1, co.z * 0.5)))
+        shirt_front.location = (0, -0.6, -0.1)
+        M.apply_transform(shirt_front)
+        M.assign(M.smooth(shirt_front), M.flat("ShirtWhite", (0.97, 0.97, 0.97), rough=0.5))
+        parts += [ring, chain, mus, knot, shirt_front] + bow
     if acc == "glasses":
         frame = M.flat("Frame", (0.15, 0.12, 0.12), rough=0.25, coat=0.6)
         for side in (-1, 1):

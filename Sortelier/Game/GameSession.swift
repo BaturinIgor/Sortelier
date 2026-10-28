@@ -22,6 +22,8 @@ final class GameSession: ObservableObject {
         let challenge: Granted?
         let events: [PlayerProgress.EventGain]
         let doubleBonus: Int
+        /// Подарок довольного гурмана: фон кухни или монеты.
+        let gourmetGift: Granted?
     }
 
     let level: LevelData
@@ -56,6 +58,8 @@ final class GameSession: ObservableObject {
     private var dishCount = 0
     private var tripleCount = 0
     private var bestCombo = 0
+    /// Гурманы, обслуженные с чаевыми.
+    private var happyGourmets = 0
 
     private struct Snapshot {
         let board: Board
@@ -65,6 +69,7 @@ final class GameSession: ObservableObject {
         let moves: Int
         let combo: Int
         let since: Int
+        let happyGourmets: Int
     }
 
     init(level: LevelData, mode: PlayMode = .main) {
@@ -87,7 +92,9 @@ final class GameSession: ObservableObject {
     var nextLevel: (level: LevelData, mode: PlayMode)? {
         switch mode {
         case .main:
-            guard let next = LevelStore.shared.level(level.id + 1) else { return nil }
+            // следующий биом сначала открывают на карте
+            guard let next = LevelStore.shared.level(level.id + 1),
+                  PlayerProgress.shared.isBiomeOpen(next.biome) else { return nil }
             return (level: next, mode: PlayMode.main)
         case .daily:
             return nil
@@ -111,7 +118,7 @@ final class GameSession: ObservableObject {
         var copy = board
         guard let outcome = copy.move(from: from, slot: slot, to: to) else { return nil }
         history.append(Snapshot(board: board, orderCoins: orderCoins, tips: tips, comboCoins: comboCoins, moves: moves,
-                                combo: combo, since: since))
+                                combo: combo, since: since, happyGourmets: happyGourmets))
         if history.count > 40 { history.removeFirst() }
         board = copy
         moves += 1
@@ -124,11 +131,16 @@ final class GameSession: ObservableObject {
             bestCombo = max(bestCombo, combo)
             orderCoins += Balance.coinsPerOrder + fire.tip
             tips += fire.tip
+            if fire.customer.gourmet && fire.tip > 0 { happyGourmets += 1 }
             if combo >= Balance.comboFrom {
                 orderCoins += Balance.comboBonus
                 comboCoins += Balance.comboBonus
             }
             discover(fire.order)
+        }
+        for t in outcome.transforms {
+            PlayerProgress.shared.discover(t.result.item)
+            if let raw = t.pieces.first?.item { PlayerProgress.shared.discover(raw) }
         }
         return outcome
     }
@@ -145,7 +157,10 @@ final class GameSession: ObservableObject {
             progress.discover(order.target)
         case .dish:
             if let dish = Catalog.shared.dish(order.target) {
-                for ingredient in dish.ingredients { progress.discover(ingredient) }
+                for ingredient in dish.ingredients {
+                    progress.discover(ingredient)
+                    if let raw = Catalog.shared.chainSource(of: ingredient) { progress.discover(raw) }
+                }
             }
             if progress.discover("dish_" + order.target) {
                 pendingDish = order.target
@@ -215,11 +230,12 @@ final class GameSession: ObservableObject {
         progress.addLevelStats(served: servedCount, tips: tips, dishes: dishCount, triples: tripleCount,
                                maxCombo: bestCombo)
         let streak = progress.registerPlayDay()
+        let gourmetGift = progress.gourmetServed(count: happyGourmets)
         result = Result(orderCoins: orderCoins, served: level.orders.count, tips: tips, comboCoins: comboCoins,
                         efficiency: efficiency, total: total, stars: stars, reward: reward,
                         streakDay: streak?.day, streak: streak?.granted, chef: chef,
                         chefSeries: progress.chefSeries, challenge: challenge,
-                        events: events.gains, doubleBonus: events.bonus)
+                        events: events.gains, doubleBonus: events.bonus, gourmetGift: gourmetGift)
         Notifications.afterWin(level: level.id, mode: mode)
         phase = .won
         Haptics.success()
@@ -238,6 +254,7 @@ final class GameSession: ObservableObject {
         moves = snapshot.moves
         combo = snapshot.combo
         since = snapshot.since
+        happyGourmets = snapshot.happyGourmets
         onReset?()
         return true
     }

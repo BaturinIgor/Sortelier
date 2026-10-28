@@ -11,6 +11,8 @@ struct CatalogItem: Decodable, Hashable {
     let id: String
     let kind: String
     let biome: Int
+    /// Цепочка: три таких продукта в переднем ряду превращаются в chain (мука -> тесто).
+    let chain: String?
 }
 
 struct CatalogDish: Decodable, Hashable {
@@ -27,6 +29,7 @@ final class Catalog {
     let dishes: [CatalogDish]
     private let recipeIndex: [String: String]
     private let dishById: [String: CatalogDish]
+    private let chains: [String: String]
 
     private init() {
         struct File: Decodable {
@@ -49,20 +52,34 @@ final class Catalog {
         var byId: [String: CatalogDish] = [:]
         for dish in file.dishes { byId[dish.id] = dish }
         dishById = byId
+        var chainIndex: [String: String] = [:]
+        for item in file.items { if let made = item.chain { chainIndex[item.id] = made } }
+        chains = chainIndex
     }
 
     func dish(_ id: String) -> CatalogDish? { dishById[id] }
 
-    /// Что дает полный ряд из трех продуктов.
+    /// Что дает полный ряд из трех продуктов. Рецепт из трех одинаковых (онигири) важнее тройки.
     func result(of three: [String]) -> Order? {
         guard three.count == 3 else { return nil }
-        if three[0] == three[1] && three[1] == three[2] {
-            return Order(kind: .triple, target: three[0])
-        }
         if let dish = recipeIndex[three.sorted().joined(separator: "|")] {
             return Order(kind: .dish, target: dish)
         }
+        if three[0] == three[1] && three[1] == three[2] {
+            return Order(kind: .triple, target: three[0])
+        }
         return nil
+    }
+
+    /// Цепочка: во что превращаются три одинаковых сырых продукта.
+    func transform(of three: [String]) -> String? {
+        guard three.count == 3, three[0] == three[1], three[1] == three[2] else { return nil }
+        return chains[three[0]]
+    }
+
+    /// Из чего собирается продукт цепочки.
+    func chainSource(of item: String) -> String? {
+        chains.first { $0.value == item }?.key
     }
 
     func items(inBiome biome: Int) -> [CatalogItem] {
@@ -72,6 +89,8 @@ final class Catalog {
     func dishes(inBiome biome: Int) -> [CatalogDish] {
         dishes.filter { $0.biome == biome }
     }
+
+    func item(_ id: String) -> CatalogItem? { items.first { $0.id == id } }
 }
 
 struct LevelData: Decodable, Identifiable {
@@ -89,6 +108,10 @@ struct LevelData: Decodable, Identifiable {
     let intro: String?
     /// Особое правило недельного испытания: noboosters, hidden, recipes.
     let rule: String?
+    /// Замки полок: сколько покупателей обслужить, чтобы полка открылась (0 - без замка).
+    let locks: [Int]?
+    /// Номера заказов, которые ждут гурманы.
+    let gourmet: [Int]?
 }
 
 final class LevelStore {
@@ -97,16 +120,22 @@ final class LevelStore {
     let levels: [LevelData]
 
     private init() {
-        if let url = Bundle.main.url(forResource: "levels_1", withExtension: "json"),
-           let data = try? Data(contentsOf: url),
-           let decoded = try? JSONDecoder().decode([LevelData].self, from: data) {
-            levels = decoded.sorted { $0.id < $1.id }
-        } else {
-            levels = []
+        var all: [LevelData] = []
+        for biome in 1...Biomes.playable {
+            if let url = Bundle.main.url(forResource: "levels_\(biome)", withExtension: "json"),
+               let data = try? Data(contentsOf: url),
+               let decoded = try? JSONDecoder().decode([LevelData].self, from: data) {
+                all += decoded
+            }
         }
+        levels = all.sorted { $0.id < $1.id }
     }
 
     func level(_ id: Int) -> LevelData? {
         levels.first { $0.id == id }
+    }
+
+    func levels(biome: Int) -> [LevelData] {
+        levels.filter { $0.biome == biome }
     }
 }

@@ -227,7 +227,7 @@ final class PlayerProgress: ObservableObject {
         return count
     }
 
-    func isUnlocked(_ level: Int) -> Bool { level <= currentLevel }
+    func isUnlocked(_ level: Int) -> Bool { level <= currentLevel && isBiomeOpen(Biomes.of(level: level)) }
 
     func totalStars(biome: Int = 1) -> Int {
         LevelStore.shared.levels.filter { $0.biome == biome }.reduce(0) { $0 + stars($1.id) }
@@ -262,15 +262,16 @@ final class PlayerProgress: ObservableObject {
 
     // MARK: - Сундуки
 
+    /// Сундук index: биом index / 3 + 1, номер index % 3.
     func chestReady(_ index: Int) -> Bool {
-        !data.chests.contains(index) && totalStars() >= Balance.chests[index].stars
+        !data.chests.contains(index) && totalStars(biome: index / 3 + 1) >= Biomes.chest(index).stars
     }
 
     func chestClaimed(_ index: Int) -> Bool { data.chests.contains(index) }
 
     func claimChest(_ index: Int) {
         guard chestReady(index) else { return }
-        let chest = Balance.chests[index]
+        let chest = Biomes.chest(index)
         data.chests.append(index)
         data.meta.stats[Stat.chests.rawValue, default: 0] += 1
         data.coins += chest.coins

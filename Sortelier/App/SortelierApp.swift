@@ -44,7 +44,10 @@ struct RootView: View {
     var body: some View {
         MapView(play: { level, mode in launch = LevelLaunch(level: level, mode: mode) })
             .fullScreenCover(item: $launch) { item in
-                LevelHost(level: item.level, mode: item.mode, close: { launch = nil })
+                LevelHost(level: item.level, mode: item.mode, close: {
+                    launch = nil
+                    Audio.shared.setTrack(Biomes.music(PlayerProgress.shared.mapBiome))
+                })
                     .environmentObject(PlayerProgress.shared)
                     .environmentObject(Lang.shared)
             }

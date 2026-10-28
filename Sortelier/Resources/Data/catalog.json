@@ -124,6 +124,152 @@
    "id": "pie",
    "kind": "snack",
    "biome": 1
+  },
+  {
+   "id": "rice",
+   "kind": "ingredient",
+   "biome": 2
+  },
+  {
+   "id": "fish",
+   "kind": "ingredient",
+   "biome": 2
+  },
+  {
+   "id": "soy",
+   "kind": "ingredient",
+   "biome": 2
+  },
+  {
+   "id": "avocado",
+   "kind": "ingredient",
+   "biome": 2
+  },
+  {
+   "id": "carrot",
+   "kind": "ingredient",
+   "biome": 2
+  },
+  {
+   "id": "leek",
+   "kind": "ingredient",
+   "biome": 2
+  },
+  {
+   "id": "mushroom",
+   "kind": "ingredient",
+   "biome": 2
+  },
+  {
+   "id": "edamame",
+   "kind": "snack",
+   "biome": 2
+  },
+  {
+   "id": "mochi",
+   "kind": "snack",
+   "biome": 2
+  },
+  {
+   "id": "dango",
+   "kind": "snack",
+   "biome": 2
+  },
+  {
+   "id": "matcha",
+   "kind": "snack",
+   "biome": 2
+  },
+  {
+   "id": "gyoza",
+   "kind": "snack",
+   "biome": 2
+  },
+  {
+   "id": "taiyaki",
+   "kind": "snack",
+   "biome": 2
+  },
+  {
+   "id": "tempura",
+   "kind": "snack",
+   "biome": 2
+  },
+  {
+   "id": "flour",
+   "kind": "raw",
+   "biome": 3,
+   "chain": "dough"
+  },
+  {
+   "id": "dough",
+   "kind": "chain",
+   "biome": 3
+  },
+  {
+   "id": "mozzarella",
+   "kind": "ingredient",
+   "biome": 3
+  },
+  {
+   "id": "basil",
+   "kind": "ingredient",
+   "biome": 3
+  },
+  {
+   "id": "pasta",
+   "kind": "ingredient",
+   "biome": 3
+  },
+  {
+   "id": "olive_oil",
+   "kind": "ingredient",
+   "biome": 3
+  },
+  {
+   "id": "grapes",
+   "kind": "ingredient",
+   "biome": 3
+  },
+  {
+   "id": "gelato",
+   "kind": "snack",
+   "biome": 3
+  },
+  {
+   "id": "espresso",
+   "kind": "snack",
+   "biome": 3
+  },
+  {
+   "id": "cannoli",
+   "kind": "snack",
+   "biome": 3
+  },
+  {
+   "id": "tiramisu",
+   "kind": "snack",
+   "biome": 3
+  },
+  {
+   "id": "olives",
+   "kind": "snack",
+   "biome": 3
+  },
+  {
+   "id": "focaccia",
+   "kind": "snack",
+   "biome": 3
+  },
+  {
+   "id": "grissini",
+   "kind": "snack",
+   "biome": 3
+  },
+  {
+   "id": "panna_cotta",
+   "kind": "snack",
+   "biome": 3
   }
  ],
  "dishes": [
@@ -180,6 +326,96 @@
     "honey"
    ],
    "biome": 1
+  },
+  {
+   "id": "sushi",
+   "ingredients": [
+    "rice",
+    "fish",
+    "soy"
+   ],
+   "biome": 2
+  },
+  {
+   "id": "onigiri",
+   "ingredients": [
+    "rice",
+    "rice",
+    "rice"
+   ],
+   "biome": 2
+  },
+  {
+   "id": "maki",
+   "ingredients": [
+    "rice",
+    "avocado",
+    "carrot"
+   ],
+   "biome": 2
+  },
+  {
+   "id": "tamago",
+   "ingredients": [
+    "egg",
+    "soy",
+    "leek"
+   ],
+   "biome": 2
+  },
+  {
+   "id": "ramen",
+   "ingredients": [
+    "leek",
+    "mushroom",
+    "egg"
+   ],
+   "biome": 2
+  },
+  {
+   "id": "pasta",
+   "ingredients": [
+    "pasta",
+    "tomato",
+    "basil"
+   ],
+   "biome": 3
+  },
+  {
+   "id": "juice",
+   "ingredients": [
+    "grapes",
+    "grapes",
+    "grapes"
+   ],
+   "biome": 3
+  },
+  {
+   "id": "pizza",
+   "ingredients": [
+    "dough",
+    "tomato",
+    "mozzarella"
+   ],
+   "biome": 3
+  },
+  {
+   "id": "caprese",
+   "ingredients": [
+    "mozzarella",
+    "basil",
+    "olive_oil"
+   ],
+   "biome": 3
+  },
+  {
+   "id": "bruschetta",
+   "ingredients": [
+    "baguette",
+    "tomato",
+    "olive_oil"
+   ],
+   "biome": 3
   }
  ]
 }
