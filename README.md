@@ -44,11 +44,15 @@
 
 ## Графика
 
-Продукты - модели [Kenney Food Kit](https://kenney.nl/assets/food-kit) (лицензия CC0), отрендеренные в Blender одним светом и ракурсом. Полки и фон кухни собраны скриптом: деревянные полки с процедурной текстурой, стена из плитки, полка с посудой, рейлинг с утварью и столешница из тех же моделей Kenney.
+Продукты и блюда смоделированы скриптом `tools/render/models.py` в Blender: каждый собирается из простых форм, которые деформируются и сглаживаются, получают материалы с градиентом, подповерхностным рассеянием и лаком, а мелкие детали (кунжут, посыпка, шоколадная крошка, черника) раскладываются по поверхности. Свет студийный: большой мягкий ключевой, холодная заливка, контровой.
 
-Модели сглаживаются и подразделяются, материалы глянцевые (плоским продуктам - матовые), свет теплый ключевой, холодная заливка и контровой.
+Полки и фон кухни собраны скриптом `tools/render/environment.py`: деревянные полки с процедурной текстурой, стена из плитки, полка с посудой, рейлинг с утварью и столешница. Посуда и утварь на фоне - модели [Kenney Food Kit](https://kenney.nl/assets/food-kit) (лицензия CC0).
 
-Рендер: `pip install bpy`, затем `python tools/render/render.py "<папка Models/GLB format>" art/renders --spin`. Полки: `python tools/render/environment.py shelf art/renders`, фон: `python tools/render/environment.py background "<папка Models/GLB format>" art/renders` (с `--preview` - быстрый черновик). Скрипт полок печатает разметку (края, пол, верх), ее значения стоят в `GameScene.swift`.
+Рендер (нужен `pip install bpy`):
+
+- продукты и блюда: `python tools/render/models.py art/renders --spin` (выборочно: `--only bun,dish_burger`)
+- полки: `python tools/render/environment.py shelf art/renders` - печатает разметку (края, пол, верх), ее значения стоят в `GameScene.swift`
+- фон: `python tools/render/environment.py background "<папка Models/GLB format>" art/renders` (с `--preview` - быстрый черновик)
 
 Спрайты для игры: `python3 tools/render/pack.py art/renders`. Продукты при упаковке ставятся на нижний край кадра, чтобы одинаково стояли на полке; фон слегка размывается, получает виньетку и сохраняется в JPEG. Иконка: `python3 tools/render/icon.py art/renders`.
 

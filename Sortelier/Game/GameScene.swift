@@ -527,7 +527,11 @@ final class GameScene: SKScene {
             node.zPosition = 20
             let move = SKAction.move(to: slotPosition(outcome.to, outcome.toSlot), duration: 0.1)
             move.timingMode = .easeOut
-            node.run(.group([move, .scale(to: 1, duration: 0.1)]))
+            // мягкий отскок при приземлении на полку
+            let squash = SKAction.scaleX(to: 1.08, y: 0.9, duration: 0.05)
+            let settle = SKAction.scale(to: 1, duration: 0.09)
+            settle.timingMode = .easeOut
+            node.run(.sequence([.group([move, .scale(to: 1, duration: 0.1)]), squash, settle]))
         }
         // Поле не блокируется: следующий ход можно делать сразу, анимации идут параллельно.
         var delay: TimeInterval = 0.1
