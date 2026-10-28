@@ -3220,7 +3220,14 @@ def chest_obj(kind="bronze", is_open=False, filled="cards"):
         rotate_all(lid_parts, (math.radians(-105), 0, 0), pivot=(0, d / 2, h))
         # содержимое и свечение
         if filled == "coins":
-            parts += coin_heap(11, 40, 0.75, 0.38, h - 0.05)
+            # золотая подложка под монетами: в щелях видно золото, а не темное дно
+            fill = sphere("CoinFill", 1.0, 32, 16)
+            fill.scale = (0.74, 0.44, 0.24)
+            fill.location = (0, 0, h - 0.06)
+            apply_transform(fill)
+            assign(smooth(fill, 60), gold_mat("CoinFillGold"))
+            parts.append(fill)
+            parts += coin_heap(11, 60, 0.75, 0.38, h - 0.05)
         else:
             colors = [(0.95, 0.35, 0.30), (0.35, 0.65, 0.95), (0.45, 0.85, 0.45), (1.0, 0.80, 0.25), (0.75, 0.45, 0.95)]
             for i in range(5):
