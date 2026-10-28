@@ -4,6 +4,7 @@ import SwiftUI
 struct SortelierApp: App {
     @StateObject private var progress = PlayerProgress.shared
     @StateObject private var lang = Lang.shared
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -11,7 +12,13 @@ struct SortelierApp: App {
                 .environmentObject(progress)
                 .environmentObject(lang)
                 .statusBarHidden()
-                .onAppear { Analytics.start() }
+                .onAppear {
+                    Analytics.start()
+                    Audio.shared.start()
+                }
+        }
+        .onChange(of: scenePhase) { phase in
+            if phase == .active { Audio.shared.resume() }
         }
     }
 }

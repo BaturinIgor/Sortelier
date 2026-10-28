@@ -41,15 +41,20 @@ final class Ads {
 
 /// Тактильная отдача.
 enum Haptics {
+    private static var on: Bool { PlayerProgress.shared.settings.haptics }
+
     static func light() {
+        guard on else { return }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
     static func success() {
+        guard on else { return }
         UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 
     static func warning() {
+        guard on else { return }
         UINotificationFeedbackGenerator().notificationOccurred(.warning)
     }
 }

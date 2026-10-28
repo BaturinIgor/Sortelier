@@ -445,6 +445,7 @@ final class GameScene: SKScene {
                 node.zPosition = 100
                 node.run(.scale(to: 1.15, duration: 0.08))
             }
+            Audio.shared.play(.pick, volume: 0.7)
             return
         }
         if let sel = selected, let target = shelf(at: p), target != sel.shelf {
@@ -477,6 +478,7 @@ final class GameScene: SKScene {
     /// Тап по продукту из заднего ряда: он не берется, объясняем почему.
     private func backRowFeedback(uid: Int, shelf: Int) {
         Haptics.warning()
+        Audio.shared.play(.invalid, volume: 0.7)
         if let node = pieceNodes[uid] {
             node.run(.sequence([.moveBy(x: -4, y: 0, duration: 0.04), .moveBy(x: 8, y: 0, duration: 0.06),
                                 .moveBy(x: -8, y: 0, duration: 0.06), .moveBy(x: 4, y: 0, duration: 0.04)]))
@@ -602,6 +604,7 @@ final class GameScene: SKScene {
         let pieceUid = session.board.front(src)[slot]?.uid
         guard let outcome = session.move(from: src, slot: slot, to: dst) else {
             if let uid = pieceUid { returnToPlace(uid) }
+            Audio.shared.play(.invalid, volume: 0.7)
             if session.board.freeSlot(in: dst) == nil, dst < shelfNodes.count {
                 shelfNodes[dst].run(.sequence([.moveBy(x: -5, y: 0, duration: 0.05), .moveBy(x: 10, y: 0, duration: 0.08),
                                                .moveBy(x: -5, y: 0, duration: 0.05)]))
@@ -609,6 +612,7 @@ final class GameScene: SKScene {
             return
         }
         Haptics.light()
+        Audio.shared.play(.place, volume: 0.8)
         if let node = pieceNodes[outcome.piece.uid] {
             node.removeAllActions()
             node.zPosition = 20
@@ -677,6 +681,7 @@ final class GameScene: SKScene {
                 steps.append(.group([fly, .scale(to: 0.6, duration: 0.28)]))
                 steps.append(.run {
                     customer?.celebrate(coins: coins) {}
+                    Audio.shared.play(.coin, volume: 0.7)
                 })
                 steps.append(.removeFromParent())
             } else {
@@ -688,6 +693,7 @@ final class GameScene: SKScene {
         run(.sequence([.wait(forDuration: delay + 0.14), .run { [weak self] in
             guard let self = self else { return }
             Haptics.success()
+            Audio.shared.play(fire.order.kind == .dish ? .dish : .triple)
             self.burst(at: center, dish: fire.order.kind == .dish)
             self.comboPopup(combo: combo)
             if customer == nil { self.coinPopup(at: center, coins: coins) }
@@ -729,6 +735,7 @@ final class GameScene: SKScene {
 
     private func comboPopup(combo: Int) {
         if combo >= Balance.comboFrom {
+            Audio.shared.play(.combo, volume: 0.7)
             let text = SKLabelNode(text: Lang.shared.t("game.combo", combo))
             text.fontName = "AvenirNext-Heavy"
             text.fontSize = 24

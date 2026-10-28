@@ -59,6 +59,7 @@ struct DishUnlockView: View {
         }
         .onAppear {
             Haptics.success()
+            Audio.shared.play(.unlock)
             withAnimation(.spring(response: 0.5, dampingFraction: 0.55)) { appear = true }
         }
     }

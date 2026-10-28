@@ -71,6 +71,9 @@ struct BigButtonStyle: ButtonStyle {
             )
             .offset(y: configuration.isPressed ? 3 : 0)
             .animation(.easeOut(duration: 0.08), value: configuration.isPressed)
+            .onChange(of: configuration.isPressed) { pressed in
+                if pressed { Audio.shared.play(.button, volume: 0.6) }
+            }
     }
 }
 
@@ -80,7 +83,10 @@ struct CircleIconButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            Audio.shared.play(.button, volume: 0.6)
+            action()
+        } label: {
             Image(systemName: symbol)
                 .font(.system(size: size * 0.42, weight: .bold))
                 .foregroundColor(Theme.brown)

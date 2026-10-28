@@ -1,6 +1,22 @@
 import Foundation
 import Combine
 
+/// Настройки звука и вибрации.
+struct GameSettings: Codable, Equatable {
+    var music = true
+    var sound = true
+    var haptics = true
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        music = try c.decodeIfPresent(Bool.self, forKey: .music) ?? true
+        sound = try c.decodeIfPresent(Bool.self, forKey: .sound) ?? true
+        haptics = try c.decodeIfPresent(Bool.self, forKey: .haptics) ?? true
+    }
+}
+
 /// Прогресс игрока. Хранится JSON-файлом в Application Support.
 struct SaveData: Codable {
     var coins = Balance.startCoins
@@ -18,6 +34,7 @@ struct SaveData: Codable {
     var adViews = 0
     var seenIntros: [String] = []
     var playerId = UUID().uuidString
+    var settings = GameSettings()
 
     init() {}
 
@@ -40,6 +57,7 @@ struct SaveData: Codable {
         adViews = try c.decodeIfPresent(Int.self, forKey: .adViews) ?? 0
         seenIntros = try c.decodeIfPresent([String].self, forKey: .seenIntros) ?? []
         playerId = try c.decodeIfPresent(String.self, forKey: .playerId) ?? d.playerId
+        settings = try c.decodeIfPresent(GameSettings.self, forKey: .settings) ?? GameSettings()
     }
 }
 
@@ -75,6 +93,16 @@ final class PlayerProgress: ObservableObject {
         if let raw = try? JSONEncoder().encode(data) {
             try? raw.write(to: Self.fileURL, options: .atomic)
         }
+    }
+
+    // MARK: - Настройки
+
+    var settings: GameSettings { data.settings }
+
+    func update(settings: GameSettings) {
+        data.settings = settings
+        save()
+        Audio.shared.updateMusic()
     }
 
     // MARK: - Монеты и бустеры

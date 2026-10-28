@@ -364,9 +364,11 @@ struct WinView: View {
                     .frame(maxWidth: 310)
                 }
                 .onAppear {
+                    Audio.shared.play(.win, volume: 0.8)
                     for i in 1...result.stars {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25 * Double(i)) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35 + 0.3 * Double(i)) {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.45)) { shown = i }
+                            Audio.shared.play(i == 1 ? .star1 : (i == 2 ? .star2 : .star3))
                             Haptics.light()
                         }
                     }

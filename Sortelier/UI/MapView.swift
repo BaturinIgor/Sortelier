@@ -284,6 +284,7 @@ struct ChestPopup: View {
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { opened = true }
                             progress.claimChest(index)
                             Haptics.success()
+                            Audio.shared.play(.chest)
                         }
                         .buttonStyle(BigButtonStyle(color: Theme.green))
                     } else {
@@ -373,10 +374,14 @@ struct SettingsSheet: View {
     var body: some View {
         ZStack {
             Theme.background.ignoresSafeArea()
+            ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 Text(lang.t("settings.title"))
                     .font(Theme.rounded(26, .heavy))
                     .foregroundColor(Theme.brown)
+                toggle(lang.t("settings.music"), "music.note", \.music)
+                toggle(lang.t("settings.sound"), "speaker.wave.2.fill", \.sound)
+                toggle(lang.t("settings.haptics"), "iphone.radiowaves.left.and.right", \.haptics)
                 Text(lang.t("settings.language"))
                     .font(Theme.rounded(16, .bold))
                     .foregroundColor(Theme.brownSoft)
@@ -398,9 +403,30 @@ struct SettingsSheet: View {
                     .font(Theme.rounded(13, .medium))
                     .foregroundColor(Theme.brownSoft)
                     .padding(.top, 10)
-                Spacer()
             }
             .padding(24)
+            }
         }
+    }
+
+    private func toggle(_ title: String, _ symbol: String, _ key: WritableKeyPath<GameSettings, Bool>) -> some View {
+        Toggle(isOn: Binding(
+            get: { progress.settings[keyPath: key] },
+            set: { value in
+                var settings = progress.settings
+                settings[keyPath: key] = value
+                progress.update(settings: settings)
+            })) {
+            HStack(spacing: 10) {
+                Image(systemName: symbol)
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundColor(Theme.orange)
+                    .frame(width: 26)
+                Text(title).font(Theme.rounded(18, .bold)).foregroundColor(Theme.brown)
+            }
+        }
+        .tint(Theme.orange)
+        .padding(14)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Theme.card))
     }
 }
