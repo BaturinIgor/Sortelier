@@ -20,6 +20,10 @@ DATA = os.path.join(ROOT, "Sortelier", "Resources", "Data")
 
 COINS_PER_ORDER = 5
 EFFICIENCY_SHARE = 0.3
+# Терпение покупателя в ходах: PATIENCE_K ходов решателя на заказ, не меньше PATIENCE_MIN
+PATIENCE_K = 3.5
+PATIENCE_MIN = 7
+TIP_MAX = 4
 
 CATALOG = {
     "items": [
@@ -69,7 +73,7 @@ SNACK_UNLOCK = {"donut": 1, "fries": 1, "soda": 2, "cupcake": 3, "cookie": 4, "i
 # shelves, max_depth, orders, dishes, free_slots, hidden_share, ingredient_triples, hard, intro
 LEVELS = [
     (3, 1, 2, 0, 3, 0.0, 0, False, "basics"),
-    (4, 2, 3, 0, 4, 0.0, 0, False, None),
+    (4, 2, 3, 0, 4, 0.0, 0, False, "patience"),
     (4, 2, 4, 0, 4, 0.0, 0, False, None),
     (5, 2, 5, 0, 5, 0.0, 0, False, None),
     (5, 3, 6, 0, 4, 0.0, 0, True, None),
@@ -195,7 +199,8 @@ def generate_level(level_no, params, seed):
         # слишком простой уровень для своей позиции пропускаем
         if level_no > 3 and len(path) < len(items_for(orders)) * 0.45:
             continue
-        coins = replay_score(CAT, shelves, orders, path, COINS_PER_ORDER)
+        patience = max(PATIENCE_MIN, round(PATIENCE_K * len(path) / n_orders))
+        coins = replay_score(CAT, shelves, orders, path, COINS_PER_ORDER, patience=patience, tip_max=TIP_MAX)
         base = COINS_PER_ORDER * n_orders
         best = coins + round(EFFICIENCY_SHARE * base)
         star2 = base + round(0.35 * (best - base))
@@ -214,6 +219,8 @@ def generate_level(level_no, params, seed):
             "shelves": cells,
             "orders": [o.to_json() for o in orders],
             "par": len(path),
+            "patience": patience,
+            "tipMax": TIP_MAX,
             "stars": [star2, star3],
             "best": best,
             "hard": hard,
@@ -241,7 +248,7 @@ def main():
         t = time.time()
         lv = generate_level(i, params, seed=1000 + i)
         levels = [l for l in levels if l["id"] != i] + [lv]
-        print(f"level {i:2d}: orders {params[2]:2d}, par {lv['par']:3d}, stars {lv['stars']}, "
+        print(f"level {i:2d}: orders {params[2]:2d}, par {lv['par']:3d}, patience {lv['patience']}, stars {lv['stars']}, "
               f"attempts {lv['attempts']}, {time.time() - t:.1f}s", flush=True)
     levels.sort(key=lambda l: l["id"])
     for l in levels:

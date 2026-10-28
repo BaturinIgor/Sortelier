@@ -881,10 +881,14 @@ def sausage():
     return [sausage_obj()]
 
 
-def hotdog_bun_halves(name="HBun", length=2.5, radius=0.46, gap=0.05, open_deg=15):
-    crust = material(f"{name}Crust", [(0.0, (0.86, 0.50, 0.18)), (0.5, CRUST), (0.8, CRUST_LIGHT), (1.0, (0.86, 0.50, 0.16))],
-                     coord="nz", lo=-1, hi=1, rough=0.4, sss=0.25, coat=0.3, bump=0.06, bump_scale=18, vary=0.1)
-    crumb = flat(f"{name}Crumb", (0.97, 0.80, 0.55), rough=0.6, sss=0.2, bump=0.4, bump_scale=30, bump_detail=6)
+def hotdog_bun_halves(name="HBun", length=2.5, radius=0.46, gap=0.05, open_deg=24):
+    crust = material(f"{name}Crust", [(0.0, (0.86, 0.54, 0.22)), (0.45, (0.97, 0.70, 0.34)), (0.75, (0.96, 0.66, 0.30)),
+                                      (1.0, (0.84, 0.50, 0.18))],
+                     coord="nz", lo=-1, hi=1, rough=0.38, sss=0.25, coat=0.35, bump=0.06, bump_scale=18, vary=0.1)
+    # мякиш с порами: светлый, с мелкими темными точками и рельефом
+    crumb = material(f"{name}Crumb", [(0.0, (1.0, 0.88, 0.66)), (1.0, (0.98, 0.80, 0.54))], coord="r_xz", lo=0.0,
+                     hi=1.3, rough=0.7, sss=0.25, bump=0.55, bump_scale=34, bump_detail=8, vary=0.12, vary_scale=6)
+    add_speckles(crumb, (0.86, 0.66, 0.42), scale=48, threshold=0.62, strength=0.7)
     parts = []
     for side in (-1, 1):
         h = capsule(f"{name}{side}", length, radius, 64, 48)
@@ -901,7 +905,10 @@ def hotdog_bun_halves(name="HBun", length=2.5, radius=0.46, gap=0.05, open_deg=1
 
 
 def hotdog_bun():
-    return rotate_all(hotdog_bun_halves(), (0, 0, math.radians(-24)))
+    parts = hotdog_bun_halves()
+    rotate_all(parts, (0, 0, math.radians(-22)))
+    # чуть наклоняем к камере, чтобы был виден разрез
+    return rotate_all(parts, (math.radians(24), 0, 0))
 
 
 def ketchup():
@@ -1631,13 +1638,18 @@ def dish_sandwich():
                      rough=0.5, sss=0.2, coat=0.2, bump=0.08, bump_scale=16)
     crumb = material("SCrumb", [(0.0, (1.0, 0.84, 0.56)), (1.0, (1.0, 0.90, 0.68))], coord="z", lo=0.0, hi=0.9,
                      rough=0.65, sss=0.25, bump=0.35, bump_scale=28, bump_detail=8)
+    toast = material("SToast", [(0.0, (0.98, 0.78, 0.44)), (1.0, (0.96, 0.70, 0.36))], coord="r", lo=0.0, hi=1.6,
+                     rough=0.55, sss=0.2, coat=0.15, bump=0.3, bump_scale=24, bump_detail=8, vary=0.15, vary_scale=4)
+    add_speckles(toast, (0.84, 0.54, 0.24), scale=40, threshold=0.63, strength=0.6)
     hyp = Vector((1, 1, 0)).normalized()
 
     def bread_layer(name, z0):
         b = tri_layer(name, legs, 0.30, z0)
         bevel(b, 0.06, 4, 30)
         smooth(b, 40)
-        assign_faces(b, crust, [(lambda n, c: abs(n.z) > 0.9 or n.dot(hyp) > 0.9, crumb)])
+        # верх подрумянен, срез - мякиш, края - корочка
+        assign_faces(b, crust, [(lambda n, c: n.z > 0.9 and c.z > 0.7, toast),
+                                (lambda n, c: abs(n.z) > 0.9 or n.dot(hyp) > 0.9, crumb)])
         return b
     b1 = bread_layer("SBread1", 0.0)
     let = tri_layer("SLettuce", legs, 0.06, 0.30, grow=0.08, wave=0.045, waves=18)
@@ -1653,6 +1665,27 @@ def dish_sandwich():
     b2 = bread_layer("SBread2", 0.53)
     parts = [b1, let, hm, b2]
     c = legs / 3
+    # шпажка с оливкой
+    pick = capsule("Pick", 1.15, 0.022, 16, 12)
+    pick.rotation_euler = (0, math.radians(90), 0)
+    pick.location = (c, c, 0.78)
+    apply_transform(pick)
+    smooth(pick)
+    assign(pick, flat("PickMat", (0.92, 0.80, 0.58), rough=0.5))
+    olive = sphere("Olive", 0.11, 32, 20)
+    olive.scale = (1, 1, 1.15)
+    olive.location = (c, c, 1.3)
+    apply_transform(olive)
+    smooth(olive)
+    assign(olive, material("OliveMat", [(0.0, (0.30, 0.42, 0.10)), (1.0, (0.50, 0.62, 0.18))], coord="z", lo=1.2,
+                           hi=1.42, rough=0.15, sss=0.2, coat=0.7))
+    pim = sphere("Pimento", 0.045, 20, 12)
+    pim.scale = (1, 0.5, 1)
+    pim.location = (c - 0.08, c - 0.08, 1.33)
+    apply_transform(pim)
+    smooth(pim)
+    assign(pim, flat("PimentoMat", (0.90, 0.16, 0.10), rough=0.2, coat=0.6))
+    parts += [pick, olive, pim]
     rotate_all(parts, (0, 0, math.radians(-135)), pivot=(c, c, 0.42))
     return rotate_all(parts, (math.radians(16), 0, 0), pivot=(c, c, 0.42))
 

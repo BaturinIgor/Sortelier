@@ -70,8 +70,9 @@ struct LevelContent: View {
                 KitchenBackground()
                 SpriteView(scene: scene, options: [.allowsTransparency])
                     .ignoresSafeArea()
-                VStack(spacing: 0) {
+                VStack(spacing: 4) {
                     topBar
+                    StarProgress(coins: session.orderCoins, thresholds: session.level.stars)
                     Spacer()
                     boosterBar
                 }
@@ -91,7 +92,7 @@ struct LevelContent: View {
                 overlays
             }
             .onAppear {
-                scene.hudHeight = geo.safeAreaInsets.top + 62
+                scene.hudHeight = geo.safeAreaInsets.top + 96
                 scene.bottomReserved = geo.safeAreaInsets.bottom + 96
                 if let intro = session.level.intro, !progress.seenIntro(intro) {
                     showIntro = true
@@ -122,23 +123,9 @@ struct LevelContent: View {
             .frame(minHeight: 42)
             .background(Capsule().fill(Theme.card).shadow(color: Theme.brown.opacity(0.18), radius: 4, y: 2))
             Spacer()
-            Pill(text: "\(session.orderCoins)") { CoinIcon(size: 22) }
-            starMeter
         }
         .padding(.top, 6)
-        .frame(height: 56)
-    }
-
-    /// Сколько монет уже набрано относительно порогов звезд.
-    private var starMeter: some View {
-        let s2 = session.level.stars[0]
-        let s3 = session.level.stars[1]
-        let earned = session.orderCoins
-        let count = earned >= s3 ? 3 : (earned >= s2 ? 2 : 1)
-        return StarsRow(count: count, size: 14, spacing: 1)
-            .padding(.horizontal, 8)
-            .frame(height: 36)
-            .background(Capsule().fill(Theme.card).shadow(color: Theme.brown.opacity(0.18), radius: 4, y: 2))
+        .frame(height: 52)
     }
 
     private var boosterBar: some View {
@@ -304,6 +291,7 @@ struct StuckView: View {
                             HStack { Image(systemName: "play.rectangle.fill"); Text(lang.t("stuck.ad")) }
                         }
                         .buttonStyle(BigButtonStyle(color: Theme.green))
+                        AdsLeftLabel()
                     }
                     Button(lang.t(session.isReplay ? "stuck.giveup.replay" : "stuck.giveup"), action: giveUp)
                         .buttonStyle(BigButtonStyle(color: Theme.brownSoft))
@@ -345,7 +333,9 @@ struct WinView: View {
                             }
                         }
                         VStack(spacing: 6) {
-                            row(lang.t("win.orders"), result.orderCoins)
+                            row(lang.t("win.orders"), result.served * Balance.coinsPerOrder)
+                            if result.tips > 0 { row(lang.t("win.tips"), result.tips) }
+                            if result.comboCoins > 0 { row(lang.t("win.combo"), result.comboCoins) }
                             row(lang.t("win.efficiency"), result.efficiency)
                             Divider()
                             row(lang.t("win.total"), result.total, bold: true)
@@ -359,6 +349,7 @@ struct WinView: View {
                                 HStack { Image(systemName: "play.rectangle.fill"); Text(lang.t("win.double")) }
                             }
                             .buttonStyle(BigButtonStyle(color: Theme.green))
+                            AdsLeftLabel()
                         }
                         if let message = message {
                             Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)
@@ -451,6 +442,16 @@ struct IntroView: View {
                 Text("=").font(Theme.rounded(22, .heavy)).foregroundColor(Theme.brownSoft)
                 SpriteImage(name: "dish_burger", size: 64)
             }
+        case "patience":
+            HStack(spacing: 10) {
+                SpriteImage(name: "customer_1_happy", size: 70)
+                VStack(alignment: .leading, spacing: 6) {
+                    patienceBar(0.9, Theme.green)
+                    patienceBar(0.45, Theme.gold)
+                    patienceBar(0.15, Theme.red)
+                }
+                SpriteImage(name: "customer_1_upset", size: 70)
+            }
         case "hidden":
             ZStack {
                 Circle().fill(Color(red: 0.45, green: 0.30, blue: 0.20)).frame(width: 64, height: 64)
@@ -469,6 +470,78 @@ struct IntroView: View {
                 SpriteImage(name: "donut", size: 54)
             }
         }
+    }
+}
+
+private func patienceBar(_ fraction: CGFloat, _ color: Color) -> some View {
+    ZStack(alignment: .leading) {
+        Capsule().fill(Theme.brown.opacity(0.7)).frame(width: 64, height: 10)
+        Capsule().fill(color).frame(width: 64 * fraction, height: 8).padding(.leading, 1)
+    }
+}
+
+/// Монеты уровня и пороги звезд: 1 звезда за прохождение, 2 и 3 - по монетам.
+struct StarProgress: View {
+    let coins: Int
+    let thresholds: [Int]
+
+    var body: some View {
+        let s2 = thresholds.first ?? 1
+        let s3 = thresholds.count > 1 ? thresholds[1] : s2
+        let top = max(1, Double(s3) * 1.12)
+        HStack(spacing: 8) {
+            CoinIcon(size: 20)
+            Text("\(coins)")
+                .font(Theme.rounded(17, .heavy))
+                .foregroundColor(Theme.brown)
+                .monospacedDigit()
+                .frame(minWidth: 30, alignment: .leading)
+            GeometryReader { geo in
+                let w = geo.size.width
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Theme.brown.opacity(0.14)).frame(height: 10)
+                    Capsule().fill(LinearGradient(colors: [Theme.gold, Theme.orange], startPoint: .leading, endPoint: .trailing))
+                        .frame(width: max(10, w * CGFloat(min(1, Double(coins) / top))), height: 10)
+                        .animation(.easeOut(duration: 0.3), value: coins)
+                    marker(stars: 2, value: s2, x: w * CGFloat(Double(s2) / top), reached: coins >= s2)
+                    marker(stars: 3, value: s3, x: w * CGFloat(Double(s3) / top), reached: coins >= s3)
+                }
+                .frame(height: geo.size.height)
+            }
+            .frame(height: 34)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 3)
+        .background(Capsule().fill(Theme.card.opacity(0.95)).shadow(color: Theme.brown.opacity(0.15), radius: 4, y: 2))
+    }
+
+    private func marker(stars: Int, value: Int, x: CGFloat, reached: Bool) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                ForEach(0..<stars, id: \.self) { _ in
+                    Image(systemName: "star.fill").font(.system(size: 8, weight: .bold))
+                }
+            }
+            .foregroundColor(reached ? Theme.gold : Theme.brownSoft.opacity(0.7))
+            Rectangle().fill(Theme.brown.opacity(0.35)).frame(width: 2, height: 12)
+            Text("\(value)")
+                .font(Theme.rounded(9, .heavy))
+                .foregroundColor(reached ? Theme.orange : Theme.brownSoft)
+        }
+        .fixedSize()
+        .position(x: x, y: 17)
+    }
+}
+
+/// Сколько рекламы осталось на сегодня.
+struct AdsLeftLabel: View {
+    @EnvironmentObject private var lang: Lang
+    @EnvironmentObject private var progress: PlayerProgress
+
+    var body: some View {
+        Text(lang.t("ads.left", progress.adsLeftToday, Balance.adDailyLimit))
+            .font(Theme.rounded(12, .semibold))
+            .foregroundColor(Theme.brownSoft)
     }
 }
 

@@ -7,6 +7,13 @@ struct Piece: Hashable {
     var hidden: Bool
 }
 
+/// Покупатель в очереди: заказ и оставшееся терпение в ходах.
+struct Customer: Hashable {
+    let uid: Int
+    let order: Order
+    var patience: Int
+}
+
 /// Срабатывание полки: тройка или рецепт ушли покупателю.
 struct Fire {
     let shelf: Int
@@ -14,6 +21,9 @@ struct Fire {
     let order: Order
     /// Позиция покупателя в оставшейся очереди в момент срабатывания.
     let queueIndex: Int
+    let customer: Customer
+    /// Чаевые за оставшееся терпение.
+    let tip: Int
 }
 
 struct MoveOutcome {
@@ -28,11 +38,19 @@ struct MoveOutcome {
 /// Правила поля. Должны совпадать с tools/levels/rules.py, по которому проверены уровни.
 struct Board {
     static let slots = 3
+    /// Сколько покупателей стоит у прилавка: у них тает терпение.
+    static let counter = 3
 
     /// полка -> ряд (0 - передний) -> слот
     private(set) var shelves: [[[Piece?]]]
+    /// Очередь покупателей.
+    private(set) var queue: [Customer]
+    /// Терпение покупателя в ходах и максимум чаевых. 0 - без терпения и чаевых.
+    let patienceMax: Int
+    let tipMax: Int
+
     /// Оставшиеся заказы в порядке очереди.
-    private(set) var orders: [Order]
+    var orders: [Order] { queue.map(\.order) }
 
     private let catalog: Catalog
 
@@ -60,7 +78,10 @@ struct Board {
             built.append(shelf)
         }
         self.shelves = built
-        self.orders = level.orders
+        let patience = level.patience ?? 0
+        self.patienceMax = patience
+        self.tipMax = level.tipMax ?? 0
+        self.queue = level.orders.enumerated().map { Customer(uid: $0.offset + 1, order: $0.element, patience: patience) }
         self.catalog = catalog
         for s in shelves.indices { normalize(s) }
         _ = settle(Array(shelves.indices))
@@ -68,7 +89,13 @@ struct Board {
 
     // MARK: - Состояние
 
-    var isWon: Bool { orders.isEmpty }
+    var isWon: Bool { queue.isEmpty }
+
+    /// Чаевые, если обслужить покупателя сейчас. Совпадает с tip_for в rules.py.
+    func tip(for customer: Customer) -> Int {
+        guard patienceMax > 0, tipMax > 0, customer.patience > 0 else { return 0 }
+        return Int((Double(tipMax) * Double(customer.patience) / Double(patienceMax) - 1e-9).rounded(.up))
+    }
 
     var hasFreeSlot: Bool {
         shelves.contains { $0[0].contains { $0 == nil } }
@@ -101,6 +128,10 @@ struct Board {
         }
         changed.append(dst)
         let fires = settle(changed)
+        // у покупателей за прилавком тает терпение
+        for i in 0..<min(Board.counter, queue.count) {
+            queue[i].patience = max(0, queue[i].patience - 1)
+        }
         return MoveOutcome(piece: piece, from: src, fromSlot: slot, to: dst, toSlot: target, fires: fires)
     }
 
@@ -126,21 +157,22 @@ struct Board {
 
     private mutating func settle(_ changed: [Int]) -> [Fire] {
         var fires: [Fire] = []
-        var queue = changed
-        while let s = queue.popLast() {
+        var pending = changed
+        while let s = pending.popLast() {
             let front = shelves[s][0]
             let names = front.compactMap { $0?.item }
             guard names.count == Board.slots,
                   let result = catalog.result(of: names),
-                  let index = orders.firstIndex(of: result) else { continue }
-            orders.remove(at: index)
-            fires.append(Fire(shelf: s, pieces: front.compactMap { $0 }, order: result, queueIndex: index))
+                  let index = queue.firstIndex(where: { $0.order == result }) else { continue }
+            let customer = queue.remove(at: index)
+            fires.append(Fire(shelf: s, pieces: front.compactMap { $0 }, order: result, queueIndex: index,
+                              customer: customer, tip: tip(for: customer)))
             shelves[s][0] = [nil, nil, nil]
             if shelves[s].count > 1 {
                 shelves[s].removeFirst()
                 reveal(s)
             }
-            queue.append(s)
+            pending.append(s)
         }
         return fires
     }

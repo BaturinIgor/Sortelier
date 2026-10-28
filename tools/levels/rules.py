@@ -7,14 +7,20 @@
   и в очереди уровня есть покупатель, который это ждет;
 - пустой передний ряд сразу заменяется следующим рядом;
 - победа: обслужены все покупатели; поражение: на полках нет ни одного свободного слота.
+
+Терпение: у каждого покупателя за прилавком (первые COUNTER в очереди) после каждого хода
+терпение уменьшается на 1. Чаевые при обслуживании: ceil(tip_max * осталось / максимум), при нуле 0.
+На решаемость терпение не влияет, только на монеты.
 """
 from __future__ import annotations
 
 import heapq
+import math
 from collections import Counter
 from dataclasses import dataclass
 
 SLOTS = 3
+COUNTER = 3
 
 
 @dataclass(frozen=True)
@@ -57,7 +63,12 @@ def normalize(shelves):
 
 def settle(catalog, shelves, orders, changed):
     """Срабатывания на полках из changed, пока что-то срабатывает. Возвращает число срабатываний."""
-    fired = 0
+    return len(settle_detail(catalog, shelves, orders, changed))
+
+
+def settle_detail(catalog, shelves, orders, changed):
+    """То же, но возвращает индексы обслуженных покупателей в очереди на момент обслуживания."""
+    fired = []
     queue = list(changed)
     while queue:
         s = queue.pop()
@@ -72,13 +83,21 @@ def settle(catalog, shelves, orders, changed):
         shelves[s][0] = [None] * SLOTS
         if len(shelves[s]) > 1:
             shelves[s].pop(0)
-        fired += 1
+        fired.append(idx)
         queue.append(s)
     return fired
 
 
 def apply_move(catalog, shelves, orders, src, slot, dst):
     """Делает ход. Возвращает (новые полки, новые заказы, сколько сработало) или None."""
+    res = apply_move_detail(catalog, shelves, orders, src, slot, dst)
+    if res is None:
+        return None
+    return res[0], res[1], len(res[2])
+
+
+def apply_move_detail(catalog, shelves, orders, src, slot, dst):
+    """Делает ход. Возвращает (новые полки, новые заказы, индексы обслуженных) или None."""
     if src == dst:
         return None
     item = shelves[src][0][slot]
@@ -96,7 +115,7 @@ def apply_move(catalog, shelves, orders, src, slot, dst):
         shelves[src].pop(0)
         changed.append(src)
     changed.append(dst)
-    fired = settle(catalog, shelves, orders, changed)
+    fired = settle_detail(catalog, shelves, orders, changed)
     return shelves, orders, fired
 
 
@@ -199,26 +218,38 @@ def solve(catalog, shelves, orders, beam=160, max_depth=400):
 COMBO_WINDOW = 3
 
 
-def replay_score(catalog, shelves, orders, path, coins_per_order=5, combo_bonus=2, combo_from=3):
+def tip_for(left, patience, tip_max):
+    if patience <= 0 or tip_max <= 0 or left <= 0:
+        return 0
+    return int(math.ceil(tip_max * left / patience - 1e-9))
+
+
+def replay_score(catalog, shelves, orders, path, coins_per_order=5, combo_bonus=2, combo_from=3,
+                 patience=0, tip_max=0, detail=False):
     """Монеты за прохождение по правилам игры (без бонуса за экономию ходов).
 
     Серия: срабатывание не дальше COMBO_WINDOW ходов от предыдущего продолжает серию.
-    С третьего срабатывания серии каждое дает +combo_bonus.
+    С третьего срабатывания серии каждое дает +combo_bonus. Чаевые - по терпению (см. выше).
     """
     shelves = normalize(shelves)
     orders = list(orders)
     settle(catalog, shelves, orders, range(len(shelves)))
-    coins = 0
+    pat = [patience] * len(orders)
+    coins = tips = 0
     combo = 0
     since = 99
     for (s, k, d) in path:
-        shelves, orders, fired = apply_move(catalog, shelves, orders, s, k, d)
+        shelves, orders, fired = apply_move_detail(catalog, shelves, orders, s, k, d)
         since += 1
-        for _ in range(fired):
+        for idx in fired:
+            tip = tip_for(pat.pop(idx), patience, tip_max)
+            tips += tip
             combo = combo + 1 if (combo > 0 and since <= COMBO_WINDOW) else 1
             since = 0
-            coins += coins_per_order
+            coins += coins_per_order + tip
             if combo >= combo_from:
                 coins += combo_bonus
+        for i in range(min(COUNTER, len(pat))):
+            pat[i] = max(0, pat[i] - 1)
     assert not orders
-    return coins
+    return (coins, tips) if detail else coins

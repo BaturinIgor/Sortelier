@@ -180,6 +180,35 @@ def render_shelf(out_dir, name, gold=False, width=720):
     return marks
 
 
+def render_counter(out_dir, name="counter", width=1170):
+    """Столешница прилавка над полками: вид спереди сверху, на всю ширину экрана."""
+    scene = R.reset_scene()
+    scene.cycles.samples = 96
+    # сверху столешница ловит прямой свет и выгорает: убираем экспозицию
+    scene.view_settings.exposure = -1.1
+    top = wood_material("CounterTop", (0.24, 0.11, 0.045), (0.42, 0.21, 0.09), grain_scale=2.5, coat=0.06, rough=0.6)
+    front = wood_material("CounterFront", (0.15, 0.065, 0.028), (0.27, 0.13, 0.055), grain_scale=3.0, coat=0.06, rough=0.6)
+    brass = gold_material("Trim")
+    W = 6.0
+    objs = [
+        box("Top", (W + 0.4, 0.34, 0.1), (0, 0, 0.0), top, bevel=0.03),
+        box("Front", (W + 0.4, 0.06, 0.32), (0, -0.15, -0.21), front, bevel=0.02),
+        box("Trim", (W + 0.4, 0.03, 0.03), (0, -0.175, -0.065), brass, bevel=0.01),
+    ]
+    bpy.context.view_layer.update()
+    lo, hi, pts = R.bounds(objs)
+    cam = R.add_camera(scene, (lo + hi) / 2, pts, azimuth=0, elevation=math.radians(32), margin=1.0)
+    inv = cam.matrix_world.inverted()
+    local = [inv @ p for p in pts]
+    h = max(p.y for p in local) - min(p.y for p in local)
+    cam.data.ortho_scale = W
+    scene.render.resolution_x = width
+    scene.render.resolution_y = int(round(width * h / W))
+    scene.render.filepath = os.path.join(out_dir, name + ".png")
+    bpy.ops.render.render(write_still=True)
+    print("COUNTER", scene.render.resolution_x, scene.render.resolution_y)
+
+
 # MARK: - Фон кухни
 
 def place(src, model, loc, scale=3.0, rot_z=0.0, polish=True, rot=None):
@@ -299,6 +328,9 @@ def main():
         os.makedirs(args[1], exist_ok=True)
         render_shelf(args[1], "shelf")
         render_shelf(args[1], "shelf_gold", gold=True)
+    elif args[0] == "counter":
+        os.makedirs(args[1], exist_ok=True)
+        render_counter(args[1])
     elif args[0] == "background":
         os.makedirs(args[2], exist_ok=True)
         render_background(args[1], args[2], preview="--preview" in args)

@@ -56,8 +56,9 @@ final class PieceNode: SKNode {
     func setDim(_ dim: Bool, animated: Bool) {
         isDim = dim
         shadow.isHidden = dim
-        let factor: CGFloat = dim ? 0.45 : 0
-        sprite.color = .black
+        // задний ряд заметно темнее и холоднее переднего, чтобы его не путали
+        let factor: CGFloat = dim ? 0.58 : 0
+        sprite.color = UIColor(red: 0.10, green: 0.07, blue: 0.08, alpha: 1)
         if animated {
             sprite.run(.colorize(with: .black, colorBlendFactor: factor, duration: 0.2))
         } else {
@@ -74,7 +75,7 @@ final class PieceNode: SKNode {
     }
 }
 
-/// Игровое поле: полки, продукты, очередь заказов.
+/// Игровое поле: полки, продукты, покупатели за прилавком.
 final class GameScene: SKScene {
     let session: GameSession
 
@@ -83,7 +84,9 @@ final class GameScene: SKScene {
     /// Снизу под панель бустеров.
     var bottomReserved: CGFloat = 110 { didSet { if oldValue != bottomReserved { rebuild() } } }
 
-    private let ordersHeight: CGFloat = 104
+    /// Прилавок с покупателями над полками.
+    private let counterHeight: CGFloat = 126
+    private let plankHeight: CGFloat = 28
     // Разметка спрайта полки из tools/render/environment.py (доли размера картинки)
     private let shelfAspect: CGFloat = 720.0 / 368.0
     private let shelfInner: CGFloat = 0.897
@@ -94,8 +97,9 @@ final class GameScene: SKScene {
     private var depthBadges: [SKNode] = []
     private var pieceNodes: [Int: PieceNode] = [:]
     private let board = SKNode()
-    private let ordersLayer = SKNode()
-    private var cards: [(order: Order, node: SKNode)] = []
+    private let customersLayer = SKNode()
+    private var customerNodes: [Int: CustomerNode] = [:]
+    private var plank: SKNode?
     private var queueBadge: SKNode?
     private var itemSize: CGFloat = 40
     private var shelfWidth: CGFloat = 120
@@ -118,7 +122,7 @@ final class GameScene: SKScene {
         scaleMode = .resizeFill
         backgroundColor = .clear
         addChild(board)
-        addChild(ordersLayer)
+        addChild(customersLayer)
         session.onReset = { [weak self] in
             self?.clearSelection()
             self?.rebuild()
@@ -143,7 +147,7 @@ final class GameScene: SKScene {
     // MARK: - Раскладка
 
     private var shelfArea: CGRect {
-        let top = size.height - hudHeight - ordersHeight - 10
+        let top = size.height - hudHeight - counterHeight - 10
         return CGRect(x: 10, y: bottomReserved, width: size.width - 20, height: max(100, top - bottomReserved))
     }
 
@@ -186,7 +190,7 @@ final class GameScene: SKScene {
 
     private func peekPosition(_ shelf: Int, _ slot: Int) -> CGPoint {
         let p = slotPosition(shelf, slot)
-        return CGPoint(x: p.x, y: p.y + itemSize * 0.25)
+        return CGPoint(x: p.x, y: p.y + itemSize * 0.27)
     }
 
     // MARK: - Построение
@@ -208,7 +212,8 @@ final class GameScene: SKScene {
             shelfNodes.append(node)
         }
         sync(animated: false)
-        layoutOrders(animated: false)
+        buildCounter()
+        layoutCustomers(animated: false)
     }
 
     private struct Target {
@@ -230,7 +235,7 @@ final class GameScene: SKScene {
             if let peek = b.peek(s) {
                 for (k, piece) in peek.enumerated() {
                     guard let piece = piece else { continue }
-                    result[piece.uid] = (piece, Target(position: peekPosition(s, k), scale: 0.78, dim: true,
+                    result[piece.uid] = (piece, Target(position: peekPosition(s, k), scale: 0.72, dim: true,
                                                        mystery: piece.hidden, z: 10))
                 }
             }
@@ -307,90 +312,125 @@ final class GameScene: SKScene {
         }
     }
 
-    // MARK: - Заказы
+    // MARK: - Покупатели
 
-    private var ordersRect: CGRect {
-        CGRect(x: 10, y: size.height - hudHeight - ordersHeight, width: size.width - 20, height: ordersHeight)
+    private var counterRect: CGRect {
+        CGRect(x: 0, y: size.height - hudHeight - counterHeight, width: size.width, height: counterHeight)
     }
 
-    private func layoutOrders(animated: Bool) {
-        cards.forEach { card in
+    private var slotWidth: CGFloat { (size.width - 16 - 40) / CGFloat(Board.counter) }
+
+    private func customerSlot(_ i: Int) -> CGPoint {
+        CGPoint(x: 8 + slotWidth * (CGFloat(i) + 0.5), y: counterRect.minY + plankHeight)
+    }
+
+    private func look(of customer: Customer) -> Int {
+        (customer.uid * 7 + session.level.id * 3) % CustomerNode.looks
+    }
+
+    private func buildCounter() {
+        plank?.removeFromParent()
+        let rect = counterRect
+        let node: SKSpriteNode
+        if let image = UIImage(named: "counter") {
+            node = SKSpriteNode(texture: SKTexture(image: image))
+        } else {
+            node = SKSpriteNode(color: UIColor(red: 0.55, green: 0.32, blue: 0.16, alpha: 1), size: .zero)
+        }
+        node.size = CGSize(width: size.width + 4, height: plankHeight + 6)
+        node.position = CGPoint(x: size.width / 2, y: rect.minY + plankHeight / 2 - 2)
+        node.zPosition = 4
+        customersLayer.addChild(node)
+        plank = node
+    }
+
+    private func layoutCustomers(animated: Bool) {
+        let b = session.board
+        let visible = Array(b.queue.prefix(Board.counter))
+        let ids = Set(visible.map(\.uid))
+        for (uid, node) in customerNodes where !ids.contains(uid) {
+            customerNodes[uid] = nil
             if animated {
-                card.node.run(.sequence([.fadeOut(withDuration: 0.12), .removeFromParent()]))
+                if !node.leaving { node.leave() }
             } else {
-                card.node.removeFromParent()
+                node.removeFromParent()
             }
         }
-        cards = []
+        for (i, c) in visible.enumerated() {
+            let pos = customerSlot(i)
+            let node: CustomerNode
+            if let existing = customerNodes[c.uid] {
+                node = existing
+                if animated {
+                    let move = SKAction.move(to: pos, duration: 0.3)
+                    move.timingMode = .easeInEaseOut
+                    node.run(move, withKey: "move")
+                } else {
+                    node.removeAction(forKey: "move")
+                    node.position = pos
+                }
+            } else {
+                node = CustomerNode(customer: c, look: look(of: c), slotWidth: slotWidth, plankHeight: plankHeight)
+                node.zPosition = 3
+                customersLayer.addChild(node)
+                customerNodes[c.uid] = node
+                if animated {
+                    node.position = CGPoint(x: pos.x + 70, y: pos.y)
+                    node.alpha = 0
+                    let move = SKAction.move(to: pos, duration: 0.35)
+                    move.timingMode = .easeOut
+                    node.run(.group([move, .fadeIn(withDuration: 0.25)]), withKey: "move")
+                } else {
+                    node.position = pos
+                }
+            }
+            node.update(patience: c.patience, max: b.patienceMax, coins: Balance.coinsPerOrder + b.tip(for: c),
+                        tip: b.tip(for: c), animated: animated)
+        }
+        updateQueueBadge(waiting: b.queue.count - visible.count)
+    }
+
+    /// После хода: тает терпение у тех, кто у прилавка.
+    private func refreshCustomers() {
+        let b = session.board
+        for c in b.queue.prefix(Board.counter) {
+            guard let node = customerNodes[c.uid], !node.leaving else { continue }
+            node.update(patience: c.patience, max: b.patienceMax, coins: Balance.coinsPerOrder + b.tip(for: c),
+                        tip: b.tip(for: c), animated: true)
+        }
+    }
+
+    private func updateQueueBadge(waiting: Int) {
         queueBadge?.removeFromParent()
         queueBadge = nil
-        let orders = session.board.orders
-        let visible = Array(orders.prefix(3))
-        let rect = ordersRect
-        let badgeW: CGFloat = orders.count > 3 ? 44 : 0
-        let gap: CGFloat = 8
-        let cardW = min(118, (rect.width - badgeW - gap * 3) / 3)
-        let totalW = CGFloat(visible.count) * cardW + CGFloat(max(0, visible.count - 1)) * gap + (badgeW > 0 ? gap + badgeW : 0)
-        var x = rect.midX - totalW / 2
-        for order in visible {
-            let card = makeCard(order, width: cardW, height: rect.height - 8)
-            card.position = CGPoint(x: x + cardW / 2, y: rect.midY)
-            ordersLayer.addChild(card)
-            cards.append((order, card))
-            if animated {
-                card.alpha = 0
-                card.setScale(0.9)
-                card.run(.group([.fadeIn(withDuration: 0.2), .scale(to: 1, duration: 0.2)]))
-            }
-            x += cardW + gap
-        }
-        if badgeW > 0 {
-            let badge = SKShapeNode(circleOfRadius: 20)
-            badge.fillColor = UIColor(red: 0.98, green: 0.93, blue: 0.84, alpha: 0.95)
-            badge.strokeColor = UIColor(red: 0.85, green: 0.70, blue: 0.50, alpha: 1)
-            badge.lineWidth = 1.5
-            badge.position = CGPoint(x: x + badgeW / 2, y: rect.midY)
-            let label = SKLabelNode(text: "+\(orders.count - 3)")
-            label.fontName = "AvenirNext-Bold"
-            label.fontSize = 15
-            label.fontColor = UIColor(red: 0.45, green: 0.30, blue: 0.20, alpha: 1)
-            label.verticalAlignmentMode = .center
-            badge.addChild(label)
-            ordersLayer.addChild(badge)
-            queueBadge = badge
-        }
-    }
-
-    private func makeCard(_ order: Order, width: CGFloat, height: CGFloat) -> SKNode {
-        let card = SKNode()
-        let bg = SKShapeNode(rectOf: CGSize(width: width, height: height), cornerRadius: 16)
-        bg.fillColor = UIColor(red: 1, green: 0.98, blue: 0.94, alpha: 0.97)
-        bg.strokeColor = UIColor(red: 0.90, green: 0.78, blue: 0.62, alpha: 1)
-        bg.lineWidth = 1.5
-        card.addChild(bg)
-        let main = SKSpriteNode(texture: Art.texture(Art.sprite(for: order)))
-        let mainSize = min(height * 0.62, width * 0.62)
-        main.size = CGSize(width: mainSize, height: mainSize)
-        main.position = CGPoint(x: 0, y: height * 0.13)
-        card.addChild(main)
-        if order.kind == .triple {
-            let label = SKLabelNode(text: "×3")
-            label.fontName = "AvenirNext-Heavy"
-            label.fontSize = 16
-            label.fontColor = UIColor(red: 0.55, green: 0.33, blue: 0.18, alpha: 1)
-            label.position = CGPoint(x: 0, y: -height * 0.40)
-            card.addChild(label)
-        } else if let dish = Catalog.shared.dish(order.target) {
-            let mini = min(22, width / 4.2)
-            for (i, ing) in dish.ingredients.enumerated() {
-                let s = SKSpriteNode(texture: Art.texture(ing))
-                s.size = CGSize(width: mini, height: mini)
-                s.position = CGPoint(x: CGFloat(i - 1) * (mini + 3), y: -height * 0.30)
-                card.addChild(s)
-            }
-        }
-        card.zPosition = 5
-        return card
+        guard waiting > 0 else { return }
+        let badge = SKShapeNode(rectOf: CGSize(width: 36, height: 44), cornerRadius: 12)
+        badge.fillColor = UIColor(red: 0.98, green: 0.93, blue: 0.84, alpha: 0.95)
+        badge.strokeColor = UIColor(red: 0.85, green: 0.70, blue: 0.50, alpha: 1)
+        badge.lineWidth = 1.5
+        badge.position = CGPoint(x: size.width - 8 - 18, y: counterRect.minY + plankHeight + 34)
+        badge.zPosition = 5
+        // силуэт человека: голова и плечи
+        let ink = UIColor(red: 0.55, green: 0.38, blue: 0.25, alpha: 1)
+        let head = SKShapeNode(circleOfRadius: 4)
+        head.fillColor = ink
+        head.strokeColor = .clear
+        head.position = CGPoint(x: 0, y: 14)
+        badge.addChild(head)
+        let body = SKShapeNode(rectOf: CGSize(width: 14, height: 7), cornerRadius: 3.5)
+        body.fillColor = ink
+        body.strokeColor = .clear
+        body.position = CGPoint(x: 0, y: 5)
+        badge.addChild(body)
+        let label = SKLabelNode(text: "+\(waiting)")
+        label.fontName = "AvenirNext-Heavy"
+        label.fontSize = 14
+        label.fontColor = UIColor(red: 0.45, green: 0.30, blue: 0.20, alpha: 1)
+        label.verticalAlignmentMode = .center
+        label.position = CGPoint(x: 0, y: -9)
+        badge.addChild(label)
+        customersLayer.addChild(badge)
+        queueBadge = badge
     }
 
     // MARK: - Касания
@@ -410,9 +450,56 @@ final class GameScene: SKScene {
         if let sel = selected, let target = shelf(at: p), target != sel.shelf {
             attemptMove(from: sel.shelf, slot: sel.slot, to: target)
             clearSelection()
+        } else if let back = peekPiece(at: p) {
+            clearSelection()
+            backRowFeedback(uid: back.uid, shelf: back.shelf)
         } else {
             clearSelection()
         }
+    }
+
+    private func peekPiece(at p: CGPoint) -> (uid: Int, shelf: Int)? {
+        let b = session.board
+        for s in b.shelves.indices where s < shelfFrames.count {
+            guard let peek = b.peek(s) else { continue }
+            for (k, piece) in peek.enumerated() {
+                guard let piece = piece else { continue }
+                let c = peekPosition(s, k)
+                let r = CGRect(x: c.x - itemSize * 0.4, y: c.y - itemSize * 0.4, width: itemSize * 0.8, height: itemSize * 0.8)
+                if r.contains(p) { return (piece.uid, s) }
+            }
+        }
+        return nil
+    }
+
+    private var lastBackRowTip = Date.distantPast
+
+    /// Тап по продукту из заднего ряда: он не берется, объясняем почему.
+    private func backRowFeedback(uid: Int, shelf: Int) {
+        Haptics.warning()
+        if let node = pieceNodes[uid] {
+            node.run(.sequence([.moveBy(x: -4, y: 0, duration: 0.04), .moveBy(x: 8, y: 0, duration: 0.06),
+                                .moveBy(x: -8, y: 0, duration: 0.06), .moveBy(x: 4, y: 0, duration: 0.04)]))
+        }
+        guard Date().timeIntervalSince(lastBackRowTip) > 1.5, shelf < shelfFrames.count else { return }
+        lastBackRowTip = Date()
+        let f = shelfFrames[shelf]
+        let label = SKLabelNode(text: Lang.shared.t("game.backrow"))
+        label.fontName = "AvenirNext-Bold"
+        label.fontSize = 13
+        label.fontColor = .white
+        label.verticalAlignmentMode = .center
+        let back = SKShapeNode(rectOf: CGSize(width: label.frame.width + 22, height: 28), cornerRadius: 14)
+        back.fillColor = UIColor(red: 0.36, green: 0.22, blue: 0.13, alpha: 0.95)
+        back.strokeColor = .clear
+        back.addChild(label)
+        let x = min(max(f.midX, back.frame.width / 2 + 8), size.width - back.frame.width / 2 - 8)
+        back.position = CGPoint(x: x, y: f.maxY + 18)
+        back.zPosition = 150
+        back.alpha = 0
+        board.addChild(back)
+        back.run(.sequence([.fadeIn(withDuration: 0.12), .wait(forDuration: 1.4), .fadeOut(withDuration: 0.25),
+                            .removeFromParent()]))
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -535,17 +622,18 @@ final class GameScene: SKScene {
         }
         // Поле не блокируется: следующий ход можно делать сразу, анимации идут параллельно.
         var delay: TimeInterval = 0.1
+        var combo = session.combo - outcome.fires.count
         for fire in outcome.fires {
-            let card = cards.first { $0.node.name != "served" && $0.order == fire.order }?.node
-            card?.name = "served"
-            animateFire(fire, card: card, delay: delay)
+            combo += 1
+            animateFire(fire, coins: session.coins(for: fire, combo: combo), delay: delay)
             delay += 0.1
         }
         sync(animated: true, delay: outcome.fires.isEmpty ? 0 : 0.12)
+        refreshCustomers()
         if !outcome.fires.isEmpty {
             removeAction(forKey: "orders")
-            run(.sequence([.wait(forDuration: delay + 0.42),
-                           .run { [weak self] in self?.layoutOrders(animated: true) }]), withKey: "orders")
+            run(.sequence([.wait(forDuration: delay + 0.75),
+                           .run { [weak self] in self?.layoutCustomers(animated: true) }]), withKey: "orders")
         }
         removeAction(forKey: "end")
         run(.sequence([.wait(forDuration: outcome.fires.isEmpty ? 0.12 : delay + 0.45),
@@ -555,17 +643,22 @@ final class GameScene: SKScene {
                        }]), withKey: "end")
     }
 
-    private func animateFire(_ fire: Fire, card: SKNode?, delay: TimeInterval) {
+    private func animateFire(_ fire: Fire, coins: Int, delay: TimeInterval) {
         let nodes = fire.pieces.compactMap { pieceNodes[$0.uid] }
         let f = shelfFrames[fire.shelf]
         let center = CGPoint(x: f.midX, y: slotPosition(fire.shelf, 1).y + itemSize * 0.2)
+        let customer = customerNodes[fire.customer.uid]
+        if let customer = customer {
+            customer.leaving = true
+            customerNodes[fire.customer.uid] = nil
+        }
         let target: CGPoint
-        if let card = card {
-            target = card.position
+        if let customer = customer {
+            target = CGPoint(x: customer.position.x + customer.bubbleCenter.x, y: customer.position.y + customer.bubbleCenter.y)
         } else if let badge = queueBadge {
             target = badge.position
         } else {
-            target = CGPoint(x: ordersRect.midX, y: ordersRect.midY)
+            target = CGPoint(x: counterRect.midX, y: counterRect.midY)
         }
         let combo = session.combo
         let size = itemSize
@@ -582,7 +675,9 @@ final class GameScene: SKScene {
                 let fly = SKAction.move(to: target, duration: 0.28)
                 fly.timingMode = .easeInEaseOut
                 steps.append(.group([fly, .scale(to: 0.6, duration: 0.28)]))
-                steps.append(.run { [weak self, weak card] in self?.cardServed(card) })
+                steps.append(.run {
+                    customer?.celebrate(coins: coins) {}
+                })
                 steps.append(.removeFromParent())
             } else {
                 steps.append(.group([.fadeOut(withDuration: 0.08), .scale(to: 0.3, duration: 0.08)]))
@@ -594,23 +689,12 @@ final class GameScene: SKScene {
             guard let self = self else { return }
             Haptics.success()
             self.burst(at: center, dish: fire.order.kind == .dish)
-            self.coinPopup(at: center, combo: combo)
+            self.comboPopup(combo: combo)
+            if customer == nil { self.coinPopup(at: center, coins: coins) }
         }]))
         for piece in fire.pieces {
             pieceNodes[piece.uid] = nil
         }
-    }
-
-    private func cardServed(_ card: SKNode?) {
-        guard let card = card, card.parent != nil else { return }
-        let check = SKLabelNode(text: "✓")
-        check.fontName = "AvenirNext-Heavy"
-        check.fontSize = 34
-        check.fontColor = UIColor(red: 0.25, green: 0.65, blue: 0.35, alpha: 1)
-        check.verticalAlignmentMode = .center
-        check.zPosition = 10
-        card.addChild(check)
-        card.run(.sequence([.scale(to: 1.1, duration: 0.1), .scale(to: 1, duration: 0.1)]))
     }
 
     private func burst(at point: CGPoint, dish: Bool) {
@@ -632,8 +716,7 @@ final class GameScene: SKScene {
         }
     }
 
-    private func coinPopup(at point: CGPoint, combo: Int) {
-        let coins = Balance.coinsPerOrder + (combo >= Balance.comboFrom ? Balance.comboBonus : 0)
+    private func coinPopup(at point: CGPoint, coins: Int) {
         let label = SKLabelNode(text: "+\(coins)")
         label.fontName = "AvenirNext-Heavy"
         label.fontSize = 20
@@ -642,6 +725,9 @@ final class GameScene: SKScene {
         label.zPosition = 130
         board.addChild(label)
         label.run(.sequence([.group([.moveBy(x: 0, y: 40, duration: 0.7), .fadeOut(withDuration: 0.7)]), .removeFromParent()]))
+    }
+
+    private func comboPopup(combo: Int) {
         if combo >= Balance.comboFrom {
             let text = SKLabelNode(text: Lang.shared.t("game.combo", combo))
             text.fontName = "AvenirNext-Heavy"

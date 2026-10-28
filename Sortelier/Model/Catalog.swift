@@ -80,6 +80,9 @@ struct LevelData: Decodable, Identifiable {
     let shelves: [[[String?]]]
     let orders: [Order]
     let par: Int
+    /// Терпение покупателя в ходах и максимум чаевых (нет в старых уровнях).
+    let patience: Int?
+    let tipMax: Int?
     let stars: [Int]
     let best: Int
     let hard: Bool

@@ -68,6 +68,11 @@ def main():
             continue
         if name.startswith("bg_"):
             background(f, os.path.join(DST, name[:-4] + ".jpg"))
+        elif name.startswith("counter"):
+            w, h = Image.open(f).size
+            finish(f, os.path.join(DST, name), (780, round(780 * h / w)), boost=True)
+        elif name.startswith("customer_"):
+            finish(f, os.path.join(DST, name), (200, 200), boost=False)
         elif name.startswith("shelf"):
             w, h = Image.open(f).size
             finish(f, os.path.join(DST, name), (600, int(600 * h / w)), boost=False)

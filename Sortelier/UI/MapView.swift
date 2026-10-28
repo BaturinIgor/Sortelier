@@ -353,6 +353,7 @@ struct LivesSheet: View {
                         HStack { Image(systemName: "play.rectangle.fill"); Text(lang.t("lives.ad")) }
                     }
                     .buttonStyle(BigButtonStyle(color: Theme.green))
+                    AdsLeftLabel()
                 }
                 if let message = message {
                     Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)

@@ -88,6 +88,30 @@ enum Art {
         return SKTexture(image: image)
     }()
 
+    /// Монетка для подписей на игровом поле.
+    static let coin: SKTexture = {
+        let size = CGSize(width: 48, height: 48)
+        let image = UIGraphicsImageRenderer(size: size).image { ctx in
+            let cg = ctx.cgContext
+            let rect = CGRect(origin: .zero, size: size)
+            cg.setFillColor(UIColor(red: 0.85, green: 0.55, blue: 0.08, alpha: 1).cgColor)
+            cg.fillEllipse(in: rect)
+            let colors = [UIColor(red: 1.0, green: 0.92, blue: 0.45, alpha: 1).cgColor,
+                          UIColor(red: 1.0, green: 0.72, blue: 0.12, alpha: 1).cgColor] as CFArray
+            if let g = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 1]) {
+                cg.saveGState()
+                cg.addEllipse(in: rect.insetBy(dx: 4, dy: 4))
+                cg.clip()
+                cg.drawLinearGradient(g, start: CGPoint(x: 10, y: 6), end: CGPoint(x: 38, y: 44), options: [])
+                cg.restoreGState()
+            }
+            cg.setStrokeColor(UIColor(red: 0.93, green: 0.62, blue: 0.1, alpha: 1).cgColor)
+            cg.setLineWidth(3)
+            cg.strokeEllipse(in: rect.insetBy(dx: 12, dy: 12))
+        }
+        return SKTexture(image: image)
+    }()
+
     static func sprite(for order: Order) -> String {
         order.kind == .dish ? "dish_" + order.target : order.target
     }
