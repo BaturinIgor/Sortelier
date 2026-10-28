@@ -76,7 +76,17 @@ jobs:
             xcrun simctl launch "$UDID" com.personal.sortelier -uiDemo "$@" >/dev/null
             sleep 7
             xcrun simctl io "$UDID" screenshot "shots/$name.png" >/dev/null 2>&1
-            echo "shot $name"
+            pid=$(pgrep -f "Sortelier.app/Sortelier" | head -1)
+            if [ -z "$pid" ]; then
+              echo "shot $name: APP NOT RUNNING (crash?)" | tee -a shots/diag.txt
+            else
+              cpu=$(ps -o %cpu= -p "$pid" | tr -d ' ')
+              echo "shot $name: pid $pid cpu $cpu" | tee -a shots/diag.txt
+              # завис или долго считает: стек главного потока
+              if [ "${cpu%.*}" -ge 50 ] 2>/dev/null; then
+                sample "$pid" 2 -file "shots/${name}_sample.txt" >/dev/null 2>&1 || true
+              fi
+            fi
           }
           shoot map         -uiLang ru -uiScreen map
           shoot shop        -uiLang ru -uiScreen shop
@@ -97,6 +107,13 @@ jobs:
           shoot events_de   -uiLang de -uiScreen events
           shoot map_ar      -uiLang ar -uiScreen map
           shoot achievements_ja -uiLang ja -uiScreen achievements
+          shoot events_late -uiLang ru -uiScreen events
+          sleep 10
+          xcrun simctl io "$UDID" screenshot "shots/events_late2.png" >/dev/null 2>&1 || true
+          pid=$(pgrep -f "Sortelier.app/Sortelier" | head -1)
+          [ -n "$pid" ] && sample "$pid" 3 -file "shots/events_late_sample.txt" >/dev/null 2>&1 || true
+          cp ~/Library/Logs/DiagnosticReports/Sortelier* shots/ 2>/dev/null || true
+          ls shots
 
       - name: Publish screenshots
         run: |
@@ -104,7 +121,7 @@ jobs:
           git config user.email "ci@users.noreply.github.com"
           git checkout --orphan ci-screens
           git rm -rf --cached . > /dev/null
-          git add -f shots/*.png
+          git add -f shots/
           git commit -q -m "UI screenshots run ${{ github.run_number }} for ${{ github.sha }}"
           git push -q -f origin ci-screens
 

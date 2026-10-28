@@ -459,7 +459,7 @@ S.update({
  "info.chest": ("Album cards go into the album: every full book gives a prize, the whole album gives the grand prize. Repeats turn into album stars for a star chest.", "Карточки собираются в альбом: за каждую полную книгу приз, за весь альбом главный приз. Повторки превращаются в звезды альбома для звездного сундука."),
  "info.chest.cards": ("Cards: {0}", "Карточек: {0}"),
  "info.chest.rarity": ("At least", "Не ниже"),
- "info.bg": ("A new kitchen background. You can put it on in Kitchens.", "Новый фон кухни. Поставить его можно в разделе \"Кухни\"."),
+ "info.bg": ("A new kitchen background. Put it on in the Kitchen tab, Styles section.", "Новый фон кухни. Поставить его можно во вкладке \"Кухня\", раздел \"Фоны\"."),
  "info.close": ("Tap to close", "Нажми, чтобы закрыть"),
  "tab.shop": ("Shop", "Магазин"),
  "tab.events": ("Events", "Ивенты"),

@@ -77,19 +77,21 @@ struct ChestContents: View {
     @EnvironmentObject private var lang: Lang
 
     var body: some View {
-        HStack(spacing: 8) {
-            HStack(spacing: 2) {
-                SpriteImage(name: "icon_cards", size: 22)
-                Text("×\(kind.cards)").font(Theme.rounded(13, .black)).foregroundColor(Theme.brown)
+        HStack(spacing: 5) {
+            HStack(spacing: 1) {
+                SpriteImage(name: "icon_cards", size: 20)
+                Text("×\(kind.cards)").font(Theme.rounded(12, .black)).foregroundColor(Theme.brown)
             }
-            HStack(spacing: 0) {
-                ForEach(0..<kind.guaranteed, id: \.self) { _ in SpriteImage(name: "icon_star", size: 13) }
+            HStack(spacing: -1) {
+                ForEach(0..<kind.guaranteed, id: \.self) { _ in SpriteImage(name: "icon_star", size: 12) }
             }
-            HStack(spacing: 2) {
-                CoinIcon(size: 18)
-                Text("+\(kind.coins)").font(Theme.rounded(13, .black)).foregroundColor(Theme.brown)
+            HStack(spacing: 1) {
+                CoinIcon(size: 16)
+                Text("+\(kind.coins)").font(Theme.rounded(12, .black)).foregroundColor(Theme.brown)
             }
         }
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
     }
 }
 
@@ -150,12 +152,11 @@ struct AlbumScreen: View {
                     Text(lang.t("album.progress", owned, AlbumCatalog.cards.count))
                         .font(Theme.rounded(17, .black))
                         .foregroundColor(Theme.brown)
-                        .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 4)
-                    TimerBadge(text: Lang.time(progress.albumSecondsLeft))
+                    Spacer(minLength: 0)
                 }
                 ProgressBar(value: owned, target: AlbumCatalog.cards.count, color: Theme.gold)
+                TimerBadge(text: lang.t("album.season", Lang.time(progress.albumSecondsLeft)))
                 Text(lang.t("album.text"))
                     .font(Theme.rounded(13, .semibold))
                     .foregroundColor(Theme.brownSoft)

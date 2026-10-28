@@ -97,8 +97,8 @@ struct MergeView: View {
                 )
                 .layoutPriority(1)
             Spacer(minLength: 4)
-            Button { showEnergy = true } label: { EnergyPill() }.buttonStyle(.plain)
-            CoinsPill()
+            Button { showEnergy = true } label: { EnergyPill() }.buttonStyle(PressScaleStyle())
+            CoinsPill(plus: false)
         }
         .padding(.top, 6)
     }

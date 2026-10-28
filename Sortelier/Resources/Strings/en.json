@@ -230,7 +230,7 @@
  "game.ice": "Frozen: serve more customers to thaw it",
  "game.lock": "Locked: serve more customers to open it",
  "game.pause": "Patience paused: {0}",
- "info.bg": "A new kitchen background. You can put it on in Kitchens.",
+ "info.bg": "A new kitchen background. Put it on in the Kitchen tab, Styles section.",
  "info.chest": "Album cards go into the album: every full book gives a prize, the whole album gives the grand prize. Repeats turn into album stars for a star chest.",
  "info.chest.cards": "Cards: {0}",
  "info.chest.rarity": "At least",

@@ -66,6 +66,7 @@ struct RootView: View {
             .transition(.opacity)
             .fullScreenCover(isPresented: $router.merge) {
                 MergeView(close: { router.merge = false })
+                    .statusBarHidden()
                     .environmentObject(PlayerProgress.shared)
                     .environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
             }
@@ -88,6 +89,7 @@ struct RootView: View {
                 launch = nil
                 Audio.shared.setTrack(Biomes.music(PlayerProgress.shared.mapBiome))
             })
+                .statusBarHidden()
                 .environmentObject(PlayerProgress.shared)
                 .environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
                 .environmentObject(Router.shared)

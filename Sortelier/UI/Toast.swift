@@ -110,7 +110,7 @@ enum ToastWindow {
         let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
         guard let scene = scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first else { return }
         let w = UIWindow(windowScene: scene)
-        let host = UIHostingController(rootView: ToastOverlay())
+        let host = NoStatusBarHost(rootView: AnyView(ToastOverlay()))
         host.view.backgroundColor = .clear
         w.rootViewController = host
         w.windowLevel = .alert + 1

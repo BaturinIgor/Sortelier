@@ -179,7 +179,7 @@ enum InfoWindow {
         let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
         guard let scene = scenes.first(where: { $0.activationState == .foregroundActive }) ?? scenes.first else { return }
         let w = UIWindow(windowScene: scene)
-        let host = UIHostingController(rootView: RewardInfoOverlay())
+        let host = NoStatusBarHost(rootView: AnyView(RewardInfoOverlay()))
         host.view.backgroundColor = .clear
         w.rootViewController = host
         w.windowLevel = .alert
@@ -192,3 +192,9 @@ enum InfoWindow {
         window?.isHidden = !visible
     }
 }
+
+/// Окна поверх игры не должны показывать системную строку состояния.
+final class NoStatusBarHost: UIHostingController<AnyView> {
+    override var prefersStatusBarHidden: Bool { true }
+}
+

@@ -95,11 +95,11 @@ struct BookContent: View {
                     withAnimation(.easeOut(duration: 0.15)) { biome = b }
                 } label: {
                     ZStack {
-                        SpriteImage(name: Biomes.icon(b), size: 34, silhouette: !open)
-                        if !open { SpriteImage(name: "icon_lock", size: 20).offset(x: 14, y: 10) }
+                        SpriteImage(name: Biomes.icon(b), size: 46, silhouette: !open)
+                        if !open { SpriteImage(name: "icon_lock", size: 22).offset(x: 18, y: 12) }
                     }
                     .frame(maxWidth: .infinity)
-                    .frame(height: 46)
+                    .frame(height: 54)
                     .background(
                         ZStack {
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
