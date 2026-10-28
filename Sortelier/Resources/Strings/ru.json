@@ -52,6 +52,7 @@
  "album.grand": "Приз за весь альбом",
  "album.guest": "Гость {0}",
  "album.new": "НОВАЯ",
+ "album.new.count": "Новых карточек: {0}",
  "album.progress": "Собрано карточек: {0} из {1}",
  "album.season": "Сезон закончится через {0}",
  "album.shelf_gold": "Золотая полка",

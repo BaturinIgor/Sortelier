@@ -1,0 +1,338 @@
+{
+ "task.chests": {
+  "en": "Open {0} chests",
+  "ru": "Открой {0} сундуков"
+ },
+ "bg.bought": {
+  "en": "New kitchen unlocked!",
+  "ru": "Новая кухня открыта!"
+ },
+ "shop.bought": {
+  "en": "Bought: {0}",
+  "ru": "Куплено: {0}"
+ },
+ "shop.restored": {
+  "en": "Purchases restored",
+  "ru": "Покупки восстановлены"
+ },
+ "time.days.short": {
+  "en": "{0}d",
+  "ru": "{0} д"
+ },
+ "time.h.short": {
+  "en": "{0}h",
+  "ru": "{0} ч"
+ },
+ "time.m.short": {
+  "en": "{0}m",
+  "ru": "{0} м"
+ },
+ "merge.sell": {
+  "en": "Sell",
+  "ru": "Продать"
+ },
+ "merge.sold": {
+  "en": "Sold for {0} coins",
+  "ru": "Продано за {0} монет"
+ },
+ "merge.supply": {
+  "en": "Supply crate: {0} items",
+  "ru": "Ящик припасов: {0} предмета"
+ },
+ "merge.order.how": {
+  "en": "How to make it",
+  "ru": "Как собрать"
+ },
+ "event.starts": {
+  "en": "Starts in {0}",
+  "ru": "Начнется через {0}"
+ },
+ "event.season.about": {
+  "en": "Two weeks of themed levels, stamps and a reward track",
+  "ru": "Две недели тематических уровней, печатей и шкалы наград"
+ },
+ "event.hunt.about": {
+  "en": "Find golden products in every level",
+  "ru": "Ищи золотые продукты в каждом уровне"
+ },
+ "event.race.about": {
+  "en": "Short races against other chefs for chests",
+  "ru": "Короткие заезды с другими поварами за сундуки"
+ },
+ "event.double.about": {
+  "en": "Double coins for every level all weekend",
+  "ru": "Двойные монеты за каждый уровень все выходные"
+ },
+ "event.race.rules": {
+  "en": "Short races against four chefs: the first to win {0} levels wins. Up to {1} races a day, places 1-3 get chests.",
+  "ru": "Короткие заезды против четырех поваров: кто первым выиграет {0} уровней, тот победил. До {1} заездов в день, места 1-3 получают сундуки."
+ },
+ "event.race.start": {
+  "en": "Start race {0}/{1}",
+  "ru": "Начать заезд {0} из {1}"
+ },
+ "event.race.over": {
+  "en": "The race is over: the other chefs were faster",
+  "ru": "Заезд окончен: другие повара были быстрее"
+ },
+ "event.race.progress": {
+  "en": "Win levels to move ahead: {0}/{1}",
+  "ru": "Выигрывай уровни, чтобы обгонять: {0} из {1}"
+ },
+ "event.race.prizes": {
+  "en": "Prizes",
+  "ru": "Призы"
+ },
+ "event.race.placeShort": {
+  "en": "Place {0}",
+  "ru": "{0} место"
+ },
+ "event.race.tomorrow": {
+  "en": "New races in {0}",
+  "ru": "Новые заезды через {0}"
+ },
+ "event.race.go": {
+  "en": "Go!",
+  "ru": "Старт!"
+ },
+ "achv.total": {
+  "en": "Achievement stars: {0}/{1}",
+  "ru": "Звезды достижений: {0} из {1}"
+ },
+ "achv.total.text": {
+  "en": "Claim achievement levels to earn stars and unlock rewards",
+  "ru": "Забирай ступени достижений, копи звезды и открывай награды"
+ },
+ "ach.cat.kitchen": {
+  "en": "Kitchen",
+  "ru": "Кухня"
+ },
+ "ach.cat.habits": {
+  "en": "Habits",
+  "ru": "Регулярность"
+ },
+ "ach.cat.collection": {
+  "en": "Collection",
+  "ru": "Коллекция"
+ },
+ "ach.cat.pantry": {
+  "en": "Pantry",
+  "ru": "Кладовая"
+ },
+ "ach.trio": {
+  "en": "Triple master",
+  "ru": "Мастер троек"
+ },
+ "ach.gourmet": {
+  "en": "Gourmet's favorite",
+  "ru": "Любимец гурманов"
+ },
+ "ach.events": {
+  "en": "Festival goer",
+  "ru": "Душа праздника"
+ },
+ "ach.racer": {
+  "en": "Racing chef",
+  "ru": "Гонщик"
+ },
+ "ach.album": {
+  "en": "Album keeper",
+  "ru": "Хранитель альбома"
+ },
+ "ach.books": {
+  "en": "Bookworm",
+  "ru": "Книголюб"
+ },
+ "ach.kitchens": {
+  "en": "Designer",
+  "ru": "Дизайнер кухни"
+ },
+ "ach.merges": {
+  "en": "Merge master",
+  "ru": "Мастер слияний"
+ },
+ "ach.rich": {
+  "en": "Tycoon",
+  "ru": "Магнат"
+ },
+ "task.gourmets": {
+  "en": "Serve {0} Gourmets with a tip",
+  "ru": "Обслужи {0} Гурманов с чаевыми"
+ },
+ "task.eventRewards": {
+  "en": "Claim {0} event rewards",
+  "ru": "Забери {0} наград ивентов"
+ },
+ "task.raceWins": {
+  "en": "Win {0} races",
+  "ru": "Выиграй {0} заездов"
+ },
+ "task.albumCards": {
+  "en": "Collect {0} album cards",
+  "ru": "Собери {0} карточек альбома"
+ },
+ "task.booksDone": {
+  "en": "Complete {0} album books",
+  "ru": "Собери {0} книг альбома"
+ },
+ "task.kitchens": {
+  "en": "Own {0} kitchens",
+  "ru": "Собери {0} кухонь"
+ },
+ "task.coinsEarned": {
+  "en": "Earn {0} coins",
+  "ru": "Заработай {0} монет"
+ },
+ "book.medals": {
+  "en": "Medals",
+  "ru": "Медали"
+ },
+ "book.medals.hint": {
+  "en": "A month medal is given for {0} daily and {1} weekly challenges in one month.",
+  "ru": "Медаль месяца дают за {0} испытаний дня и {1} испытания недели за месяц."
+ },
+ "chest.kind.bronze": {
+  "en": "Bronze chest",
+  "ru": "Медный сундук"
+ },
+ "chest.kind.silver": {
+  "en": "Silver chest",
+  "ru": "Серебряный сундук"
+ },
+ "chest.kind.gold": {
+  "en": "Gold chest",
+  "ru": "Золотой сундук"
+ },
+ "chest.kind.star": {
+  "en": "Star chest",
+  "ru": "Звездный сундук"
+ },
+ "chest.contents": {
+  "en": "{0} album cards, one of them {1}★ or better",
+  "ru": "{0} карточки альбома, одна не ниже {1}★"
+ },
+ "chest.open.now": {
+  "en": "Open now",
+  "ru": "Открыть сейчас"
+ },
+ "chest.open.next": {
+  "en": "Open the next one",
+  "ru": "Открыть следующий"
+ },
+ "chest.cards.left": {
+  "en": "Cards left: {0}",
+  "ru": "Осталось карточек: {0}"
+ },
+ "chest.tap": {
+  "en": "Tap to see the next card",
+  "ru": "Нажми, чтобы увидеть следующую"
+ },
+ "album.title": {
+  "en": "Card album",
+  "ru": "Альбом карточек"
+ },
+ "album.season": {
+  "en": "Season ends in {0}",
+  "ru": "Сезон закончится через {0}"
+ },
+ "album.progress": {
+  "en": "Cards collected: {0}/{1}",
+  "ru": "Собрано карточек: {0} из {1}"
+ },
+ "album.text": {
+  "en": "Cards come from chests: races, challenges, events, the pantry and the shop. A full book gives a reward. Every month the album starts over.",
+  "ru": "Карточки выпадают из сундуков: за гонки, испытания, ивенты, кладовую и покупки. За собранную книгу - награда. Каждый месяц альбом начинается заново."
+ },
+ "album.chests": {
+  "en": "Your chests",
+  "ru": "Твои сундуки"
+ },
+ "album.chests.empty": {
+  "en": "No chests yet. Win races and challenges to get them.",
+  "ru": "Сундуков пока нет. Выигрывай гонки и испытания, чтобы их получить."
+ },
+ "album.stars": {
+  "en": "Album stars: {0}/{1}",
+  "ru": "Звезды альбома: {0} из {1}"
+ },
+ "album.stars.text": {
+  "en": "Each repeated card gives as many stars as it has. Collect them for a star chest.",
+  "ru": "Каждая повторная карточка дает столько звезд, сколько у нее самой. Копи их на звездный сундук."
+ },
+ "album.stars.get": {
+  "en": "Get",
+  "ru": "Забрать"
+ },
+ "album.back": {
+  "en": "All books",
+  "ru": "Все книги"
+ },
+ "album.book.reward": {
+  "en": "Reward for the full book",
+  "ru": "Награда за всю книгу"
+ },
+ "album.grand": {
+  "en": "Prize for the whole album",
+  "ru": "Приз за весь альбом"
+ },
+ "album.new": {
+  "en": "NEW",
+  "ru": "НОВАЯ"
+ },
+ "album.guest": {
+  "en": "Guest {0}",
+  "ru": "Гость {0}"
+ },
+ "album.gourmet": {
+  "en": "The Gourmet",
+  "ru": "Гурман"
+ },
+ "album.gen_crate": {
+  "en": "Vegetable crate",
+  "ru": "Ящик с овощами"
+ },
+ "album.gen_oven": {
+  "en": "Bakery oven",
+  "ru": "Пекарская печь"
+ },
+ "album.shelf_gold": {
+  "en": "Golden shelf",
+  "ru": "Золотая полка"
+ },
+ "album.book.burger": {
+  "en": "Burger joint",
+  "ru": "Бургерная"
+ },
+ "album.book.hotdog": {
+  "en": "Hot dogs and sandwiches",
+  "ru": "Хот-доги и сэндвичи"
+ },
+ "album.book.breakfast": {
+  "en": "Breakfast",
+  "ru": "Завтрак"
+ },
+ "album.book.desserts": {
+  "en": "Desserts of the world",
+  "ru": "Десерты мира"
+ },
+ "album.book.market": {
+  "en": "Japanese market",
+  "ru": "Японский рынок"
+ },
+ "album.book.japan": {
+  "en": "Japanese kitchen",
+  "ru": "Японская кухня"
+ },
+ "album.book.deli": {
+  "en": "Italian deli",
+  "ru": "Итальянская лавка"
+ },
+ "album.book.italy": {
+  "en": "Italian kitchen",
+  "ru": "Итальянская кухня"
+ },
+ "album.book.guests": {
+  "en": "Kitchen guests",
+  "ru": "Гости кухни"
+ }
+}

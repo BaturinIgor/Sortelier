@@ -394,7 +394,7 @@ struct ChestOpenView: View {
                 }
             }
             HStack(spacing: 14) {
-                Label("\(opening.drops.filter(\.isNew).count) " + lang.t("album.new"), systemImage: "sparkles")
+                Label(lang.t("album.new.count", opening.drops.filter(\.isNew).count), systemImage: "sparkles")
                     .foregroundColor(Theme.gold)
                 HStack(spacing: 3) { CoinIcon(size: 16); Text("+\(opening.coins)") }
                     .foregroundColor(.white)

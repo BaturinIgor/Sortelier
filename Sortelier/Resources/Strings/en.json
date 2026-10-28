@@ -52,6 +52,7 @@
  "album.grand": "Prize for the whole album",
  "album.guest": "Guest {0}",
  "album.new": "NEW",
+ "album.new.count": "New cards: {0}",
  "album.progress": "Cards collected: {0}/{1}",
  "album.season": "Season ends in {0}",
  "album.shelf_gold": "Golden shelf",

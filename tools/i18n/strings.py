@@ -498,6 +498,7 @@ S.update({
  "album.book.reward": ("Reward for the full book", "Награда за всю книгу"),
  "album.grand": ("Prize for the whole album", "Приз за весь альбом"),
  "album.new": ("NEW", "НОВАЯ"),
+ "album.new.count": ("New cards: {0}", "Новых карточек: {0}"),
  "album.guest": ("Guest {0}", "Гость {0}"),
  "album.gourmet": ("The Gourmet", "Гурман"),
  "album.gen_crate": ("Vegetable crate", "Ящик с овощами"),
