@@ -107,6 +107,11 @@ jobs:
           shoot events_de   -uiLang de -uiScreen events
           shoot map_ar      -uiLang ar -uiScreen map
           shoot achievements_ja -uiLang ja -uiScreen achievements
+          shoot shop_bottom -uiLang ru -uiScreen shop -uiScroll bottom
+          shoot events_bottom -uiLang ru -uiScreen events -uiScroll bottom
+          shoot achievements_bottom -uiLang ru -uiScreen achievements -uiScroll bottom
+          shoot backgrounds_bottom -uiLang ru -uiScreen backgrounds -uiScroll bottom
+          shoot album_bottom -uiLang ru -uiScreen album -uiScroll bottom
           shoot events_late -uiLang ru -uiScreen events
           sleep 10
           xcrun simctl io "$UDID" screenshot "shots/events_late2.png" >/dev/null 2>&1 || true

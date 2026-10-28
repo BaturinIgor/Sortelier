@@ -225,11 +225,23 @@ struct ScreenScaffold<Content: View>: View {
     var body: some View {
         ZStack {
             KitchenBackground(blurred: true)
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 14) { content }
+            ScrollViewReader { proxy in
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 14) {
+                        content
+                        Color.clear.frame(height: 1).id("screenBottom")
+                    }
                     .padding(.horizontal, 14)
                     .padding(.top, 14)
                     .padding(.bottom, tabBar ? MainTabBar.height + 40 : 30)
+                }
+                .onAppear {
+                    #if DEBUG
+                    if UIDebug.value("uiScroll") == "bottom" {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { proxy.scrollTo("screenBottom", anchor: .bottom) }
+                    }
+                    #endif
+                }
             }
             .safeAreaInset(edge: .top, spacing: 0) {
                 ScreenHeader(title: title, back: back, coins: coins)
