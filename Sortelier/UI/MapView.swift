@@ -1,25 +1,41 @@
 import SwiftUI
 
-/// Карта биома 1: путь из 30 уровней, звезды и сундуки.
+/// Карта: биомы снизу вверх, у каждого путь из 30 уровней, звезды и сундуки.
+/// Между биомами ворота: открываются звездами предыдущей кухни или монетами.
 struct MapView: View {
-    let play: (LevelData) -> Void
+    let play: (LevelData, PlayMode) -> Void
 
     @EnvironmentObject private var progress: PlayerProgress
     @EnvironmentObject private var lang: Lang
     @State private var showBook = false
     @State private var showLives = false
     @State private var showSettings = false
+    @State private var showStreak = false
+    @State private var showChallenges = false
+    @State private var showQuests = false
+    @State private var showAchievements = false
+    @State private var showBackgrounds = false
+    @State private var showEvents = false
+    @State private var showMerge = false
+    @State private var pendingLaunch: LevelLaunch?
     @State private var chest: Int?
+    @State private var openedBiome: Int?
+    @State private var showShop = false
+    @State private var vipDaily: Granted?
 
-    private let levels = LevelStore.shared.levels
     private let rowHeight: CGFloat = 96
 
     var body: some View {
         ZStack {
-            KitchenBackground(veil: 0.12)
+            KitchenBackground(veil: 0.12, style: progress.background(forBiome: progress.mapBiome))
             path
             VStack(spacing: 0) {
                 topBar
+                HStack {
+                    Spacer()
+                    sideRail
+                }
+                .padding(.top, 10)
                 Spacer()
                 starsCard
             }
@@ -28,24 +44,92 @@ struct MapView: View {
             if let index = chest {
                 ChestPopup(index: index) { chest = nil }
             }
+            if let biome = openedBiome {
+                BiomeOpenedPopup(biome: biome) { openedBiome = nil }
+            }
+            if let granted = vipDaily {
+                RewardPopup(title: lang.t("vip.daily"), granted: granted) { vipDaily = nil }
+            }
+        }
+        .onAppear {
+            Audio.shared.setTrack(Biomes.music(progress.mapBiome))
+            progress.applyPassCredit()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { vipDaily = progress.claimVIPDaily() }
+        }
+        .sheet(isPresented: $showShop) {
+            ShopSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showBook) {
-            BookView().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            BookView().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showLives) {
-            LivesSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            LivesSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showSettings) {
-            SettingsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            SettingsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
+        }
+        .sheet(isPresented: $showStreak) {
+            StreakSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
+        }
+        .sheet(isPresented: $showChallenges, onDismiss: launchPending) {
+            ChallengesSheet(launch: $pendingLaunch).environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
+        }
+        .sheet(isPresented: $showQuests) {
+            QuestsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
+        }
+        .sheet(isPresented: $showAchievements) {
+            AchievementsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
+        }
+        .fullScreenCover(isPresented: $showMerge) {
+            MergeView(close: { showMerge = false })
+                .environmentObject(PlayerProgress.shared)
+                .environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
+        }
+        .sheet(isPresented: $showEvents, onDismiss: launchPending) {
+            EventsSheet(launch: $pendingLaunch).environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
+        }
+        .sheet(isPresented: $showBackgrounds) {
+            BackgroundsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
+        }
+    }
+
+    private func launchPending() {
+        guard let launch = pendingLaunch else { return }
+        pendingLaunch = nil
+        play(launch.level, launch.mode)
+    }
+
+    // MARK: - Боковые кнопки
+
+    private var sideRail: some View {
+        VStack(spacing: 12) {
+            railButton("cart.fill", badge: !progress.starterBought && progress.isPassed(5)) { showShop = true }
+            railButton("book.fill", badge: false) { showBook = true }
+            railButton("sparkles", badge: progress.eventsClaimable) { showEvents = true }
+            railButton("square.grid.3x3.fill", badge: progress.energy >= MergeBalance.maxEnergy) { showMerge = true }
+            railButton("calendar", badge: !progress.dailyDone()) { showChallenges = true }
+            if progress.welcomeActive {
+                railButton("gift.fill", badge: progress.questsClaimable) { showQuests = true }
+            }
+            railButton("trophy.fill", badge: progress.achievementsClaimable) { showAchievements = true }
+            railButton("paintpalette.fill", badge: false) { showBackgrounds = true }
+        }
+    }
+
+    private func railButton(_ symbol: String, badge: Bool, action: @escaping () -> Void) -> some View {
+        ZStack(alignment: .topTrailing) {
+            CircleIconButton(symbol: symbol, size: 48, action: action)
+            if badge { BadgeDot().offset(x: 2, y: -2) }
         }
     }
 
     private var topBar: some View {
         HStack(spacing: 8) {
             Button { showLives = true } label: { LivesPill() }.buttonStyle(.plain)
-            CoinsPill()
+            Button { showShop = true } label: { CoinsPill() }.buttonStyle(.plain)
+            StreakButton { showStreak = true }
             Spacer()
-            CircleIconButton(symbol: "book.fill") { showBook = true }
+            VIPBadge { showShop = true }
             CircleIconButton(symbol: "gearshape.fill") { showSettings = true }
         }
         .padding(.top, 6)
@@ -53,47 +137,82 @@ struct MapView: View {
 
     // MARK: - Путь уровней
 
+    /// Первый закрытый биом: у него интерактивные ворота, дальше просто замки.
+    private var firstLocked: Int? {
+        (2...Biomes.playable).first { !progress.isBiomeOpen($0) }
+    }
+
     private var path: some View {
         GeometryReader { geo in
             ScrollViewReader { proxy in
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
-                        nextBiome
-                            .padding(.top, 80)
-                            .padding(.bottom, 24)
-                        VStack(spacing: 0) {
-                            ForEach(levels.reversed()) { level in
-                                node(level, width: geo.size.width)
-                                    .frame(height: rowHeight)
-                                    .id(level.id)
+                        VStack(spacing: 10) {
+                            ForEach(Biomes.upcoming.reversed(), id: \.self) { biome in soonCard(biome) }
+                        }
+                        .padding(.top, 80)
+                        .padding(.bottom, 24)
+                        ForEach((1...Biomes.playable).reversed(), id: \.self) { biome in
+                            if progress.isBiomeOpen(biome) {
+                                biomeSection(biome, width: geo.size.width)
+                            } else if biome == firstLocked {
+                                BiomeGate(biome: biome, opened: { openedBiome = biome })
+                                    .padding(.horizontal, 30)
+                                    .padding(.vertical, 20)
+                                    .id("gate\(biome)")
+                            } else {
+                                lockedCard(biome)
+                                    .padding(.vertical, 10)
                             }
                         }
-                        .background(trail(width: geo.size.width))
-                        title
-                            .padding(.top, 10)
-                            .padding(.bottom, 150)
+                        Color.clear.frame(height: 150)
                     }
                 }
-                .onAppear {
-                    proxy.scrollTo(progress.currentLevel, anchor: .center)
-                }
+                .onAppear { scrollToCurrent(proxy) }
+                .onChange(of: openedBiome) { _ in scrollToCurrent(proxy) }
             }
         }
         .ignoresSafeArea(edges: .bottom)
     }
 
+    private func scrollToCurrent(_ proxy: ScrollViewProxy) {
+        let current = progress.currentLevel
+        let biome = Biomes.of(level: current)
+        if progress.isBiomeOpen(biome) {
+            proxy.scrollTo(current, anchor: .center)
+        } else {
+            proxy.scrollTo("gate\(biome)", anchor: .center)
+        }
+    }
+
+    private func biomeSection(_ biome: Int, width: CGFloat) -> some View {
+        let levels = LevelStore.shared.levels(biome: biome)
+        return VStack(spacing: 0) {
+            VStack(spacing: 0) {
+                ForEach(levels.reversed()) { level in
+                    node(level, width: width)
+                        .frame(height: rowHeight)
+                        .id(level.id)
+                }
+            }
+            .background(trail(levels: levels, width: width))
+            title(biome)
+                .padding(.top, 10)
+                .padding(.bottom, 26)
+        }
+    }
+
     private func xOffset(_ id: Int, width: CGFloat) -> CGFloat {
-        let amplitude = min(110, width * 0.27)
+        let amplitude = min(92, width * 0.23)
         return CGFloat(sin(Double(id) * 0.9)) * amplitude
     }
 
-    private func trail(width: CGFloat) -> some View {
+    private func trail(levels: [LevelData], width: CGFloat) -> some View {
         Canvas { context, size in
-            let top: CGFloat = 0
             var p = Path()
             for (i, level) in levels.reversed().enumerated() {
                 let point = CGPoint(x: size.width / 2 + xOffset(level.id, width: width),
-                                    y: top + CGFloat(i) * rowHeight + rowHeight / 2 - 9)
+                                    y: CGFloat(i) * rowHeight + rowHeight / 2 - 9)
                 if i == 0 { p.move(to: point) } else { p.addLine(to: point) }
             }
             context.stroke(p, with: .color(Color.white.opacity(0.85)),
@@ -110,7 +229,7 @@ struct MapView: View {
             Button {
                 guard unlocked else { return }
                 if progress.isPassed(level.id) || progress.hasLife {
-                    play(level)
+                    play(level, .main)
                 } else {
                     showLives = true
                 }
@@ -153,44 +272,73 @@ struct MapView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private var title: some View {
+    private func title(_ biome: Int) -> some View {
         Panel(padding: 14) {
-            VStack(spacing: 4) {
-                Text(lang.t("biome.1.name"))
-                    .font(Theme.rounded(26, .heavy))
-                    .foregroundColor(Theme.brown)
-                Text(lang.t("biome.1.subtitle"))
-                    .font(Theme.rounded(14, .semibold))
-                    .foregroundColor(Theme.brownSoft)
+            HStack(spacing: 12) {
+                SpriteImage(name: Biomes.icon(biome), size: 52)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(lang.t("biome.\(biome).name"))
+                        .font(Theme.rounded(24, .heavy))
+                        .foregroundColor(Theme.brown)
+                    Text(lang.t("biome.\(biome).subtitle"))
+                        .font(Theme.rounded(14, .semibold))
+                        .foregroundColor(Theme.brownSoft)
+                }
             }
         }
     }
 
-    private var nextBiome: some View {
+    private func lockedCard(_ biome: Int) -> some View {
         Panel(padding: 14) {
             HStack(spacing: 12) {
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(Theme.brownSoft)
+                SpriteImage(name: Biomes.icon(biome), size: 46, silhouette: true)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(lang.t("biome.2.name"))
+                    Text(lang.t("biome.\(biome).name"))
                         .font(Theme.rounded(17, .heavy))
                         .foregroundColor(Theme.brown)
-                    Text(lang.t("biome.2.soon"))
+                    Text(lang.t("biome.locked", lang.t("biome.\(biome - 1).name")))
+                        .font(Theme.rounded(13, .semibold))
+                        .foregroundColor(Theme.brownSoft)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer()
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(Theme.brownSoft)
+            }
+        }
+        .padding(.horizontal, 30)
+    }
+
+    private func soonCard(_ biome: Int) -> some View {
+        Panel(padding: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "hourglass")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(Theme.brownSoft)
+                    .frame(width: 30)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(lang.t("biome.\(biome).name"))
+                        .font(Theme.rounded(16, .heavy))
+                        .foregroundColor(Theme.brown)
+                    Text(lang.t("biome.soon"))
                         .font(Theme.rounded(13, .semibold))
                         .foregroundColor(Theme.brownSoft)
                 }
                 Spacer()
             }
         }
-        .padding(.horizontal, 30)
+        .opacity(0.85)
+        .padding(.horizontal, 44)
     }
 
     // MARK: - Звезды биома
 
     private var starsCard: some View {
-        let total = progress.totalStars()
+        let biome = progress.mapBiome
+        let total = progress.totalStars(biome: biome)
         let maxStars = Balance.levelsPerBiome * 3
+        let chests = Biomes.chests(biome)
         return Panel(padding: 12) {
             VStack(spacing: 8) {
                 HStack {
@@ -199,16 +347,20 @@ struct MapView: View {
                         .font(Theme.rounded(15, .heavy))
                         .foregroundColor(Theme.brown)
                     Spacer()
+                    Text(lang.t("biome.\(biome).name"))
+                        .font(Theme.rounded(13, .bold))
+                        .foregroundColor(Theme.brownSoft)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
                 }
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         Capsule().fill(Theme.brown.opacity(0.12)).frame(height: 12)
                         Capsule().fill(Theme.gold)
                             .frame(width: max(12, geo.size.width * CGFloat(total) / CGFloat(maxStars)), height: 12)
-                        ForEach(Balance.chests.indices, id: \.self) { i in
-                            chestButton(i)
-                                .position(x: geo.size.width * CGFloat(Balance.chests[i].stars) / CGFloat(maxStars) - 18,
-                                          y: 6)
+                        ForEach(chests.indices, id: \.self) { i in
+                            chestButton((biome - 1) * 3 + i)
+                                .position(x: geo.size.width * CGFloat(chests[i].stars) / CGFloat(maxStars) - 18, y: 6)
                         }
                     }
                 }
@@ -217,18 +369,135 @@ struct MapView: View {
         }
     }
 
-    private func chestButton(_ i: Int) -> some View {
-        let ready = progress.chestReady(i)
-        let claimed = progress.chestClaimed(i)
-        return Button { if ready { chest = i } else if !claimed { chest = i } } label: {
-            Image(systemName: claimed ? "checkmark.seal.fill" : (i == 2 ? "crown.fill" : "gift.fill"))
-                .font(.system(size: i == 2 ? 22 : 18, weight: .bold))
+    private func chestButton(_ index: Int) -> some View {
+        let ready = progress.chestReady(index)
+        let claimed = progress.chestClaimed(index)
+        let crown = index % 3 == 2
+        return Button { chest = index } label: {
+            Image(systemName: claimed ? "checkmark.seal.fill" : (crown ? "crown.fill" : "gift.fill"))
+                .font(.system(size: crown ? 22 : 18, weight: .bold))
                 .foregroundColor(claimed ? Theme.green : (ready ? Theme.orange : Theme.brownSoft))
                 .frame(width: 36, height: 36)
                 .background(Circle().fill(Theme.card).shadow(color: ready ? Theme.orange.opacity(0.7) : .clear, radius: 6))
                 .scaleEffect(ready ? 1.1 : 1)
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// Ворота следующей кухни: звезды предыдущей или монеты.
+struct BiomeGate: View {
+    let biome: Int
+    let opened: () -> Void
+    @EnvironmentObject private var progress: PlayerProgress
+    @EnvironmentObject private var lang: Lang
+    @State private var message: String?
+
+    var body: some View {
+        let reached = progress.biomeGateReached(biome)
+        let stars = progress.totalStars(biome: biome - 1)
+        let need = Biomes.starsNeeded(biome)
+        Panel(padding: 18) {
+            VStack(spacing: 12) {
+                SpriteImage(name: Biomes.icon(biome), size: 96, silhouette: !reached)
+                Text(lang.t("biome.\(biome).name"))
+                    .font(Theme.rounded(24, .heavy))
+                    .foregroundColor(Theme.brown)
+                Text(lang.t("biome.\(biome).subtitle"))
+                    .font(Theme.rounded(14, .semibold))
+                    .foregroundColor(Theme.brownSoft)
+                    .multilineTextAlignment(.center)
+                if !reached {
+                    Label(lang.t("biome.locked", lang.t("biome.\(biome - 1).name")), systemImage: "lock.fill")
+                        .font(Theme.rounded(14, .bold))
+                        .foregroundColor(Theme.brownSoft)
+                        .multilineTextAlignment(.center)
+                } else {
+                    HStack(spacing: 6) {
+                        Image(systemName: "star.fill").foregroundColor(Theme.gold)
+                        Text(lang.t("biome.gate.stars", min(stars, need), need))
+                            .font(Theme.rounded(16, .heavy))
+                            .foregroundColor(Theme.brown)
+                    }
+                    if progress.biomeStarsReady(biome) {
+                        Button(lang.t("biome.gate.open")) { open(pay: false) }
+                            .buttonStyle(BigButtonStyle(color: Theme.green))
+                    } else {
+                        Text(lang.t("biome.gate.hint", need - stars))
+                            .font(Theme.rounded(13, .semibold))
+                            .foregroundColor(Theme.brownSoft)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Button { open(pay: true) } label: {
+                            HStack { Text(lang.t("biome.gate.buy")); CoinIcon(size: 20); Text("\(Biomes.unlockPrice)") }
+                        }
+                        .buttonStyle(BigButtonStyle())
+                    }
+                    if let message = message {
+                        Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    private func open(pay: Bool) {
+        if progress.openBiome(biome, pay: pay) {
+            Haptics.success()
+            Audio.shared.play(.unlock)
+            opened()
+        } else {
+            message = lang.t("common.nocoins")
+        }
+    }
+}
+
+/// Новая кухня открыта: фон в подарок и новая музыка.
+struct BiomeOpenedPopup: View {
+    let biome: Int
+    let close: () -> Void
+    @EnvironmentObject private var lang: Lang
+    @State private var shown = false
+
+    var body: some View {
+        ZStack {
+            Dim().onTapGesture(perform: close)
+            Panel(padding: 22) {
+                VStack(spacing: 14) {
+                    SpriteImage(name: Biomes.icon(biome), size: 120)
+                        .scaleEffect(shown ? 1 : 0.4)
+                        .rotationEffect(.degrees(shown ? 0 : -15))
+                    Text(lang.t("biome.opened", lang.t("biome.\(biome).name")))
+                        .font(Theme.rounded(24, .heavy))
+                        .foregroundColor(Theme.brown)
+                        .multilineTextAlignment(.center)
+                    Text(lang.t("biome.\(biome).intro"))
+                        .font(Theme.rounded(15, .semibold))
+                        .foregroundColor(Theme.brownSoft)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: 10) {
+                        Image(uiImage: Art.image(KitchenStyle.image(Biomes.style(biome))))
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 54, height: 80)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        Text(lang.t("biome.opened.bg", lang.t("bg." + Biomes.style(biome))))
+                            .font(Theme.rounded(14, .bold))
+                            .foregroundColor(Theme.brown)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Button(lang.t("intro.go"), action: close).buttonStyle(BigButtonStyle())
+                }
+                .frame(maxWidth: 300)
+            }
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) { shown = true }
+            Audio.shared.play(.chest)
+            Audio.shared.setTrack(Biomes.music(biome))
+        }
     }
 }
 
@@ -242,19 +511,20 @@ struct ChestPopup: View {
     @State private var opened = false
 
     var body: some View {
-        let chest = Balance.chests[index]
+        let chest = Biomes.chest(index)
+        let crown = index % 3 == 2
         let ready = progress.chestReady(index)
         let claimed = progress.chestClaimed(index)
         ZStack {
             Dim().onTapGesture(perform: close)
             Panel(padding: 22) {
                 VStack(spacing: 14) {
-                    Image(systemName: index == 2 ? "crown.fill" : "gift.fill")
+                    Image(systemName: crown ? "crown.fill" : "gift.fill")
                         .font(.system(size: 54, weight: .bold))
-                        .foregroundColor(index == 2 ? Theme.gold : Theme.orange)
+                        .foregroundColor(crown ? Theme.gold : Theme.orange)
                         .rotationEffect(.degrees(opened ? 0 : -8))
                         .scaleEffect(opened ? 1.15 : 1)
-                    Text(lang.t(index == 2 ? "chest.gold.title" : "chest.title", chest.stars))
+                    Text(lang.t(crown ? "chest.gold.title" : "chest.title", chest.stars))
                         .font(Theme.rounded(22, .heavy))
                         .foregroundColor(Theme.brown)
                         .multilineTextAlignment(.center)
@@ -288,7 +558,7 @@ struct ChestPopup: View {
                         }
                         .buttonStyle(BigButtonStyle(color: Theme.green))
                     } else {
-                        Text(lang.t("chest.need", max(0, chest.stars - progress.totalStars())))
+                        Text(lang.t("chest.need", max(0, chest.stars - progress.totalStars(biome: index / 3 + 1))))
                             .font(Theme.rounded(15, .semibold))
                             .foregroundColor(Theme.brownSoft)
                             .multilineTextAlignment(.center)
@@ -323,7 +593,7 @@ struct LivesSheet: View {
                 Image(systemName: "heart.fill")
                     .font(.system(size: 64))
                     .foregroundColor(Theme.red)
-                Text(progress.unlimitedLives ? lang.t("lives.unlimited") : lang.t("lives.count", progress.lives, Balance.maxLives))
+                Text(progress.unlimitedLives ? lang.t("lives.unlimited") : lang.t("lives.count", progress.lives, progress.maxLives))
                     .font(Theme.rounded(24, .heavy))
                     .foregroundColor(Theme.brown)
                 if let next = progress.nextLifeIn {
@@ -335,7 +605,7 @@ struct LivesSheet: View {
                     .font(Theme.rounded(14, .medium))
                     .foregroundColor(Theme.brownSoft)
                     .multilineTextAlignment(.center)
-                if progress.lives < Balance.maxLives && !progress.unlimitedLives {
+                if progress.lives < progress.maxLives && !progress.unlimitedLives {
                     Button {
                         if progress.refillLives() {
                             presentation.wrappedValue.dismiss()
@@ -351,10 +621,30 @@ struct LivesSheet: View {
                             if ok { progress.addLife() } else { message = lang.t("ads.limit") }
                         }
                     } label: {
-                        HStack { Image(systemName: "play.rectangle.fill"); Text(lang.t("lives.ad")) }
+                        HStack { AdIcon(); Text(lang.t("lives.ad")) }
                     }
                     .buttonStyle(BigButtonStyle(color: Theme.green))
                     AdsLeftLabel()
+                }
+                if !progress.unlimitedLives {
+                    Button {
+                        Task { @MainActor in
+                            switch await Store.shared.buy(.lives) {
+                            case .done:
+                                Audio.shared.play(.chest)
+                                presentation.wrappedValue.dismiss()
+                            case .unavailable:
+                                message = lang.t("shop.unavailable")
+                            case .failed:
+                                message = lang.t("shop.failed")
+                            default:
+                                break
+                            }
+                        }
+                    } label: {
+                        HStack { Image(systemName: "infinity"); Text(lang.t("lives.buy")); Text(Store.shared.price(.lives)) }
+                    }
+                    .buttonStyle(BigButtonStyle(color: Theme.vip))
                 }
                 if let message = message {
                     Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)

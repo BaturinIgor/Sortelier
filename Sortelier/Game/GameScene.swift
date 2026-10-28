@@ -8,12 +8,17 @@ final class PieceNode: SKNode {
     private let sprite: SKSpriteNode
     private let shadow: SKSpriteNode
     private let mystery: SKNode
+    private var iceNode: SKNode?
+    private var size: CGFloat
     private(set) var isMystery = false
     private(set) var isDim = false
+    /// Сколько покупателей осталось до того, как растает лед.
+    private(set) var iceLeft = 0
 
     init(piece: Piece, size: CGFloat) {
         uid = piece.uid
         item = piece.item
+        self.size = size
         sprite = SKSpriteNode(texture: Art.texture(piece.item))
         sprite.size = CGSize(width: size, height: size)
         shadow = SKSpriteNode(texture: Art.shadow)
@@ -42,9 +47,83 @@ final class PieceNode: SKNode {
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     func resize(_ size: CGFloat) {
+        let changed = abs(size - self.size) > 0.5
+        self.size = size
         sprite.size = CGSize(width: size, height: size)
         shadow.size = CGSize(width: size * 0.78, height: size * 0.24)
         shadow.position = CGPoint(x: 0, y: -size * 0.42)
+        if changed && iceLeft > 0 { drawIce() }
+    }
+
+    /// Лед поверх продукта с числом покупателей до оттаивания. 0 - растаял.
+    func setIce(_ left: Int, animated: Bool) {
+        guard left != iceLeft else { return }
+        let was = iceLeft
+        iceLeft = left
+        if left > 0 {
+            drawIce()
+            if animated && was > left { iceNode?.run(.sequence([.scale(to: 1.12, duration: 0.08), .scale(to: 1, duration: 0.1)])) }
+            return
+        }
+        guard let ice = iceNode else { return }
+        iceNode = nil
+        if animated {
+            // лед трескается: осколки разлетаются
+            for i in 0..<8 {
+                let shard = SKShapeNode(rectOf: CGSize(width: size * 0.12, height: size * 0.07), cornerRadius: 2)
+                shard.fillColor = UIColor(red: 0.80, green: 0.94, blue: 1.0, alpha: 0.9)
+                shard.strokeColor = .white
+                shard.lineWidth = 1
+                shard.zPosition = 5
+                shard.zRotation = CGFloat(i) * 0.8
+                addChild(shard)
+                let a = CGFloat(i) / 8 * 2 * .pi
+                shard.run(.sequence([.group([.moveBy(x: cos(a) * size * 0.6, y: sin(a) * size * 0.6, duration: 0.35),
+                                             .rotate(byAngle: 2, duration: 0.35), .fadeOut(withDuration: 0.35)]),
+                                     .removeFromParent()]))
+            }
+            ice.run(.sequence([.group([.scale(to: 1.25, duration: 0.18), .fadeOut(withDuration: 0.18)]), .removeFromParent()]))
+            Audio.shared.play(.invalid, volume: 0.25)
+        } else {
+            ice.removeFromParent()
+        }
+    }
+
+    private func drawIce() {
+        iceNode?.removeFromParent()
+        let node = SKNode()
+        node.zPosition = 4
+        let w = size * 0.94
+        let block = SKShapeNode(rectOf: CGSize(width: w, height: w * 1.02), cornerRadius: size * 0.16)
+        block.fillColor = UIColor(red: 0.72, green: 0.90, blue: 1.0, alpha: 0.5)
+        block.strokeColor = UIColor(white: 1, alpha: 0.9)
+        block.lineWidth = 2
+        node.addChild(block)
+        // блики на льду
+        for (x, y, l) in [(-0.22, 0.2, 0.32), (-0.06, 0.3, 0.16), (0.24, -0.22, 0.2)] as [(CGFloat, CGFloat, CGFloat)] {
+            let path = CGMutablePath()
+            path.move(to: CGPoint(x: (x - l / 2) * w, y: (y - l / 2) * w))
+            path.addLine(to: CGPoint(x: (x + l / 2) * w, y: (y + l / 2) * w))
+            let line = SKShapeNode(path: path)
+            line.strokeColor = UIColor(white: 1, alpha: 0.85)
+            line.lineWidth = 2.5
+            line.lineCap = .round
+            node.addChild(line)
+        }
+        let badge = SKShapeNode(circleOfRadius: max(8, size * 0.17))
+        badge.fillColor = UIColor(red: 0.20, green: 0.55, blue: 0.90, alpha: 1)
+        badge.strokeColor = .white
+        badge.lineWidth = 1.5
+        badge.position = CGPoint(x: w * 0.4, y: w * 0.42)
+        let label = SKLabelNode(text: "\(iceLeft)")
+        label.fontName = "AvenirNext-Heavy"
+        label.fontSize = max(10, size * 0.22)
+        label.fontColor = .white
+        label.verticalAlignmentMode = .center
+        badge.addChild(label)
+        node.addChild(badge)
+        addChild(node)
+        iceNode = node
     }
 
     func setMystery(_ hidden: Bool) {
@@ -101,6 +180,8 @@ final class GameScene: SKScene {
     private var customerNodes: [Int: CustomerNode] = [:]
     private var plank: SKNode?
     private var queueBadge: SKNode?
+    private var lockNodes: [Int: SKNode] = [:]
+    private var pauseBadge: SKNode?
     private var itemSize: CGFloat = 40
     private var shelfWidth: CGFloat = 120
 
@@ -129,6 +210,10 @@ final class GameScene: SKScene {
         }
         session.onHint = { [weak self] from, slot, to in
             self?.showHint(from: from, slot: slot, to: to)
+        }
+        session.onPause = { [weak self] in
+            Audio.shared.play(.unlock, volume: 0.5)
+            self?.refreshCustomers()
         }
     }
 
@@ -211,7 +296,9 @@ final class GameScene: SKScene {
             board.addChild(node)
             shelfNodes.append(node)
         }
+        lockNodes = [:]
         sync(animated: false)
+        updateLocks(animated: false)
         buildCounter()
         layoutCustomers(animated: false)
     }
@@ -222,6 +309,7 @@ final class GameScene: SKScene {
         let dim: Bool
         let mystery: Bool
         let z: CGFloat
+        var ice = 0
     }
 
     private func targets() -> [Int: (Piece, Target)] {
@@ -230,13 +318,14 @@ final class GameScene: SKScene {
         for s in b.shelves.indices where s < shelfFrames.count {
             for (k, piece) in b.front(s).enumerated() {
                 guard let piece = piece else { continue }
-                result[piece.uid] = (piece, Target(position: slotPosition(s, k), scale: 1, dim: false, mystery: false, z: 20))
+                result[piece.uid] = (piece, Target(position: slotPosition(s, k), scale: 1, dim: false, mystery: false, z: 20,
+                                                   ice: b.iceLeft(piece)))
             }
             if let peek = b.peek(s) {
                 for (k, piece) in peek.enumerated() {
                     guard let piece = piece else { continue }
                     result[piece.uid] = (piece, Target(position: peekPosition(s, k), scale: 0.72, dim: true,
-                                                       mystery: piece.hidden, z: 10))
+                                                       mystery: piece.hidden, z: 10, ice: piece.hidden ? 0 : b.iceLeft(piece)))
                 }
             }
         }
@@ -260,6 +349,7 @@ final class GameScene: SKScene {
                 node.resize(itemSize)
                 if node.isMystery != target.mystery { node.setMystery(target.mystery) }
                 if node.isDim != target.dim { node.setDim(target.dim, animated: animated) }
+                node.setIce(target.ice, animated: animated)
                 if animated {
                     let move = SKAction.move(to: target.position, duration: 0.18)
                     move.timingMode = .easeOut
@@ -277,6 +367,7 @@ final class GameScene: SKScene {
                 node.setScale(target.scale)
                 node.zPosition = target.z
                 node.setDim(target.dim, animated: false)
+                node.setIce(target.ice, animated: false)
                 board.addChild(node)
                 pieceNodes[uid] = node
                 if animated {
@@ -312,6 +403,119 @@ final class GameScene: SKScene {
         }
     }
 
+    // MARK: - Замки полок
+
+    /// Замок поверх закрытой полки: число покупателей до открытия.
+    private func updateLocks(animated: Bool) {
+        let b = session.board
+        for s in b.shelves.indices where s < shelfFrames.count {
+            let left = b.lockLeft(s)
+            if left > 0 {
+                if let node = lockNodes[s], node.userData?["left"] as? Int == left { continue }
+                let pulse = lockNodes[s] != nil && animated
+                lockNodes[s]?.removeFromParent()
+                let node = makeLock(frame: shelfFrames[s], left: left)
+                board.addChild(node)
+                lockNodes[s] = node
+                if pulse { node.childNode(withName: "padlock")?.run(.sequence([.rotate(toAngle: -0.2, duration: 0.06),
+                                                                                .rotate(toAngle: 0.2, duration: 0.1),
+                                                                                .rotate(toAngle: 0, duration: 0.06)])) }
+            } else if let node = lockNodes[s] {
+                lockNodes[s] = nil
+                if animated {
+                    let padlock = node.childNode(withName: "padlock")
+                    padlock?.run(.sequence([.rotate(toAngle: -0.25, duration: 0.07), .rotate(toAngle: 0.25, duration: 0.1),
+                                            .rotate(toAngle: 0, duration: 0.07),
+                                            .group([.moveBy(x: 0, y: 30, duration: 0.3), .scale(to: 1.3, duration: 0.3)])]))
+                    node.run(.sequence([.wait(forDuration: 0.25), .fadeOut(withDuration: 0.25), .removeFromParent()]))
+                    Audio.shared.play(.unlock, volume: 0.6)
+                } else {
+                    node.removeFromParent()
+                }
+            }
+        }
+    }
+
+    private func makeLock(frame f: CGRect, left: Int) -> SKNode {
+        let node = SKNode()
+        node.userData = ["left": left]
+        node.position = CGPoint(x: f.midX, y: f.midY)
+        node.zPosition = 60
+        let veil = SKShapeNode(rectOf: CGSize(width: f.width - 6, height: f.height - 4), cornerRadius: 10)
+        veil.fillColor = UIColor(red: 0.22, green: 0.13, blue: 0.08, alpha: 0.42)
+        veil.strokeColor = UIColor(red: 0.85, green: 0.62, blue: 0.20, alpha: 0.9)
+        veil.lineWidth = 2
+        node.addChild(veil)
+        // цепь поперек полки
+        let chain = SKShapeNode(rectOf: CGSize(width: f.width - 14, height: 5), cornerRadius: 2.5)
+        chain.fillColor = UIColor(red: 0.70, green: 0.70, blue: 0.74, alpha: 1)
+        chain.strokeColor = UIColor(red: 0.45, green: 0.45, blue: 0.50, alpha: 1)
+        chain.lineWidth = 1
+        node.addChild(chain)
+        let padlock = SKNode()
+        padlock.name = "padlock"
+        let r = min(f.height * 0.2, 20)
+        let shackle = SKShapeNode()
+        let path = CGMutablePath()
+        path.addArc(center: CGPoint(x: 0, y: r * 0.55), radius: r * 0.62, startAngle: 0, endAngle: .pi, clockwise: false)
+        shackle.path = path
+        shackle.strokeColor = UIColor(red: 0.62, green: 0.62, blue: 0.66, alpha: 1)
+        shackle.lineWidth = r * 0.28
+        padlock.addChild(shackle)
+        let body = SKShapeNode(rectOf: CGSize(width: r * 2, height: r * 1.6), cornerRadius: r * 0.35)
+        body.fillColor = UIColor(red: 1.0, green: 0.76, blue: 0.20, alpha: 1)
+        body.strokeColor = UIColor(red: 0.70, green: 0.45, blue: 0.08, alpha: 1)
+        body.lineWidth = 2
+        body.position = CGPoint(x: 0, y: -r * 0.3)
+        padlock.addChild(body)
+        let label = SKLabelNode(text: "\(left)")
+        label.fontName = "AvenirNext-Heavy"
+        label.fontSize = r * 1.05
+        label.fontColor = UIColor(red: 0.42, green: 0.25, blue: 0.08, alpha: 1)
+        label.verticalAlignmentMode = .center
+        label.position = CGPoint(x: 0, y: -r * 0.32)
+        padlock.addChild(label)
+        node.addChild(padlock)
+        return node
+    }
+
+    private var lastObstacleTip = Date.distantPast
+
+    /// Подсказка над полкой: почему нельзя (лед, замок).
+    private func obstacleFeedback(_ key: String, shelf: Int, uid: Int? = nil) {
+        Haptics.warning()
+        Audio.shared.play(.invalid, volume: 0.7)
+        if let uid = uid, let node = pieceNodes[uid] {
+            node.run(.sequence([.moveBy(x: -4, y: 0, duration: 0.04), .moveBy(x: 8, y: 0, duration: 0.06),
+                                .moveBy(x: -8, y: 0, duration: 0.06), .moveBy(x: 4, y: 0, duration: 0.04)]))
+        } else if let lock = lockNodes[shelf]?.childNode(withName: "padlock") {
+            lock.run(.sequence([.rotate(toAngle: -0.2, duration: 0.05), .rotate(toAngle: 0.2, duration: 0.08),
+                                .rotate(toAngle: 0, duration: 0.05)]))
+        }
+        guard Date().timeIntervalSince(lastObstacleTip) > 1.5, shelf < shelfFrames.count else { return }
+        lastObstacleTip = Date()
+        toast(Lang.shared.t(key), above: shelfFrames[shelf])
+    }
+
+    private func toast(_ text: String, above f: CGRect) {
+        let label = SKLabelNode(text: text)
+        label.fontName = "AvenirNext-Bold"
+        label.fontSize = 13
+        label.fontColor = .white
+        label.verticalAlignmentMode = .center
+        let back = SKShapeNode(rectOf: CGSize(width: label.frame.width + 22, height: 28), cornerRadius: 14)
+        back.fillColor = UIColor(red: 0.36, green: 0.22, blue: 0.13, alpha: 0.95)
+        back.strokeColor = .clear
+        back.addChild(label)
+        let x = min(max(f.midX, back.frame.width / 2 + 8), size.width - back.frame.width / 2 - 8)
+        back.position = CGPoint(x: x, y: f.maxY + 18)
+        back.zPosition = 150
+        back.alpha = 0
+        board.addChild(back)
+        back.run(.sequence([.fadeIn(withDuration: 0.12), .wait(forDuration: 1.4), .fadeOut(withDuration: 0.25),
+                            .removeFromParent()]))
+    }
+
     // MARK: - Покупатели
 
     private var counterRect: CGRect {
@@ -325,7 +529,7 @@ final class GameScene: SKScene {
     }
 
     private func look(of customer: Customer) -> Int {
-        (customer.uid * 7 + session.level.id * 3) % CustomerNode.looks
+        customer.gourmet ? CustomerNode.gourmetLook : (customer.uid * 7 + session.level.id * 3) % CustomerNode.looks
     }
 
     private func buildCounter() {
@@ -385,9 +589,10 @@ final class GameScene: SKScene {
                 }
             }
             node.update(patience: c.patience, max: b.patienceMax, coins: Balance.coinsPerOrder + b.tip(for: c),
-                        tip: b.tip(for: c), animated: animated)
+                        tip: b.tip(for: c), paused: b.pauseLeft > 0, animated: animated)
         }
         updateQueueBadge(waiting: b.queue.count - visible.count)
+        updatePauseBadge()
     }
 
     /// После хода: тает терпение у тех, кто у прилавка.
@@ -396,8 +601,36 @@ final class GameScene: SKScene {
         for c in b.queue.prefix(Board.counter) {
             guard let node = customerNodes[c.uid], !node.leaving else { continue }
             node.update(patience: c.patience, max: b.patienceMax, coins: Balance.coinsPerOrder + b.tip(for: c),
-                        tip: b.tip(for: c), animated: true)
+                        tip: b.tip(for: c), paused: b.pauseLeft > 0, animated: true)
         }
+        updatePauseBadge()
+    }
+
+    /// Плашка над прилавком, пока терпение на паузе.
+    private func updatePauseBadge() {
+        let left = session.board.pauseLeft
+        if left == 0 {
+            if let badge = pauseBadge {
+                pauseBadge = nil
+                badge.run(.sequence([.fadeOut(withDuration: 0.2), .removeFromParent()]))
+            }
+            return
+        }
+        pauseBadge?.removeFromParent()
+        let label = SKLabelNode(text: Lang.shared.t("game.pause", left))
+        label.fontName = "AvenirNext-Heavy"
+        label.fontSize = 13
+        label.fontColor = .white
+        label.verticalAlignmentMode = .center
+        let back = SKShapeNode(rectOf: CGSize(width: label.frame.width + 24, height: 24), cornerRadius: 12)
+        back.fillColor = UIColor(red: 0.25, green: 0.55, blue: 0.90, alpha: 0.95)
+        back.strokeColor = .white
+        back.lineWidth = 1.5
+        back.addChild(label)
+        back.position = CGPoint(x: size.width / 2, y: counterRect.minY - 2)
+        back.zPosition = 20
+        customersLayer.addChild(back)
+        pauseBadge = back
     }
 
     private func updateQueueBadge(waiting: Int) {
@@ -439,6 +672,23 @@ final class GameScene: SKScene {
         guard session.phase == .playing, let touch = touches.first else { return }
         let p = touch.location(in: self)
         if let hit = frontPiece(at: p) {
+            let b = session.board
+            if b.isLocked(hit.shelf) {
+                // тап по закрытой полке может быть целью для выбранного продукта
+                if let sel = selected, sel.shelf != hit.shelf { clearSelection() }
+                obstacleFeedback("game.lock", shelf: hit.shelf)
+                return
+            }
+            if let piece = b.front(hit.shelf)[hit.slot], b.isFrozen(piece) {
+                if let sel = selected, sel.shelf != hit.shelf, b.canPlace(on: hit.shelf) {
+                    attemptMove(from: sel.shelf, slot: sel.slot, to: hit.shelf)
+                    clearSelection()
+                } else {
+                    clearSelection()
+                    obstacleFeedback("game.ice", shelf: hit.shelf, uid: hit.uid)
+                }
+                return
+            }
             drag = Drag(uid: hit.uid, shelf: hit.shelf, slot: hit.slot, start: p, moved: false)
             if let node = pieceNodes[hit.uid] {
                 node.removeAllActions()
@@ -485,23 +735,7 @@ final class GameScene: SKScene {
         }
         guard Date().timeIntervalSince(lastBackRowTip) > 1.5, shelf < shelfFrames.count else { return }
         lastBackRowTip = Date()
-        let f = shelfFrames[shelf]
-        let label = SKLabelNode(text: Lang.shared.t("game.backrow"))
-        label.fontName = "AvenirNext-Bold"
-        label.fontSize = 13
-        label.fontColor = .white
-        label.verticalAlignmentMode = .center
-        let back = SKShapeNode(rectOf: CGSize(width: label.frame.width + 22, height: 28), cornerRadius: 14)
-        back.fillColor = UIColor(red: 0.36, green: 0.22, blue: 0.13, alpha: 0.95)
-        back.strokeColor = .clear
-        back.addChild(label)
-        let x = min(max(f.midX, back.frame.width / 2 + 8), size.width - back.frame.width / 2 - 8)
-        back.position = CGPoint(x: x, y: f.maxY + 18)
-        back.zPosition = 150
-        back.alpha = 0
-        board.addChild(back)
-        back.run(.sequence([.fadeIn(withDuration: 0.12), .wait(forDuration: 1.4), .fadeOut(withDuration: 0.25),
-                            .removeFromParent()]))
+        toast(Lang.shared.t("game.backrow"), above: shelfFrames[shelf])
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -522,7 +756,7 @@ final class GameScene: SKScene {
             returnToPlace(d.uid)
             if let sel = selected, sel.shelf == d.shelf, sel.slot == d.slot {
                 clearSelection()
-            } else if let sel = selected, sel.shelf != d.shelf, session.board.freeSlot(in: d.shelf) != nil {
+            } else if let sel = selected, sel.shelf != d.shelf, session.board.canPlace(on: d.shelf) {
                 // тап по продукту на другой полке со свободным местом тоже переносит выбранный
                 clearSelection()
                 attemptMove(from: sel.shelf, slot: sel.slot, to: d.shelf)
@@ -604,6 +838,10 @@ final class GameScene: SKScene {
         let pieceUid = session.board.front(src)[slot]?.uid
         guard let outcome = session.move(from: src, slot: slot, to: dst) else {
             if let uid = pieceUid { returnToPlace(uid) }
+            if session.board.isLocked(dst) {
+                obstacleFeedback("game.lock", shelf: dst)
+                return
+            }
             Audio.shared.play(.invalid, volume: 0.7)
             if session.board.freeSlot(in: dst) == nil, dst < shelfNodes.count {
                 shelfNodes[dst].run(.sequence([.moveBy(x: -5, y: 0, duration: 0.05), .moveBy(x: 10, y: 0, duration: 0.08),
@@ -627,12 +865,21 @@ final class GameScene: SKScene {
         // Поле не блокируется: следующий ход можно делать сразу, анимации идут параллельно.
         var delay: TimeInterval = 0.1
         var combo = session.combo - outcome.fires.count
-        for fire in outcome.fires {
-            combo += 1
-            animateFire(fire, coins: session.coins(for: fire, combo: combo), delay: delay)
-            delay += 0.1
+        for event in outcome.events {
+            switch event {
+            case let .fire(fire):
+                combo += 1
+                animateFire(fire, coins: session.coins(for: fire, combo: combo), delay: delay)
+                delay += 0.1
+            case let .transform(t):
+                animateTransform(t, delay: delay)
+                delay += 0.2
+            }
         }
         sync(animated: true, delay: outcome.fires.isEmpty ? 0 : 0.12)
+        if !outcome.fires.isEmpty {
+            run(.sequence([.wait(forDuration: delay + 0.2), .run { [weak self] in self?.updateLocks(animated: true) }]))
+        }
         refreshCustomers()
         if !outcome.fires.isEmpty {
             removeAction(forKey: "orders")
@@ -668,6 +915,7 @@ final class GameScene: SKScene {
         let size = itemSize
         for (i, node) in nodes.enumerated() {
             node.zPosition = 120
+            node.setIce(0, animated: false)
             let gather = SKAction.move(to: center, duration: 0.14)
             gather.timingMode = .easeIn
             var steps: [SKAction] = [.wait(forDuration: delay), .group([gather, .scale(to: 1.1, duration: 0.14)])]
@@ -701,6 +949,40 @@ final class GameScene: SKScene {
         for piece in fire.pieces {
             pieceNodes[piece.uid] = nil
         }
+    }
+
+    /// Цепочка: три продукта слетаются в средний слот и становятся одним.
+    private func animateTransform(_ t: Transform, delay: TimeInterval) {
+        guard t.shelf < shelfFrames.count else { return }
+        let center = slotPosition(t.shelf, t.slot)
+        for piece in t.pieces {
+            guard let node = pieceNodes[piece.uid] else { continue }
+            pieceNodes[piece.uid] = nil
+            node.removeAllActions()
+            node.setDim(false, animated: false)
+            node.setMystery(false)
+            node.setIce(0, animated: false)
+            node.zPosition = 110
+            let gather = SKAction.move(to: center, duration: 0.16)
+            gather.timingMode = .easeIn
+            node.run(.sequence([.wait(forDuration: delay), .group([gather, .scale(to: 1, duration: 0.16)]),
+                                .group([.fadeOut(withDuration: 0.08), .scale(to: 0.4, duration: 0.08)]),
+                                .removeFromParent()]))
+        }
+        let made = PieceNode(piece: t.result, size: itemSize)
+        made.position = center
+        made.zPosition = 20
+        made.alpha = 0
+        made.setScale(1)
+        board.addChild(made)
+        pieceNodes[t.result.uid] = made
+        made.run(.sequence([.wait(forDuration: delay + 0.18), .fadeIn(withDuration: 0.01),
+                            .scale(to: 1.35, duration: 0.1), .scale(to: 1, duration: 0.12)]), withKey: "made")
+        run(.sequence([.wait(forDuration: delay + 0.18), .run { [weak self] in
+            Haptics.light()
+            Audio.shared.play(.triple, volume: 0.6)
+            self?.burst(at: center, dish: false)
+        }]))
     }
 
     private func burst(at point: CGPoint, dish: Bool) {

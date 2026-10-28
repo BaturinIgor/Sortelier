@@ -33,6 +33,8 @@ def reset_scene(samples=96):
     scene.cycles.samples = samples
     scene.cycles.use_denoising = True
     scene.render.film_transparent = True
+    # стекло пропускает прозрачный фон: стаканы и бутылки не превращаются в белые кружки
+    scene.cycles.film_transparent_glass = True
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGBA"
     scene.view_settings.view_transform = "Standard"
@@ -1792,8 +1794,1278 @@ def dish_pancakes():
     return parts
 
 
+# MARK: - Генераторы мерж-доски
+
+def gen_oven():
+    """Духовка: скругленный корпус, стеклянная дверца со светом, ручки."""
+    body = box_mesh("Oven", 1.6, 1.1, 1.35, 0.0, cuts=4)
+    bevel(body, 0.16, 6, 30)
+    subdivide(body, 1)
+    smooth(body)
+    assign(body, material("OvenBody", [(0.0, (0.80, 0.16, 0.12)), (1.0, (0.96, 0.30, 0.22))], coord="z", lo=0.0, hi=1.35,
+                          rough=0.22, coat=0.7, coat_rough=0.06))
+    door = box_mesh("Door", 1.18, 0.06, 0.72, 0.18)
+    door.location = (0, -0.55, 0)
+    apply_transform(door)
+    bevel(door, 0.08, 4, 30)
+    smooth(door, 40)
+    assign(door, material("DoorGlass", [(0.0, (1.0, 0.55, 0.12)), (1.0, (0.35, 0.12, 0.04))], coord="z", lo=0.2, hi=0.9,
+                          rough=0.08, coat=0.9, coat_rough=0.02))
+    handle = capsule("Handle", 0.9, 0.045, 24, 16)
+    handle.location = (0, -0.66, 0.98)
+    smooth(handle)
+    steel = flat("Steel", (0.86, 0.86, 0.9), rough=0.2, metal=0.9)
+    assign(handle, steel)
+    parts = [body, door, handle]
+    for i, x in enumerate((-0.5, 0.0, 0.5)):
+        k = cylinder(f"Knob{i}", 0.09, 0.08, 32)
+        k.rotation_euler = (math.radians(90), 0, 0)
+        k.location = (x, -0.58, 1.17)
+        apply_transform(k)
+        bevel(k, 0.02, 3, 30)
+        smooth(k, 40)
+        assign(k, steel)
+        parts.append(k)
+    return rotate_all(parts, (0, 0, math.radians(-20)))
+
+
+def gen_grill():
+    """Гриль: чаша на ножках, решетка и угли."""
+    bowl = sphere("GrillBowl", 0.85, 64, 32)
+    deform(bowl, lambda co: Vector((co.x, co.y, min(co.z, 0.0) * 0.75 + 1.05)))
+    smooth(bowl)
+    assign(bowl, material("GrillBody", [(0.0, (0.10, 0.10, 0.12)), (1.0, (0.24, 0.24, 0.28))], coord="z", lo=0.4,
+                          hi=1.05, rough=0.25, coat=0.6))
+    rim = torus("GrillRim", 0.85, 0.04, 96, 16)
+    rim.location = (0, 0, 1.05)
+    smooth(rim)
+    steel = flat("GSteel", (0.8, 0.8, 0.84), rough=0.25, metal=0.9)
+    assign(rim, steel)
+    parts = [bowl, rim]
+    for i in range(7):
+        x = -0.6 + 0.2 * i
+        half = math.sqrt(max(0.0, 0.82 ** 2 - x * x))
+        bar = capsule(f"Bar{i}", 2 * half, 0.018, 12, 8)
+        bar.rotation_euler = (0, 0, math.radians(90))
+        bar.location = (x, 0, 1.06)
+        apply_transform(bar)
+        assign(smooth(bar), steel)
+        parts.append(bar)
+    coal = material("Coal", [(0.0, (1.0, 0.35, 0.05)), (1.0, (1.0, 0.75, 0.2))], coord="z", lo=0.9, hi=1.0, rough=0.4)
+    rnd = random.Random(3)
+    for i in range(9):
+        c = sphere(f"Coal{i}", 0.12, 20, 12)
+        a = rnd.uniform(0, 6.28)
+        r = rnd.uniform(0, 0.5)
+        c.location = (r * math.cos(a), r * math.sin(a), 0.93)
+        assign(smooth(c), coal)
+        parts.append(c)
+    for i in range(3):
+        a = math.radians(90 + 120 * i)
+        leg = capsule(f"Leg{i}", 1.0, 0.035, 12, 8)
+        leg.rotation_euler = (0, math.radians(90 - 12), a)
+        leg.location = (0.38 * math.cos(a), 0.38 * math.sin(a), 0.42)
+        apply_transform(leg)
+        assign(smooth(leg), steel)
+        parts.append(leg)
+    lid = sphere("Lid", 0.85, 64, 32)
+    deform(lid, lambda co: Vector((co.x, co.y, max(co.z, 0.0) * 0.6)))
+    lid.rotation_euler = (math.radians(-70), 0, 0)
+    lid.location = (0, 0.72, 1.35)
+    smooth(lid)
+    assign(lid, material("LidMat", [(0.0, (0.80, 0.14, 0.10)), (1.0, (0.95, 0.28, 0.2))], coord="z", lo=0.0, hi=0.5,
+                         rough=0.2, coat=0.7))
+    parts.append(lid)
+    return rotate_all(parts, (0, 0, math.radians(15)))
+
+
+def gen_crate():
+    """Ящик с грядки: деревянные планки, салат и помидоры."""
+    wood = material("CrateWood", [(0.0, (0.72, 0.48, 0.24)), (1.0, (0.88, 0.64, 0.36))], coord="z", lo=0.0, hi=0.9,
+                    rough=0.6, bump=0.15, bump_scale=6)
+    parts = []
+    for side in (-1, 1):
+        for k in range(2):
+            pl = box_mesh(f"PlankX{side}{k}", 1.7, 0.08, 0.32, 0.08 + k * 0.4)
+            pl.location = (0, side * 0.56, 0)
+            apply_transform(pl)
+            bevel(pl, 0.03, 3, 30)
+            smooth(pl, 40)
+            assign(pl, wood)
+            parts.append(pl)
+            pl2 = box_mesh(f"PlankY{side}{k}", 0.08, 1.06, 0.32, 0.08 + k * 0.4)
+            pl2.location = (side * 0.82, 0, 0)
+            apply_transform(pl2)
+            bevel(pl2, 0.03, 3, 30)
+            smooth(pl2, 40)
+            assign(pl2, wood)
+            parts.append(pl2)
+    bottom = box_mesh("CrateBottom", 1.6, 1.08, 0.08, 0.04)
+    assign(bottom, wood)
+    parts.append(bottom)
+    leaf_parts = lettuce_leaf("CrateLeaf", 0.7, 0.42, cup=0.3, curl=0.15, ruffle=0.06, waves=12)
+    rotate_all(leaf_parts, (math.radians(25), 0, math.radians(20)))
+    for o in leaf_parts:
+        o.location = (o.location.x - 0.35, o.location.y + 0.05, o.location.z + 0.62)
+    parts += leaf_parts
+    for i, (x, y) in enumerate(((0.35, -0.12), (0.62, 0.15), (0.15, 0.2))):
+        before = set(bpy.data.objects)
+        tomato()
+        new = [o for o in bpy.data.objects if o not in before and o.type == "MESH"]
+        for o in new:
+            o.scale = (0.32, 0.32, 0.32)
+            o.location = (o.location.x * 0.32 + x, o.location.y * 0.32 + y, o.location.z * 0.32 + 0.68)
+        parts += new
+    return rotate_all(parts, (0, 0, math.radians(-18)))
+
+
+# MARK: - Японская кухня: ингредиенты
+
+def rice_bowl(name="Rice", r=0.85):
+    """Миска риса: керамика с узором и горка зерен сверху."""
+    bowl = lathe(f"{name}Bowl", [(0.0, 0.0), (0.42, 0.0), (0.46, 0.04), (0.5, 0.08), (0.78 * r / 0.85, 0.45),
+                                 (0.86 * r / 0.85, 0.62), (0.82 * r / 0.85, 0.64), (0.0, 0.64)], 96)
+    subdivide(bowl, 1)
+    smooth(bowl, 50)
+    assign(bowl, material(f"{name}BowlMat", [(0.0, (0.18, 0.30, 0.58)), (0.35, (0.22, 0.38, 0.70)), (0.4, (0.96, 0.95, 0.92)),
+                                             (1.0, (1.0, 1.0, 0.98))], coord="z", lo=0.0, hi=0.64, rough=0.18, coat=0.7))
+    mound = sphere(f"{name}Mound", 0.8 * r / 0.85, 64, 32)
+    deform(mound, lambda co: Vector((co.x, co.y, max(co.z, 0.0) * 0.55 + 0.56)))
+    push_normals(mound, lambda co, n: 0.02 * fbm(co * 9.0, 2))
+    smooth(mound)
+    grain = material(f"{name}Grain", [(0.0, (0.95, 0.94, 0.90)), (1.0, (1.0, 1.0, 1.0))], coord="z", lo=0.6, hi=1.0,
+                     rough=0.35, sss=0.5, sss_radius=(1, 1, 1), bump=0.6, bump_scale=60, bump_detail=2)
+    assign(mound, grain)
+    parts = [bowl, mound]
+    gmat = material(f"{name}Grains", [(0.0, (0.94, 0.93, 0.90)), (1.0, (1.0, 1.0, 1.0))], coord="z", lo=-0.03, hi=0.03,
+                    rough=0.3, sss=0.5, sss_radius=(1, 1, 1), coat=0.3)
+
+    def make(i, rnd):
+        g = capsule(f"{name}G{i}", 0.12 * r, 0.035 * r, 12, 8)
+        assign(smooth(g), gmat)
+        return g
+    scatter_on(mound, 70, make, seed=4, area=0.75 * r, spacing=0.07 * r)
+    return [o for o in bpy.data.objects if o.type == "MESH"]
+
+
+def rice():
+    return rice_bowl()
+
+
+def salmon_slab(name="Fish", length=1.6, width=0.95, height=0.6):
+    ob = rounded_disc(name, 1.0, 1.0, 3.2, 26)
+    deform(ob, lambda co: Vector((co.x * length / 2, co.y * width / 2, co.z * height / 2 + height / 2)))
+    push_normals(ob, lambda co, n: 0.01 * fbm(co * 4))
+    smooth(ob)
+    mat = material(f"{name}Mat", [(0.0, (1.0, 0.45, 0.25)), (1.0, (1.0, 0.56, 0.34))], coord="z", lo=0.0, hi=height,
+                   rough=0.25, sss=0.5, sss_radius=(1, 0.5, 0.3), coat=0.6)
+    add_stripes(mat, (1.0, 0.86, 0.76), scale=1.6, angle=60, width=0.12, nz_min=-1.0, strength=0.9)
+    assign(ob, mat)
+    return ob
+
+
+def fish():
+    return rotate_all([salmon_slab()], (0, 0, math.radians(-25)))
+
+
+def soy():
+    glass = material("SoyGlass", [(0.0, (0.14, 0.06, 0.03)), (1.0, (0.32, 0.14, 0.06))], coord="z", lo=0.0, hi=1.3,
+                     rough=0.08, coat=0.9, coat_rough=0.03)
+    body = lathe("Soy", [(0.0, 0.0), (0.36, 0.0), (0.4, 0.05), (0.42, 0.7), (0.36, 0.95), (0.2, 1.12), (0.16, 1.22),
+                          (0.0, 1.22)], 72)
+    subdivide(body, 1)
+    smooth(body)
+    assign(body, glass)
+    cap = lathe("SoyCap", [(0.0, 1.16), (0.24, 1.16), (0.26, 1.2), (0.25, 1.36), (0.18, 1.42), (0.0, 1.42)], 48)
+    subdivide(cap, 1)
+    smooth(cap)
+    assign(cap, material("SoyCapMat", [(0.0, (0.80, 0.08, 0.06)), (1.0, (0.95, 0.18, 0.12))], coord="z", lo=1.1, hi=1.45,
+                         rough=0.2, coat=0.6))
+    spout = lathe("SoySpout", [(0.0, 1.36), (0.07, 1.36), (0.05, 1.5), (0.0, 1.52)], 24)
+    smooth(spout)
+    assign(spout, material("SoySpoutMat", [(0.0, (0.80, 0.08, 0.06)), (1.0, (0.95, 0.18, 0.12))], coord="z", lo=1.3,
+                           hi=1.55, rough=0.2, coat=0.6))
+    label = lathe("SoyLabel", [(0.425, 0.3), (0.43, 0.32), (0.43, 0.62), (0.425, 0.64)], 72)
+    smooth(label)
+    assign(label, material("SoyLabelMat", [(0.0, (0.98, 0.95, 0.88)), (1.0, (1.0, 1.0, 0.96))], coord="z", lo=0.3,
+                           hi=0.64, rough=0.3))
+    return [body, cap, spout, label]
+
+
+def avocado():
+    half = sphere("Avocado", 1.0, 72, 48)
+
+    def shape(co):
+        k = 1.0 - 0.28 * max(0.0, co.z)
+        return Vector((co.x * 0.62 * k, co.y * 0.55 * k, co.z * 0.86))
+    deform(half, shape)
+    bisect(half, (0, -0.02, 0), (0, -1, 0))
+    subdivide(half, 1)
+    smooth(half, 50)
+    skin = material("AvoSkin", [(0.0, (0.12, 0.22, 0.08)), (1.0, (0.22, 0.36, 0.12))], coord="z", lo=-0.8, hi=0.8,
+                    rough=0.5, bump=0.3, bump_scale=14)
+    flesh = material("AvoFlesh", [(0.0, (0.95, 0.96, 0.55)), (0.65, (0.70, 0.86, 0.32)), (1.0, (0.36, 0.58, 0.14))],
+                     coord="r_xz", lo=0.0, hi=0.62, rough=0.3, sss=0.4, coat=0.4)
+    assign_faces(half, skin, [(lambda n, c: n.y < -0.85, flesh)])
+    pit = sphere("Pit", 0.24, 48, 32)
+    pit.scale = (1.0, 0.8, 1.15)
+    pit.location = (0, 0.0, -0.12)
+    apply_transform(pit)
+    smooth(pit)
+    assign(pit, material("PitMat", [(0.0, (0.45, 0.24, 0.12)), (1.0, (0.62, 0.36, 0.18))], coord="z", lo=-0.4, hi=0.2,
+                         rough=0.25, coat=0.6))
+    return rotate_all([half, pit], (math.radians(18), 0, math.radians(-15)))
+
+
+def carrot():
+    body = lathe("Carrot", [(0.0, 0.0), (0.05, 0.05), (0.14, 0.4), (0.22, 0.9), (0.27, 1.3), (0.26, 1.45), (0.18, 1.55),
+                            (0.0, 1.57)], 64)
+    def ridges(co):
+        a = math.atan2(co.y, co.x)
+        k = 1.0 + 0.03 * math.sin(co.z * 22) * (1 if math.hypot(co.x, co.y) > 0.02 else 0)
+        return Vector((co.x * k, co.y * k, co.z))
+    deform(body, ridges)
+    subdivide(body, 1)
+    smooth(body)
+    assign(body, material("CarrotMat", [(0.0, (0.96, 0.42, 0.06)), (1.0, (1.0, 0.56, 0.12))], coord="z", lo=0.0, hi=1.5,
+                          rough=0.3, sss=0.3, coat=0.4, bump=0.1, bump_scale=10))
+    green = material("CarrotTop", [(0.0, (0.20, 0.55, 0.14)), (1.0, (0.45, 0.80, 0.25))], coord="z", lo=1.5, hi=2.2,
+                     rough=0.35, sss=0.3, coat=0.3)
+    parts = [body]
+    for i, (a, tilt) in enumerate(((0, 12), (120, 20), (240, 16), (60, 28))):
+        th = math.radians(a)
+        pts = [(math.cos(th) * 0.3 * t * math.sin(math.radians(tilt)) * 2, math.sin(th) * 0.3 * t * math.sin(math.radians(tilt)) * 2,
+                1.52 + 0.6 * t) for t in [k / 8 for k in range(9)]]
+        stem = tube(f"CarrotStem{i}", pts, 0.035, taper=(1.0, 0.6))
+        assign(smooth(stem), green)
+        parts.append(stem)
+        leaf = sphere(f"CarrotLeaf{i}", 1.0, 20, 12)
+        leaf.scale = (0.08, 0.16, 0.22)
+        leaf.location = pts[-1]
+        leaf.rotation_euler = (math.radians(tilt), 0, th)
+        smooth(leaf)
+        assign(leaf, green)
+        parts.append(leaf)
+    return rotate_all(parts, (0, math.radians(-62), math.radians(-20)))
+
+
+def leek():
+    white = material("LeekWhite", [(0.0, (0.96, 0.96, 0.88)), (0.55, (0.86, 0.94, 0.70)), (1.0, (0.36, 0.70, 0.24))],
+                     coord="z", lo=0.0, hi=1.6, rough=0.3, sss=0.4, coat=0.4)
+    stalk = lathe("Leek", [(0.0, 0.0), (0.18, 0.02), (0.22, 0.12), (0.2, 0.6), (0.17, 1.4), (0.0, 1.45)], 48)
+    subdivide(stalk, 1)
+    smooth(stalk)
+    assign(stalk, white)
+    leaf_mat = material("LeekLeaf", [(0.0, (0.26, 0.62, 0.20)), (1.0, (0.40, 0.78, 0.28))], coord="z", lo=1.2, hi=2.4,
+                        rough=0.3, sss=0.3, coat=0.4)
+    parts = [stalk]
+    for i, (dx, bend_) in enumerate(((-0.06, -0.35), (0.06, 0.3), (0.0, 0.05))):
+        pts = [(dx + bend_ * t * t, 0.0, 1.3 + 1.0 * t) for t in [k / 10 for k in range(11)]]
+        lf = tube(f"LeekLeaf{i}", pts, 0.09, taper=(1.0, 0.5))
+        deform(lf, lambda co: Vector((co.x, co.y * 0.45, co.z)))
+        assign(smooth(lf), leaf_mat)
+        parts.append(lf)
+    roots = material("LeekRoots", [(0.0, (0.85, 0.80, 0.66)), (1.0, (0.95, 0.92, 0.82))], coord="z", lo=-0.2, hi=0.0,
+                     rough=0.6)
+    for i in range(7):
+        a = 2 * math.pi * i / 7
+        pts = [(0.08 * math.cos(a) * (1 + t), 0.08 * math.sin(a) * (1 + t), 0.02 - 0.18 * t) for t in [k / 5 for k in range(6)]]
+        rt = tube(f"LeekRoot{i}", pts, 0.012)
+        assign(smooth(rt), roots)
+        parts.append(rt)
+    return rotate_all(parts, (0, math.radians(-58), math.radians(-25)))
+
+
+def mushroom():
+    cap = sphere("Shiitake", 0.62, 64, 32)
+
+    def cap_shape(co):
+        z = co.z
+        if z < 0:
+            z = z * 0.18
+        else:
+            z = z * 0.62
+        return Vector((co.x, co.y, z + 0.62))
+    deform(cap, cap_shape)
+    push_normals(cap, lambda co, n: 0.015 * fbm(co * 6.0, 3))
+    smooth(cap)
+    capmat = material("ShiitakeCap", [(0.0, (0.86, 0.74, 0.60)), (0.35, (0.50, 0.30, 0.16)), (1.0, (0.36, 0.20, 0.10))],
+                      coord="nz", lo=-1, hi=1, rough=0.45, sss=0.2, coat=0.3, bump=0.2, bump_scale=12)
+    add_speckles(capmat, (0.90, 0.82, 0.70), scale=18, threshold=0.66, strength=0.7)
+    assign(cap, capmat)
+    stem = lathe("ShiitakeStem", [(0.0, 0.0), (0.16, 0.0), (0.2, 0.05), (0.15, 0.3), (0.14, 0.62), (0.0, 0.62)], 48)
+    subdivide(stem, 1)
+    smooth(stem)
+    assign(stem, material("StemMat", [(0.0, (0.86, 0.78, 0.64)), (1.0, (0.96, 0.92, 0.82))], coord="z", lo=0.0, hi=0.6,
+                          rough=0.5, sss=0.3))
+    return rotate_all([cap, stem], (math.radians(-12), 0, 0))
+
+
+# MARK: - Японская кухня: сладости и закуски
+
+def rounded_triangle(r=1.0, corner=0.32, n=24):
+    """Скругленный треугольник вершиной вверх в плоскости XY."""
+    pts = []
+    for k in range(3):
+        a0 = math.radians(90 + 120 * k)
+        cx, cy = (r - corner) * math.cos(a0), (r - corner) * math.sin(a0)
+        for j in range(n):
+            a = a0 - math.radians(60) + math.radians(120) * j / (n - 1)
+            pts.append((cx + corner * math.cos(a), cy + corner * math.sin(a)))
+    return pts
+
+
+def onigiri():
+    ball = profile_prism("Onigiri", rounded_triangle(0.95, 0.38, 20), 0.62, -0.31)
+    ball.rotation_euler = (math.radians(90), 0, 0)
+    apply_transform(ball)
+    bevel(ball, 0.18, 6, 30)
+    subdivide(ball, 1)
+    push_normals(ball, lambda co, n: 0.012 * fbm(co * 8))
+    smooth(ball)
+    assign(ball, material("OnigiriRice", [(0.0, (0.92, 0.91, 0.88)), (1.0, (1.0, 1.0, 0.98))], coord="z", lo=-0.6, hi=0.9,
+                          rough=0.4, sss=0.5, sss_radius=(1, 1, 1), bump=0.6, bump_scale=55, bump_detail=2))
+    nori = box_mesh("Nori", 0.62, 0.7, 0.58, -0.62, cuts=4)
+    bevel(nori, 0.05, 3, 30)
+    smooth(nori, 40)
+    nori_mat = material("NoriMat", [(0.0, (0.04, 0.10, 0.06)), (1.0, (0.10, 0.18, 0.10))], coord="z", lo=-0.6, hi=0.0,
+                        rough=0.35, coat=0.3, bump=0.2, bump_scale=20)
+    assign(nori, nori_mat)
+    return rotate_all([ball, nori], (0, 0, math.radians(-18)))
+
+
+def dango():
+    stick = capsule("DangoStick", 2.1, 0.04, 16, 12)
+    stick.rotation_euler = (0, math.radians(90), 0)
+    stick.location = (0, 0, 0.75)
+    apply_transform(stick)
+    assign(smooth(stick), flat("DangoStickMat", (0.88, 0.74, 0.50), rough=0.5))
+    parts = [stick]
+    colors = [((0.98, 0.62, 0.70), (1.0, 0.74, 0.80)), ((0.98, 0.96, 0.92), (1.0, 1.0, 0.98)), ((0.55, 0.78, 0.40), (0.68, 0.86, 0.50))]
+    for i, (lo_c, hi_c) in enumerate(colors):
+        b = sphere(f"Dango{i}", 0.31, 48, 32)
+        b.scale = (1, 1, 0.94)
+        b.location = (0, 0, 1.35 - i * 0.6)
+        apply_transform(b)
+        smooth(b)
+        assign(b, material(f"DangoMat{i}", [(0.0, lo_c), (1.0, hi_c)], coord="z", lo=1.0 - i * 0.6, hi=1.7 - i * 0.6,
+                           rough=0.3, sss=0.5, sss_radius=(1, 0.9, 0.9), coat=0.4))
+        parts.append(b)
+    return rotate_all(parts, (0, math.radians(-30), math.radians(-10)))
+
+
+def mochi():
+    parts = []
+    specs = [((0.98, 0.68, 0.76), (-0.42, 0.1)), ((0.98, 0.97, 0.94), (0.42, 0.12)), ((0.66, 0.84, 0.52), (0.0, -0.38))]
+    for i, (col, (x, y)) in enumerate(specs):
+        m = sphere(f"Mochi{i}", 0.48, 48, 32)
+        deform(m, lambda co: Vector((co.x, co.y, (co.z * 0.62 if co.z > 0 else co.z * 0.35))))
+        m.location = (x, y, 0.2)
+        smooth(m)
+        mat = material(f"MochiMat{i}", [(0.0, tuple(c * 0.92 for c in col)), (1.0, col)], coord="z", lo=-0.15, hi=0.3,
+                       rough=0.55, sss=0.6, sss_radius=(1, 0.9, 0.9), sheen=0.6)
+        add_speckles(mat, (1.0, 1.0, 1.0), scale=50, threshold=0.62, strength=0.6)
+        assign(m, mat)
+        parts.append(m)
+    return parts
+
+
+def matcha():
+    cup = lathe("Matcha", [(0.0, 0.0), (0.34, 0.0), (0.4, 0.06), (0.55, 0.45), (0.6, 0.8), (0.58, 0.84), (0.52, 0.8),
+                           (0.0, 0.78)], 72)
+    subdivide(cup, 1)
+    smooth(cup, 50)
+    assign(cup, material("MatchaCup", [(0.0, (0.22, 0.16, 0.13)), (0.6, (0.42, 0.30, 0.22)), (1.0, (0.86, 0.80, 0.70))],
+                         coord="z", lo=0.0, hi=0.84, rough=0.35, coat=0.6, vary=0.1))
+    tea = cylinder("MatchaTea", 0.53, 0.04, 64)
+    tea.location = (0, 0, 0.815)
+    apply_transform(tea)
+    push_normals(tea, lambda co, n: 0.01 * fbm(co * 10) if n.z > 0.5 else 0.0)
+    smooth(tea, 50)
+    foam = material("MatchaFoam", [(0.0, (0.48, 0.70, 0.22)), (1.0, (0.70, 0.86, 0.40))], coord="r", lo=0.0, hi=0.55,
+                    rough=0.5, sss=0.3, bump=0.3, bump_scale=30)
+    add_speckles(foam, (0.82, 0.92, 0.60), scale=40, threshold=0.64, strength=0.7)
+    assign(tea, foam)
+    return rotate_all([cup, tea], (math.radians(-10), 0, 0))
+
+
+def gyoza_piece(name="Gyoza"):
+    ob = sphere(name, 1.0, 72, 36)
+
+    def shape(co):
+        # полумесяц: вытянут по X, сплющен по Y, гребень сверху
+        x, y, z = co.x * 0.9, co.y * 0.42, co.z
+        z = max(z, -0.15) * 0.55
+        bend = 0.25 * (co.x ** 2)
+        crest = 0.06 * math.sin(co.x * 18) * max(0.0, co.z) ** 3
+        return Vector((x, y - bend + crest * 0.3, z + crest))
+    deform(ob, shape)
+    smooth(ob)
+    assign(ob, material(f"{name}Mat", [(0.0, (0.72, 0.42, 0.14)), (0.3, (0.94, 0.72, 0.42)), (1.0, (1.0, 0.92, 0.78))],
+                        coord="z", lo=-0.1, hi=0.55, rough=0.35, sss=0.5, sss_radius=(1, 0.9, 0.8), coat=0.4))
+    return ob
+
+
+def gyoza():
+    parts = []
+    for i, (x, y, rz) in enumerate(((-0.35, 0.25, 20), (0.45, 0.2, -15), (0.05, -0.35, 5))):
+        g = gyoza_piece(f"Gyoza{i}")
+        g.scale = (0.75, 0.75, 0.75)
+        g.rotation_euler = (0, 0, math.radians(rz))
+        g.location = (x, y, 0.0)
+        parts.append(g)
+    return parts
+
+
+def fish_outline(n=60):
+    pts = []
+    for i in range(n):
+        t = 2 * math.pi * i / n
+        x = 0.85 * math.cos(t)
+        y = 0.5 * math.sin(t) * (1 - 0.25 * math.cos(t))
+        pts.append((x - 0.15, y))
+    # хвост
+    tail = [(-0.95, 0.0), (-1.35, 0.42), (-1.25, 0.0), (-1.35, -0.42)]
+    body = [p for p in pts if p[0] > -0.92]
+    body.sort(key=lambda p: math.atan2(p[1], p[0] + 0.15))
+    left = min(range(len(body)), key=lambda i: body[i][0])
+    ring = body[left:] + body[:left]
+    return ring + tail[1:]
+
+
+def taiyaki():
+    ob = profile_prism("Taiyaki", fish_outline(), 0.36, -0.18)
+    bevel(ob, 0.12, 5, 30)
+    subdivide(ob, 1)
+
+    def scales(co, n):
+        if abs(n.z) < 0.6:
+            return 0.0
+        u = co.x * 7
+        v = co.y * 7
+        return 0.025 * (math.sin(u) * math.sin(v + 0.5 * u))
+    push_normals(ob, scales)
+    smooth(ob)
+    assign(ob, material("TaiyakiMat", [(0.0, (0.66, 0.34, 0.10)), (0.5, (0.86, 0.54, 0.20)), (1.0, (0.96, 0.70, 0.34))],
+                        coord="nz", lo=-1, hi=1, rough=0.4, sss=0.2, coat=0.35, vary=0.15, vary_scale=4))
+    eye = sphere("TaiyakiEye", 0.07, 24, 16)
+    eye.location = (0.45, -0.05, 0.2)
+    smooth(eye)
+    assign(eye, flat("TaiyakiEyeMat", (0.45, 0.22, 0.08), rough=0.3, coat=0.5))
+    return rotate_all([ob, eye], (math.radians(52), 0, math.radians(-12)))
+
+
+def tempura():
+    body = capsule("Tempura", 1.7, 0.27, 48, 40, pinch=0.3)
+    bend(body, 1.6)
+    push_normals(body, lambda co, n: 0.05 * max(0.0, fbm(co * 5.0, 4)) + 0.02 * fbm(co * 14, 2))
+    smooth(body)
+    assign(body, material("TempuraMat", [(0.0, (0.86, 0.58, 0.20)), (0.6, (0.98, 0.80, 0.42)), (1.0, (1.0, 0.90, 0.58))],
+                          coord="nz", lo=-1, hi=1, rough=0.45, sss=0.2, coat=0.3, bump=0.3, bump_scale=18, vary=0.15))
+    tail_mat = material("TailMat", [(0.0, (0.90, 0.22, 0.10)), (1.0, (1.0, 0.45, 0.25))], coord="z", lo=-0.2, hi=0.2,
+                        rough=0.3, sss=0.3, coat=0.5)
+    parts = [body]
+    for i, a in enumerate((-30, 0, 30)):
+        f = sphere(f"Tail{i}", 1.0, 24, 12)
+        f.scale = (0.24, 0.06, 0.13)
+        f.rotation_euler = (0, 0, math.radians(a))
+        f.location = (-0.98 + 0.08 * math.cos(math.radians(a)), -0.32 + 0.12 * math.sin(math.radians(a)), 0.0)
+        apply_transform(f)
+        smooth(f)
+        assign(f, tail_mat)
+        parts.append(f)
+    return rotate_all(parts, (math.radians(10), 0, math.radians(-20)))
+
+
+def edamame():
+    pod_mat = material("PodMat", [(0.0, (0.34, 0.62, 0.18)), (1.0, (0.56, 0.80, 0.30))], coord="z", lo=-0.2, hi=0.25,
+                       rough=0.45, sss=0.3, sheen=0.5, bump=0.1, bump_scale=30)
+    parts = []
+    for p, (x, y, rz) in enumerate(((-0.1, 0.25, 15), (0.2, -0.05, -10), (-0.25, -0.3, 25))):
+        pod = capsule(f"Pod{p}", 1.2, 0.17, 48, 32)
+
+        def bumps(co):
+            k = 1.0 + 0.32 * abs(math.sin(co.x * math.pi / 0.4)) ** 0.7
+            return Vector((co.x, co.y * k * 0.8, co.z * k))
+        deform(pod, bumps)
+        bend(pod, 2.2)
+        smooth(pod)
+        assign(pod, pod_mat)
+        pod.rotation_euler = (0, 0, math.radians(rz))
+        pod.location = (x, y, 0.1)
+        parts.append(pod)
+    return parts
+
+
+# MARK: - Японская кухня: блюда
+
+RICE_STOPS = [(0.0, (0.92, 0.91, 0.88)), (1.0, (1.0, 1.0, 0.98))]
+
+
+def nigiri_rice(name, x=0.0, y=0.0):
+    r = capsule(name, 1.1, 0.34, 48, 36)
+    deform(r, lambda co: Vector((co.x, co.y * 0.85, co.z * 0.72 + 0.25)))
+    push_normals(r, lambda co, n: 0.012 * fbm(co * 9))
+    smooth(r)
+    assign(r, material(f"{name}Mat", RICE_STOPS, coord="z", lo=0.0, hi=0.5, rough=0.4, sss=0.5, sss_radius=(1, 1, 1),
+                       bump=0.7, bump_scale=55, bump_detail=2))
+    r.location = (x, y, 0)
+    return r
+
+
+def wooden_board(name="Board", w=2.6, d=1.4):
+    wood = material(f"{name}Wood", [(0.0, (0.70, 0.48, 0.26)), (1.0, (0.86, 0.64, 0.38))], coord="x", lo=-1.3, hi=1.3,
+                    rough=0.55, bump=0.12, bump_scale=5, vary=0.12)
+    top = box_mesh(name, w, d, 0.14, -0.14)
+    bevel(top, 0.04, 3, 30)
+    smooth(top, 40)
+    assign(top, wood)
+    parts = [top]
+    for i, x in enumerate((-w * 0.32, w * 0.32)):
+        foot = box_mesh(f"{name}Foot{i}", 0.18, d * 0.92, 0.2, -0.34)
+        foot.location = (x, 0, 0)
+        apply_transform(foot)
+        bevel(foot, 0.03, 3, 30)
+        smooth(foot, 40)
+        assign(foot, wood)
+        parts.append(foot)
+    return parts
+
+
+def dish_sushi():
+    parts = wooden_board("SushiBoard")
+    for i, x in enumerate((-0.62, 0.62)):
+        rice_ = nigiri_rice(f"NRice{i}", x, 0.0)
+        fish_ = salmon_slab(f"NFish{i}", 1.25, 0.66, 0.2)
+        deform(fish_, lambda co: Vector((co.x, co.y, co.z - 0.16 * (co.x / 0.6) ** 2)))
+        fish_.location = (x, 0, 0.42)
+        parts += [rice_, fish_]
+    return rotate_all(parts, (0, 0, math.radians(-14)))
+
+
+def dish_tamago():
+    parts = wooden_board("TamagoBoard")
+    omelet = material("Omelet", [(0.0, (1.0, 0.78, 0.18)), (0.8, (1.0, 0.86, 0.34)), (1.0, (0.92, 0.66, 0.20))],
+                      coord="z", lo=0.4, hi=0.68, rough=0.35, sss=0.4, coat=0.3)
+    nori_mat = material("TNoriMat", [(0.0, (0.04, 0.10, 0.06)), (1.0, (0.10, 0.18, 0.10))], coord="z", lo=0.0, hi=0.8,
+                        rough=0.35, coat=0.3)
+    for i, x in enumerate((-0.62, 0.62)):
+        rice_ = nigiri_rice(f"TRice{i}", x, 0.0)
+        egg_ = box_mesh(f"TEgg{i}", 1.18, 0.62, 0.26, 0.4)
+        egg_.location = (x, 0, 0)
+        apply_transform(egg_)
+        bevel(egg_, 0.07, 4, 30)
+        smooth(egg_, 40)
+        assign(egg_, omelet)
+        band = box_mesh(f"TBand{i}", 0.22, 0.66, 0.7, 0.0)
+        band.location = (x, 0, 0)
+        apply_transform(band)
+        deform(band, lambda co: Vector((co.x, co.y * (1.0 + 0.05 * (co.z < 0.6)), co.z)))
+        bevel(band, 0.03, 3, 30)
+        smooth(band, 40)
+        assign(band, nori_mat)
+        parts += [rice_, egg_, band]
+    return rotate_all(parts, (0, 0, math.radians(-14)))
+
+
+def maki_roll(name, x, filling):
+    nori = cylinder(f"{name}Nori", 0.36, 0.44, 64)
+    nori.location = (x, 0, 0.22)
+    apply_transform(nori)
+    bevel(nori, 0.02, 2, 30)
+    smooth(nori, 40)
+    assign(nori, material(f"{name}NoriMat", [(0.0, (0.04, 0.10, 0.06)), (1.0, (0.10, 0.18, 0.10))], coord="z", lo=0.0,
+                          hi=0.45, rough=0.35, coat=0.3, bump=0.2, bump_scale=20))
+    rice_ = cylinder(f"{name}Rice", 0.32, 0.06, 64)
+    rice_.location = (x, 0, 0.45)
+    apply_transform(rice_)
+    push_normals(rice_, lambda co, n: 0.01 * fbm(co * 12) if n.z > 0.5 else 0.0)
+    smooth(rice_, 50)
+    assign(rice_, material(f"{name}RiceMat", RICE_STOPS, coord="r", lo=0.0, hi=0.32, rough=0.4, sss=0.5,
+                           bump=0.8, bump_scale=60, bump_detail=2))
+    parts = [nori, rice_]
+    for j, (dx, dy, col) in enumerate(filling):
+        f = cylinder(f"{name}Fill{j}", 0.075, 0.08, 32)
+        f.location = (x + dx, dy, 0.47)
+        apply_transform(f)
+        bevel(f, 0.02, 2, 30)
+        smooth(f, 40)
+        assign(f, flat(f"{name}FillMat{j}", col, rough=0.3, sss=0.3, coat=0.5))
+        parts.append(f)
+    return parts
+
+
+def dish_maki():
+    parts = wooden_board("MakiBoard", 2.7, 1.3)
+    orange = (1.0, 0.52, 0.10)
+    green = (0.50, 0.78, 0.24)
+    for i, x in enumerate((-0.82, 0.0, 0.82)):
+        parts += maki_roll(f"Maki{i}", x, [(-0.06, 0.03, orange), (0.07, -0.02, green)])
+    return rotate_all(parts, (0, 0, math.radians(-12)))
+
+
+def dish_ramen():
+    bowl = lathe("RamenBowl", [(0.0, 0.0), (0.42, 0.0), (0.46, 0.06), (0.5, 0.1), (0.95, 0.62), (1.05, 0.86),
+                               (1.0, 0.88), (0.0, 0.86)], 96)
+    subdivide(bowl, 1)
+    smooth(bowl, 50)
+    assign(bowl, material("RamenBowlMat", [(0.0, (0.62, 0.08, 0.06)), (0.85, (0.82, 0.16, 0.10)), (0.9, (0.98, 0.96, 0.92)),
+                                           (1.0, (1.0, 1.0, 1.0))], coord="z", lo=0.0, hi=0.88, rough=0.2, coat=0.7))
+    broth = cylinder("Broth", 0.96, 0.04, 96)
+    broth.location = (0, 0, 0.885)
+    apply_transform(broth)
+    smooth(broth, 50)
+    assign(broth, material("BrothMat", [(0.0, (0.86, 0.52, 0.16)), (1.0, (0.96, 0.70, 0.30))], coord="r", lo=0.0, hi=0.96,
+                           rough=0.08, sss=0.5, coat=0.9))
+    noodle_mat = material("Noodle", [(0.0, (0.98, 0.86, 0.52)), (1.0, (1.0, 0.94, 0.70))], coord="z", lo=0.88, hi=0.96,
+                          rough=0.3, sss=0.5, coat=0.5)
+    parts = [bowl, broth]
+    for i in range(7):
+        y0 = -0.45 + i * 0.13
+        pts = [(-0.75 + 1.1 * t, y0 + 0.05 * math.sin(t * 18 + i), 0.91 + 0.015 * math.sin(t * 9 + i))
+               for t in [k / 40 for k in range(41)]]
+        nd = tube(f"Noodle{i}", pts, 0.035)
+        assign(smooth(nd), noodle_mat)
+        parts.append(nd)
+    white = sphere("EggWhite", 0.26, 48, 32)
+    white.scale = (1.0, 1.25, 0.6)
+    white.location = (0.38, -0.15, 0.93)
+    apply_transform(white)
+    bisect(white, (0, 0, 0.95), (0, 0, 1))
+    smooth(white, 50)
+    assign(white, flat("EggWhiteMat", (1.0, 0.98, 0.94), rough=0.3, sss=0.4, coat=0.4))
+    yolk = cylinder("Yolk", 0.14, 0.03, 48)
+    yolk.location = (0.38, -0.15, 0.955)
+    apply_transform(yolk)
+    bevel(yolk, 0.012, 2, 30)
+    smooth(yolk, 50)
+    assign(yolk, flat("YolkMat", (1.0, 0.56, 0.08), rough=0.15, sss=0.4, coat=0.7))
+    parts += [white, yolk]
+    leek_mat = flat("LeekRing", (0.50, 0.80, 0.30), rough=0.3, sss=0.3, coat=0.4)
+    for i, (x, y) in enumerate(((-0.3, 0.35), (-0.15, 0.42), (0.05, 0.38), (-0.4, 0.2), (0.12, 0.5))):
+        ring = torus(f"LeekRing{i}", 0.05, 0.018, 24, 12)
+        ring.location = (x, y, 0.94)
+        assign(smooth(ring), leek_mat)
+        parts.append(ring)
+    shroom = material("ShroomSlice", [(0.0, (0.40, 0.24, 0.12)), (1.0, (0.62, 0.42, 0.24))], coord="z", lo=0.9, hi=0.97,
+                      rough=0.4, coat=0.4)
+    for i, (x, y) in enumerate(((0.45, 0.3), (0.62, 0.12))):
+        sl = sphere(f"Shroom{i}", 0.15, 32, 16)
+        sl.scale = (1, 1, 0.3)
+        sl.location = (x, y, 0.93)
+        apply_transform(sl)
+        smooth(sl)
+        assign(sl, shroom)
+        parts.append(sl)
+    nori = box_mesh("RamenNori", 0.5, 0.03, 0.55, 0.75)
+    nori.location = (-0.35, 0.62, 0)
+    nori.rotation_euler = (math.radians(-12), 0, math.radians(8))
+    apply_transform(nori)
+    assign(nori, flat("RNori", (0.06, 0.12, 0.07), rough=0.4, coat=0.2))
+    parts.append(nori)
+    sticks = flat("Chopsticks", (0.62, 0.28, 0.14), rough=0.35, coat=0.5)
+    for i, dy in enumerate((-0.05, 0.05)):
+        cs = capsule(f"Chop{i}", 2.0, 0.03, 16, 12)
+        cs.rotation_euler = (0, math.radians(-8), math.radians(-28 + i * 4))
+        cs.location = (0.35, 0.05 + dy, 1.0)
+        apply_transform(cs)
+        assign(smooth(cs), sticks)
+        parts.append(cs)
+    return parts
+
+
+# MARK: - Итальянская кухня: ингредиенты
+
+def flour():
+    """Бумажный мешочек муки с загнутым верхом и колосом на этикетке."""
+    bag = box_mesh("Flour", 0.9, 0.6, 1.25, 0.0, cuts=10)
+
+    def shape(co):
+        t = co.z / 1.25
+        k = 1.0 + 0.06 * math.sin(math.pi * t)
+        top = max(0.0, t - 0.82) / 0.18
+        return Vector((co.x * k * (1 - 0.08 * top), co.y * k * (1 - 0.55 * top), co.z + 0.04 * fbm(co * 3)))
+    deform(bag, shape)
+    bevel(bag, 0.04, 3, 30)
+    subdivide(bag, 1)
+    smooth(bag)
+    paper = material("FlourPaper", [(0.0, (0.86, 0.76, 0.58)), (1.0, (0.96, 0.90, 0.78))], coord="z", lo=0.0, hi=1.3,
+                     rough=0.7, bump=0.25, bump_scale=8)
+    label = material("FlourLabel", [(0.0, (0.98, 0.97, 0.94)), (1.0, (1.0, 1.0, 1.0))], coord="z", lo=0.3, hi=0.9,
+                     rough=0.5)
+    assign_faces(bag, paper, [(lambda n, c: n.y < -0.8 and 0.3 < c.z < 0.85 and abs(c.x) < 0.33, label)])
+    wheat = flat("FlourWheat", (0.90, 0.66, 0.22), rough=0.4, coat=0.3)
+    parts = [bag]
+    for i in range(5):
+        g = sphere(f"Grain{i}", 0.05, 16, 10)
+        g.scale = (0.7, 0.4, 1.2)
+        g.location = (0.03 * (-1) ** i, -0.32, 0.45 + i * 0.075)
+        g.rotation_euler = (0, math.radians(25 * (-1) ** i), 0)
+        apply_transform(g)
+        assign(smooth(g), wheat)
+        parts.append(g)
+    return rotate_all(parts, (0, 0, math.radians(-18)))
+
+
+def dough():
+    ob = sphere("Dough", 0.8, 72, 48)
+    deform(ob, lambda co: Vector((co.x * (1 + 0.1 * (co.z < 0)), co.y * (1 + 0.1 * (co.z < 0)), co.z * 0.7 if co.z > 0 else co.z * 0.35)))
+    push_normals(ob, lambda co, n: 0.015 * fbm(co * 3.5))
+    smooth(ob)
+    mat = material("DoughMat", [(0.0, (0.94, 0.86, 0.68)), (1.0, (1.0, 0.95, 0.82))], coord="z", lo=-0.3, hi=0.6,
+                   rough=0.5, sss=0.6, sss_radius=(1, 0.9, 0.7), sheen=0.4)
+    add_speckles(mat, (1.0, 1.0, 1.0), scale=24, threshold=0.64, strength=0.6)
+    assign(ob, mat)
+    return [ob]
+
+
+def mozzarella():
+    ob = sphere("Mozzarella", 0.7, 72, 48)
+    deform(ob, lambda co: Vector((co.x, co.y, co.z * 0.85 + 0.0)))
+    push_normals(ob, lambda co, n: 0.01 * fbm(co * 3))
+    smooth(ob)
+    assign(ob, material("MozzMat", [(0.0, (0.94, 0.94, 0.90)), (1.0, (1.0, 1.0, 0.98))], coord="z", lo=-0.6, hi=0.6,
+                        rough=0.18, sss=0.7, sss_radius=(1, 1, 0.95), coat=0.6))
+    leaf = basil_leaf("MozzLeaf", 0.7)
+    rotate_all(leaf, (math.radians(-25), 0, math.radians(30)))
+    for o in leaf:
+        o.location = (o.location.x + 0.05, o.location.y - 0.05, o.location.z + 0.6)
+    return [ob] + leaf
+
+
+def basil_leaf(name, size=1.0):
+    ob = polar_disc(name, 16, 64, 0.55 * size, 0.32 * size)
+
+    def shape(co):
+        xn = co.x / (0.55 * size)
+        yn = co.y / (0.32 * size)
+        k = 1.0 - 0.85 * max(0.0, xn) ** 1.6 - 0.25 * max(0.0, -xn) ** 2
+        z = 0.2 * size * yn * yn + 0.1 * size * xn
+        return Vector((co.x, co.y * k, z))
+    deform(ob, shape)
+    solidify(ob, 0.025 * size)
+    subdivide(ob, 1)
+    smooth(ob)
+    assign(ob, material(f"{name}Mat", [(0.0, (0.40, 0.72, 0.22)), (1.0, (0.12, 0.42, 0.10))], coord="r", lo=0.0,
+                        hi=0.55 * size, rough=0.25, sss=0.35, coat=0.5))
+    return [ob]
+
+
+def basil():
+    parts = []
+    stem = tube("BasilStem", [(0.0, 0.0, 0.0), (0.02, 0.0, 0.5), (0.0, 0.0, 1.1)], 0.035)
+    assign(smooth(stem), flat("BasilStemMat", (0.36, 0.62, 0.20), rough=0.35))
+    parts.append(stem)
+    for i, (z, a, s_) in enumerate(((0.35, 30, 1.0), (0.35, 210, 1.0), (0.7, 120, 0.85), (0.7, 300, 0.85), (1.05, 60, 0.7),
+                                    (1.05, 240, 0.7))):
+        leaf = basil_leaf(f"Basil{i}", s_)
+        for o in leaf:
+            o.location = (0.28 * s_, 0, 0)
+        rotate_all(leaf, (math.radians(-35), 0, 0))
+        rotate_all(leaf, (0, 0, math.radians(a)))
+        for o in leaf:
+            o.location.z += z
+        parts += leaf
+    return rotate_all(parts, (math.radians(-20), 0, 0))
+
+
+def pasta():
+    """Пучок спагетти, перевязанный лентой."""
+    parts = []
+    mat = material("PastaMat", [(0.0, (0.96, 0.78, 0.36)), (1.0, (1.0, 0.88, 0.52))], coord="z", lo=-1, hi=1,
+                   rough=0.35, sss=0.4, coat=0.4)
+    rnd = random.Random(8)
+    for i in range(34):
+        a = rnd.uniform(0, 6.28)
+        r = 0.2 * math.sqrt(rnd.random())
+        x, y = r * math.cos(a), r * math.sin(a)
+        spread = 1.0 + 0.0
+        pts = [(x * (1 + 0.6 * abs(t)), y * (1 + 0.6 * abs(t)), t * 1.1) for t in [k / 6 - 1 for k in range(13)]]
+        st = tube(f"Spaghetti{i}", pts, 0.022)
+        assign(smooth(st), mat)
+        parts.append(st)
+    band = torus("PastaBand", 0.24, 0.05, 48, 12)
+    band.scale = (1, 1, 1.6)
+    apply_transform(band)
+    assign(smooth(band), flat("PastaBandMat", (0.10, 0.45, 0.20), rough=0.4, coat=0.4))
+    parts.append(band)
+    return rotate_all(parts, (0, math.radians(-60), math.radians(-25)))
+
+
+def olive_oil():
+    glass = material("OilGlass", [(0.0, (0.32, 0.42, 0.06)), (1.0, (0.62, 0.70, 0.12))], coord="z", lo=0.0, hi=1.6,
+                     rough=0.06, sss=0.4, sss_radius=(0.8, 1, 0.2), coat=0.9, coat_rough=0.03)
+    body = lathe("OilBottle", [(0.0, 0.0), (0.34, 0.0), (0.38, 0.05), (0.4, 0.9), (0.3, 1.2), (0.12, 1.42), (0.11, 1.62),
+                               (0.0, 1.62)], 72)
+    subdivide(body, 1)
+    smooth(body)
+    assign(body, glass)
+    cork = lathe("Cork", [(0.0, 1.58), (0.12, 1.58), (0.13, 1.8), (0.0, 1.82)], 32)
+    smooth(cork)
+    assign(cork, flat("CorkMat", (0.72, 0.52, 0.30), rough=0.7, bump=0.3, bump_scale=30))
+    label = lathe("OilLabel", [(0.405, 0.3), (0.41, 0.32), (0.41, 0.7), (0.405, 0.72)], 72)
+    smooth(label)
+    assign(label, material("OilLabelMat", [(0.0, (0.98, 0.94, 0.80)), (1.0, (1.0, 0.98, 0.90))], coord="z", lo=0.3,
+                           hi=0.72, rough=0.35))
+    olive = sphere("LabelOlive", 0.11, 24, 16)
+    olive.scale = (1, 0.4, 1.25)
+    olive.location = (0, -0.43, 0.52)
+    apply_transform(olive)
+    assign(smooth(olive), flat("LabelOliveMat", (0.36, 0.48, 0.10), rough=0.3, coat=0.6))
+    return [body, cork, label, olive]
+
+
+def grapes():
+    parts = []
+    mat = material("GrapeMat", [(0.0, (0.30, 0.10, 0.36)), (1.0, (0.52, 0.22, 0.58))], coord="z", lo=-0.8, hi=0.8,
+                   rough=0.2, sss=0.5, sss_radius=(0.8, 0.3, 1.0), coat=0.6)
+    rnd = random.Random(2)
+    rows = [(0.55, 3), (0.32, 4), (0.08, 4), (-0.16, 3), (-0.4, 2), (-0.62, 1)]
+    for zi, (z, n) in enumerate(rows):
+        for k in range(n):
+            x = (k - (n - 1) / 2) * 0.27 + rnd.uniform(-0.03, 0.03)
+            y = rnd.uniform(-0.08, 0.08) + (0.12 if zi % 2 else -0.05)
+            g = sphere(f"Grape{zi}{k}", 0.16, 32, 20)
+            g.scale = (1, 1, 1.12)
+            g.location = (x, y, z)
+            apply_transform(g)
+            assign(smooth(g), mat)
+            parts.append(g)
+    stem = tube("GrapeStem", [(0.0, 0.0, 0.7), (0.03, 0.0, 0.85), (0.1, 0.0, 0.95)], 0.035)
+    assign(smooth(stem), flat("GrapeStemMat", (0.42, 0.30, 0.16), rough=0.5))
+    parts.append(stem)
+    leaf = basil_leaf("GrapeLeaf", 0.9)
+    for o in leaf:
+        o.rotation_euler = (math.radians(-30), 0, math.radians(30))
+        o.location = (0.25, 0.1, 0.82)
+    parts += leaf
+    return parts
+
+
+def juice():
+    glass = lathe("JuiceGlass", [(0.0, 0.0), (0.36, 0.0), (0.38, 0.05), (0.44, 1.3), (0.4, 1.3), (0.34, 0.08), (0.0, 0.08)], 72)
+    smooth(glass, 50)
+    assign(glass, material("JGlass", [(0.0, (0.92, 0.95, 1.0)), (1.0, (1.0, 1.0, 1.0))], coord="z", lo=0.0, hi=1.3,
+                           rough=0.04, transmission=1.0))
+    liquid = lathe("JuiceLiquid", [(0.0, 0.08), (0.34, 0.08), (0.405, 1.05), (0.0, 1.05)], 72)
+    smooth(liquid, 50)
+    assign(liquid, material("JLiquid", [(0.0, (0.40, 0.06, 0.20)), (1.0, (0.62, 0.14, 0.34))], coord="z", lo=0.0, hi=1.05,
+                            rough=0.08, sss=0.6, sss_radius=(1, 0.2, 0.5), coat=0.8))
+    parts = [glass, liquid]
+    for i, (x, z) in enumerate(((0.22, 1.32), (0.05, 1.36))):
+        g = sphere(f"JGrape{i}", 0.12, 24, 16)
+        g.location = (x, -0.1, z)
+        assign(smooth(g), material(f"JGrapeMat{i}", [(0.0, (0.30, 0.10, 0.36)), (1.0, (0.52, 0.22, 0.58))], coord="z",
+                                   lo=z - 0.12, hi=z + 0.12, rough=0.2, sss=0.5, coat=0.6))
+        parts.append(g)
+    return parts
+
+
+# MARK: - Итальянская кухня: блюда и сладости
+
+def plate(name="Plate", r=1.2, color=((0.95, 0.95, 0.96), (1.0, 1.0, 1.0))):
+    ob = lathe(name, [(0.0, 0.0), (r * 0.62, 0.0), (r * 0.66, 0.03), (r * 0.7, 0.07), (r * 0.98, 0.16), (r, 0.2),
+                      (r * 0.96, 0.21), (r * 0.68, 0.1), (0.0, 0.09)], 96)
+    subdivide(ob, 1)
+    smooth(ob, 50)
+    assign(ob, material(f"{name}Mat", [(0.0, color[0]), (1.0, color[1])], coord="z", lo=0.0, hi=0.21, rough=0.15, coat=0.8))
+    return ob
+
+
+def tomato_sauce_mat(name="Sauce"):
+    return material(name, [(0.0, (0.72, 0.08, 0.04)), (1.0, (0.92, 0.20, 0.10))], coord="z", lo=-0.05, hi=0.25,
+                    rough=0.12, sss=0.4, coat=0.8, bump=0.15, bump_scale=10)
+
+
+def dish_pizza():
+    crust = torus("PizzaCrust", 1.0, 0.16, 128, 24)
+    deform(crust, lambda co: Vector((co.x, co.y, co.z * 0.8 + 0.12 + 0.02 * math.sin(math.atan2(co.y, co.x) * 9))))
+    push_normals(crust, lambda co, n: 0.02 * fbm(co * 5))
+    smooth(crust)
+    crust_mat = material("CrustMat", [(0.0, (0.80, 0.46, 0.16)), (0.6, (0.94, 0.68, 0.32)), (1.0, (0.70, 0.36, 0.12))],
+                         coord="z", lo=0.0, hi=0.28, rough=0.45, sss=0.2, coat=0.3, vary=0.2, vary_scale=6)
+    add_speckles(crust_mat, (0.45, 0.22, 0.08), scale=22, threshold=0.66, strength=0.7)
+    assign(crust, crust_mat)
+    base = cylinder("PizzaBase", 1.0, 0.1, 96)
+    base.location = (0, 0, 0.05)
+    apply_transform(base)
+    smooth(base, 50)
+    assign(base, crust_mat)
+    sauce = cylinder("PizzaSauce", 0.9, 0.03, 96)
+    sauce.location = (0, 0, 0.115)
+    apply_transform(sauce)
+    smooth(sauce, 50)
+    assign(sauce, tomato_sauce_mat())
+    parts = [crust, base, sauce]
+    cheese = material("MeltMozz", [(0.0, (0.98, 0.92, 0.70)), (1.0, (1.0, 0.98, 0.86))], coord="z", lo=0.1, hi=0.2,
+                      rough=0.25, sss=0.6, coat=0.5)
+    rnd = random.Random(5)
+    for i in range(9):
+        a = rnd.uniform(0, 6.28)
+        r = 0.6 * math.sqrt(rnd.random())
+        blob = sphere(f"Blob{i}", 0.22, 32, 16)
+        blob.scale = (1.0 + rnd.uniform(0, 0.3), 1.0, 0.25)
+        blob.location = (r * math.cos(a), r * math.sin(a), 0.14)
+        apply_transform(blob)
+        push_normals(blob, lambda co, n: 0.02 * fbm(co * 6))
+        assign(smooth(blob), cheese)
+        parts.append(blob)
+    for i, (x, y, a) in enumerate(((0.3, 0.25, 20), (-0.35, -0.1, 140), (0.1, -0.45, 260))):
+        leaf = basil_leaf(f"PBasil{i}", 0.55)
+        rotate_all(leaf, (0, 0, math.radians(a)))
+        for o in leaf:
+            o.location = (x, y, 0.2)
+        parts += leaf
+    return rotate_all(parts, (math.radians(22), 0, 0))
+
+
+def dish_pasta():
+    parts = [plate("PastaPlate", 1.15)]
+    noodle = material("PastaNoodle", [(0.0, (0.96, 0.80, 0.42)), (1.0, (1.0, 0.90, 0.58))], coord="z", lo=0.1, hi=0.5,
+                      rough=0.25, sss=0.4, coat=0.5)
+    rnd = random.Random(3)
+    for i in range(16):
+        r0 = rnd.uniform(0.15, 0.55)
+        ph = rnd.uniform(0, 6.28)
+        pts = []
+        for k in range(60):
+            t = k / 59
+            a = ph + t * 6.28 * 1.2
+            rr = r0 * (1 - 0.3 * t) + 0.04 * math.sin(t * 20 + i)
+            pts.append((rr * math.cos(a), rr * math.sin(a), 0.14 + 0.32 * (1 - rr / 0.6) * (0.6 + 0.4 * t)))
+        nd = tube(f"Spag{i}", pts, 0.03)
+        assign(smooth(nd), noodle)
+        parts.append(nd)
+    sauce = sphere("PastaSauce", 0.38, 48, 24)
+    deform(sauce, lambda co: Vector((co.x, co.y, max(co.z, 0.0) * 0.35 + 0.42)))
+    push_normals(sauce, lambda co, n: 0.03 * fbm(co * 6))
+    smooth(sauce)
+    assign(sauce, tomato_sauce_mat("PastaSauceMat"))
+    parts.append(sauce)
+    leaf = basil_leaf("PastaBasil", 0.7)
+    rotate_all(leaf, (math.radians(-20), 0, math.radians(40)))
+    for o in leaf:
+        o.location = (0.05, 0.0, 0.62)
+    parts += leaf
+    return rotate_all(parts, (math.radians(10), 0, 0))
+
+
+def bread_slice(name, x, y, rz):
+    sl = capsule(name, 1.0, 0.3, 48, 32)
+    deform(sl, lambda co: Vector((co.x, co.y, co.z * 0.45)))
+    bisect(sl, (0, 0, 0.05), (0, 0, 1))
+    subdivide(sl, 1)
+    smooth(sl, 50)
+    crust = material(f"{name}Crust", [(0.0, (0.78, 0.44, 0.14)), (1.0, (0.92, 0.62, 0.26))], coord="z", lo=-0.15, hi=0.05,
+                     rough=0.5, coat=0.2)
+    toast = material(f"{name}Toast", [(0.0, (0.94, 0.70, 0.36)), (1.0, (1.0, 0.84, 0.54))], coord="r", lo=0.0, hi=0.5,
+                     rough=0.6, bump=0.4, bump_scale=26, bump_detail=8, vary=0.2, vary_scale=5)
+    assign_faces(sl, crust, [(lambda n, c: n.z > 0.85, toast)])
+    sl.rotation_euler = (0, 0, math.radians(rz))
+    sl.location = (x, y, 0.14)
+    return sl
+
+
+def dish_bruschetta():
+    parts = [plate("BrPlate", 1.25)]
+    rnd = random.Random(6)
+    for i, (x, y, rz) in enumerate(((-0.35, 0.2, 25), (0.35, -0.15, 15))):
+        sl = bread_slice(f"BrSlice{i}", x, y, rz)
+        parts.append(sl)
+        for k in range(10):
+            d = sphere(f"Dice{i}{k}", 0.075, 16, 10)
+            d.scale = (1, 1, 0.8)
+            d.location = (x + rnd.uniform(-0.35, 0.35) * math.cos(math.radians(rz)),
+                          y + rnd.uniform(-0.35, 0.35) * math.sin(math.radians(rz)) + rnd.uniform(-0.08, 0.08), 0.24)
+            apply_transform(d)
+            assign(smooth(d), material(f"DiceMat{i}{k}", [(0.0, (0.82, 0.10, 0.06)), (1.0, (0.98, 0.26, 0.14))],
+                                       coord="z", lo=0.18, hi=0.3, rough=0.12, sss=0.4, coat=0.8))
+            parts.append(d)
+        leaf = basil_leaf(f"BrBasil{i}", 0.45)
+        rotate_all(leaf, (0, 0, math.radians(rz + 40)))
+        for o in leaf:
+            o.location = (x + 0.05, y, 0.3)
+        parts += leaf
+    return rotate_all(parts, (math.radians(15), 0, 0))
+
+
+def dish_caprese():
+    parts = [plate("CapPlate", 1.2)]
+    tom = material("CapTomato", [(0.0, (1.0, 0.42, 0.34)), (0.6, (0.92, 0.16, 0.10)), (1.0, (0.78, 0.08, 0.05))],
+                   coord="r", lo=0.0, hi=0.32, rough=0.15, sss=0.4, coat=0.7)
+    mozz = material("CapMozz", [(0.0, (0.95, 0.95, 0.92)), (1.0, (1.0, 1.0, 0.98))], coord="z", lo=0.1, hi=0.3,
+                    rough=0.2, sss=0.6, coat=0.6)
+    for i in range(8):
+        a = math.radians(90 + i * 45)
+        r = 0.62
+        is_tom = i % 2 == 0
+        sl = cylinder(f"CapSlice{i}", 0.3 if is_tom else 0.28, 0.07, 48)
+        bevel(sl, 0.02, 3, 30)
+        smooth(sl, 40)
+        assign(sl, tom if is_tom else mozz)
+        sl.rotation_euler = (math.radians(14), 0, a + math.radians(90))
+        sl.location = (r * math.cos(a), r * math.sin(a), 0.16 + 0.015 * i)
+        parts.append(sl)
+    for i in range(4):
+        a = math.radians(30 + i * 90)
+        leaf = basil_leaf(f"CapBasil{i}", 0.5)
+        rotate_all(leaf, (0, 0, a))
+        for o in leaf:
+            o.location = (0.62 * math.cos(a) * 0.9, 0.62 * math.sin(a) * 0.9, 0.32)
+        parts += leaf
+    oil = sphere("CapOil", 0.2, 32, 16)
+    oil.scale = (1.2, 1, 0.12)
+    oil.location = (0, 0, 0.12)
+    apply_transform(oil)
+    assign(smooth(oil), material("CapOilMat", [(0.0, (0.60, 0.62, 0.10)), (1.0, (0.80, 0.80, 0.20))], coord="z", lo=0.1,
+                                 hi=0.15, rough=0.05, coat=0.9))
+    parts.append(oil)
+    return rotate_all(parts, (math.radians(15), 0, 0))
+
+
+def gelato():
+    cup = lathe("GelatoCup", [(0.0, 0.0), (0.3, 0.0), (0.33, 0.04), (0.5, 0.62), (0.0, 0.6)], 64)
+    def pleat(co):
+        a = math.atan2(co.y, co.x)
+        k = 1.0 + 0.04 * math.cos(20 * a) * (1 if math.hypot(co.x, co.y) > 0.05 else 0)
+        return Vector((co.x * k, co.y * k, co.z))
+    deform(cup, pleat)
+    smooth(cup, 60)
+    assign(cup, material("GelatoCupMat", [(0.0, (0.98, 0.70, 0.78)), (1.0, (1.0, 0.86, 0.90))], coord="z", lo=0.0, hi=0.62,
+                         rough=0.3, coat=0.4))
+    s1 = scoop("Pistachio", 0.36, (0.62, 0.78, 0.38), (0.78, 0.90, 0.56), 0.78, 1)
+    s1.location = (-0.17, 0.0, 0.78)
+    s2 = scoop("Strawberry", 0.34, (0.95, 0.46, 0.55), (1.0, 0.70, 0.76), 0.82, 3)
+    s2.location = (0.2, 0.05, 0.84)
+    spoon = box_mesh("GelatoSpoon", 0.12, 0.03, 0.7, 0.0)
+    spoon.rotation_euler = (math.radians(-10), math.radians(20), 0)
+    spoon.location = (0.05, 0.1, 0.95)
+    apply_transform(spoon)
+    bevel(spoon, 0.02, 3, 30)
+    assign(smooth(spoon, 40), flat("GelatoSpoonMat", (0.40, 0.75, 0.95), rough=0.3, coat=0.6))
+    return [cup, s1, s2, spoon]
+
+
+def tiramisu():
+    parts = []
+    layers = [(0.0, 0.16, (0.55, 0.32, 0.16)), (0.16, 0.18, (1.0, 0.95, 0.84)), (0.34, 0.14, (0.58, 0.34, 0.18)),
+              (0.48, 0.2, (1.0, 0.96, 0.86))]
+    for i, (z0, h, col) in enumerate(layers):
+        b = box_mesh(f"Tira{i}", 1.1, 0.8, h, z0)
+        bevel(b, 0.03, 3, 30)
+        smooth(b, 40)
+        assign(b, flat(f"TiraMat{i}", col, rough=0.5, sss=0.3))
+        parts.append(b)
+    cocoa = box_mesh("Cocoa", 1.1, 0.8, 0.03, 0.68)
+    bevel(cocoa, 0.015, 2, 30)
+    cmat = material("CocoaMat", [(0.0, (0.30, 0.16, 0.08)), (1.0, (0.42, 0.24, 0.12))], coord="x", lo=-0.5, hi=0.5,
+                    rough=0.9, bump=0.4, bump_scale=40, bump_detail=6)
+    assign(smooth(cocoa, 40), cmat)
+    parts.append(cocoa)
+    bean = sphere("CoffeeBean", 0.08, 24, 16)
+    bean.scale = (1.3, 0.9, 0.6)
+    bean.location = (0.2, 0.0, 0.74)
+    apply_transform(bean)
+    assign(smooth(bean), flat("BeanMat", (0.24, 0.12, 0.06), rough=0.3, coat=0.6))
+    parts.append(bean)
+    return rotate_all(parts, (0, 0, math.radians(-28)))
+
+
+def cannoli():
+    shell = capsule("Cannoli", 1.4, 0.28, 64, 32)
+    def ridges(co, n):
+        return 0.012 * math.sin(math.atan2(co.z, co.y) * 14) if abs(co.x) < 0.5 else 0.0
+    push_normals(shell, ridges)
+    smooth(shell)
+    assign(shell, material("CannoliShell", [(0.0, (0.72, 0.40, 0.14)), (1.0, (0.92, 0.62, 0.28))], coord="nz", lo=-1,
+                           hi=1, rough=0.4, coat=0.4, bump=0.3, bump_scale=18, vary=0.15))
+    parts = [shell]
+    cream = material("CannoliCream", [(0.0, (0.96, 0.94, 0.88)), (1.0, (1.0, 1.0, 0.96))], coord="z", lo=-0.3, hi=0.3,
+                     rough=0.4, sss=0.5)
+    for i, x in enumerate((-0.68, 0.68)):
+        c = sphere(f"Cream{i}", 0.27, 48, 24)
+        c.scale = (0.7, 1, 1)
+        c.location = (x, 0, 0)
+        apply_transform(c)
+        push_normals(c, lambda co, n: 0.02 * fbm(co * 8))
+        assign(smooth(c), cream)
+        parts.append(c)
+        for k in range(5):
+            chip = sphere(f"CChip{i}{k}", 0.045, 12, 8)
+            ang = k * 1.25
+            chip.location = (x + (0.15 if x > 0 else -0.15), 0.18 * math.cos(ang), 0.18 * math.sin(ang))
+            assign(smooth(chip), flat(f"CChipMat{i}{k}", (0.24, 0.12, 0.06), rough=0.3, coat=0.5))
+            parts.append(chip)
+    sugar = material("Sugar", [(0.0, (1.0, 1.0, 1.0)), (1.0, (1.0, 1.0, 1.0))], rough=0.9)
+    return rotate_all(parts, (0, 0, math.radians(-22)))
+
+
+def panna_cotta():
+    parts = [plate("PannaPlate", 0.85)]
+    pc = lathe("PannaCotta", [(0.0, 0.12), (0.48, 0.12), (0.46, 0.2), (0.38, 0.62), (0.3, 0.7), (0.0, 0.72)], 72)
+    subdivide(pc, 1)
+    smooth(pc)
+    assign(pc, material("PannaMat", [(0.0, (0.98, 0.95, 0.88)), (1.0, (1.0, 0.99, 0.95))], coord="z", lo=0.1, hi=0.72,
+                        rough=0.12, sss=0.7, coat=0.8))
+    sauce = sphere("Berry", 0.32, 48, 24)
+    deform(sauce, lambda co: Vector((co.x, co.y, max(co.z, -0.05) * 0.25 + 0.72)))
+    assign(smooth(sauce), material("BerrySauce", [(0.0, (0.62, 0.04, 0.10)), (1.0, (0.86, 0.12, 0.18))], coord="z",
+                                   lo=0.7, hi=0.8, rough=0.05, sss=0.5, coat=0.9))
+    drip = tube("BerryDrip", [(0.3, 0.0, 0.7), (0.38, 0.0, 0.5), (0.42, 0.0, 0.32)], 0.05, taper=(1.0, 1.3))
+    assign(smooth(drip), material("BerryDripMat", [(0.0, (0.62, 0.04, 0.10)), (1.0, (0.86, 0.12, 0.18))], coord="z",
+                                  lo=0.3, hi=0.7, rough=0.05, coat=0.9))
+    mint = basil_leaf("Mint", 0.35)
+    for o in mint:
+        o.location = (0.0, 0.05, 0.84)
+    parts += [pc, sauce, drip] + mint
+    return parts
+
+
+def espresso():
+    parts = [plate("Saucer", 0.75)]
+    cup = lathe("Espresso", [(0.0, 0.1), (0.24, 0.1), (0.3, 0.16), (0.36, 0.5), (0.37, 0.62), (0.33, 0.62), (0.0, 0.6)], 72)
+    subdivide(cup, 1)
+    smooth(cup, 50)
+    assign(cup, material("EspCup", [(0.0, (0.95, 0.95, 0.96)), (1.0, (1.0, 1.0, 1.0))], coord="z", lo=0.1, hi=0.62,
+                         rough=0.12, coat=0.8))
+    crema = cylinder("Crema", 0.33, 0.02, 64)
+    crema.location = (0, 0, 0.6)
+    apply_transform(crema)
+    cmat = material("CremaMat", [(0.0, (0.86, 0.60, 0.32)), (0.7, (0.62, 0.38, 0.18)), (1.0, (0.38, 0.20, 0.08))],
+                    coord="r", lo=0.0, hi=0.33, rough=0.3, coat=0.5, vary=0.2, vary_scale=8)
+    assign(smooth(crema, 50), cmat)
+    handle = torus("EspHandle", 0.11, 0.035, 48, 12)
+    handle.rotation_euler = (math.radians(90), 0, 0)
+    handle.location = (0.44, 0, 0.4)
+    apply_transform(handle)
+    assign(smooth(handle), flat("EspHandleMat", (1.0, 1.0, 1.0), rough=0.12, coat=0.8))
+    parts += [cup, crema, handle]
+    return rotate_all(parts, (0, 0, math.radians(-30)))
+
+
+def grissini():
+    mat = material("Grissino", [(0.0, (0.86, 0.60, 0.28)), (1.0, (0.96, 0.78, 0.46))], coord="nz", lo=-1, hi=1,
+                   rough=0.5, bump=0.3, bump_scale=20, vary=0.15)
+    parts = []
+    for i, (rx, rz, x) in enumerate(((0, 10, -0.2), (0, -12, 0.0), (0, 22, 0.2), (0, -4, 0.35))):
+        g = capsule(f"Gris{i}", 2.2, 0.06, 24, 16)
+        push_normals(g, lambda co, n: 0.008 * fbm(co * 8))
+        g.rotation_euler = (0, math.radians(90 - 8), math.radians(rz))
+        g.location = (x, 0, 1.0)
+        apply_transform(g)
+        assign(smooth(g), mat)
+        parts.append(g)
+    glass = lathe("GrisGlass", [(0.0, 0.0), (0.38, 0.0), (0.4, 0.8), (0.37, 0.8), (0.35, 0.05), (0.0, 0.05)], 64)
+    smooth(glass, 50)
+    assign(glass, material("GrisGlassMat", [(0.0, (0.92, 0.95, 1.0)), (1.0, (1.0, 1.0, 1.0))], coord="z", lo=0.0, hi=0.8,
+                           rough=0.04, transmission=1.0))
+    parts.append(glass)
+    return parts
+
+
+def olives():
+    bowl = lathe("OliveBowl", [(0.0, 0.0), (0.3, 0.0), (0.34, 0.03), (0.68, 0.36), (0.7, 0.42), (0.64, 0.4), (0.0, 0.32)], 72)
+    subdivide(bowl, 1)
+    smooth(bowl, 50)
+    assign(bowl, material("OliveBowlMat", [(0.0, (0.72, 0.34, 0.14)), (1.0, (0.90, 0.56, 0.28))], coord="z", lo=0.0, hi=0.42,
+                          rough=0.35, coat=0.5))
+    parts = [bowl]
+    rnd = random.Random(9)
+    mat = material("OliveMat", [(0.0, (0.34, 0.44, 0.08)), (1.0, (0.56, 0.66, 0.16))], coord="z", lo=0.3, hi=0.7,
+                   rough=0.15, sss=0.3, coat=0.8)
+    for i in range(9):
+        a = rnd.uniform(0, 6.28)
+        r = 0.4 * math.sqrt(rnd.random())
+        o = sphere(f"Olive{i}", 0.13, 24, 16)
+        o.scale = (1, 0.85, 1.2)
+        o.rotation_euler = (rnd.uniform(0, 1.5), rnd.uniform(0, 1.5), 0)
+        o.location = (r * math.cos(a), r * math.sin(a), 0.42 + 0.08 * (1 - r / 0.4))
+        apply_transform(o)
+        assign(smooth(o), mat)
+        parts.append(o)
+        pim = sphere(f"OlivePim{i}", 0.045, 12, 8)
+        pim.location = (o.location.x, o.location.y - 0.11, o.location.z + 0.02)
+        apply_transform(pim)
+        assign(smooth(pim), flat(f"OlivePimMat{i}", (0.90, 0.16, 0.10), rough=0.2, coat=0.6))
+        parts.append(pim)
+    return parts
+
+
+def focaccia():
+    slab = box_mesh("Focaccia", 1.5, 1.2, 0.36, 0.0, cuts=40)
+    bevel(slab, 0.1, 4, 30)
+
+    def dimples(co, n):
+        if n.z < 0.7:
+            return 0.0
+        u = (co.x / 1.5 + 0.5) * 6
+        v = (co.y / 1.2 + 0.5) * 5
+        du, dv = u - math.floor(u) - 0.5, v - math.floor(v) - 0.5
+        d = math.sqrt(du * du + dv * dv)
+        return -0.05 * max(0.0, 1 - d / 0.3) + 0.01 * fbm(co * 6)
+    push_normals(slab, dimples)
+    subdivide(slab, 1)
+    smooth(slab)
+    mat = material("FocacciaMat", [(0.0, (0.82, 0.50, 0.18)), (0.5, (0.96, 0.74, 0.36)), (1.0, (0.92, 0.66, 0.28))],
+                   coord="nz", lo=-1, hi=1, rough=0.35, sss=0.2, coat=0.5, bump=0.2, bump_scale=14, vary=0.2, vary_scale=5)
+    assign(slab, mat)
+    parts = [slab]
+    rnd = random.Random(4)
+    for i in range(7):
+        x, y = rnd.uniform(-0.55, 0.55), rnd.uniform(-0.45, 0.45)
+        herb = capsule(f"Rosemary{i}", 0.22, 0.02, 12, 8)
+        herb.rotation_euler = (0, 0, rnd.uniform(0, 3.14))
+        herb.location = (x, y, 0.37)
+        apply_transform(herb)
+        assign(smooth(herb), flat(f"RosMat{i}", (0.20, 0.42, 0.18), rough=0.4))
+        parts.append(herb)
+    for i in range(4):
+        x, y = rnd.uniform(-0.5, 0.5), rnd.uniform(-0.4, 0.4)
+        ol = sphere(f"FOlive{i}", 0.09, 20, 12)
+        ol.scale = (1, 1, 0.5)
+        ol.location = (x, y, 0.37)
+        apply_transform(ol)
+        assign(smooth(ol), flat(f"FOliveMat{i}", (0.20, 0.12, 0.16), rough=0.2, coat=0.7))
+        parts.append(ol)
+    return rotate_all(parts, (math.radians(30), 0, math.radians(-12)))
+
+
 MODELS = {
     "bun": whole_bun,
+    "rice": rice,
+    "fish": fish,
+    "soy": soy,
+    "avocado": avocado,
+    "carrot": carrot,
+    "leek": leek,
+    "mushroom": mushroom,
+    "onigiri": onigiri,
+    "dango": dango,
+    "mochi": mochi,
+    "matcha": matcha,
+    "gyoza": gyoza,
+    "taiyaki": taiyaki,
+    "tempura": tempura,
+    "edamame": edamame,
+    "flour": flour,
+    "dough": dough,
+    "mozzarella": mozzarella,
+    "basil": basil,
+    "pasta": pasta,
+    "olive_oil": olive_oil,
+    "grapes": grapes,
+    "juice": juice,
+    "gelato": gelato,
+    "tiramisu": tiramisu,
+    "cannoli": cannoli,
+    "panna_cotta": panna_cotta,
+    "espresso": espresso,
+    "grissini": grissini,
+    "olives": olives,
+    "focaccia": focaccia,
+    "gen_oven": gen_oven,
+    "gen_grill": gen_grill,
+    "gen_crate": gen_crate,
     "patty": patty,
     "lettuce": lettuce,
     "cheese": cheese_wedge,
@@ -1818,6 +3090,16 @@ MODELS = {
     "corndog": corndog,
     "waffle": waffle,
     "pie": pie,
+    "dish_sushi": dish_sushi,
+    "dish_tamago": dish_tamago,
+    "dish_maki": dish_maki,
+    "dish_ramen": dish_ramen,
+    "dish_onigiri": onigiri,
+    "dish_juice": juice,
+    "dish_pizza": dish_pizza,
+    "dish_pasta": dish_pasta,
+    "dish_bruschetta": dish_bruschetta,
+    "dish_caprese": dish_caprese,
     "dish_burger": lambda: dish_burger(False),
     "dish_cheeseburger": lambda: dish_burger(True),
     "dish_hotdog": dish_hotdog,

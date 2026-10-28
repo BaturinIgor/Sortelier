@@ -10,6 +10,8 @@ enum Theme {
     static let green = Color(red: 0.30, green: 0.66, blue: 0.38)
     static let gold = Color(red: 1.0, green: 0.76, blue: 0.18)
     static let card = Color(red: 1.0, green: 0.985, blue: 0.95)
+    static let blue = Color(red: 0.25, green: 0.55, blue: 0.90)
+    static let vip = Color(red: 0.55, green: 0.30, blue: 0.85)
 
     static var background: LinearGradient {
         LinearGradient(colors: [Color(red: 1.0, green: 0.95, blue: 0.86), Color(red: 0.98, green: 0.80, blue: 0.60)],
@@ -25,10 +27,13 @@ enum Theme {
 struct KitchenBackground: View {
     /// Светлая вуаль поверх, чтобы спокойнее читался интерфейс.
     var veil: Double = 0
+    /// Фон темы вместо выбранного игроком: уровни ивента.
+    var style: String?
+    @EnvironmentObject private var progress: PlayerProgress
 
     var body: some View {
         GeometryReader { geo in
-            Image(uiImage: Art.image("bg_kitchen.jpg"))
+            Image(uiImage: Art.image(KitchenStyle.image(style ?? progress.background)))
                 .resizable()
                 .scaledToFill()
                 .frame(width: geo.size.width, height: geo.size.height)
@@ -130,6 +135,15 @@ struct Pill<Leading: View>: View {
         .padding(.trailing, 12)
         .frame(height: 36)
         .background(Capsule().fill(Theme.card).shadow(color: Theme.brown.opacity(0.18), radius: 4, y: 2))
+    }
+}
+
+/// Значок кнопки "за рекламу": у VIP вместо рекламы корона, награда сразу.
+struct AdIcon: View {
+    @EnvironmentObject private var progress: PlayerProgress
+
+    var body: some View {
+        Image(systemName: progress.isVIP ? "crown.fill" : "play.rectangle.fill")
     }
 }
 

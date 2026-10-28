@@ -4,17 +4,20 @@ import SpriteKit
 /// Держит уровень и позволяет перейти к следующему без возврата на карту.
 struct LevelHost: View {
     @State private var level: LevelData
+    @State private var mode: PlayMode
     @State private var token = UUID()
     let close: () -> Void
 
-    init(level: LevelData, close: @escaping () -> Void) {
+    init(level: LevelData, mode: PlayMode = .main, close: @escaping () -> Void) {
         _level = State(initialValue: level)
+        _mode = State(initialValue: mode)
         self.close = close
     }
 
     var body: some View {
-        LevelScreen(level: level, next: { next in
+        LevelScreen(level: level, mode: mode, next: { next, nextMode in
             level = next
+            mode = nextMode
             token = UUID()
         }, close: close)
         .id(token)
@@ -25,19 +28,19 @@ final class LevelModel: ObservableObject {
     let session: GameSession
     let scene: GameScene
 
-    init(level: LevelData) {
-        session = GameSession(level: level)
+    init(level: LevelData, mode: PlayMode) {
+        session = GameSession(level: level, mode: mode)
         scene = GameScene(session: session)
     }
 }
 
 struct LevelScreen: View {
     @StateObject private var model: LevelModel
-    let next: (LevelData) -> Void
+    let next: (LevelData, PlayMode) -> Void
     let close: () -> Void
 
-    init(level: LevelData, next: @escaping (LevelData) -> Void, close: @escaping () -> Void) {
-        _model = StateObject(wrappedValue: LevelModel(level: level))
+    init(level: LevelData, mode: PlayMode, next: @escaping (LevelData, PlayMode) -> Void, close: @escaping () -> Void) {
+        _model = StateObject(wrappedValue: LevelModel(level: level, mode: mode))
         self.next = next
         self.close = close
     }
@@ -50,7 +53,7 @@ struct LevelScreen: View {
 struct LevelContent: View {
     @ObservedObject var session: GameSession
     let scene: GameScene
-    let next: (LevelData) -> Void
+    let next: (LevelData, PlayMode) -> Void
     let close: () -> Void
 
     @EnvironmentObject private var progress: PlayerProgress
@@ -59,22 +62,32 @@ struct LevelContent: View {
     @State private var showIntro = false
     @State private var buyBooster: Booster?
     @State private var toast: String?
+    @State private var ruleIntro: String?
 
     private var overlayVisible: Bool {
-        paused || showIntro || session.newDish != nil || session.phase != .playing || buyBooster != nil
+        paused || showIntro || ruleIntro != nil || session.newDish != nil || session.phase != .playing || buyBooster != nil
     }
 
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                KitchenBackground()
+                KitchenBackground(style: eventStyle ?? progress.background(forBiome: session.level.biome))
                 SpriteView(scene: scene, options: [.allowsTransparency])
                     .ignoresSafeArea()
                 VStack(spacing: 4) {
                     topBar
                     StarProgress(coins: session.orderCoins, thresholds: session.level.stars)
                     Spacer()
-                    boosterBar
+                    if session.boostersAllowed {
+                        boosterBar
+                    } else {
+                        Text(lang.t("rule.noboosters.bar"))
+                            .font(Theme.rounded(15, .heavy))
+                            .foregroundColor(Theme.brownSoft)
+                            .padding(.horizontal, 20)
+                            .frame(height: 58)
+                            .background(Capsule().fill(Theme.card.opacity(0.92)))
+                    }
                 }
                 .padding(.horizontal, 14)
                 .padding(.bottom, 6)
@@ -92,10 +105,14 @@ struct LevelContent: View {
                 overlays
             }
             .onAppear {
+                Audio.shared.setTrack(eventStyle == nil ? Biomes.music(session.level.biome) : Biomes.music(1))
                 scene.hudHeight = geo.safeAreaInsets.top + 96
                 scene.bottomReserved = geo.safeAreaInsets.bottom + 96
                 if let intro = session.level.intro, !progress.seenIntro(intro) {
                     showIntro = true
+                }
+                if let rule = session.level.rule, case let .weekly(_, index) = session.mode, index == 0 {
+                    ruleIntro = rule
                 }
             }
         }
@@ -110,10 +127,12 @@ struct LevelContent: View {
         HStack(spacing: 10) {
             CircleIconButton(symbol: "pause.fill", size: 42) { paused = true }
             VStack(alignment: .leading, spacing: 0) {
-                Text(lang.t("level.title", session.level.id))
+                Text(title)
                     .font(Theme.rounded(19, .heavy))
                     .foregroundColor(Theme.brown)
-                if session.level.hard {
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                if session.level.hard && session.mode == .main {
                     Text(lang.t("map.hard"))
                         .font(Theme.rounded(12, .heavy))
                         .foregroundColor(Theme.red)
@@ -128,14 +147,34 @@ struct LevelContent: View {
         .frame(height: 52)
     }
 
+    /// Уровни ивента идут на фоне темы ивента.
+    private var eventStyle: String? {
+        if case let .event(_, theme, _) = session.mode { return theme }
+        return nil
+    }
+
+    private var title: String {
+        switch session.mode {
+        case .main: return lang.t("level.title", session.level.id)
+        case .daily: return lang.t("challenge.daily.title")
+        case let .weekly(_, index): return lang.t("challenge.weekly.level", index + 1)
+        case let .event(_, theme, index): return lang.t("event.level", lang.t("event.season." + theme), index + 1)
+        }
+    }
+
     private var boosterBar: some View {
-        HStack(spacing: 18) {
+        let pause = session.pauseAvailable
+        return HStack(spacing: pause ? 10 : 14) {
             boosterButton(.undo) { session.undo() }
             boosterButton(.hint) { session.hint() }
+            boosterButton(.shuffle) { session.shuffle() }
             boosterButton(.shelf) { session.useExtraShelf() }
+            if pause {
+                boosterButton(.pause) { session.pausePatience() }
+            }
         }
         .padding(.vertical, 10)
-        .padding(.horizontal, 20)
+        .padding(.horizontal, 16)
         .background(Capsule().fill(Theme.card.opacity(0.92)).shadow(color: Theme.brown.opacity(0.2), radius: 8, y: 3))
     }
 
@@ -151,10 +190,11 @@ struct LevelContent: View {
         } label: {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: booster.symbol)
-                    .font(.system(size: 24, weight: .bold))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundColor(.white)
-                    .frame(width: 58, height: 58)
-                    .background(Circle().fill(Theme.orange).shadow(color: Theme.orange.opacity(0.5), radius: 0, y: 4))
+                    .frame(width: 52, height: 52)
+                    .background(Circle().fill(booster == .pause ? Theme.blue : Theme.orange)
+                        .shadow(color: (booster == .pause ? Theme.blue : Theme.orange).opacity(0.5), radius: 0, y: 4))
                 Text(count > 0 ? "\(count)" : "+")
                     .font(Theme.rounded(13, .heavy))
                     .foregroundColor(.white)
@@ -192,6 +232,8 @@ struct LevelContent: View {
                 progress.markIntro(intro)
                 showIntro = false
             }
+        } else if let rule = ruleIntro {
+            IntroView(kind: "rule." + rule) { ruleIntro = nil }
         } else if paused {
             PauseView(session: session, resume: { paused = false }, restart: restart, exit: {
                 session.abandon()
@@ -204,21 +246,20 @@ struct LevelContent: View {
 
     private func restart() {
         session.abandon()
-        if session.isReplay || progress.hasLife {
-            next(session.level)
+        if !session.costsLife || progress.hasLife {
+            next(session.level, session.mode)
         } else {
             close()
         }
     }
 
     private func goNext() {
-        let nextId = session.level.id + 1
-        guard let level = LevelStore.shared.level(nextId) else {
+        guard let target = session.nextLevel else {
             close()
             return
         }
-        if progress.isPassed(nextId) || progress.hasLife {
-            next(level)
+        if target.mode != .main || progress.isPassed(target.level.id) || progress.hasLife {
+            next(target.level, target.mode)
         } else {
             close()
         }
@@ -242,7 +283,7 @@ struct PauseView: View {
                     Text(lang.t("pause.title"))
                         .font(Theme.rounded(26, .heavy))
                         .foregroundColor(Theme.brown)
-                    if !session.isReplay && session.hasMoves {
+                    if session.costsLife && session.hasMoves {
                         Text(lang.t("pause.lifewarning"))
                             .font(Theme.rounded(14, .semibold))
                             .foregroundColor(Theme.red)
@@ -288,12 +329,12 @@ struct StuckView: View {
                         Button {
                             session.continueWithAd { ok in if !ok { message = lang.t("ads.limit") } }
                         } label: {
-                            HStack { Image(systemName: "play.rectangle.fill"); Text(lang.t("stuck.ad")) }
+                            HStack { AdIcon(); Text(lang.t("stuck.ad")) }
                         }
                         .buttonStyle(BigButtonStyle(color: Theme.green))
                         AdsLeftLabel()
                     }
-                    Button(lang.t(session.isReplay ? "stuck.giveup.replay" : "stuck.giveup"), action: giveUp)
+                    Button(lang.t(session.costsLife ? "stuck.giveup" : "stuck.giveup.replay"), action: giveUp)
                         .buttonStyle(BigButtonStyle(color: Theme.brownSoft))
                     if let message = message {
                         Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)
@@ -342,11 +383,12 @@ struct WinView: View {
                         }
                         .padding(.horizontal, 6)
                         rewardText(result)
+                        extras(result)
                         if result.reward.coinsAdded > 0 && !session.doubled {
                             Button {
                                 session.doubleCoins { ok in if !ok { message = lang.t("ads.limit") } }
                             } label: {
-                                HStack { Image(systemName: "play.rectangle.fill"); Text(lang.t("win.double")) }
+                                HStack { AdIcon(); Text(lang.t("win.double")) }
                             }
                             .buttonStyle(BigButtonStyle(color: Theme.green))
                             AdsLeftLabel()
@@ -356,7 +398,7 @@ struct WinView: View {
                         }
                         HStack(spacing: 10) {
                             Button(lang.t("win.map"), action: close).buttonStyle(BigButtonStyle(color: Theme.brownSoft))
-                            if LevelStore.shared.level(session.level.id + 1) != nil {
+                            if session.nextLevel != nil {
                                 Button(lang.t("win.next"), action: next).buttonStyle(BigButtonStyle())
                             }
                         }
@@ -386,6 +428,46 @@ struct WinView: View {
         }
     }
 
+    /// Стрик, серия шефа и награда испытания.
+    @ViewBuilder
+    private func extras(_ result: GameSession.Result) -> some View {
+        VStack(spacing: 6) {
+            if let day = result.streakDay, let granted = result.streak {
+                RewardLine(symbol: "flame.fill", color: Theme.orange, title: lang.t("win.streak", day), granted: granted)
+            }
+            if session.mode == .main && !session.isReplay && result.chefSeries > 1 {
+                RewardLine(symbol: "crown.fill", color: Theme.gold, title: lang.t("win.chef", result.chefSeries),
+                           granted: result.chef)
+            }
+            if let granted = result.challenge {
+                RewardLine(symbol: "calendar", color: Theme.green, title: lang.t(challengeTitle), granted: granted)
+            }
+            ForEach(result.events) { gain in
+                RewardLine(symbol: EventUI.symbol(gain.kind), color: EventUI.color(gain.kind),
+                           title: EventUI.gainText(gain, lang: lang), granted: nil)
+            }
+            if result.doubleBonus > 0 {
+                RewardLine(symbol: "2.circle.fill", color: Theme.green, title: lang.t("event.double.bonus", result.doubleBonus),
+                           granted: nil)
+            }
+            if result.vipBonus > 0 {
+                RewardLine(symbol: "crown.fill", color: Theme.gold, title: lang.t("win.vip", result.vipBonus), granted: nil)
+            }
+            if let gift = result.gourmetGift {
+                RewardLine(symbol: "crown.fill", color: Theme.gold,
+                           title: lang.t(gift.reward.background != nil ? "win.gourmet.bg" : "win.gourmet"), granted: gift)
+            }
+        }
+    }
+
+    private var challengeTitle: String {
+        switch session.mode {
+        case .daily: return "win.daily"
+        case .weekly: return "win.weekly"
+        case .main, .event: return ""
+        }
+    }
+
     @ViewBuilder
     private func rewardText(_ result: GameSession.Result) -> some View {
         VStack(spacing: 4) {
@@ -408,6 +490,7 @@ struct IntroView: View {
     let kind: String
     let close: () -> Void
     @EnvironmentObject private var lang: Lang
+    @EnvironmentObject private var progress: PlayerProgress
 
     var body: some View {
         ZStack {
@@ -459,11 +542,99 @@ struct IntroView: View {
                 Circle().fill(Color(red: 0.45, green: 0.30, blue: 0.20)).frame(width: 64, height: 64)
                 Text("?").font(Theme.rounded(36, .heavy)).foregroundColor(.white)
             }
+        case "onigiri":
+            HStack(spacing: 4) {
+                SpriteImage(name: "rice", size: 46)
+                SpriteImage(name: "rice", size: 46)
+                SpriteImage(name: "rice", size: 46)
+                Text("=").font(Theme.rounded(22, .heavy)).foregroundColor(Theme.brownSoft)
+                SpriteImage(name: "dish_onigiri", size: 64)
+            }
+        case "juice":
+            HStack(spacing: 4) {
+                SpriteImage(name: "grapes", size: 46)
+                SpriteImage(name: "grapes", size: 46)
+                SpriteImage(name: "grapes", size: 46)
+                Text("=").font(Theme.rounded(22, .heavy)).foregroundColor(Theme.brownSoft)
+                SpriteImage(name: "dish_juice", size: 64)
+            }
+        case "dough":
+            VStack(spacing: 6) {
+                HStack(spacing: 4) {
+                    SpriteImage(name: "flour", size: 40)
+                    SpriteImage(name: "flour", size: 40)
+                    SpriteImage(name: "flour", size: 40)
+                    Image(systemName: "arrow.right").font(.system(size: 18, weight: .heavy)).foregroundColor(Theme.orange)
+                    SpriteImage(name: "dough", size: 50)
+                }
+                HStack(spacing: 4) {
+                    SpriteImage(name: "dough", size: 40)
+                    Text("+").font(Theme.rounded(18, .heavy)).foregroundColor(Theme.brownSoft)
+                    SpriteImage(name: "tomato", size: 40)
+                    Text("+").font(Theme.rounded(18, .heavy)).foregroundColor(Theme.brownSoft)
+                    SpriteImage(name: "mozzarella", size: 40)
+                    Text("=").font(Theme.rounded(18, .heavy)).foregroundColor(Theme.brownSoft)
+                    SpriteImage(name: "dish_pizza", size: 56)
+                }
+            }
+        case "ice":
+            ZStack(alignment: .topTrailing) {
+                SpriteImage(name: "fish", size: 70)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(red: 0.72, green: 0.90, blue: 1.0).opacity(0.5))
+                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Color.white, lineWidth: 2))
+                    .frame(width: 72, height: 74)
+                Text("2")
+                    .font(Theme.rounded(15, .heavy))
+                    .foregroundColor(.white)
+                    .frame(width: 26, height: 26)
+                    .background(Circle().fill(Color(red: 0.20, green: 0.55, blue: 0.90)))
+                    .offset(x: 8, y: -8)
+            }
+        case "gourmet":
+            ZStack(alignment: .topLeading) {
+                SpriteImage(name: "customer_10_happy", size: 90)
+                Image(systemName: "crown.fill").font(.system(size: 22)).foregroundColor(Theme.gold).offset(x: 4, y: 0)
+            }
+        case "lock":
+            ZStack {
+                SpriteImage(name: progress.goldShelves ? "shelf_gold" : "shelf", size: 120)
+                    .overlay(Color.black.opacity(0.25).clipShape(RoundedRectangle(cornerRadius: 10)))
+                Image(systemName: "lock.fill").font(.system(size: 34, weight: .bold)).foregroundColor(Theme.gold)
+            }
         case "conflict":
             HStack(spacing: 6) {
                 SpriteImage(name: "baguette", size: 56)
                 Image(systemName: "arrow.left.arrow.right").font(.system(size: 22, weight: .bold)).foregroundColor(Theme.orange)
                 SpriteImage(name: "dish_sub", size: 64)
+            }
+        case "rule.noboosters":
+            ZStack {
+                HStack(spacing: 8) {
+                    ForEach(Booster.allCases) { b in
+                        Image(systemName: b.symbol)
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 48, height: 48)
+                            .background(Circle().fill(Theme.brownSoft))
+                    }
+                }
+                Rectangle().fill(Theme.red).frame(width: 190, height: 5).rotationEffect(.degrees(-12))
+            }
+        case "rule.hidden":
+            HStack(spacing: 8) {
+                ForEach(0..<3, id: \.self) { _ in
+                    ZStack {
+                        Circle().fill(Color(red: 0.45, green: 0.30, blue: 0.20)).frame(width: 52, height: 52)
+                        Text("?").font(Theme.rounded(30, .heavy)).foregroundColor(.white)
+                    }
+                }
+            }
+        case "rule.recipes":
+            HStack(spacing: 4) {
+                SpriteImage(name: "dish_burger", size: 60)
+                SpriteImage(name: "dish_hotdog", size: 60)
+                SpriteImage(name: "dish_pancakes", size: 60)
             }
         default:
             HStack(spacing: 2) {
@@ -541,9 +712,15 @@ struct AdsLeftLabel: View {
     @EnvironmentObject private var progress: PlayerProgress
 
     var body: some View {
-        Text(lang.t("ads.left", progress.adsLeftToday, Balance.adDailyLimit))
-            .font(Theme.rounded(12, .semibold))
-            .foregroundColor(Theme.brownSoft)
+        if progress.isVIP {
+            Label(lang.t("vip.noads"), systemImage: "crown.fill")
+                .font(Theme.rounded(12, .bold))
+                .foregroundColor(Theme.gold)
+        } else {
+            Text(lang.t("ads.left", progress.adsLeftToday, Balance.adDailyLimit))
+                .font(Theme.rounded(12, .semibold))
+                .foregroundColor(Theme.brownSoft)
+        }
     }
 }
 

@@ -228,9 +228,71 @@ def place(src, model, loc, scale=3.0, rot_z=0.0, polish=True, rot=None):
     return meshes
 
 
-def render_background(src, out_dir, preview=False):
+# Стили кухни: плитка, шкафчики, металл, свет. Цвета линейные, как в шейдерах Blender.
+STYLES = {
+    "kitchen": dict(tiles=((0.38, 0.72, 0.68), (0.28, 0.62, 0.60), (0.62, 0.84, 0.80)), cabinet=(0.96, 0.90, 0.80),
+                    metal="brass", world=((1.0, 0.95, 0.88), 0.55), light=((1.0, 0.92, 0.80), 260), checker=False),
+    "peach": dict(tiles=((0.96, 0.52, 0.40), (0.90, 0.46, 0.36), (1.0, 0.82, 0.74)), cabinet=(0.98, 0.94, 0.88),
+                  metal="brass", world=((1.0, 0.95, 0.90), 0.55), light=((1.0, 0.92, 0.82), 260), checker=False),
+    "lavender": dict(tiles=((0.52, 0.42, 0.86), (0.46, 0.37, 0.80), (0.82, 0.78, 0.96)), cabinet=(0.95, 0.94, 1.0),
+                     metal="steel", world=((0.96, 0.95, 1.0), 0.55), light=((0.98, 0.95, 1.0), 260), checker=False),
+    "night": dict(tiles=((0.05, 0.08, 0.17), (0.04, 0.06, 0.14), (0.12, 0.15, 0.26)), cabinet=(0.20, 0.12, 0.07),
+                  metal="brass", world=((0.30, 0.38, 0.65), 0.18), light=((1.0, 0.70, 0.40), 330), checker=False),
+    "autumn": dict(tiles=((0.80, 0.34, 0.10), (0.70, 0.28, 0.08), (0.96, 0.80, 0.60)), cabinet=(0.10, 0.24, 0.14),
+                   metal="brass", world=((1.0, 0.92, 0.80), 0.5), light=((1.0, 0.84, 0.62), 280), checker=False),
+    "winter": dict(tiles=((0.52, 0.74, 0.96), (0.44, 0.66, 0.90), (0.95, 0.97, 1.0)), cabinet=(0.95, 0.97, 1.0),
+                   metal="steel", world=((0.92, 0.96, 1.0), 0.6), light=((0.95, 0.97, 1.0), 250), checker=False),
+    "sweets": dict(tiles=((0.95, 0.42, 0.60), (0.88, 0.36, 0.55), (1.0, 0.86, 0.92)), cabinet=(0.62, 0.90, 0.80),
+                   metal="brass", world=((1.0, 0.95, 0.96), 0.55), light=((1.0, 0.94, 0.94), 260), checker=False),
+    "bbq": dict(tiles=((0.52, 0.14, 0.07), (0.44, 0.11, 0.05), (0.55, 0.52, 0.48)), cabinet=(0.24, 0.12, 0.05),
+                metal="steel", world=((1.0, 0.93, 0.85), 0.5), light=((1.0, 0.86, 0.70), 300), checker=False),
+    "diner": dict(tiles=((0.90, 0.86, 0.78), (0.06, 0.06, 0.075), (0.5, 0.5, 0.5)), cabinet=(0.80, 0.06, 0.06),
+                  metal="steel", world=((1.0, 0.97, 0.92), 0.55), light=((1.0, 0.95, 0.88), 260), checker=True),
+    # биомы: японская и итальянская кухни, награда гурмана
+    "japan": dict(tiles=((0.12, 0.20, 0.42), (0.09, 0.16, 0.36), (0.92, 0.90, 0.84)), cabinet=(0.90, 0.80, 0.62),
+                  metal="steel", world=((1.0, 0.96, 0.92), 0.55), light=((1.0, 0.94, 0.86), 270), checker=False),
+    "italy": dict(tiles=((0.80, 0.36, 0.16), (0.70, 0.30, 0.13), (0.96, 0.90, 0.76)), cabinet=(0.34, 0.42, 0.16),
+                  metal="brass", world=((1.0, 0.95, 0.86), 0.55), light=((1.0, 0.90, 0.74), 280), checker=False),
+    "gourmet": dict(tiles=((0.03, 0.22, 0.15), (0.02, 0.18, 0.12), (0.80, 0.62, 0.30)), cabinet=(0.06, 0.06, 0.07),
+                    metal="brass", world=((1.0, 0.95, 0.88), 0.5), light=((1.0, 0.88, 0.70), 300), checker=False),
+}
+
+
+def checker_material(name, c1, c2, scale=1.4):
+    """Шахматная плитка закусочной."""
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nodes, links = nt.nodes, nt.links
+    bsdf = nodes["Principled BSDF"]
+    geo = nodes.new("ShaderNodeNewGeometry")
+    mapping = nodes.new("ShaderNodeMapping")
+    mapping.inputs["Rotation"].default_value = (math.radians(-90), 0, 0)
+    checker = nodes.new("ShaderNodeTexChecker")
+    checker.inputs["Scale"].default_value = scale
+    checker.inputs["Color1"].default_value = (*c1, 1)
+    checker.inputs["Color2"].default_value = (*c2, 1)
+    links.new(geo.outputs["Position"], mapping.inputs["Vector"])
+    links.new(mapping.outputs["Vector"], checker.inputs["Vector"])
+    links.new(checker.outputs["Color"], bsdf.inputs["Base Color"])
+    bsdf.inputs["Roughness"].default_value = 0.2
+    return mat
+
+
+def steel_material(name):
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    bsdf.inputs["Base Color"].default_value = (0.75, 0.77, 0.80, 1)
+    bsdf.inputs["Metallic"].default_value = 0.9
+    bsdf.inputs["Roughness"].default_value = 0.22
+    return mat
+
+
+def render_background(src, out_dir, preview=False, style="kitchen", samples=64):
+    st = STYLES[style]
     scene = R.reset_scene()
-    scene.cycles.samples = 24 if preview else 64
+    scene.cycles.samples = 24 if preview else samples
     scene.cycles.use_denoising = True
     width, height = (390, 844) if preview else (1170, 2532)
     scene.render.resolution_x = width
@@ -239,15 +301,18 @@ def render_background(src, out_dir, preview=False):
     world_w = world_h * width / height
 
     # стена из плитки
-    wall = tile_material("Tiles", (0.38, 0.72, 0.68), (0.28, 0.62, 0.60), (0.62, 0.84, 0.80), scale=1.1)
+    if st["checker"]:
+        wall = checker_material("Tiles", st["tiles"][0], st["tiles"][1], scale=2.0)
+    else:
+        wall = tile_material("Tiles", *st["tiles"], scale=1.1)
     bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0.6, 0), rotation=(math.radians(90), 0, 0))
     plane = bpy.context.active_object
     plane.scale = (world_w + 2, world_h + 2, 1)
     plane.data.materials.append(wall)
 
     wood = wood_material("Counter", (0.40, 0.21, 0.10), (0.64, 0.37, 0.18), grain_scale=3.0)
-    paint = flat_material("Cabinet", (0.96, 0.90, 0.80), rough=0.45, coat=0.2)
-    brass = gold_material("Brass")
+    paint = flat_material("Cabinet", st["cabinet"], rough=0.45, coat=0.2)
+    brass = gold_material("Brass") if st["metal"] == "brass" else steel_material("Steel")
 
     # верхняя полка с посудой (за карточками заказов, видна по краям)
     ledge_z = 3.05
@@ -306,18 +371,28 @@ def render_background(src, out_dir, preview=False):
     for o in [o for o in scene.objects if o.type == "LIGHT"]:
         bpy.data.objects.remove(o, do_unlink=True)
     bg = scene.world.node_tree.nodes["Background"]
-    bg.inputs[0].default_value = (1.0, 0.95, 0.88, 1)
-    bg.inputs[1].default_value = 0.55
+    bg.inputs[0].default_value = (*st["world"][0], 1)
+    bg.inputs[1].default_value = st["world"][1]
     area = bpy.data.lights.new("Window", type="AREA")
-    area.energy = 260
+    area.energy = st["light"][1]
     area.size = 7
-    area.color = (1.0, 0.92, 0.80)
+    area.color = st["light"][0]
     light = bpy.data.objects.new("Window", area)
     light.location = (-3.5, -7, 5)
     light.rotation_euler = (math.radians(58), 0, math.radians(-27))
     scene.collection.objects.link(light)
 
-    name = "bg_kitchen_preview" if preview else "bg_kitchen"
+    if style == "night":
+        # теплые лампы над полкой и столешницей
+        for i, (x, z) in enumerate(((-1.2, 2.6), (1.2, 2.6), (0.0, -3.0))):
+            lamp = bpy.data.lights.new(f"Lamp{i}", type="POINT")
+            lamp.energy = 60
+            lamp.color = (1.0, 0.72, 0.42)
+            lamp.shadow_soft_size = 0.6
+            obj = bpy.data.objects.new(f"Lamp{i}", lamp)
+            obj.location = (x, -0.6, z)
+            scene.collection.objects.link(obj)
+    name = f"bg_{style}" + ("_preview" if preview else "")
     scene.render.filepath = os.path.join(out_dir, name + ".png")
     bpy.ops.render.render(write_still=True)
 
@@ -333,7 +408,10 @@ def main():
         render_counter(args[1])
     elif args[0] == "background":
         os.makedirs(args[2], exist_ok=True)
-        render_background(args[1], args[2], preview="--preview" in args)
+        styles = [a.split("=", 1)[1] for a in args if a.startswith("--style=")] or ["kitchen"]
+        samples = int(next((a.split("=", 1)[1] for a in args if a.startswith("--samples=")), "64"))
+        for style in styles[0].split(","):
+            render_background(args[1], args[2], preview="--preview" in args, style=style, samples=samples)
 
 
 if __name__ == "__main__":

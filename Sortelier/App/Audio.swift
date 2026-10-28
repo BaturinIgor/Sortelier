@@ -11,6 +11,7 @@ final class Audio {
     private var pools: [Effect: [AVAudioPlayer]] = [:]
     private var cursor: [Effect: Int] = [:]
     private var music: AVAudioPlayer?
+    private var track = "music_kitchen"
     private var started = false
     private let musicVolume: Float = 0.45
 
@@ -46,7 +47,8 @@ final class Audio {
     /// Включает или выключает музыку по настройке, с плавным переходом громкости.
     func updateMusic() {
         if PlayerProgress.shared.settings.music {
-            if music == nil, let url = Bundle.main.url(forResource: "music_kitchen", withExtension: "m4a") {
+            if music == nil, let url = Bundle.main.url(forResource: track, withExtension: "m4a")
+                ?? Bundle.main.url(forResource: "music_kitchen", withExtension: "m4a") {
                 music = try? AVAudioPlayer(contentsOf: url)
                 music?.numberOfLoops = -1
                 music?.volume = 0
@@ -61,6 +63,17 @@ final class Audio {
                 if !PlayerProgress.shared.settings.music { self?.music?.pause() }
             }
         }
+    }
+
+    /// Смена мелодии (у каждой кухни своя) с плавным переходом.
+    func setTrack(_ name: String) {
+        guard name != track else { return }
+        track = name
+        guard started, let old = music else { return }
+        music = nil
+        old.setVolume(0, fadeDuration: 0.6)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.65) { old.stop() }
+        updateMusic()
     }
 
     /// После возврата в приложение плеер мог остановиться.

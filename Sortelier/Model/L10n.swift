@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import SwiftUI
 
 /// Язык игры. Тексты лежат в Resources/Strings/<код>.json, английский служит запасным.
 final class Lang: ObservableObject {
@@ -13,7 +14,23 @@ final class Lang: ObservableObject {
 
     static let options: [Option] = [
         Option(code: "en", name: "English"),
-        Option(code: "ru", name: "Русский")
+        Option(code: "ru", name: "Русский"),
+        Option(code: "es", name: "Español"),
+        Option(code: "pt-BR", name: "Português (Brasil)"),
+        Option(code: "de", name: "Deutsch"),
+        Option(code: "fr", name: "Français"),
+        Option(code: "it", name: "Italiano"),
+        Option(code: "tr", name: "Türkçe"),
+        Option(code: "pl", name: "Polski"),
+        Option(code: "id", name: "Bahasa Indonesia"),
+        Option(code: "vi", name: "Tiếng Việt"),
+        Option(code: "th", name: "ไทย"),
+        Option(code: "hi", name: "हिन्दी"),
+        Option(code: "ar", name: "العربية"),
+        Option(code: "ja", name: "日本語"),
+        Option(code: "ko", name: "한국어"),
+        Option(code: "zh-Hans", name: "简体中文"),
+        Option(code: "zh-Hant", name: "繁體中文")
     ]
 
     @Published private(set) var code: String
@@ -37,13 +54,28 @@ final class Lang: ObservableObject {
         PlayerProgress.shared.language = newCode
     }
 
+    /// Язык системы: китайский делим на упрощенный и традиционный, португальский - бразильский.
     static func detect() -> String {
         for preferred in Locale.preferredLanguages {
-            let base = String(preferred.lowercased().prefix { $0 != "-" && $0 != "_" })
-            if options.contains(where: { $0.code == base }) { return base }
+            let lower = preferred.lowercased().replacingOccurrences(of: "_", with: "-")
+            let base = String(lower.prefix { $0 != "-" })
+            switch base {
+            case "zh":
+                let traditional = lower.contains("hant") || lower.hasSuffix("-tw") || lower.hasSuffix("-hk") || lower.hasSuffix("-mo")
+                return traditional ? "zh-Hant" : "zh-Hans"
+            case "pt":
+                return "pt-BR"
+            default:
+                if options.contains(where: { $0.code == base }) { return base }
+            }
         }
         return "en"
     }
+
+    /// Арабский пишется справа налево: интерфейс зеркалится.
+    var isRTL: Bool { code == "ar" }
+
+    var direction: LayoutDirection { isRTL ? .rightToLeft : .leftToRight }
 
     private static func load(_ code: String) -> [String: String] {
         guard let url = Bundle.main.url(forResource: code, withExtension: "json"),
@@ -71,6 +103,13 @@ final class Lang: ObservableObject {
 
     func orderName(_ order: Order) -> String {
         order.kind == .dish ? dishName(order.target) : itemName(order.target)
+    }
+
+    /// "30 мин", "2 ч", "1 ч 30 мин".
+    static func duration(minutes: Int) -> String {
+        if minutes >= 60 && minutes % 60 == 0 { return shared.t("time.hours", minutes / 60) }
+        if minutes >= 60 { return shared.t("time.hm", minutes / 60, minutes % 60) }
+        return shared.t("time.minutes", minutes)
     }
 
     static func time(_ seconds: TimeInterval) -> String {

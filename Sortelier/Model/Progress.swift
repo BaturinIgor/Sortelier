@@ -35,6 +35,8 @@ struct SaveData: Codable {
     var seenIntros: [String] = []
     var playerId = UUID().uuidString
     var settings = GameSettings()
+    var meta = MetaData()
+    var merge = MergeData()
 
     init() {}
 
@@ -58,13 +60,15 @@ struct SaveData: Codable {
         seenIntros = try c.decodeIfPresent([String].self, forKey: .seenIntros) ?? []
         playerId = try c.decodeIfPresent(String.self, forKey: .playerId) ?? d.playerId
         settings = try c.decodeIfPresent(GameSettings.self, forKey: .settings) ?? GameSettings()
+        meta = try c.decodeIfPresent(MetaData.self, forKey: .meta) ?? MetaData()
+        merge = try c.decodeIfPresent(MergeData.self, forKey: .merge) ?? MergeData()
     }
 }
 
 final class PlayerProgress: ObservableObject {
     static let shared = PlayerProgress()
 
-    @Published private(set) var data: SaveData
+    @Published var data: SaveData
     @Published private(set) var now = Date()
 
     private var timer: AnyCancellable?
@@ -86,6 +90,7 @@ final class PlayerProgress: ObservableObject {
         timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect().sink { [weak self] date in
             self?.now = date
             self?.refreshLives()
+            self?.refreshEnergy()
         }
     }
 
@@ -132,6 +137,7 @@ final class PlayerProgress: ObservableObject {
     func use(_ booster: Booster) -> Bool {
         guard count(booster) > 0 else { return false }
         data.boosters[booster.rawValue, default: 0] -= 1
+        data.meta.stats[Stat.boostersUsed.rawValue, default: 0] += 1
         save()
         Analytics.log("booster_use", ["booster": booster.rawValue])
         return true
@@ -145,18 +151,21 @@ final class PlayerProgress: ObservableObject {
 
     // MARK: - Жизни
 
+    /// С VIP запас жизней больше.
+    var maxLives: Int { isVIP ? VIP.maxLives : Balance.maxLives }
+
     var unlimitedLives: Bool {
         if let until = data.unlimitedLivesUntil { return until > now }
         return false
     }
 
-    var lives: Int { unlimitedLives ? Balance.maxLives : data.lives }
+    var lives: Int { unlimitedLives ? maxLives : data.lives }
 
     var hasLife: Bool { unlimitedLives || data.lives > 0 }
 
     /// Секунды до следующей жизни, nil если жизни полные.
     var nextLifeIn: TimeInterval? {
-        guard !unlimitedLives, data.lives < Balance.maxLives else { return nil }
+        guard !unlimitedLives, data.lives < maxLives else { return nil }
         return max(0, data.livesUpdatedAt.addingTimeInterval(Balance.lifeRegen).timeIntervalSince(now))
     }
 
@@ -166,14 +175,14 @@ final class PlayerProgress: ObservableObject {
     }
 
     private func refreshLives() {
-        guard data.lives < Balance.maxLives else {
+        guard data.lives < maxLives else {
             return
         }
         let elapsed = Date().timeIntervalSince(data.livesUpdatedAt)
         let gained = Int(elapsed / Balance.lifeRegen)
         guard gained > 0 else { return }
-        data.lives = min(Balance.maxLives, data.lives + gained)
-        data.livesUpdatedAt = data.lives >= Balance.maxLives
+        data.lives = min(maxLives, data.lives + gained)
+        data.livesUpdatedAt = data.lives >= maxLives
             ? Date()
             : data.livesUpdatedAt.addingTimeInterval(Double(gained) * Balance.lifeRegen)
         save()
@@ -181,21 +190,21 @@ final class PlayerProgress: ObservableObject {
 
     func loseLife() {
         guard !unlimitedLives else { return }
-        if data.lives >= Balance.maxLives { data.livesUpdatedAt = Date() }
+        if data.lives >= maxLives { data.livesUpdatedAt = Date() }
         data.lives = max(0, data.lives - 1)
         save()
         if data.lives == 0 { Analytics.log("lives_out") }
     }
 
     func addLife(_ amount: Int = 1) {
-        data.lives = min(Balance.maxLives, data.lives + amount)
-        if data.lives >= Balance.maxLives { data.livesUpdatedAt = Date() }
+        data.lives = min(maxLives, data.lives + amount)
+        if data.lives >= maxLives { data.livesUpdatedAt = Date() }
         save()
     }
 
     func refillLives() -> Bool {
         guard spend(Balance.livesRefillPrice) else { return false }
-        addLife(Balance.maxLives)
+        addLife(maxLives)
         return true
     }
 
@@ -221,7 +230,7 @@ final class PlayerProgress: ObservableObject {
         return count
     }
 
-    func isUnlocked(_ level: Int) -> Bool { level <= currentLevel }
+    func isUnlocked(_ level: Int) -> Bool { level <= currentLevel && isBiomeOpen(Biomes.of(level: level)) }
 
     func totalStars(biome: Int = 1) -> Int {
         LevelStore.shared.levels.filter { $0.biome == biome }.reduce(0) { $0 + stars($1.id) }
@@ -244,9 +253,9 @@ final class PlayerProgress: ObservableObject {
         data.coins += added
         let firstThree = newStars == 3 && previousStars < 3
         var lifeReturned = false
-        if firstThree && !unlimitedLives && data.lives < Balance.maxLives {
+        if firstThree && !unlimitedLives && data.lives < maxLives {
             data.lives += 1
-            if data.lives >= Balance.maxLives { data.livesUpdatedAt = Date() }
+            if data.lives >= maxLives { data.livesUpdatedAt = Date() }
             lifeReturned = true
         }
         save()
@@ -256,16 +265,18 @@ final class PlayerProgress: ObservableObject {
 
     // MARK: - Сундуки
 
+    /// Сундук index: биом index / 3 + 1, номер index % 3.
     func chestReady(_ index: Int) -> Bool {
-        !data.chests.contains(index) && totalStars() >= Balance.chests[index].stars
+        !data.chests.contains(index) && totalStars(biome: index / 3 + 1) >= Biomes.chest(index).stars
     }
 
     func chestClaimed(_ index: Int) -> Bool { data.chests.contains(index) }
 
     func claimChest(_ index: Int) {
         guard chestReady(index) else { return }
-        let chest = Balance.chests[index]
+        let chest = Biomes.chest(index)
         data.chests.append(index)
+        data.meta.stats[Stat.chests.rawValue, default: 0] += 1
         data.coins += chest.coins
         for (booster, n) in chest.boosters { data.boosters[booster.rawValue, default: 0] += n }
         if chest.goldShelves { data.goldShelves = true }
@@ -283,6 +294,7 @@ final class PlayerProgress: ObservableObject {
     func discover(_ id: String) -> Bool {
         guard !data.discovered.contains(id) else { return false }
         data.discovered.append(id)
+        data.meta.stats[Stat.cards.rawValue] = data.discovered.count
         save()
         return true
     }

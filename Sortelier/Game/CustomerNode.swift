@@ -5,6 +5,8 @@ import UIKit
 /// Начало координат - центр места у прилавка на уровне столешницы.
 final class CustomerNode: SKNode {
     static let looks = 10
+    /// Отдельный образ гурмана: цилиндр, монокль, бабочка.
+    static let gourmetLook = 10
 
     let uid: Int
     let order: Order
@@ -46,9 +48,13 @@ final class CustomerNode: SKNode {
 
         // облачко с заказом
         let back = SKShapeNode(rectOf: CGSize(width: bw, height: bh), cornerRadius: 14)
-        back.fillColor = UIColor(red: 1, green: 0.985, blue: 0.95, alpha: 0.98)
-        back.strokeColor = UIColor(red: 0.90, green: 0.78, blue: 0.62, alpha: 1)
-        back.lineWidth = 1.5
+        back.fillColor = customer.gourmet
+            ? UIColor(red: 1, green: 0.96, blue: 0.82, alpha: 0.98)
+            : UIColor(red: 1, green: 0.985, blue: 0.95, alpha: 0.98)
+        back.strokeColor = customer.gourmet
+            ? UIColor(red: 0.95, green: 0.68, blue: 0.10, alpha: 1)
+            : UIColor(red: 0.90, green: 0.78, blue: 0.62, alpha: 1)
+        back.lineWidth = customer.gourmet ? 2.5 : 1.5
         bubble.addChild(back)
         let tail = SKShapeNode(circleOfRadius: 4)
         tail.fillColor = back.fillColor
@@ -85,6 +91,18 @@ final class CustomerNode: SKNode {
         bubble.position = bubbleCenter
         bubble.zPosition = 6
         addChild(bubble)
+        if customer.gourmet {
+            // звезда гурмана над аватаром
+            let config = UIImage.SymbolConfiguration(pointSize: 40, weight: .heavy)
+            let image = UIImage(systemName: "crown.fill", withConfiguration: config)?
+                .withTintColor(UIColor(red: 1.0, green: 0.74, blue: 0.10, alpha: 1), renderingMode: .alwaysOriginal)
+            let star = SKSpriteNode(texture: image.map { SKTexture(image: $0) })
+            star.size = CGSize(width: 22, height: 18)
+            star.position = CGPoint(x: avatar.position.x - a * 0.38, y: avatar.position.y + a * 0.42)
+            star.zPosition = 7
+            star.run(.repeatForever(.sequence([.scale(to: 1.2, duration: 0.6), .scale(to: 1, duration: 0.6)])))
+            addChild(star)
+        }
 
         // монеты за заказ с учетом чаевых
         pillBack.strokeColor = UIColor(red: 0.85, green: 0.6, blue: 0.1, alpha: 1)
@@ -120,10 +138,13 @@ final class CustomerNode: SKNode {
     required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     /// Обновить шкалу терпения, настроение и монеты.
-    func update(patience: Int, max: Int, coins: Int, tip: Int, animated: Bool) {
+    func update(patience: Int, max: Int, coins: Int, tip: Int, paused: Bool = false, animated: Bool) {
         let fraction: CGFloat = max > 0 ? CGFloat(patience) / CGFloat(max) : 1
         let color: UIColor
-        if max == 0 || fraction > 0.5 {
+        if paused && max > 0 {
+            // терпение на паузе: шкала голубая
+            color = UIColor(red: 0.35, green: 0.68, blue: 0.98, alpha: 1)
+        } else if max == 0 || fraction > 0.5 {
             color = UIColor(red: 0.36, green: 0.76, blue: 0.36, alpha: 1)
         } else if fraction > 0.25 {
             color = UIColor(red: 1.0, green: 0.74, blue: 0.18, alpha: 1)
