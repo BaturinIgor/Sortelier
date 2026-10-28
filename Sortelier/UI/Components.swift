@@ -105,13 +105,25 @@ struct CircleIconButton: View {
 struct CoinIcon: View {
     var size: CGFloat = 22
 
+    /// Объемная монета из рендера, такая же, как в паках магазина. Без картинки - плоская монета.
+    private static let hasSprite = UIImage(named: "coin_icon") != nil
+
     var body: some View {
-        ZStack {
-            Circle().fill(Theme.gold)
-            Circle().stroke(Color(red: 0.85, green: 0.55, blue: 0.05), lineWidth: size * 0.1)
-            Text("S")
-                .font(.system(size: size * 0.55, weight: .heavy, design: .rounded))
-                .foregroundColor(Color(red: 0.75, green: 0.45, blue: 0.0))
+        Group {
+            if CoinIcon.hasSprite {
+                Image(uiImage: Art.image("coin_icon"))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .scaleEffect(1.12)
+            } else {
+                ZStack {
+                    Circle().fill(Theme.gold)
+                    Circle().stroke(Color(red: 0.85, green: 0.55, blue: 0.05), lineWidth: size * 0.1)
+                    Text("S")
+                        .font(.system(size: size * 0.55, weight: .heavy, design: .rounded))
+                        .foregroundColor(Color(red: 0.75, green: 0.45, blue: 0.0))
+                }
+            }
         }
         .frame(width: size, height: size)
     }

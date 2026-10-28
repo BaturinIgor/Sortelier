@@ -3032,94 +3032,7 @@ def focaccia():
 
 # MARK: - Монеты и сундуки (магазин, альбом)
 
-def gold_mat(name="CoinGold"):
-    return material(name, [(0.0, (0.86, 0.55, 0.10)), (0.5, (1.0, 0.80, 0.25)), (1.0, (1.0, 0.92, 0.55))],
-                    coord="nz", lo=-1, hi=1, rough=0.22, metal=1.0)
-
-
-def coin_obj(name, x=0.0, y=0.0, z=0.0, rot=(0, 0, 0), r=0.42, mat=None):
-    """Монета: диск с фаской, бортиком и выпуклой звездой."""
-    mat = mat or gold_mat()
-    body = cylinder(name, r, 0.09, 40)
-    bevel(body, 0.025, 2, 30)
-    smooth(body, 35)
-    assign(body, mat)
-    rim = torus(name + "Rim", r * 0.86, 0.018, 40, 8)
-    rim.location = (0, 0, 0.045)
-    apply_transform(rim)
-    assign(smooth(rim), mat)
-    pts = []
-    for k in range(10):
-        a = math.pi / 2 + k * math.pi / 5
-        rr = r * (0.5 if k % 2 == 0 else 0.22)
-        pts.append((rr * math.cos(a), rr * math.sin(a)))
-    star = profile_prism(name + "Star", pts, 0.025, 0.04)
-    bevel(star, 0.006, 1, 30)
-    assign(star, mat)
-    parts = [body, rim, star]
-    rotate_all(parts, rot)
-    for o in parts:
-        o.location = (o.location.x + x, o.location.y + y, o.location.z + z)
-    return parts
-
-
-def coin_heap(seed, n, radius, height, z0=0.0, cx=0.0, cy=0.0):
-    """Горка монет: монеты лежат на поверхности конуса под случайными углами."""
-    rnd = random.Random(seed)
-    parts = []
-    mat = gold_mat(f"HeapGold{seed}")
-    for i in range(n):
-        a = rnd.uniform(0, 6.28)
-        d = radius * math.sqrt(rnd.random())
-        z = z0 + height * (1 - d / radius) + rnd.uniform(-0.02, 0.05)
-        rot = (rnd.uniform(-0.6, 0.6), rnd.uniform(-0.6, 0.6), rnd.uniform(0, 6.28))
-        parts += coin_obj(f"Heap{seed}_{i}", cx + d * math.cos(a), cy + d * math.sin(a), z, rot, r=0.3, mat=mat)
-    return parts
-
-
-def coins_stack():
-    parts = []
-    mat = gold_mat()
-    rnd = random.Random(2)
-    for si, (x, y, n) in enumerate(((-0.35, 0.1, 7), (0.32, -0.05, 5), (0.0, -0.45, 3))):
-        for k in range(n):
-            parts += coin_obj(f"S{si}_{k}", x + rnd.uniform(-0.03, 0.03), y + rnd.uniform(-0.03, 0.03), k * 0.095,
-                              (0, 0, rnd.uniform(0, 6.28)), mat=mat)
-    parts += coin_obj("Lean", 0.55, 0.45, 0.25, (math.radians(70), 0, math.radians(-30)), mat=mat)
-    return rotate_all(parts, (math.radians(10), 0, 0))
-
-
-def coins_pile():
-    parts = coin_heap(4, 46, 1.0, 0.75)
-    return rotate_all(parts, (math.radians(8), 0, 0))
-
-
-def coins_bag():
-    cloth = material("Sack", [(0.0, (0.62, 0.42, 0.22)), (1.0, (0.86, 0.66, 0.40))], coord="z", lo=0.0, hi=1.8,
-                     rough=0.85, bump=0.35, bump_scale=40, bump_detail=6)
-    bag = lathe("Bag", [(0.0, 0.0), (0.55, 0.02), (0.85, 0.25), (0.95, 0.6), (0.85, 1.0), (0.45, 1.3), (0.28, 1.42),
-                        (0.42, 1.62), (0.5, 1.78), (0.3, 1.82), (0.0, 1.75)], 64)
-    def wrinkle(co, n):
-        a = math.atan2(co.y, co.x)
-        return 0.035 * math.sin(a * 9 + co.z * 3) * (1 if co.z > 1.25 else 0.3)
-    push_normals(bag, wrinkle)
-    subdivide(bag, 1)
-    smooth(bag)
-    assign(bag, cloth)
-    rope = torus("Rope", 0.31, 0.06, 48, 12)
-    rope.location = (0, 0, 1.42)
-    apply_transform(rope)
-    assign(smooth(rope), material("RopeMat", [(0.0, (0.55, 0.20, 0.12)), (1.0, (0.80, 0.30, 0.18))], coord="z",
-                                  lo=1.35, hi=1.5, rough=0.6, bump=0.4, bump_scale=60))
-    # знак монеты на мешке
-    emblem = coin_obj("Emblem", 0, -0.93, 0.62, (math.radians(90), 0, 0), r=0.32)
-    parts = [bag, rope] + emblem
-    parts += coin_heap(7, 14, 0.7, 0.15, 0.0, 0.85, -0.55)
-    return rotate_all(parts, (0, 0, math.radians(-15)))
-
-
 GLOW = False
-
 
 def chest_obj(kind="bronze", is_open=False, filled="cards"):
     """Сундук: деревянный корпус, полукруглая крышка, металлические полосы и замок."""
@@ -3220,24 +3133,9 @@ def chest_obj(kind="bronze", is_open=False, filled="cards"):
         rotate_all(lid_parts, (math.radians(-105), 0, 0), pivot=(0, d / 2, h))
         # содержимое и свечение
         if filled == "coins":
-            # золотая подложка под монетами: в щелях видно золото, а не темное дно
-            fill = sphere("CoinFill", 1.0, 32, 16)
-            fill.scale = (0.74, 0.44, 0.24)
-            fill.location = (0, 0, h - 0.06)
-            apply_transform(fill)
-            assign(smooth(fill, 60), gold_mat("CoinFillGold"))
-            parts.append(fill)
-            parts += coin_heap(11, 60, 0.75, 0.38, h - 0.05)
-        else:
-            colors = [(0.95, 0.35, 0.30), (0.35, 0.65, 0.95), (0.45, 0.85, 0.45), (1.0, 0.80, 0.25), (0.75, 0.45, 0.95)]
-            for i in range(5):
-                c = box_mesh(f"Card{i}", 0.42, 0.04, 0.58, 0.0)
-                bevel(c, 0.02, 2, 30)
-                c.rotation_euler = (math.radians(-15 + 8 * i), math.radians(-30 + 15 * i), math.radians(-20 + 10 * i))
-                c.location = (-0.5 + 0.25 * i, 0.0, h - 0.1)
-                apply_transform(c)
-                assign(c, flat(f"CardMat{i}", colors[i], rough=0.35, coat=0.5))
-                parts.append(c)
+            pass  # монеты насыпает coins.py физикой
+        elif filled == "cards":
+            parts += chest_cards(h)
     if is_open and GLOW:
         glow = sphere("Glow", 0.5, 24, 12)
         glow.scale = (1.3, 0.75, 0.6)
@@ -3265,25 +3163,62 @@ def chest_obj(kind="bronze", is_open=False, filled="cards"):
     return rotate_all(parts, (0, 0, math.radians(-18)))
 
 
-def coins_chest():
-    return chest_obj("coins", is_open=True, filled="coins")
+# цвета карт альбома по редкости, как в игре (CardStyle): светлый верх, насыщенный низ
+CARD_COLORS = [((0.99, 0.93, 0.80), (0.90, 0.76, 0.56)), ((0.86, 0.96, 0.80), (0.52, 0.78, 0.48)),
+               ((0.82, 0.92, 1.0), (0.42, 0.64, 0.94)), ((0.92, 0.84, 1.0), (0.62, 0.42, 0.90)),
+               ((1.0, 0.95, 0.70), (1.0, 0.70, 0.15))]
 
 
-def coins_mountain():
-    parts = coin_heap(21, 150, 1.45, 1.5)
-    rnd = random.Random(5)
-    gems = [(0.85, 0.12, 0.22), (0.15, 0.55, 0.95), (0.20, 0.80, 0.35), (0.70, 0.30, 0.95)]
-    for i in range(9):
-        g = sphere(f"Gem{i}", 0.16, 6, 4)
-        a = rnd.uniform(0, 6.28)
-        dd = rnd.uniform(0.2, 0.9)
-        g.location = (dd * math.cos(a), dd * math.sin(a), 1.5 * (1 - dd / 1.45) + 0.1)
-        g.rotation_euler = (rnd.uniform(0, 1), rnd.uniform(0, 1), rnd.uniform(0, 3))
-        apply_transform(g)
-        assign(g, material(f"GemMat{i}", [(0.0, tuple(c * 0.6 for c in gems[i % 4])), (1.0, gems[i % 4])],
-                           coord="nz", lo=-1, hi=1, rough=0.05, coat=1.0, transmission=0.6))
-        parts.append(g)
-    return rotate_all(parts, (math.radians(8), 0, 0))
+def album_card(name, light, dark, star_mat):
+    """Карта: скругленная рамка цвета редкости, светлая вставка под картинку и звезда."""
+    cw, ct, ch = 0.5, 0.024, 0.68
+    body = box_mesh(name, cw, ct, ch, 0.0)
+    bevel(body, 0.035, 3, 30)
+    assign(smooth(body, 30), material(name + "Mat", [(0.0, dark), (1.0, light)], coord="z", lo=0.0, hi=ch,
+                                      rough=0.35, coat=0.6))
+    panel = box_mesh(name + "Panel", cw - 0.1, 0.006, ch * 0.62, ch * 0.1)
+    panel.location = (0, -ct / 2 - 0.002, 0)
+    apply_transform(panel)
+    bevel(panel, 0.02, 2, 30)
+    assign(smooth(panel, 30), flat(name + "PanelMat", (0.99, 0.97, 0.92), rough=0.5))
+    pts = []
+    for k in range(10):
+        a = math.pi / 2 + k * math.pi / 5
+        rr = 0.085 if k % 2 == 0 else 0.036
+        pts.append((rr * math.cos(a), rr * math.sin(a)))
+    star = profile_prism(name + "Star", pts, 0.014)
+    star.rotation_euler = (math.radians(90), 0, 0)
+    star.location = (0, -ct / 2 - 0.006, ch * 0.41)
+    apply_transform(star)
+    bevel(star, 0.004, 1, 30)
+    assign(star, star_mat)
+    tag = box_mesh(name + "Tag", cw - 0.16, 0.006, 0.05, ch * 0.8)
+    tag.location = (0, -ct / 2 - 0.002, 0)
+    apply_transform(tag)
+    bevel(tag, 0.02, 2, 30)
+    assign(tag, flat(name + "TagMat", dark, rough=0.4))
+    return [body, panel, star, tag]
+
+
+def chest_cards(h):
+    """Пять карт веером в открытом сундуке. Каждая карта в своем слое по глубине: не пересекаются."""
+    star_mat = material("CardStarGold", [(0.0, (0.86, 0.55, 0.10)), (1.0, (1.0, 0.86, 0.35))], coord="nz", lo=-1,
+                        hi=1, rough=0.25, metal=1.0)
+    out = []
+    for i in range(5):
+        light, dark = CARD_COLORS[i]
+        card = album_card(f"Card{i}", light, dark, star_mat)
+        # веер как карты в руке: общий центр ниже кромки, каждая следующая карта ближе к камере
+        fan = math.radians((i - 2) * 17)
+        pivot = Vector((0, 0.14 - i * 0.05, h - 0.42))
+        m = (Matrix.Translation(pivot)
+             @ Euler((math.radians(-10), 0, 0)).to_matrix().to_4x4()
+             @ Euler((0, fan, 0)).to_matrix().to_4x4()
+             @ Matrix.Translation((0, 0, 0.3)))
+        for o in card:
+            o.matrix_world = m @ o.matrix_world
+        out += card
+    return out
 
 
 MODELS = {
@@ -3320,11 +3255,6 @@ MODELS = {
     "olives": olives,
     "focaccia": focaccia,
     "gen_oven": gen_oven,
-    "coins_stack": coins_stack,
-    "coins_pile": coins_pile,
-    "coins_bag": coins_bag,
-    "coins_chest": coins_chest,
-    "coins_mountain": coins_mountain,
     "chest_bronze": lambda: chest_obj("bronze"),
     "chest_silver": lambda: chest_obj("silver"),
     "chest_gold": lambda: chest_obj("gold"),
@@ -3378,13 +3308,12 @@ MODELS = {
 }
 
 
-# MARK: - Рендер
-
 def render(sprite_id, out_dir, size=360, spin_frames=0, samples=96):
     scene = reset_scene(samples)
     objs = MODELS[sprite_id]()
     bpy.context.view_layer.update()
-    meshes = [o for o in bpy.data.objects if o.type == "MESH"]
+    # объекты с меткой no_bounds (ловец тени) не влияют на кадр
+    meshes = [o for o in bpy.data.objects if o.type == "MESH" and not o.get("no_bounds")]
     lo, hi, pts = R.bounds(meshes)
     center = (lo + hi) / 2
     pivot = bpy.data.objects.new("Pivot", None)

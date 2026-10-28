@@ -31,8 +31,45 @@ def stand(im):
     return out
 
 
-def finish(path_in, path_out, size, boost=True, standing=False):
+def clean_shadow(im):
+    """Тень от ловца тени: убираем слабую дымку по всему кадру, контактную тень оставляем мягче."""
+    import numpy as np
+    a = np.array(im).astype(np.float32)
+    alpha = a[..., 3]
+    shadow = (alpha < 250) & (a[..., :3].max(-1) < 40)
+    t = np.clip((alpha - 30) / 50, 0, 1)
+    fade = t * t * (3 - 2 * t)
+    # к краям кадра тень плавно сходит на нет, иначе виден обрез рамки
+    h, w = alpha.shape
+    yy, xx = np.mgrid[0:h, 0:w]
+    edge = np.minimum(np.minimum(xx, w - 1 - xx), np.minimum(yy, h - 1 - yy)) / (0.14 * min(w, h))
+    edge = np.clip(edge, 0, 1)
+    fade = fade * edge * edge * (3 - 2 * edge)
+    alpha[shadow] = alpha[shadow] * fade[shadow] * 0.85
+    a[..., 3] = alpha
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
+
+
+def fit(im, size, pad=0.04):
+    """Объект по центру кадра с небольшим полем (для иконок)."""
+    box = im.getchannel("A").point(lambda v: 255 if v > 12 else 0).getbbox()
+    if not box:
+        return im
+    obj = im.crop(box)
+    side = round(im.width * (1 - 2 * pad))
+    k = min(side / obj.width, side / obj.height)
+    obj = obj.resize((max(1, round(obj.width * k)), max(1, round(obj.height * k))), Image.LANCZOS)
+    out = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    out.alpha_composite(obj, ((im.width - obj.width) // 2, (im.height - obj.height) // 2))
+    return out
+
+
+def finish(path_in, path_out, size, boost=True, standing=False, shadow=False, centered=False):
     im = Image.open(path_in).convert("RGBA")
+    if shadow:
+        im = clean_shadow(im)
+    if centered:
+        im = fit(im, size)
     if standing:
         im = stand(im)
     if boost:
@@ -78,6 +115,10 @@ def main():
             finish(f, os.path.join(DST, name), (600, int(600 * h / w)), boost=False)
         elif name.startswith("dish_") or name.startswith("chest_"):
             finish(f, os.path.join(DST, name), (400, 400))
+        elif name == "coin_icon.png":
+            finish(f, os.path.join(DST, name), (128, 128), centered=True)
+        elif name.startswith("coins_"):
+            finish(f, os.path.join(DST, name), (288, 288), standing=True, shadow=True)
         else:
             finish(f, os.path.join(DST, name), (288, 288), standing=True)
     for f in glob.glob(os.path.join(src, "*_spin", "*.png")):

@@ -86,6 +86,7 @@
 
 - продукты и блюда: `python tools/render/models.py art/renders --spin` (выборочно: `--only bun,dish_burger`)
 - покупатели: `python tools/render/customers.py art/customers`
+- монеты, паки монет и иконка монеты: `python tools/render/coins.py art/coins` (кучи насыпаются физикой Blender: монеты падают партиями на невидимый холм и не проходят друг сквозь друга, под кучей мягкая контактная тень)
 - прилавок: `python tools/render/environment.py counter art/renders`
 - полки: `python tools/render/environment.py shelf art/renders` - печатает разметку (края, пол, верх), ее значения стоят в `GameScene.swift`
 - фон: `python tools/render/environment.py background "<папка Models/GLB format>" art/renders` (с `--preview` - быстрый черновик)
