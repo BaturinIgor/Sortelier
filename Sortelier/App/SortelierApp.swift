@@ -11,6 +11,7 @@ struct SortelierApp: App {
             RootView()
                 .environmentObject(progress)
                 .environmentObject(lang)
+                .environment(\.layoutDirection, lang.direction)
                 .statusBarHidden()
                 .onAppear {
                     Analytics.start()
@@ -50,7 +51,7 @@ struct RootView: View {
                     Audio.shared.setTrack(Biomes.music(PlayerProgress.shared.mapBiome))
                 })
                     .environmentObject(PlayerProgress.shared)
-                    .environmentObject(Lang.shared)
+                    .environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
             }
     }
 }

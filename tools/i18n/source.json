@@ -1,0 +1,1586 @@
+{
+ "ach.boosters": {
+  "en": "Gadget fan",
+  "ru": "Любитель хитростей"
+ },
+ "ach.cards": {
+  "en": "Collector",
+  "ru": "Коллекционер"
+ },
+ "ach.chef": {
+  "en": "Head chef",
+  "ru": "Шеф-повар"
+ },
+ "ach.chests": {
+  "en": "Treasure keeper",
+  "ru": "Хранитель сундуков"
+ },
+ "ach.combo": {
+  "en": "Lightning hands",
+  "ru": "Молниеносные руки"
+ },
+ "ach.cook": {
+  "en": "Master cook",
+  "ru": "Мастер кухни"
+ },
+ "ach.daily": {
+  "en": "Daily challenger",
+  "ru": "Испытатель"
+ },
+ "ach.host": {
+  "en": "Friendly host",
+  "ru": "Радушный хозяин"
+ },
+ "ach.merge": {
+  "en": "Pantry keeper",
+  "ru": "Хозяин кладовой"
+ },
+ "ach.rare": {
+  "en": "Gold hunter",
+  "ru": "Охотник за золотом"
+ },
+ "ach.series": {
+  "en": "Flawless",
+  "ru": "Без промаха"
+ },
+ "ach.stars": {
+  "en": "Top marks",
+  "ru": "Отличник"
+ },
+ "ach.streak": {
+  "en": "Regular",
+  "ru": "Завсегдатай"
+ },
+ "ach.subtitle": {
+  "en": "Every level of an achievement gives a reward",
+  "ru": "Каждая ступень достижения дает награду"
+ },
+ "ach.tips": {
+  "en": "Generous tips",
+  "ru": "Щедрые чаевые"
+ },
+ "ach.title": {
+  "en": "Achievements",
+  "ru": "Достижения"
+ },
+ "ach.weekly": {
+  "en": "Weekly hero",
+  "ru": "Герой недели"
+ },
+ "ads.left": {
+  "en": "Ads left today: {0} of {1}",
+  "ru": "Рекламы на сегодня: {0} из {1}"
+ },
+ "ads.limit": {
+  "en": "No more ads today",
+  "ru": "Реклама на сегодня закончилась"
+ },
+ "bg.autumn": {
+  "en": "Autumn kitchen",
+  "ru": "Осенняя кухня"
+ },
+ "bg.bbq": {
+  "en": "Brick BBQ",
+  "ru": "Кирпичное барбекю"
+ },
+ "bg.diner": {
+  "en": "Sunny Diner",
+  "ru": "Солнечная закусочная"
+ },
+ "bg.equip": {
+  "en": "Select",
+  "ru": "Выбрать"
+ },
+ "bg.equipped": {
+  "en": "Selected",
+  "ru": "Выбрана"
+ },
+ "bg.gourmet": {
+  "en": "Gourmet hall",
+  "ru": "Зал гурмана"
+ },
+ "bg.italy": {
+  "en": "Italian kitchen",
+  "ru": "Итальянская кухня"
+ },
+ "bg.japan": {
+  "en": "Japanese kitchen",
+  "ru": "Японская кухня"
+ },
+ "bg.kitchen": {
+  "en": "Mint kitchen",
+  "ru": "Мятная кухня"
+ },
+ "bg.lavender": {
+  "en": "Lavender kitchen",
+  "ru": "Лавандовая кухня"
+ },
+ "bg.night": {
+  "en": "Night kitchen",
+  "ru": "Ночная кухня"
+ },
+ "bg.peach": {
+  "en": "Peach kitchen",
+  "ru": "Персиковая кухня"
+ },
+ "bg.source.event": {
+  "en": "Event prize",
+  "ru": "Приз ивента"
+ },
+ "bg.source.free": {
+  "en": "Free",
+  "ru": "Бесплатно"
+ },
+ "bg.source.gourmet": {
+  "en": "Gift from a Gourmet",
+  "ru": "Подарок Гурмана"
+ },
+ "bg.source.italy": {
+  "en": "Opens with the Italian Kitchen",
+  "ru": "Откроется с итальянской кухней"
+ },
+ "bg.source.japan": {
+  "en": "Opens with the Japanese Kitchen",
+  "ru": "Откроется с японской кухней"
+ },
+ "bg.source.shop": {
+  "en": "In the shop",
+  "ru": "В магазине"
+ },
+ "bg.source.welcome": {
+  "en": "Welcome tasks prize",
+  "ru": "Приз заданий новичка"
+ },
+ "bg.subtitle": {
+  "en": "Background for levels and the map",
+  "ru": "Фон для уровней и карты"
+ },
+ "bg.sweets": {
+  "en": "Candy kitchen",
+  "ru": "Конфетная кухня"
+ },
+ "bg.title": {
+  "en": "Kitchens",
+  "ru": "Кухни"
+ },
+ "bg.winter": {
+  "en": "Winter kitchen",
+  "ru": "Зимняя кухня"
+ },
+ "biome.1.name": {
+  "en": "American Diner",
+  "ru": "Американская кухня"
+ },
+ "biome.1.subtitle": {
+  "en": "Burgers, hot dogs and pancakes",
+  "ru": "Бургеры, хот-доги и панкейки"
+ },
+ "biome.2.intro": {
+  "en": "New recipes, rice that turns into onigiri, frozen products and picky Gourmets who tip generously.",
+  "ru": "Новые рецепты, рис, из которого лепят онигири, замороженные продукты и привередливые Гурманы с щедрыми чаевыми."
+ },
+ "biome.2.name": {
+  "en": "Japanese Kitchen",
+  "ru": "Японская кухня"
+ },
+ "biome.2.subtitle": {
+  "en": "Sushi, ramen and onigiri",
+  "ru": "Суши, рамен и онигири"
+ },
+ "biome.3.intro": {
+  "en": "Knead dough from flour, squeeze grape juice and open locked shelves. Buon appetito!",
+  "ru": "Замешивай тесто из муки, выжимай виноградный сок и открывай запертые полки. Приятного аппетита!"
+ },
+ "biome.3.name": {
+  "en": "Italian Kitchen",
+  "ru": "Итальянская кухня"
+ },
+ "biome.3.subtitle": {
+  "en": "Pizza, pasta and gelato",
+  "ru": "Пицца, паста и джелато"
+ },
+ "biome.4.name": {
+  "en": "Mexican Kitchen",
+  "ru": "Мексиканская кухня"
+ },
+ "biome.5.name": {
+  "en": "French Bakery",
+  "ru": "Французская пекарня"
+ },
+ "biome.6.name": {
+  "en": "Chinese Kitchen",
+  "ru": "Китайская кухня"
+ },
+ "biome.gate.buy": {
+  "en": "Open for",
+  "ru": "Открыть за"
+ },
+ "biome.gate.hint": {
+  "en": "{0} more stars needed. Replay levels for 3 stars or open it right now.",
+  "ru": "Нужно еще {0} звезд. Переиграй уровни на 3 звезды или открой прямо сейчас."
+ },
+ "biome.gate.open": {
+  "en": "Open the kitchen",
+  "ru": "Открыть кухню"
+ },
+ "biome.gate.stars": {
+  "en": "Stars: {0}/{1}",
+  "ru": "Звезды: {0} из {1}"
+ },
+ "biome.locked": {
+  "en": "Opens after the {0}",
+  "ru": "Откроется после кухни: {0}"
+ },
+ "biome.opened": {
+  "en": "{0} is open!",
+  "ru": "{0} открыта!"
+ },
+ "biome.opened.bg": {
+  "en": "Gift: the \"{0}\" background",
+  "ru": "Подарок: фон \"{0}\""
+ },
+ "biome.soon": {
+  "en": "Coming soon",
+  "ru": "Скоро"
+ },
+ "book.dishes": {
+  "en": "Dishes",
+  "ru": "Блюда"
+ },
+ "book.items": {
+  "en": "Products",
+  "ru": "Продукты"
+ },
+ "book.kind.chain": {
+  "en": "Made from three",
+  "ru": "Из трех"
+ },
+ "book.kind.ingredient": {
+  "en": "Ingredient",
+  "ru": "Ингредиент"
+ },
+ "book.kind.raw": {
+  "en": "Raw product",
+  "ru": "Сырье"
+ },
+ "book.kind.snack": {
+  "en": "Ready to serve",
+  "ru": "Готовый продукт"
+ },
+ "book.progress": {
+  "en": "{0}: {1} of {2}",
+  "ru": "{0}: {1} из {2}"
+ },
+ "book.rare": {
+  "en": "Rare",
+  "ru": "Редкие"
+ },
+ "book.rare.hint": {
+  "en": "Rare golden cards come from challenges, the streak, achievements and events.",
+  "ru": "Редкие золотые карточки дают испытания, стрик, достижения и ивенты."
+ },
+ "book.rare.name": {
+  "en": "Golden {0}",
+  "ru": "{0} в золоте"
+ },
+ "book.title": {
+  "en": "Cookbook",
+  "ru": "Кулинарная книга"
+ },
+ "booster.buy": {
+  "en": "Buy for",
+  "ru": "Купить за"
+ },
+ "booster.cant": {
+  "en": "Can't use it right now",
+  "ru": "Сейчас не получится"
+ },
+ "booster.hint": {
+  "en": "Hint",
+  "ru": "Подсказка"
+ },
+ "booster.hint.text": {
+  "en": "Shows a good move",
+  "ru": "Подсвечивает выгодный ход"
+ },
+ "booster.pause": {
+  "en": "Patience pause",
+  "ru": "Пауза терпения"
+ },
+ "booster.pause.text": {
+  "en": "Customers don't lose patience for the next 5 moves",
+  "ru": "Покупатели не теряют терпение следующие 5 ходов"
+ },
+ "booster.shelf": {
+  "en": "Extra shelf",
+  "ru": "Доп. полка"
+ },
+ "booster.shelf.text": {
+  "en": "Adds an empty shelf until the end of the level",
+  "ru": "Добавляет пустую полку до конца уровня"
+ },
+ "booster.shuffle": {
+  "en": "Shuffle",
+  "ru": "Перемешать"
+ },
+ "booster.shuffle.text": {
+  "en": "Shuffles the products in the front rows",
+  "ru": "Перемешивает продукты в передних рядах"
+ },
+ "booster.undo": {
+  "en": "Undo",
+  "ru": "Отмена хода"
+ },
+ "booster.undo.text": {
+  "en": "Takes back your last move",
+  "ru": "Отменяет последний ход"
+ },
+ "challenge.daily.card": {
+  "en": "+ chance of a rare card",
+  "ru": "+ шанс редкой карточки"
+ },
+ "challenge.daily.text": {
+  "en": "One level a day, the same for every player.",
+  "ru": "Один уровень в день, одинаковый у всех игроков."
+ },
+ "challenge.daily.title": {
+  "en": "Daily challenge",
+  "ru": "Испытание дня"
+ },
+ "challenge.done": {
+  "en": "Done! Come back later",
+  "ru": "Готово! Возвращайся позже"
+ },
+ "challenge.play": {
+  "en": "Play",
+  "ru": "Играть"
+ },
+ "challenge.subtitle": {
+  "en": "Don't cost lives",
+  "ru": "Жизни не тратятся"
+ },
+ "challenge.title": {
+  "en": "Challenges",
+  "ru": "Испытания"
+ },
+ "challenge.weekly.level": {
+  "en": "Weekly challenge {0}/3",
+  "ru": "Испытание недели {0}/3"
+ },
+ "challenge.weekly.play": {
+  "en": "Play level {0} of 3",
+  "ru": "Играть уровень {0} из 3"
+ },
+ "challenge.weekly.title": {
+  "en": "Weekly challenge",
+  "ru": "Испытание недели"
+ },
+ "chest.claimed": {
+  "en": "Already opened",
+  "ru": "Уже открыт"
+ },
+ "chest.gold.title": {
+  "en": "Golden Kitchen: {0} stars",
+  "ru": "Золотая кухня: {0} звезд"
+ },
+ "chest.goldshelves": {
+  "en": "Golden shelves forever",
+  "ru": "Золотые полки навсегда"
+ },
+ "chest.need": {
+  "en": "{0} more stars to open",
+  "ru": "Нужно еще {0} звезд"
+ },
+ "chest.open": {
+  "en": "Open",
+  "ru": "Открыть"
+ },
+ "chest.title": {
+  "en": "Chest for {0} stars",
+  "ru": "Сундук за {0} звезд"
+ },
+ "chest.unlimited": {
+  "en": "Unlimited lives for {0} h",
+  "ru": "Жизни без ограничений на {0} ч"
+ },
+ "common.cancel": {
+  "en": "Cancel",
+  "ru": "Отмена"
+ },
+ "common.claim": {
+  "en": "Claim",
+  "ru": "Забрать"
+ },
+ "common.nocoins": {
+  "en": "Not enough coins",
+  "ru": "Не хватает монет"
+ },
+ "common.ok": {
+  "en": "OK",
+  "ru": "Понятно"
+ },
+ "common.received": {
+  "en": "Reward received",
+  "ru": "Награда получена"
+ },
+ "dish.bruschetta": {
+  "en": "Bruschetta",
+  "ru": "Брускетта"
+ },
+ "dish.burger": {
+  "en": "Burger",
+  "ru": "Бургер"
+ },
+ "dish.caprese": {
+  "en": "Caprese",
+  "ru": "Капрезе"
+ },
+ "dish.cheeseburger": {
+  "en": "Cheeseburger",
+  "ru": "Чизбургер"
+ },
+ "dish.hotdog": {
+  "en": "Hot dog",
+  "ru": "Хот-дог"
+ },
+ "dish.juice": {
+  "en": "Grape juice",
+  "ru": "Виноградный сок"
+ },
+ "dish.maki": {
+  "en": "Maki rolls",
+  "ru": "Маки-роллы"
+ },
+ "dish.onigiri": {
+  "en": "Onigiri",
+  "ru": "Онигири"
+ },
+ "dish.pancakes": {
+  "en": "Pancakes",
+  "ru": "Панкейки"
+ },
+ "dish.pasta": {
+  "en": "Pasta al pomodoro",
+  "ru": "Паста с томатами"
+ },
+ "dish.pizza": {
+  "en": "Pizza Margherita",
+  "ru": "Пицца Маргарита"
+ },
+ "dish.ramen": {
+  "en": "Ramen",
+  "ru": "Рамен"
+ },
+ "dish.sandwich": {
+  "en": "Sandwich",
+  "ru": "Сэндвич"
+ },
+ "dish.sub": {
+  "en": "Sub",
+  "ru": "Саб"
+ },
+ "dish.sushi": {
+  "en": "Sushi",
+  "ru": "Суши"
+ },
+ "dish.tamago": {
+  "en": "Tamagoyaki",
+  "ru": "Тамагояки"
+ },
+ "event.double.bonus": {
+  "en": "Double weekend: +{0}",
+  "ru": "Двойные выходные: +{0}"
+ },
+ "event.double.claim": {
+  "en": "Take an hour of lives",
+  "ru": "Забрать час жизней"
+ },
+ "event.double.claimed": {
+  "en": "Today's bonus is taken",
+  "ru": "Сегодняшний бонус получен"
+ },
+ "event.double.name": {
+  "en": "Double weekend",
+  "ru": "Двойные выходные"
+ },
+ "event.double.text": {
+  "en": "Coins for won levels are doubled. Plus an hour of unlimited lives every day.",
+  "ru": "Монеты за победы удваиваются. И каждый день - час жизней без ограничений."
+ },
+ "event.double.title": {
+  "en": "Double weekend",
+  "ru": "Двойные выходные"
+ },
+ "event.gain.hunt": {
+  "en": "Hunt: +{0} golden {1} ({2})",
+  "ru": "Охота: +{0} ({1}), всего {2}"
+ },
+ "event.gain.race": {
+  "en": "Chef race: {0}/{1} wins",
+  "ru": "Гонка поваров: {0} из {1} побед"
+ },
+ "event.gain.season": {
+  "en": "{0}: +{1} stamps ({2})",
+  "ru": "{0}: +{1} печати ({2})"
+ },
+ "event.hunt.count": {
+  "en": "Found: {0}",
+  "ru": "Найдено: {0}"
+ },
+ "event.hunt.name": {
+  "en": "Ingredient hunt",
+  "ru": "Охота за ингредиентом"
+ },
+ "event.hunt.text": {
+  "en": "Every win brings golden {0}: one per star, plus one more for challenges.",
+  "ru": "Каждая победа приносит золотой продукт ({0}): по одному за звезду и еще один за испытания."
+ },
+ "event.hunt.title": {
+  "en": "Hunt for the golden {0}",
+  "ru": "Охота: золотой продукт - {0}"
+ },
+ "event.level": {
+  "en": "{0}: level {1}",
+  "ru": "{0}: уровень {1}"
+ },
+ "event.levels": {
+  "en": "Event levels: {0}/{1}",
+  "ru": "Уровни ивента: {0} из {1}"
+ },
+ "event.levels.done": {
+  "en": "All event levels done!",
+  "ru": "Все уровни ивента пройдены!"
+ },
+ "event.pass": {
+  "en": "Event pass: the golden lane",
+  "ru": "Пропуск ивента: золотая ветка"
+ },
+ "event.pass.active": {
+  "en": "The golden track is open",
+  "ru": "Золотая ветка открыта"
+ },
+ "event.pass.text": {
+  "en": "Unlocks the golden reward track of this event",
+  "ru": "Открывает золотую ветку наград этого ивента"
+ },
+ "event.play": {
+  "en": "Play event level {0}",
+  "ru": "Играть уровень ивента {0}"
+ },
+ "event.race.chef": {
+  "en": "Chef {0}",
+  "ru": "Шеф {0}"
+ },
+ "event.race.join": {
+  "en": "Join the race",
+  "ru": "Участвовать"
+ },
+ "event.race.name": {
+  "en": "Chef race",
+  "ru": "Гонка поваров"
+ },
+ "event.race.place": {
+  "en": "You finished in place {0}!",
+  "ru": "Ты финишировал {0}-м!"
+ },
+ "event.race.text": {
+  "en": "Race four chefs: the first to win {0} levels takes the top prize. Any level counts.",
+  "ru": "Соревнуйся с четырьмя поварами: кто первым выиграет {0} уровней, заберет главный приз. Подходит любой уровень."
+ },
+ "event.race.title": {
+  "en": "Chef race",
+  "ru": "Гонка поваров"
+ },
+ "event.race.you": {
+  "en": "You",
+  "ru": "Ты"
+ },
+ "event.season.autumn": {
+  "en": "Autumn Fair",
+  "ru": "Осенняя ярмарка"
+ },
+ "event.season.bbq": {
+  "en": "Summer BBQ",
+  "ru": "Летнее барбекю"
+ },
+ "event.season.name": {
+  "en": "Big event",
+  "ru": "Большой ивент"
+ },
+ "event.season.sweets": {
+  "en": "Sweet Week",
+  "ru": "Сладкая неделя"
+ },
+ "event.season.text": {
+  "en": "Win any level to earn chef stamps",
+  "ru": "Побеждай на любых уровнях и собирай печати шефа"
+ },
+ "event.season.winter": {
+  "en": "Winter Holidays",
+  "ru": "Зимние праздники"
+ },
+ "event.soon": {
+  "en": "Coming soon",
+  "ru": "Скоро"
+ },
+ "event.stamps": {
+  "en": "Chef stamps: {0}",
+  "ru": "Печати шефа: {0}"
+ },
+ "event.subtitle": {
+  "en": "Several at once, each with its own timer and prizes",
+  "ru": "Идут сразу несколько, у каждого свой срок и призы"
+ },
+ "event.title": {
+  "en": "Events",
+  "ru": "Ивенты"
+ },
+ "game.backrow": {
+  "en": "Clear the front row first",
+  "ru": "Сначала освободи передний ряд"
+ },
+ "game.combo": {
+  "en": "Combo ×{0}!",
+  "ru": "Серия ×{0}!"
+ },
+ "game.ice": {
+  "en": "Frozen: serve more customers to thaw it",
+  "ru": "Во льду: обслужи еще покупателей, и он растает"
+ },
+ "game.lock": {
+  "en": "Locked: serve more customers to open it",
+  "ru": "Заперто: обслужи еще покупателей, и полка откроется"
+ },
+ "game.pause": {
+  "en": "Patience paused: {0}",
+  "ru": "Терпение на паузе: {0}"
+ },
+ "intro.basics.text": {
+  "en": "Drag products between shelves. Three of the same on one shelf go to the customer who ordered them.",
+  "ru": "Перетаскивай продукты между полками. Три одинаковых на одной полке уходят покупателю, который их заказал."
+ },
+ "intro.basics.title": {
+  "en": "Serve the customers",
+  "ru": "Обслужи покупателей"
+ },
+ "intro.conflict.text": {
+  "en": "Sometimes an ingredient is needed both for a set of three and for a recipe. Decide what to cook first.",
+  "ru": "Иногда ингредиент нужен и для тройки, и для рецепта. Решай, что готовить первым."
+ },
+ "intro.conflict.title": {
+  "en": "Choose wisely",
+  "ru": "Выбирай с умом"
+ },
+ "intro.dough.text": {
+  "en": "Three bags of flour on one shelf turn into dough right away. Dough, tomato and mozzarella make a pizza.",
+  "ru": "Три мешка муки на одной полке сразу превращаются в тесто. Тесто, томат и моцарелла - это пицца."
+ },
+ "intro.dough.title": {
+  "en": "Knead the dough",
+  "ru": "Замеси тесто"
+ },
+ "intro.go": {
+  "en": "Let's cook!",
+  "ru": "Готовим!"
+ },
+ "intro.gourmet.text": {
+  "en": "A Gourmet in a top hat comes in the middle of the level and tips five times more while patient. Sometimes he gives a special kitchen background.",
+  "ru": "Гурман в цилиндре приходит посреди уровня и дает в пять раз больше чаевых, пока не потерял терпение. Иногда он дарит особый фон кухни."
+ },
+ "intro.gourmet.title": {
+  "en": "Gourmet",
+  "ru": "Гурман"
+ },
+ "intro.hidden.text": {
+  "en": "Products with a question mark reveal themselves when their row moves to the front.",
+  "ru": "Продукт со знаком вопроса откроется, когда его ряд выдвинется вперед."
+ },
+ "intro.hidden.title": {
+  "en": "Mystery products",
+  "ru": "Загадочные продукты"
+ },
+ "intro.ice.text": {
+  "en": "A product in ice can't be moved. The number shows how many customers to serve before it thaws. You can still complete a set right on top of it.",
+  "ru": "Продукт во льду нельзя переносить. Цифра показывает, скольких покупателей надо обслужить, чтобы лед растаял. Собрать набор прямо на нем можно."
+ },
+ "intro.ice.title": {
+  "en": "Frozen products",
+  "ru": "Замороженные продукты"
+ },
+ "intro.juice.text": {
+  "en": "Three bunches of grapes on one shelf make juice for a customer who ordered it.",
+  "ru": "Три грозди винограда на одной полке - это сок для покупателя, который его заказал."
+ },
+ "intro.juice.title": {
+  "en": "Grape juice",
+  "ru": "Виноградный сок"
+ },
+ "intro.lock.text": {
+  "en": "You can't take from or put on a locked shelf. The number on the lock shows how many customers to serve to open it.",
+  "ru": "С запертой полки нельзя брать и на нее нельзя класть. Цифра на замке - сколько покупателей обслужить, чтобы она открылась."
+ },
+ "intro.lock.title": {
+  "en": "Locked shelf",
+  "ru": "Запертая полка"
+ },
+ "intro.onigiri.text": {
+  "en": "Three rice on one shelf become onigiri - but only if someone ordered it. Rice is also needed for sushi and maki, so plan ahead.",
+  "ru": "Три риса на одной полке превращаются в онигири, если его кто-то заказал. Рис нужен и для суши с маки, так что думай наперед."
+ },
+ "intro.onigiri.title": {
+  "en": "Onigiri",
+  "ru": "Онигири"
+ },
+ "intro.patience.text": {
+  "en": "Each customer at the counter has a patience bar that drops with every move. Serve them quickly to get a tip on top of the order price: the coin sign above the order shows how much you'll get. Nobody leaves - they just stop tipping.",
+  "ru": "У каждого покупателя за прилавком есть шкала терпения: она тает с каждым ходом. Обслужишь быстро - получишь чаевые сверху, сколько монет дадут за заказ, видно над облачком. Никто не уходит, просто перестает давать чаевые."
+ },
+ "intro.patience.title": {
+  "en": "Customers are waiting",
+  "ru": "Покупатели ждут"
+ },
+ "intro.recipes.text": {
+  "en": "Three different ingredients of a recipe on one shelf become a dish. The recipe is shown on the order card.",
+  "ru": "Три разных ингредиента рецепта на одной полке превращаются в блюдо. Рецепт показан на карточке заказа."
+ },
+ "intro.recipes.title": {
+  "en": "Cook by recipe",
+  "ru": "Готовь по рецепту"
+ },
+ "intro.rule.hidden.text": {
+  "en": "Everything in the back rows is hidden. You'll see a product only when its row moves to the front.",
+  "ru": "Все продукты в задних рядах скрыты. Продукт станет виден, только когда его ряд выйдет вперед."
+ },
+ "intro.rule.hidden.title": {
+  "en": "Mystery shelves",
+  "ru": "Загадочные полки"
+ },
+ "intro.rule.noboosters.text": {
+  "en": "Undo, hint and extra shelf are switched off. Plan every move!",
+  "ru": "Отмена, подсказка и доп. полка выключены. Продумывай каждый ход!"
+ },
+ "intro.rule.noboosters.title": {
+  "en": "No boosters this week",
+  "ru": "На этой неделе без бустеров"
+ },
+ "intro.rule.recipes.text": {
+  "en": "Every customer wants a dish. Collect three different ingredients on one shelf.",
+  "ru": "Каждый покупатель ждет блюдо. Собирай по три разных ингредиента на одной полке."
+ },
+ "intro.rule.recipes.title": {
+  "en": "Recipes only",
+  "ru": "Только рецепты"
+ },
+ "item.avocado": {
+  "en": "Avocado",
+  "ru": "Авокадо"
+ },
+ "item.baguette": {
+  "en": "Baguette",
+  "ru": "Багет"
+ },
+ "item.basil": {
+  "en": "Basil",
+  "ru": "Базилик"
+ },
+ "item.bread": {
+  "en": "Bread",
+  "ru": "Хлеб"
+ },
+ "item.bun": {
+  "en": "Bun",
+  "ru": "Булочка"
+ },
+ "item.cannoli": {
+  "en": "Cannoli",
+  "ru": "Канноли"
+ },
+ "item.carrot": {
+  "en": "Carrot",
+  "ru": "Морковь"
+ },
+ "item.cheese": {
+  "en": "Cheese",
+  "ru": "Сыр"
+ },
+ "item.cookie": {
+  "en": "Cookie",
+  "ru": "Печенье"
+ },
+ "item.corn": {
+  "en": "Corn",
+  "ru": "Кукуруза"
+ },
+ "item.corndog": {
+  "en": "Corn dog",
+  "ru": "Корн-дог"
+ },
+ "item.cupcake": {
+  "en": "Cupcake",
+  "ru": "Капкейк"
+ },
+ "item.dango": {
+  "en": "Dango",
+  "ru": "Данго"
+ },
+ "item.donut": {
+  "en": "Donut",
+  "ru": "Пончик"
+ },
+ "item.dough": {
+  "en": "Dough",
+  "ru": "Тесто"
+ },
+ "item.edamame": {
+  "en": "Edamame",
+  "ru": "Эдамаме"
+ },
+ "item.egg": {
+  "en": "Egg",
+  "ru": "Яйцо"
+ },
+ "item.espresso": {
+  "en": "Espresso",
+  "ru": "Эспрессо"
+ },
+ "item.fish": {
+  "en": "Salmon",
+  "ru": "Лосось"
+ },
+ "item.flour": {
+  "en": "Flour",
+  "ru": "Мука"
+ },
+ "item.focaccia": {
+  "en": "Focaccia",
+  "ru": "Фокачча"
+ },
+ "item.fries": {
+  "en": "Fries",
+  "ru": "Картошка фри"
+ },
+ "item.gelato": {
+  "en": "Gelato",
+  "ru": "Джелато"
+ },
+ "item.grapes": {
+  "en": "Grapes",
+  "ru": "Виноград"
+ },
+ "item.grissini": {
+  "en": "Grissini",
+  "ru": "Гриссини"
+ },
+ "item.gyoza": {
+  "en": "Gyoza",
+  "ru": "Гедза"
+ },
+ "item.ham": {
+  "en": "Ham",
+  "ru": "Ветчина"
+ },
+ "item.honey": {
+  "en": "Honey",
+  "ru": "Мед"
+ },
+ "item.hotdog_bun": {
+  "en": "Hot dog bun",
+  "ru": "Булочка для хот-дога"
+ },
+ "item.icecream": {
+  "en": "Ice cream",
+  "ru": "Мороженое"
+ },
+ "item.ketchup": {
+  "en": "Ketchup",
+  "ru": "Кетчуп"
+ },
+ "item.leek": {
+  "en": "Green onion",
+  "ru": "Зеленый лук"
+ },
+ "item.lettuce": {
+  "en": "Lettuce",
+  "ru": "Салат"
+ },
+ "item.matcha": {
+  "en": "Matcha",
+  "ru": "Матча"
+ },
+ "item.milk": {
+  "en": "Milk",
+  "ru": "Молоко"
+ },
+ "item.mochi": {
+  "en": "Mochi",
+  "ru": "Моти"
+ },
+ "item.mozzarella": {
+  "en": "Mozzarella",
+  "ru": "Моцарелла"
+ },
+ "item.muffin": {
+  "en": "Muffin",
+  "ru": "Маффин"
+ },
+ "item.mushroom": {
+  "en": "Shiitake",
+  "ru": "Шиитаке"
+ },
+ "item.olive_oil": {
+  "en": "Olive oil",
+  "ru": "Оливковое масло"
+ },
+ "item.olives": {
+  "en": "Olives",
+  "ru": "Оливки"
+ },
+ "item.panna_cotta": {
+  "en": "Panna cotta",
+  "ru": "Панна-котта"
+ },
+ "item.pasta": {
+  "en": "Spaghetti",
+  "ru": "Спагетти"
+ },
+ "item.patty": {
+  "en": "Patty",
+  "ru": "Котлета"
+ },
+ "item.pie": {
+  "en": "Pie",
+  "ru": "Пирог"
+ },
+ "item.rice": {
+  "en": "Rice",
+  "ru": "Рис"
+ },
+ "item.sausage": {
+  "en": "Sausage",
+  "ru": "Сосиска"
+ },
+ "item.soda": {
+  "en": "Soda",
+  "ru": "Газировка"
+ },
+ "item.soy": {
+  "en": "Soy sauce",
+  "ru": "Соевый соус"
+ },
+ "item.taiyaki": {
+  "en": "Taiyaki",
+  "ru": "Тайяки"
+ },
+ "item.tempura": {
+  "en": "Tempura",
+  "ru": "Темпура"
+ },
+ "item.tiramisu": {
+  "en": "Tiramisu",
+  "ru": "Тирамису"
+ },
+ "item.tomato": {
+  "en": "Tomato",
+  "ru": "Томат"
+ },
+ "item.waffle": {
+  "en": "Waffle",
+  "ru": "Вафля"
+ },
+ "level.title": {
+  "en": "Level {0}",
+  "ru": "Уровень {0}"
+ },
+ "lives.ad": {
+  "en": "+1 life for an ad",
+  "ru": "+1 жизнь за рекламу"
+ },
+ "lives.buy": {
+  "en": "Unlimited for 2 h",
+  "ru": "Безлимит на 2 ч"
+ },
+ "lives.count": {
+  "en": "Lives: {0}/{1}",
+  "ru": "Жизни: {0} из {1}"
+ },
+ "lives.full": {
+  "en": "Full",
+  "ru": "Полные"
+ },
+ "lives.next": {
+  "en": "Next life in {0}",
+  "ru": "Следующая жизнь через {0}"
+ },
+ "lives.refill": {
+  "en": "Refill for",
+  "ru": "Пополнить за"
+ },
+ "lives.replay": {
+  "en": "Replaying levels you've already passed is always free",
+  "ru": "Переигрывать пройденные уровни можно без жизней"
+ },
+ "lives.unlimited": {
+  "en": "Unlimited lives",
+  "ru": "Жизни без ограничений"
+ },
+ "map.hard": {
+  "en": "Hard",
+  "ru": "Сложный"
+ },
+ "map.stars": {
+  "en": "Kitchen stars: {0}/{1}",
+  "ru": "Звезды кухни: {0} из {1}"
+ },
+ "medal.daily": {
+  "en": "Daily {0}/{1}",
+  "ru": "Дневные {0}/{1}"
+ },
+ "medal.text": {
+  "en": "Complete {0} daily and {1} weekly challenges this month to win the big chest and a medal for your book.",
+  "ru": "Пройди за месяц {0} испытаний дня и {1} испытания недели - получишь большой сундук и медаль в книгу."
+ },
+ "medal.title": {
+  "en": "Medal of the month",
+  "ru": "Медаль месяца"
+ },
+ "medal.weekly": {
+  "en": "Weekly {0}/{1}",
+  "ru": "Недельные {0}/{1}"
+ },
+ "merge.energy": {
+  "en": "Energy: {0}/{1}",
+  "ru": "Энергия: {0} из {1}"
+ },
+ "merge.energy.ad": {
+  "en": "+{0} energy for an ad",
+  "ru": "+{0} энергии за рекламу"
+ },
+ "merge.energy.buy": {
+  "en": "+{0} energy for",
+  "ru": "+{0} энергии за"
+ },
+ "merge.energy.next": {
+  "en": "+1 in {0}",
+  "ru": "+1 через {0}"
+ },
+ "merge.energy.text": {
+  "en": "Every tap on the oven, grill or crate costs 1 energy. It refills by itself.",
+  "ru": "Каждое нажатие на духовку, гриль или ящик стоит 1 энергию. Она восполняется сама."
+ },
+ "merge.full": {
+  "en": "The board is full: merge or deliver something",
+  "ru": "Доска заполнена: слей или отдай что-нибудь"
+ },
+ "merge.give": {
+  "en": "Give",
+  "ru": "Отдать"
+ },
+ "merge.hint": {
+  "en": "Tap the oven, grill or crate to get food. Drag two identical items onto each other to make the next one.",
+  "ru": "Нажми на духовку, гриль или ящик - появятся продукты. Перетащи два одинаковых друг на друга - получится следующий."
+ },
+ "merge.order.done": {
+  "en": "Order delivered!",
+  "ru": "Заказ выполнен!"
+ },
+ "merge.title": {
+  "en": "Pantry",
+  "ru": "Кладовая"
+ },
+ "pause.exit": {
+  "en": "To the map",
+  "ru": "На карту"
+ },
+ "pause.lifewarning": {
+  "en": "If you leave now, you'll lose a life",
+  "ru": "Если выйти сейчас, сгорит жизнь"
+ },
+ "pause.restart": {
+  "en": "Restart",
+  "ru": "Начать заново"
+ },
+ "pause.resume": {
+  "en": "Continue",
+  "ru": "Продолжить"
+ },
+ "pause.title": {
+  "en": "Pause",
+  "ru": "Пауза"
+ },
+ "push.comeback.body": {
+  "en": "Fresh ingredients have arrived. Come cook something tasty!",
+  "ru": "Привезли свежие продукты. Заходи приготовить что-нибудь вкусное!"
+ },
+ "push.comeback.title": {
+  "en": "The kitchen misses you",
+  "ru": "Кухня скучает"
+ },
+ "push.daily.body": {
+  "en": "One level, the same for everyone. How fast can you do it?",
+  "ru": "Один уровень, одинаковый у всех. Справишься быстрее?"
+ },
+ "push.daily.title": {
+  "en": "New daily challenge",
+  "ru": "Новое испытание дня"
+ },
+ "push.lives.body": {
+  "en": "Your customers are waiting at the counter.",
+  "ru": "Покупатели уже ждут у прилавка."
+ },
+ "push.lives.title": {
+  "en": "Lives are full!",
+  "ru": "Жизни восстановились!"
+ },
+ "push.streak.body": {
+  "en": "Day {0} of your streak: pass one level before midnight.",
+  "ru": "День {0} стрика: пройди один уровень до полуночи."
+ },
+ "push.streak.title": {
+  "en": "Your streak is about to burn",
+  "ru": "Стрик вот-вот сгорит"
+ },
+ "quests.day": {
+  "en": "Day {0}",
+  "ru": "День {0}"
+ },
+ "quests.grand": {
+  "en": "Grand prize: Sunny Diner",
+  "ru": "Главный приз: Солнечная закусочная"
+ },
+ "quests.grand.title": {
+  "en": "Sunny Diner is yours!",
+  "ru": "Солнечная закусочная твоя!"
+ },
+ "quests.in": {
+  "en": "in {0} d",
+  "ru": "через {0} дн."
+ },
+ "quests.subtitle": {
+  "en": "Day {0} of {1}: new tasks every day",
+  "ru": "День {0} из {1}: каждый день новые задания"
+ },
+ "quests.title": {
+  "en": "Welcome tasks",
+  "ru": "Задания новичка"
+ },
+ "reward.card": {
+  "en": "Rare card",
+  "ru": "Редкая карточка"
+ },
+ "reward.card.name": {
+  "en": "Golden {0}",
+  "ru": "{0} в золоте"
+ },
+ "rule.hidden.text": {
+  "en": "Everything in the back rows is hidden until it moves forward.",
+  "ru": "Все продукты в задних рядах скрыты, пока не выйдут вперед."
+ },
+ "rule.hidden.title": {
+  "en": "Mystery shelves",
+  "ru": "Загадочные полки"
+ },
+ "rule.noboosters.bar": {
+  "en": "Boosters are off this week",
+  "ru": "На этой неделе без бустеров"
+ },
+ "rule.noboosters.text": {
+  "en": "Three hard levels in a row, and boosters are switched off.",
+  "ru": "Три сложных уровня подряд, бустеры выключены."
+ },
+ "rule.noboosters.title": {
+  "en": "No boosters",
+  "ru": "Без бустеров"
+ },
+ "rule.recipes.text": {
+  "en": "Every customer orders a dish. No simple triples this time.",
+  "ru": "Каждый покупатель заказывает блюдо. Простых троек не будет."
+ },
+ "rule.recipes.title": {
+  "en": "Recipes only",
+  "ru": "Только рецепты"
+ },
+ "settings.haptics": {
+  "en": "Vibration",
+  "ru": "Вибрация"
+ },
+ "settings.language": {
+  "en": "Language",
+  "ru": "Язык"
+ },
+ "settings.music": {
+  "en": "Music",
+  "ru": "Музыка"
+ },
+ "settings.player": {
+  "en": "Player ID: {0}",
+  "ru": "ID игрока: {0}"
+ },
+ "settings.sound": {
+  "en": "Sounds",
+  "ru": "Звуки"
+ },
+ "settings.title": {
+  "en": "Settings",
+  "ru": "Настройки"
+ },
+ "shop.boosters": {
+  "en": "Boosters for coins",
+  "ru": "Бустеры за монеты"
+ },
+ "shop.coins": {
+  "en": "Coins",
+  "ru": "Монеты"
+ },
+ "shop.failed": {
+  "en": "The purchase didn't go through. Try again",
+  "ru": "Покупка не прошла. Попробуй еще раз"
+ },
+ "shop.have": {
+  "en": "You have: {0}",
+  "ru": "Есть: {0}"
+ },
+ "shop.item.boosters": {
+  "en": "Booster pack",
+  "ru": "Набор бустеров"
+ },
+ "shop.item.lives": {
+  "en": "Unlimited lives for 2 hours",
+  "ru": "Безлимитные жизни на 2 часа"
+ },
+ "shop.item.starter": {
+  "en": "Starter pack",
+  "ru": "Стартовый набор"
+ },
+ "shop.packs": {
+  "en": "Packs",
+  "ru": "Наборы"
+ },
+ "shop.pending": {
+  "en": "The purchase is waiting for approval",
+  "ru": "Покупка ждет подтверждения"
+ },
+ "shop.privacy": {
+  "en": "Privacy policy",
+  "ru": "Политика конфиденциальности"
+ },
+ "shop.restore": {
+  "en": "Restore purchases",
+  "ru": "Восстановить покупки"
+ },
+ "shop.restore.failed": {
+  "en": "Couldn't restore purchases. Check the connection and try again",
+  "ru": "Не получилось восстановить покупки. Проверь интернет и попробуй еще раз"
+ },
+ "shop.starter.once": {
+  "en": "One time only",
+  "ru": "Только один раз"
+ },
+ "shop.terms": {
+  "en": "Terms of use",
+  "ru": "Условия использования"
+ },
+ "shop.test": {
+  "en": "Test build: purchases are free",
+  "ru": "Тестовая сборка: покупки бесплатные"
+ },
+ "shop.thanks": {
+  "en": "Thank you!",
+  "ru": "Спасибо!"
+ },
+ "shop.title": {
+  "en": "Shop",
+  "ru": "Магазин"
+ },
+ "shop.unavailable": {
+  "en": "Purchases work in the App Store version",
+  "ru": "Покупки работают в версии из App Store"
+ },
+ "streak.day": {
+  "en": "Day {0}",
+  "ru": "День {0}"
+ },
+ "streak.done": {
+  "en": "Today is counted. See you tomorrow!",
+  "ru": "Сегодня засчитан. До завтра!"
+ },
+ "streak.freeze.buy": {
+  "en": "Buy a freeze",
+  "ru": "Купить заморозку"
+ },
+ "streak.freeze.text": {
+  "en": "A freeze saves your streak if you miss a day. It's used automatically.",
+  "ru": "Заморозка спасет стрик, если пропустишь день. Сработает сама."
+ },
+ "streak.freezes": {
+  "en": "Streak freezes: {0}/{1}",
+  "ru": "Заморозки стрика: {0} из {1}"
+ },
+ "streak.risk": {
+  "en": "Pass a level before midnight or the streak resets",
+  "ru": "Пройди уровень до полуночи, иначе стрик сгорит"
+ },
+ "streak.short": {
+  "en": "D{0}",
+  "ru": "Д{0}"
+ },
+ "streak.start": {
+  "en": "Pass a level to start a streak",
+  "ru": "Пройди уровень, чтобы начать стрик"
+ },
+ "streak.subtitle": {
+  "en": "Pass at least one level a day",
+  "ru": "Проходи хотя бы один уровень в день"
+ },
+ "streak.title": {
+  "en": "Daily streak",
+  "ru": "Стрик"
+ },
+ "stuck.ad": {
+  "en": "Extra shelf for an ad",
+  "ru": "Полка за рекламу"
+ },
+ "stuck.giveup": {
+  "en": "Give up (−1 life)",
+  "ru": "Сдаться (−1 жизнь)"
+ },
+ "stuck.giveup.replay": {
+  "en": "Give up",
+  "ru": "Сдаться"
+ },
+ "stuck.shelf": {
+  "en": "Extra shelf",
+  "ru": "Доп. полка"
+ },
+ "stuck.text": {
+  "en": "No free spots left. Add a shelf to keep cooking.",
+  "ru": "Свободных мест нет. Добавь полку и продолжай готовить."
+ },
+ "stuck.title": {
+  "en": "Shelves are full!",
+  "ru": "Полки заполнены!"
+ },
+ "task.boostersUsed": {
+  "en": "Use {0} boosters",
+  "ru": "Используй {0} бустеров"
+ },
+ "task.cards": {
+  "en": "Open {0} cookbook cards",
+  "ru": "Открой {0} карточек в книге"
+ },
+ "task.chefBest": {
+  "en": "Win {0} new levels in a row on the first try",
+  "ru": "Пройди {0} новых уровней подряд с первой попытки"
+ },
+ "task.chests": {
+  "en": "Open {0} star chests",
+  "ru": "Открой {0} сундуков звезд"
+ },
+ "task.dailyDone": {
+  "en": "Complete {0} daily challenges",
+  "ru": "Пройди {0} испытаний дня"
+ },
+ "task.dishes": {
+  "en": "Cook {0} dishes",
+  "ru": "Приготовь {0} блюд"
+ },
+ "task.levelsWon": {
+  "en": "Pass {0} new levels",
+  "ru": "Пройди {0} новых уровней"
+ },
+ "task.maxCombo": {
+  "en": "Make a streak of {0} serves",
+  "ru": "Сделай серию из {0} подач"
+ },
+ "task.mergeOrders": {
+  "en": "Deliver {0} pantry orders",
+  "ru": "Выполни {0} заказов в кладовой"
+ },
+ "task.merges": {
+  "en": "Merge {0} times",
+  "ru": "Сделай {0} слияний"
+ },
+ "task.rareCards": {
+  "en": "Collect {0} rare cards",
+  "ru": "Собери {0} редких карточек"
+ },
+ "task.served": {
+  "en": "Serve {0} customers",
+  "ru": "Обслужи {0} покупателей"
+ },
+ "task.streakBest": {
+  "en": "Play {0} days in a row",
+  "ru": "Играй {0} дней подряд"
+ },
+ "task.threeStars": {
+  "en": "Get 3 stars on {0} levels",
+  "ru": "Получи 3 звезды на {0} уровнях"
+ },
+ "task.tips": {
+  "en": "Collect {0} tip coins",
+  "ru": "Собери {0} монет чаевых"
+ },
+ "task.triples": {
+  "en": "Collect {0} triples",
+  "ru": "Собери {0} троек"
+ },
+ "task.weeklyDone": {
+  "en": "Complete {0} weekly challenges",
+  "ru": "Пройди {0} испытаний недели"
+ },
+ "task.weeklyLevels": {
+  "en": "Pass {0} weekly challenge levels",
+  "ru": "Пройди {0} уровней испытания недели"
+ },
+ "time.hm": {
+  "en": "{0} h {1} min",
+  "ru": "{0} ч {1} мин"
+ },
+ "time.hours": {
+  "en": "{0} h",
+  "ru": "{0} ч"
+ },
+ "time.minutes": {
+  "en": "{0} min",
+  "ru": "{0} мин"
+ },
+ "unlock.book": {
+  "en": "The card is in your cookbook",
+  "ru": "Карточка добавлена в кулинарную книгу"
+ },
+ "unlock.ok": {
+  "en": "Yummy!",
+  "ru": "Вкуснотища!"
+ },
+ "unlock.title": {
+  "en": "New dish!",
+  "ru": "Новое блюдо!"
+ },
+ "vip.active": {
+  "en": "Active: {0}",
+  "ru": "Активен: {0}"
+ },
+ "vip.daily": {
+  "en": "Daily VIP gift",
+  "ru": "Ежедневный подарок VIP"
+ },
+ "vip.month": {
+  "en": "Month",
+  "ru": "Месяц"
+ },
+ "vip.noads": {
+  "en": "VIP: rewards without ads",
+  "ru": "VIP: награды без рекламы"
+ },
+ "vip.perk.ads": {
+  "en": "All ad rewards instantly, no ads",
+  "ru": "Все награды за рекламу сразу, без рекламы"
+ },
+ "vip.perk.coins": {
+  "en": "x1.5 coins for levels",
+  "ru": "Монеты за уровни x1.5"
+ },
+ "vip.perk.daily": {
+  "en": "Hint, undo and shuffle every day",
+  "ru": "Подсказка, отмена и перемешивание каждый день"
+ },
+ "vip.perk.lives": {
+  "en": "Up to {0} lives",
+  "ru": "До {0} жизней"
+ },
+ "vip.save": {
+  "en": "-40%",
+  "ru": "-40%"
+ },
+ "vip.terms": {
+  "en": "The subscription renews automatically unless canceled at least 24 hours before the end of the period. Payment is charged to your Apple ID. You can manage or cancel it in App Store settings.",
+  "ru": "Подписка продлевается автоматически, если не отменить ее минимум за 24 часа до конца периода. Оплата списывается с Apple ID. Управлять подпиской и отменить ее можно в настройках App Store."
+ },
+ "vip.week": {
+  "en": "Week",
+  "ru": "Неделя"
+ },
+ "vip.welcome": {
+  "en": "Welcome to VIP!",
+  "ru": "Добро пожаловать в VIP!"
+ },
+ "vip.welcome.text": {
+  "en": "Ad rewards now come instantly, coins for levels are x1.5, and a booster gift waits for you every day.",
+  "ru": "Теперь награды за рекламу приходят сразу, монеты за уровни x1.5, а каждый день ждет подарок с бустерами."
+ },
+ "win.chef": {
+  "en": "Chef's series: {0} wins on first try",
+  "ru": "Серия шефа: {0} с первой попытки"
+ },
+ "win.combo": {
+  "en": "Streaks",
+  "ru": "Серии"
+ },
+ "win.daily": {
+  "en": "Daily challenge complete",
+  "ru": "Испытание дня пройдено"
+ },
+ "win.double": {
+  "en": "×2 coins for an ad",
+  "ru": "×2 монеты за рекламу"
+ },
+ "win.efficiency": {
+  "en": "Few moves bonus",
+  "ru": "Бонус за экономию ходов"
+ },
+ "win.gourmet": {
+  "en": "The Gourmet left a generous bonus",
+  "ru": "Гурман оставил щедрый бонус"
+ },
+ "win.gourmet.bg": {
+  "en": "Gift from the Gourmet: a new kitchen!",
+  "ru": "Подарок Гурмана: новая кухня!"
+ },
+ "win.life": {
+  "en": "3 stars for the first time: +1 life",
+  "ru": "Первые 3 звезды: +1 жизнь"
+ },
+ "win.map": {
+  "en": "Map",
+  "ru": "На карту"
+ },
+ "win.next": {
+  "en": "Next",
+  "ru": "Дальше"
+ },
+ "win.norecord": {
+  "en": "Coins on replays only for beating your record",
+  "ru": "При переигровке монеты только за новый рекорд"
+ },
+ "win.orders": {
+  "en": "Orders",
+  "ru": "Заказы"
+ },
+ "win.record": {
+  "en": "New record! +{0} coins",
+  "ru": "Новый рекорд! +{0} монет"
+ },
+ "win.streak": {
+  "en": "Streak: day {0}",
+  "ru": "Стрик: день {0}"
+ },
+ "win.tips": {
+  "en": "Tips",
+  "ru": "Чаевые"
+ },
+ "win.title": {
+  "en": "Well done!",
+  "ru": "Готово!"
+ },
+ "win.total": {
+  "en": "Total",
+  "ru": "Итого"
+ },
+ "win.vip": {
+  "en": "VIP bonus: +{0} coins",
+  "ru": "Бонус VIP: +{0} монет"
+ },
+ "win.weekly": {
+  "en": "Weekly challenge complete",
+  "ru": "Испытание недели пройдено"
+ }
+}

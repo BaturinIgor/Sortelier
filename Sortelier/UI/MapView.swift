@@ -57,39 +57,39 @@ struct MapView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { vipDaily = progress.claimVIPDaily() }
         }
         .sheet(isPresented: $showShop) {
-            ShopSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            ShopSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showBook) {
-            BookView().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            BookView().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showLives) {
-            LivesSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            LivesSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showSettings) {
-            SettingsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            SettingsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showStreak) {
-            StreakSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            StreakSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showChallenges, onDismiss: launchPending) {
-            ChallengesSheet(launch: $pendingLaunch).environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            ChallengesSheet(launch: $pendingLaunch).environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showQuests) {
-            QuestsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            QuestsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showAchievements) {
-            AchievementsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            AchievementsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .fullScreenCover(isPresented: $showMerge) {
             MergeView(close: { showMerge = false })
                 .environmentObject(PlayerProgress.shared)
-                .environmentObject(Lang.shared)
+                .environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showEvents, onDismiss: launchPending) {
-            EventsSheet(launch: $pendingLaunch).environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            EventsSheet(launch: $pendingLaunch).environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
         .sheet(isPresented: $showBackgrounds) {
-            BackgroundsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared)
+            BackgroundsSheet().environmentObject(PlayerProgress.shared).environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
         }
     }
 
@@ -625,6 +625,26 @@ struct LivesSheet: View {
                     }
                     .buttonStyle(BigButtonStyle(color: Theme.green))
                     AdsLeftLabel()
+                }
+                if !progress.unlimitedLives {
+                    Button {
+                        Task { @MainActor in
+                            switch await Store.shared.buy(.lives) {
+                            case .done:
+                                Audio.shared.play(.chest)
+                                presentation.wrappedValue.dismiss()
+                            case .unavailable:
+                                message = lang.t("shop.unavailable")
+                            case .failed:
+                                message = lang.t("shop.failed")
+                            default:
+                                break
+                            }
+                        }
+                    } label: {
+                        HStack { Image(systemName: "infinity"); Text(lang.t("lives.buy")); Text(Store.shared.price(.lives)) }
+                    }
+                    .buttonStyle(BigButtonStyle(color: Theme.vip))
                 }
                 if let message = message {
                     Text(message).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.red)

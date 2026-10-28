@@ -14,7 +14,6 @@ S = {
  "biome.1.name": ("American Diner", "Американская кухня"),
  "biome.1.subtitle": ("Burgers, hot dogs and pancakes", "Бургеры, хот-доги и панкейки"),
  "biome.2.name": ("Japanese Kitchen", "Японская кухня"),
- "biome.2.soon": ("Coming soon", "Скоро"),
  "chest.title": ("Chest for {0} stars", "Сундук за {0} звезд"),
  "chest.gold.title": ("Golden Kitchen: {0} stars", "Золотая кухня: {0} звезд"),
  "chest.unlimited": ("Unlimited lives for {0} h", "Жизни без ограничений на {0} ч"),
@@ -266,7 +265,6 @@ S.update({
  "event.season.text": ("Win any level to earn chef stamps", "Побеждай на любых уровнях и собирай печати шефа"),
  "event.stamps": ("Chef stamps: {0}", "Печати шефа: {0}"),
  "event.pass": ("Event pass: the golden lane", "Пропуск ивента: золотая ветка"),
- "event.pass.soon": ("Will be available in the App Store version", "Появится в версии для App Store"),
  "event.levels": ("Event levels: {0}/{1}", "Уровни ивента: {0} из {1}"),
  "event.play": ("Play event level {0}", "Играть уровень ивента {0}"),
  "event.levels.done": ("All event levels done!", "Все уровни ивента пройдены!"),
@@ -409,6 +407,7 @@ S.update({
  "shop.starter.once": ("One time only", "Только один раз"),
  "shop.item.boosters": ("Booster pack", "Набор бустеров"),
  "shop.item.lives": ("Unlimited lives for 2 hours", "Безлимитные жизни на 2 часа"),
+ "lives.buy": ("Unlimited for 2 h", "Безлимит на 2 ч"),
  "shop.have": ("You have: {0}", "Есть: {0}"),
  "shop.restore": ("Restore purchases", "Восстановить покупки"),
  "shop.restore.failed": ("Couldn't restore purchases. Check the connection and try again", "Не получилось восстановить покупки. Проверь интернет и попробуй еще раз"),
@@ -442,4 +441,20 @@ os.makedirs(out, exist_ok=True)
 for i, code in enumerate(["en", "ru"]):
     with open(os.path.join(out, code + ".json"), "w") as f:
         json.dump({k: v[i] for k, v in S.items()}, f, ensure_ascii=False, indent=1, sort_keys=True)
-print(len(S), "keys")
+
+# Остальные языки: tools/i18n/translations/<код>.json. Проверяем, что ключи все и подстановки {0} на месте;
+# чего нет, игра покажет по-английски.
+import re
+tr_dir = os.path.join(os.path.dirname(__file__), "translations")
+langs = sorted(f[:-5] for f in os.listdir(tr_dir) if f.endswith(".json")) if os.path.isdir(tr_dir) else []
+for code in langs:
+    data = json.load(open(os.path.join(tr_dir, code + ".json")))
+    missing = [k for k in S if k not in data]
+    bad = [k for k in S if k in data and sorted(re.findall(r"\{\d\}", data[k])) != sorted(re.findall(r"\{\d\}", S[k][0]))]
+    extra = [k for k in data if k not in S]
+    if missing or bad or extra:
+        print(f"{code}: missing {len(missing)} {missing[:5]}, placeholders {bad[:5]}, extra {extra[:5]}")
+    table = {k: data[k] for k in S if k in data and k not in bad}
+    with open(os.path.join(out, code + ".json"), "w") as f:
+        json.dump(table, f, ensure_ascii=False, indent=1, sort_keys=True)
+print(len(S), "keys,", 2 + len(langs), "languages")
