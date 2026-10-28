@@ -696,6 +696,174 @@ def icon_palette():
     return finish(parts)
 
 
+def icon_crown():
+    _prep()
+    g = gold()
+    pts = [(-0.95, -0.45), (0.95, -0.45), (1.05, 0.55), (0.55, 0.12), (0.0, 0.75), (-0.55, 0.12), (-1.05, 0.55)]
+    body = slab("Crown", pts, 0.42, 0.1, g, segs=5)
+    band = M.box_mesh("Band", 2.0, 0.5, 0.24, -0.62)
+    M.bevel(band, 0.07, 4, 30)
+    M.bake(band)
+    M.assign(M.smooth(band, 30), g)
+    parts = [body, band]
+    cols = [(0.95, 0.2, 0.3), (0.2, 0.55, 1.0), (0.95, 0.2, 0.3)]
+    for i, x in enumerate((-0.55, 0.0, 0.55)):
+        gem_ = M.sphere(f"Gem{i}", 0.13, 24, 12)
+        gem_.scale = (1, 0.6, 1)
+        gem_.location = (x, -0.27, -0.5)
+        M.apply_transform(gem_)
+        M.assign(M.smooth(gem_), toy(f"GemM{i}", cols[i], rough=0.08, coat=1.0))
+        parts.append(gem_)
+    for i, (x, z) in enumerate(((-1.05, 0.62), (0.0, 0.84), (1.05, 0.62))):
+        b = M.sphere(f"Ball{i}", 0.13, 24, 12)
+        b.location = (x, 0, z)
+        M.apply_transform(b)
+        M.assign(M.smooth(b), g)
+        parts.append(b)
+    return finish(parts, tilt=6)
+
+
+def icon_chef():
+    _prep()
+    w = white("Hat")
+    parts = []
+    for i, (x, z, r) in enumerate(((-0.42, 0.35, 0.42), (0.42, 0.35, 0.42), (0.0, 0.62, 0.5), (-0.2, 0.2, 0.38),
+                                   (0.2, 0.2, 0.38))):
+        s_ = M.sphere(f"Puff{i}", r, 40, 20)
+        s_.scale = (1, 0.8, 1)
+        s_.location = (x, 0, z)
+        M.apply_transform(s_)
+        M.assign(M.smooth(s_), w)
+        parts.append(s_)
+    band = M.cylinder("Band", 0.62, 0.45, 48)
+    band.scale = (1, 0.8, 1)
+    band.location = (0, 0, -0.18)
+    M.apply_transform(band)
+    M.bevel(band, 0.06, 4, 30)
+    M.bake(band)
+    M.assign(M.smooth(band, 30), w)
+    stripe = M.torus("Stripe", 0.63, 0.05, 48, 10)
+    stripe.scale = (1, 0.8, 1)
+    stripe.location = (0, 0, -0.1)
+    M.apply_transform(stripe)
+    M.assign(M.smooth(stripe), toy("Stripe", (0.95, 0.5, 0.15)))
+    parts += [band, stripe]
+    return finish(parts, tilt=8)
+
+
+def icon_music():
+    _prep()
+    mat = toy("Note", (0.55, 0.38, 0.95))
+    parts = []
+    for i, (x, z) in enumerate(((-0.45, -0.55), (0.45, -0.38))):
+        h = M.sphere(f"Head{i}", 0.3, 40, 20)
+        h.scale = (1.25, 0.7, 0.9)
+        h.rotation_euler = (0, math.radians(-25), 0)
+        h.location = (x, 0, z)
+        M.apply_transform(h)
+        M.assign(M.smooth(h), mat)
+        st = M.cylinder(f"Stem{i}", 0.07, 1.1, 24)
+        st.location = (x + 0.3, 0, z + 0.55)
+        M.apply_transform(st)
+        M.assign(M.smooth(st), mat)
+        parts += [h, st]
+    beam = slab("Beam", [(-0.22, 0.95), (0.82, 1.12), (0.82, 0.86), (-0.22, 0.69)], 0.16, 0.05, mat)
+    parts.append(beam)
+    return finish(parts)
+
+
+def icon_sound():
+    _prep()
+    body = toy("Speaker", (0.95, 0.55, 0.2))
+    box = M.box_mesh("Box", 0.42, 0.42, 0.55, -0.275)
+    box.location = (-0.55, 0, 0)
+    M.apply_transform(box)
+    M.bevel(box, 0.06, 3, 30)
+    M.bake(box)
+    M.assign(M.smooth(box, 30), body)
+    cone = slab("Cone", [(-0.36, 0.3), (0.05, 0.62), (0.05, -0.62), (-0.36, -0.3)], 0.4, 0.06, body)
+    parts = [box, cone]
+    for i, r in enumerate((0.38, 0.66)):
+        parts.append(tube(f"Wave{i}", arc(0.1, 0.0, r, -45, 45, 24, y=-0.05), 0.07, toy(f"WaveM{i}", (0.3, 0.62, 1.0))))
+    return finish(parts)
+
+
+def icon_haptics():
+    _prep()
+    phone = slab("Phone", rounded_rect(0.8, 1.4, 0.16), 0.18, 0.05, toy("Case", (0.3, 0.32, 0.4)))
+    screen = slab("Screen", rounded_rect(0.62, 1.16, 0.1), 0.04, 0.0, toy("Glass", (0.45, 0.75, 1.0), rough=0.1), y=-0.1)
+    parts = [phone, screen]
+    for side in (-1, 1):
+        for k, r in enumerate((0.0, 0.18)):
+            pts = [(side * (0.58 + r), -0.02, z) for z in (-0.35, -0.18, 0.0, 0.18, 0.35)]
+            pts = [(p[0] + side * 0.05 * (1 if j % 2 else -1), p[1], p[2]) for j, p in enumerate(pts)]
+            parts.append(tube(f"Buzz{side}{k}", pts, 0.045, toy("BuzzM", (0.95, 0.55, 0.2))))
+    return finish(parts)
+
+
+def icon_globe():
+    _prep()
+    sea = toy("Sea", (0.3, 0.62, 1.0))
+    ball = M.sphere("Globe", 0.85, 64, 32)
+    M.assign(M.smooth(ball), sea)
+    land = toy("Land", (0.42, 0.8, 0.38), rough=0.45)
+    parts = [ball]
+    rnd = random.Random(4)
+    for i, (a, b, r) in enumerate(((200, 20, 0.32), (250, -25, 0.24), (300, 30, 0.2), (240, 45, 0.18))):
+        blob = M.sphere(f"Land{i}", r, 32, 16)
+        th, ph = math.radians(a), math.radians(b)
+        blob.scale = (1.0, 0.35, 0.8)
+        blob.location = (0.78 * math.cos(ph) * math.cos(th + math.pi / 2), 0.78 * math.cos(ph) * math.sin(th + math.pi / 2) * 1.0,
+                         0.78 * math.sin(ph))
+        blob.rotation_euler = (0, 0, th)
+        M.apply_transform(blob)
+        M.assign(M.smooth(blob), land)
+        parts.append(blob)
+    ring = M.torus("Meridian", 0.95, 0.05, 64, 10)
+    ring.rotation_euler = (0, math.radians(90), math.radians(30))
+    M.apply_transform(ring)
+    M.assign(M.smooth(ring), gold())
+    parts.append(ring)
+    return finish(parts)
+
+
+def icon_flame():
+    _prep()
+    def flame_pts(r, h, tip=0.18, n=24):
+        def bez(p0, c, p1, k):
+            return [((1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * c[0] + t * t * p1[0],
+                     (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * c[1] + t * t * p1[1]) for t in [i / k for i in range(1, k)]]
+        pts = [(r * math.cos(math.radians(a)), r * math.sin(math.radians(a))) for a in range(180, 361, 10)]
+        pts += bez((r, 0.0), (r * 1.05, h * 0.5), (tip * r, h), n)
+        pts.append((tip * r, h))
+        pts += bez((tip * r, h), (-r * 0.95, h * 0.62), (-r, 0.0), n)
+        return pts
+    outer = slab("Outer", flame_pts(0.62, 1.25), 0.42, 0.14, toy("Orange", (1.0, 0.45, 0.12)), segs=6)
+    inner = slab("Inner", [(x * 0.55, y * 0.55 - 0.2) for x, y in flame_pts(0.62, 1.25)], 0.2, 0.08,
+                 toy("Yellow", (1.0, 0.85, 0.2)), segs=5, y=-0.18)
+    return finish([outer, inner])
+
+
+def icon_snowflake():
+    _prep()
+    ice = toy("Ice", (0.55, 0.82, 1.0), rough=0.15, coat=1.0)
+    parts = []
+    for k in range(6):
+        a = math.radians(90 + 60 * k)
+        d = (math.cos(a), 0, math.sin(a))
+        parts.append(tube(f"Arm{k}", [(0, 0, 0), (d[0] * 0.95, 0, d[2] * 0.95)], 0.07, ice))
+        for j, t in enumerate((0.45, 0.7)):
+            base = (d[0] * t, 0, d[2] * t)
+            for side in (-1, 1):
+                b = a + side * math.radians(45)
+                tip = (base[0] + math.cos(b) * 0.25, 0, base[2] + math.sin(b) * 0.25)
+                parts.append(tube(f"Br{k}{j}{side}", [base, tip], 0.05, ice))
+    hub = M.sphere("Hub", 0.14, 24, 12)
+    M.assign(M.smooth(hub), ice)
+    parts.append(hub)
+    return finish(parts)
+
+
 MODELS = {name: fn for name, fn in globals().items() if name.startswith("icon_") and callable(fn)}
 
 

@@ -199,18 +199,18 @@ extension PlayerProgress {
     // MARK: - Значок на карте
 
     var eventsClaimable: Bool {
-        for event in activeEvents {
-            switch event.kind {
-            case .season, .hunt:
-                if tiers(event).indices.contains(where: { canClaimTier(event, $0, pass: false) || canClaimTier(event, $0, pass: true) }) {
-                    return true
-                }
-            case .race:
-                if canClaimRace || (canStartRace && !raceActive && nextRaceGivesChests) { return true }
-            case .double:
-                if canClaimDoubleBonus(event) { return true }
-            }
+        activeEvents.contains { eventClaimable($0) }
+    }
+
+    /// Есть ли в ивенте что забрать (или гонка с сундуками ждет старта).
+    func eventClaimable(_ event: GameEvent) -> Bool {
+        switch event.kind {
+        case .season, .hunt:
+            return tiers(event).indices.contains(where: { canClaimTier(event, $0, pass: false) || canClaimTier(event, $0, pass: true) })
+        case .race:
+            return canClaimRace || (canStartRace && !raceActive && nextRaceGivesChests)
+        case .double:
+            return canClaimDoubleBonus(event)
         }
-        return false
     }
 }

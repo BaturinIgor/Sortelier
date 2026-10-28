@@ -1,0 +1,84 @@
+#if DEBUG
+import SwiftUI
+
+/// Снимки экранов в CI (только отладочная сборка для симулятора).
+/// Параметры запуска: -uiScreen shop, -uiLang de, -uiDemo (тестовый прогресс), -uiInfo gold (карточка сундука).
+enum UIDebug {
+    static var args: [String] { ProcessInfo.processInfo.arguments }
+
+    static func value(_ key: String) -> String? {
+        guard let i = args.firstIndex(of: "-" + key), i + 1 < args.count else { return nil }
+        return args[i + 1]
+    }
+
+    static var demo: Bool { args.contains("-uiDemo") }
+
+    /// До первого кадра: язык и тестовый прогресс.
+    static func prepare() {
+        if let code = value("uiLang") { Lang.shared.set(code) }
+        if demo { PlayerProgress.shared.debugFillDemo() }
+    }
+
+    static func apply(_ router: Router) {
+        guard let screen = value("uiScreen") else { return }
+        switch screen {
+        case "shop": router.tab = .shop
+        case "events": router.tab = .events; router.eventsSection = .events
+        case "challenges": router.tab = .events; router.eventsSection = .challenges
+        case "quests": router.tab = .events; router.eventsSection = .quests
+        case "album": router.tab = .album
+        case "book": router.tab = .kitchen; router.kitchenSection = .book
+        case "achievements": router.tab = .kitchen; router.kitchenSection = .achievements
+        case "backgrounds": router.tab = .kitchen; router.kitchenSection = .backgrounds
+        case "settings": router.settings = true
+        case "language": router.settings = true; router.language = true
+        case "lives": router.lives = true
+        case "streak": router.streak = true
+        case "merge": router.merge = true
+        default: router.tab = .map
+        }
+        if let kind = value("uiInfo") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                RewardInfo.show(.chest(ChestKind(rawValue: kind) ?? .gold, 1))
+            }
+        }
+    }
+}
+
+extension PlayerProgress {
+    /// Прогресс "в середине игры": пройдена часть уровней, есть сундуки, карточки, идущая гонка.
+    func debugFillDemo() {
+        var d = SaveData()
+        d.coins = 12450
+        d.lives = 3
+        d.livesUpdatedAt = Date()
+        for id in 1...34 { d.stars["\(id)"] = [3, 2, 3, 3, 1][id % 5] }
+        d.meta.biomes = [1, 2]
+        let stats: [Stat: Int] = [.levelsWon: 34, .served: 260, .tips: 120, .dishes: 40, .triples: 150, .threeStars: 20,
+                                  .maxCombo: 6, .boostersUsed: 12, .chests: 3, .merges: 40, .albumCards: 20,
+                                  .coinsEarned: 9000, .dailyDone: 4, .streakBest: 3, .gourmets: 3]
+        d.meta.stats = Dictionary(uniqueKeysWithValues: stats.map { ($0.key.rawValue, $0.value) })
+        d.meta.streak.day = 3
+        d.meta.streak.lastDay = Day.key(Date().addingTimeInterval(-86400))
+        d.meta.welcomeStart = Day.key(Date().addingTimeInterval(-2 * 86400))
+        d.meta.chestInventory = ["bronze": 2, "silver": 1, "gold": 1]
+        d.meta.album.season = Day.monthKey()
+        for (i, card) in AlbumCatalog.cards.prefix(24).enumerated() { d.meta.album.cards[card.id] = i % 5 == 0 ? 2 : 1 }
+        d.meta.album.stars = 18
+        d.meta.achievementTiers = ["chef": 1]
+        for event in EventCalendar.active(Date()) {
+            var st = EventState()
+            st.points = 10
+            st.levels = 3
+            st.claimed = [0]
+            d.meta.events[event.id] = st
+        }
+        d.meta.race.day = Day.key()
+        d.meta.race.started = 1
+        d.meta.race.joined = Date().addingTimeInterval(-15 * 60)
+        d.meta.race.wins = 2
+        d.meta.race.seed = 42
+        data = d
+    }
+}
+#endif

@@ -56,6 +56,9 @@ enum Booster: String, Codable, CaseIterable, Identifiable {
         }
     }
 
+    /// Объемная иконка бустера (tools/render/icons.py).
+    var icon: String { "icon_" + rawValue }
+
     var symbol: String {
         switch self {
         case .hint: return "lightbulb.fill"

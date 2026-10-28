@@ -68,28 +68,24 @@ struct RewardItemIcon: View {
     var body: some View {
         switch item {
         case .coins:
-            CoinIcon(size: size * 0.85)
+            CoinIcon(size: size * 0.9)
         case let .booster(b, _):
-            Image(systemName: b.symbol)
-                .font(.system(size: size * 0.66, weight: .bold))
-                .foregroundColor(b == .pause ? Theme.blue : Theme.orange)
+            SpriteImage(name: b.icon, size: size)
         case .unlimited:
-            ZStack {
-                Image(systemName: "heart.fill").font(.system(size: size * 0.8)).foregroundColor(Theme.red)
-                Image(systemName: "infinity").font(.system(size: size * 0.36, weight: .heavy)).foregroundColor(.white)
-            }
+            SpriteImage(name: "icon_unlimited", size: size)
         case .lives:
-            Image(systemName: "heart.fill").font(.system(size: size * 0.75)).foregroundColor(Theme.red)
+            SpriteImage(name: "icon_heart", size: size)
         case .energy:
-            Image(systemName: "bolt.fill").font(.system(size: size * 0.75)).foregroundColor(Theme.gold)
+            SpriteImage(name: "icon_energy", size: size)
         case let .chest(k, _):
-            SpriteImage(name: k.sprite, size: size * 1.1)
+            SpriteImage(name: k.sprite, size: size * 1.15)
         case let .background(bg):
             Image(uiImage: Art.image(KitchenStyle.image(bg)))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
-                .frame(width: size * 0.7, height: size)
+                .frame(width: size * 0.72, height: size)
                 .clipShape(RoundedRectangle(cornerRadius: size * 0.15))
+                .overlay(RoundedRectangle(cornerRadius: size * 0.15).strokeBorder(Theme.paperBorder, lineWidth: 1.5))
         }
     }
 }
@@ -101,14 +97,15 @@ struct RewardInfoOverlay: View {
     var body: some View {
         ZStack {
             if let item = info.item {
-                Color.black.opacity(0.35)
+                Color.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture { RewardInfo.hide() }
                     .transition(.opacity)
-                card(item)
-                    .padding(.horizontal, 36)
-                    .transition(.scale(scale: 0.85).combined(with: .opacity))
-                    .onTapGesture { RewardInfo.hide() }
+                PopupCard(title: RewardInfo.title(item, lang: lang), close: { RewardInfo.hide() }, maxWidth: 320) {
+                    card(item)
+                }
+                .transition(.scale(scale: 0.85).combined(with: .opacity))
+                .onTapGesture { RewardInfo.hide() }
             }
         }
         .environment(\.layoutDirection, lang.direction)
@@ -116,64 +113,60 @@ struct RewardInfoOverlay: View {
     }
 
     private func card(_ item: RewardItem) -> some View {
-        VStack(spacing: 10) {
-            RewardItemIcon(item: item, size: 64)
-                .frame(height: 74)
-            VStack(spacing: 2) {
-                Text(RewardInfo.title(item, lang: lang))
-                    .font(Theme.rounded(20, .heavy))
-                    .foregroundColor(Theme.brown)
-                    .multilineTextAlignment(.center)
-                let amount = RewardInfo.amount(item)
-                if !amount.isEmpty {
-                    Text(amount).font(Theme.rounded(16, .heavy)).foregroundColor(Theme.orange)
-                }
+        VStack(spacing: 12) {
+            RewardItemIcon(item: item, size: 84)
+                .frame(height: 92)
+            let amount = RewardInfo.amount(item)
+            if !amount.isEmpty {
+                StrokeText(text: amount, size: 24, color: .white, stroke: Theme.woodDark, width: 1.8, drop: 2)
             }
             if case let .chest(kind, _) = item {
                 chestDetails(kind)
             }
             Text(RewardInfo.text(item, lang: lang))
-                .font(Theme.rounded(14, .semibold))
-                .foregroundColor(Theme.brownSoft)
+                .font(Theme.rounded(15, .semibold))
+                .foregroundColor(Theme.brown)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
             Text(lang.t("info.close"))
-                .font(Theme.rounded(11, .bold))
-                .foregroundColor(Theme.brownSoft.opacity(0.7))
-                .padding(.top, 2)
+                .font(Theme.rounded(12, .bold))
+                .foregroundColor(Theme.brownSoft.opacity(0.8))
         }
-        .padding(20)
-        .frame(maxWidth: 340)
-        .background(RoundedRectangle(cornerRadius: 26, style: .continuous).fill(Theme.cream))
-        .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(Theme.gold.opacity(0.6), lineWidth: 2))
-        .shadow(color: .black.opacity(0.25), radius: 16, y: 8)
+        .frame(maxWidth: .infinity)
     }
 
     /// Что лежит в сундуке: карточки, редкость, монеты.
     private func chestDetails(_ kind: ChestKind) -> some View {
-        HStack(spacing: 14) {
-            VStack(spacing: 2) {
-                Image(systemName: "rectangle.portrait.on.rectangle.portrait.fill")
-                    .font(.system(size: 22, weight: .bold)).foregroundColor(Theme.blue)
-                Text(lang.t("info.chest.cards", kind.cards)).font(Theme.rounded(12, .heavy)).foregroundColor(Theme.brown)
+        HStack(spacing: 8) {
+            detail {
+                SpriteImage(name: "icon_cards", size: 34)
+            } text: {
+                lang.t("info.chest.cards", kind.cards)
             }
-            VStack(spacing: 2) {
-                HStack(spacing: 1) {
-                    ForEach(0..<kind.guaranteed, id: \.self) { _ in
-                        Image(systemName: "star.fill").font(.system(size: 12, weight: .bold)).foregroundColor(Theme.gold)
-                    }
+            detail {
+                HStack(spacing: 0) {
+                    ForEach(0..<kind.guaranteed, id: \.self) { _ in SpriteImage(name: "icon_star", size: 16) }
                 }
-                .frame(height: 22)
-                Text(lang.t("info.chest.rarity")).font(Theme.rounded(12, .heavy)).foregroundColor(Theme.brown)
+                .frame(height: 34)
+            } text: {
+                lang.t("info.chest.rarity")
             }
-            VStack(spacing: 2) {
-                CoinIcon(size: 22)
-                Text("+\(kind.coins)").font(Theme.rounded(12, .heavy)).foregroundColor(Theme.brown)
+            detail {
+                CoinIcon(size: 30).frame(height: 34)
+            } text: {
+                "+\(kind.coins)"
             }
         }
-        .padding(.vertical, 10)
-        .padding(.horizontal, 14)
-        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.card))
+    }
+
+    private func detail<Icon: View>(@ViewBuilder icon: () -> Icon, text: () -> String) -> some View {
+        VStack(spacing: 2) {
+            icon()
+            Text(text()).font(Theme.rounded(12, .heavy)).foregroundColor(Theme.brown).lineLimit(1).minimumScaleFactor(0.7)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(InsetBackground(radius: 12))
     }
 }
 

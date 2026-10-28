@@ -407,28 +407,28 @@ struct WinView: View {
     private func extras(_ result: GameSession.Result) -> some View {
         VStack(spacing: 6) {
             if let day = result.streakDay, let granted = result.streak {
-                RewardLine(symbol: "flame.fill", color: Theme.orange, title: lang.t("win.streak", day), granted: granted)
+                RewardLine(symbol: "icon_flame", color: Theme.orange, title: lang.t("win.streak", day), granted: granted)
             }
             if session.mode == .main && !session.isReplay && result.chefSeries > 1 {
-                RewardLine(symbol: "crown.fill", color: Theme.gold, title: lang.t("win.chef", result.chefSeries),
+                RewardLine(symbol: "icon_crown", color: Theme.gold, title: lang.t("win.chef", result.chefSeries),
                            granted: result.chef)
             }
             if let granted = result.challenge {
                 RewardLine(symbol: "calendar", color: Theme.green, title: lang.t(challengeTitle), granted: granted)
             }
             ForEach(result.events) { gain in
-                RewardLine(symbol: EventUI.symbol(gain.kind), color: EventUI.color(gain.kind),
+                RewardLine(symbol: EventUI.icon(gain.kind), color: EventUI.color(gain.kind),
                            title: EventUI.gainText(gain, lang: lang), granted: nil)
             }
             if result.doubleBonus > 0 {
-                RewardLine(symbol: "2.circle.fill", color: Theme.green, title: lang.t("event.double.bonus", result.doubleBonus),
+                RewardLine(symbol: "coin_icon", color: Theme.green, title: lang.t("event.double.bonus", result.doubleBonus),
                            granted: nil)
             }
             if result.vipBonus > 0 {
-                RewardLine(symbol: "crown.fill", color: Theme.gold, title: lang.t("win.vip", result.vipBonus), granted: nil)
+                RewardLine(symbol: "icon_crown", color: Theme.gold, title: lang.t("win.vip", result.vipBonus), granted: nil)
             }
             if let gift = result.gourmetGift {
-                RewardLine(symbol: "crown.fill", color: Theme.gold,
+                RewardLine(symbol: "icon_crown", color: Theme.gold,
                            title: lang.t(gift.reward.background != nil ? "win.gourmet.bg" : "win.gourmet"), granted: gift)
             }
         }

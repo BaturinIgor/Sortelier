@@ -24,10 +24,9 @@ struct AlbumCardView: View {
 
     var body: some View {
         VStack(spacing: 3) {
-            HStack(spacing: 1) {
+            HStack(spacing: 0) {
                 ForEach(0..<card.stars, id: \.self) { _ in
-                    Image(systemName: "star.fill").font(.system(size: width * 0.09, weight: .bold))
-                        .foregroundColor(owned ? Color(red: 1.0, green: 0.78, blue: 0.15) : Theme.brownSoft.opacity(0.4))
+                    SpriteImage(name: "icon_star", size: width * 0.13, silhouette: !owned)
                 }
             }
             SpriteImage(name: card.id, size: width * 0.66, silhouette: !owned)
@@ -49,48 +48,46 @@ struct AlbumCardView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: width * 0.12, style: .continuous)
-                .stroke(owned ? CardStyle.colors(card.stars)[1] : Theme.brown.opacity(0.12), lineWidth: 2)
+                .strokeBorder(owned ? Theme.paperBorder : Theme.chipBorder, lineWidth: width > 90 ? 3 : 2)
         )
         .overlay(alignment: .topTrailing) {
             if owned && count > 1 {
-                Text("+\(count - 1)")
-                    .font(Theme.rounded(11, .heavy))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 1)
-                    .background(Capsule().fill(Theme.orange))
-                    .offset(x: 4, y: -5)
+                CountBadge(count: count - 1).scaleEffect(0.85).offset(x: 6, y: -6)
             }
         }
         .overlay(alignment: .topLeading) {
             if isNew {
                 Text(lang.t("album.new"))
-                    .font(Theme.rounded(10, .heavy))
+                    .font(Theme.rounded(10, .black))
                     .foregroundColor(.white)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 1)
+                    .outlined(Theme.ribbonDark, width: 1)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
                     .background(Capsule().fill(Theme.red))
-                    .offset(x: -4, y: -5)
+                    .overlay(Capsule().strokeBorder(Theme.ribbonDark, lineWidth: 1.5))
+                    .offset(x: -6, y: -6)
             }
         }
     }
 }
 
-/// Сундук с подписью содержимого: сколько карточек и какой минимум звезд.
+/// Что лежит в сундуке: карточки, минимальная редкость, монеты. Тап на сундук открывает подробности.
 struct ChestContents: View {
     let kind: ChestKind
     @EnvironmentObject private var lang: Lang
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(lang.t("chest.kind." + kind.rawValue)).font(Theme.rounded(15, .heavy)).foregroundColor(Theme.brown)
-            Text(lang.t("chest.contents", kind.cards, kind.guaranteed))
-                .font(Theme.rounded(12, .semibold))
-                .foregroundColor(Theme.brownSoft)
-                .fixedSize(horizontal: false, vertical: true)
-            HStack(spacing: 3) {
-                CoinIcon(size: 14)
-                Text("+\(kind.coins)").font(Theme.rounded(12, .heavy)).foregroundColor(Theme.brown)
+        HStack(spacing: 8) {
+            HStack(spacing: 2) {
+                SpriteImage(name: "icon_cards", size: 22)
+                Text("×\(kind.cards)").font(Theme.rounded(13, .black)).foregroundColor(Theme.brown)
+            }
+            HStack(spacing: 0) {
+                ForEach(0..<kind.guaranteed, id: \.self) { _ in SpriteImage(name: "icon_star", size: 13) }
+            }
+            HStack(spacing: 2) {
+                CoinIcon(size: 18)
+                Text("+\(kind.coins)").font(Theme.rounded(13, .black)).foregroundColor(Theme.brown)
             }
         }
     }
@@ -98,10 +95,10 @@ struct ChestContents: View {
 
 // MARK: - Альбом
 
-struct AlbumSheet: View {
+struct AlbumScreen: View {
     @EnvironmentObject private var progress: PlayerProgress
     @EnvironmentObject private var lang: Lang
-    @Environment(\.presentationMode) private var presentation
+    @EnvironmentObject private var router: Router
     @State private var book: Int?
     @State private var opening: ChestOpening?
     @State private var granted: Granted?
@@ -110,26 +107,29 @@ struct AlbumSheet: View {
 
     var body: some View {
         ZStack {
-            Theme.background.ignoresSafeArea()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
-                    SheetHeader(title: lang.t("album.title"),
-                                subtitle: lang.t("album.season", Lang.time(progress.albumSecondsLeft))) {
-                        presentation.wrappedValue.dismiss()
-                    }
+            ScreenScaffold(title: book.map { lang.t("album.book." + AlbumCatalog.books[$0].key) } ?? lang.t("album.title"),
+                           back: {
+                               if book != nil { withAnimation(.easeOut(duration: 0.2)) { book = nil } } else { router.open(.map) }
+                           }) {
+                Group {
                     if let index = book {
                         bookDetail(AlbumCatalog.books[index])
                     } else {
-                        summary
-                        chests
-                        starChest
-                        LazyVGrid(columns: columns, spacing: 10) {
-                            ForEach(AlbumCatalog.books) { b in bookTile(b) }
+                        VStack(spacing: 14) {
+                            summary
+                            SectionTitle(title: lang.t("album.chests"), color: Theme.orange)
+                            chests
+                            starChest
+                            SectionTitle(title: lang.t("album.books"))
+                            LazyVGrid(columns: columns, spacing: 12) {
+                                ForEach(AlbumCatalog.books) { b in bookTile(b) }
+                            }
+                            grandCard
                         }
-                        grandCard
                     }
                 }
-                .padding(20)
+                .id(book ?? -1)
+                .transition(.opacity)
             }
             if let granted = granted {
                 RewardPopup(title: lang.t("common.received"), granted: granted) { self.granted = nil }
@@ -144,56 +144,70 @@ struct AlbumSheet: View {
     private var summary: some View {
         let owned = progress.albumCardsOwned
         return MetaCard {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(lang.t("album.progress", owned, AlbumCatalog.cards.count))
-                    .font(Theme.rounded(17, .heavy))
-                    .foregroundColor(Theme.brown)
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 8) {
+                    SpriteImage(name: "icon_cards", size: 40)
+                    Text(lang.t("album.progress", owned, AlbumCatalog.cards.count))
+                        .font(Theme.rounded(17, .black))
+                        .foregroundColor(Theme.brown)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 4)
+                    TimerBadge(text: Lang.time(progress.albumSecondsLeft))
+                }
                 ProgressBar(value: owned, target: AlbumCatalog.cards.count, color: Theme.gold)
                 Text(lang.t("album.text"))
-                    .font(Theme.rounded(12, .semibold))
+                    .font(Theme.rounded(13, .semibold))
                     .foregroundColor(Theme.brownSoft)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
 
+    @ViewBuilder
     private var chests: some View {
         let kinds = ChestKind.allCases.filter { progress.chestCount($0) > 0 }
-        return VStack(alignment: .leading, spacing: 8) {
-            Text(lang.t("album.chests")).font(Theme.rounded(17, .heavy)).foregroundColor(Theme.brown)
-            if kinds.isEmpty {
-                Text(lang.t("album.chests.empty"))
-                    .font(Theme.rounded(13, .semibold))
-                    .foregroundColor(Theme.brownSoft)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            ForEach(kinds) { kind in
-                MetaCard(highlight: true) {
-                    HStack(spacing: 12) {
-                        ZStack(alignment: .topTrailing) {
-                            SpriteImage(name: kind.sprite, size: 64)
-                            Text("×\(progress.chestCount(kind))")
-                                .font(Theme.rounded(12, .heavy))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 5)
-                                .background(Capsule().fill(Theme.red))
-                        }
-                        ChestContents(kind: kind)
-                        Spacer(minLength: 0)
-                        Button(lang.t("chest.open")) {
-                            if let result = progress.openChest(kind) {
-                                withAnimation { opening = result }
-                            }
-                        }
-                        .font(Theme.rounded(14, .heavy))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 14)
-                        .frame(height: 36)
-                        .background(Capsule().fill(Theme.green))
-                    }
-                }
+        if kinds.isEmpty {
+            Text(lang.t("album.chests.empty"))
+                .font(Theme.rounded(14, .semibold))
+                .foregroundColor(Theme.brown)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(12)
+                .frame(maxWidth: .infinity)
+                .background(InsetBackground())
+        } else {
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 14) {
+                ForEach(kinds) { kind in chestTile(kind) }
             }
         }
+    }
+
+    private func chestTile(_ kind: ChestKind) -> some View {
+        VStack(spacing: 6) {
+            Button { RewardInfo.show(.chest(kind, progress.chestCount(kind))) } label: {
+                SpriteImage(name: kind.sprite, size: 84)
+                    .overlay(alignment: .topTrailing) { CountBadge(count: progress.chestCount(kind)).offset(x: 6, y: 2) }
+            }
+            .buttonStyle(PressScaleStyle())
+            Text(lang.t("chest.kind." + kind.rawValue))
+                .font(Theme.rounded(14, .black))
+                .foregroundColor(Theme.brown)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            ChestContents(kind: kind)
+            Button(lang.t("chest.open")) {
+                if let result = progress.openChest(kind) {
+                    withAnimation { opening = result }
+                }
+            }
+            .buttonStyle(GameButtonStyle(palette: .green, height: 40, fontSize: 17, radius: 13))
+        }
+        .padding(.horizontal, 10)
+        .padding(.top, 8)
+        .padding(.bottom, 6)
+        .frame(maxWidth: .infinity)
+        .background(PaperBackground(highlight: true))
     }
 
     private var starChest: some View {
@@ -201,26 +215,23 @@ struct AlbumSheet: View {
         let ready = stars >= AlbumCatalog.starChestPrice
         return MetaCard(highlight: ready) {
             HStack(spacing: 12) {
-                SpriteImage(name: ChestKind.star.sprite, size: 56)
-                VStack(alignment: .leading, spacing: 4) {
+                Button { RewardInfo.show(.chest(.star, 1)) } label: { SpriteImage(name: ChestKind.star.sprite, size: 64) }
+                    .buttonStyle(PressScaleStyle())
+                VStack(alignment: .leading, spacing: 6) {
                     Text(lang.t("album.stars", stars, AlbumCatalog.starChestPrice))
-                        .font(Theme.rounded(15, .heavy))
+                        .font(Theme.rounded(15, .black))
                         .foregroundColor(Theme.brown)
                     Text(lang.t("album.stars.text"))
                         .font(Theme.rounded(12, .semibold))
                         .foregroundColor(Theme.brownSoft)
                         .fixedSize(horizontal: false, vertical: true)
-                    ProgressBar(value: stars, target: AlbumCatalog.starChestPrice, color: Theme.vip)
-                }
-                if ready {
-                    Button(lang.t("album.stars.get")) {
-                        if progress.buyStarChest() { Audio.shared.play(.chest) }
+                    ProgressBar(value: stars, target: AlbumCatalog.starChestPrice, color: Theme.vip, height: 12)
+                    if ready {
+                        Button(lang.t("album.stars.get")) {
+                            if progress.buyStarChest() { Audio.shared.play(.chest) }
+                        }
+                        .buttonStyle(GameButtonStyle(palette: .purple, height: 38, fontSize: 16, radius: 12))
                     }
-                    .font(Theme.rounded(13, .heavy))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .frame(height: 34)
-                    .background(Capsule().fill(Theme.vip))
                 }
             }
         }
@@ -230,64 +241,56 @@ struct AlbumSheet: View {
         let owned = progress.bookOwned(b)
         let claimable = progress.canClaimBook(b)
         let cover = b.cards.max { $0.stars < $1.stars } ?? b.cards[0]
-        return Button { withAnimation(.easeOut(duration: 0.2)) { book = b.id } } label: {
+        return Button {
+            Audio.shared.play(.button, volume: 0.5)
+            withAnimation(.easeOut(duration: 0.2)) { book = b.id }
+        } label: {
             VStack(spacing: 6) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(LinearGradient(colors: CardStyle.colors(min(5, b.id % 5 + 1)), startPoint: .top, endPoint: .bottom))
-                    SpriteImage(name: cover.id, size: 58, silhouette: !progress.hasCard(cover))
-                    if progress.bookClaimed(b) {
-                        Image(systemName: "checkmark.seal.fill").font(.system(size: 20)).foregroundColor(Theme.green)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                            .padding(4)
-                    }
+                    RoundedRectangle(cornerRadius: 12, style: .continuous).strokeBorder(Theme.paperBorder, lineWidth: 2)
+                    SpriteImage(name: cover.id, size: 60, silhouette: !progress.hasCard(cover))
                 }
-                .frame(height: 76)
+                .frame(height: 78)
+                .overlay(alignment: .topTrailing) {
+                    if progress.bookClaimed(b) { SpriteImage(name: "icon_check", size: 26).offset(x: 6, y: -6) }
+                }
                 Text(lang.t("album.book." + b.key))
-                    .font(Theme.rounded(12, .heavy))
+                    .font(Theme.rounded(12, .black))
                     .foregroundColor(Theme.brown)
                     .lineLimit(2)
                     .minimumScaleFactor(0.7)
                     .multilineTextAlignment(.center)
-                    .frame(height: 30)
-                ProgressBar(value: owned, target: b.cards.count, color: owned == b.cards.count ? Theme.green : Theme.orange)
-                Text("\(owned)/\(b.cards.count)").font(Theme.rounded(11, .bold)).foregroundColor(Theme.brownSoft)
+                    .frame(height: 32)
+                ProgressBar(value: owned, target: b.cards.count, color: owned == b.cards.count ? Theme.green : Theme.orange, height: 11)
+                Text("\(owned)/\(b.cards.count)").font(Theme.rounded(12, .black)).foregroundColor(Theme.brownSoft)
             }
             .padding(8)
-            .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.card))
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(claimable ? Theme.green : Color.clear, lineWidth: 2))
+            .background(PaperBackground(radius: 16, highlight: claimable))
             .overlay(alignment: .topTrailing) {
-                if claimable { BadgeDot().offset(x: 3, y: -3) }
+                if claimable { BadgeDot().offset(x: 4, y: -4) }
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressScaleStyle())
     }
 
     private func bookDetail(_ b: AlbumBook) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Button { withAnimation(.easeOut(duration: 0.2)) { book = nil } } label: {
-                Label(lang.t("album.back"), systemImage: "chevron.left")
-                    .font(Theme.rounded(15, .heavy))
-                    .foregroundColor(Theme.orange)
-            }
-            .buttonStyle(.plain)
-            Text(lang.t("album.book." + b.key)).font(Theme.rounded(22, .heavy)).foregroundColor(Theme.brown)
+        VStack(spacing: 14) {
             LazyVGrid(columns: columns, spacing: 12) {
                 ForEach(b.cards) { card in
-                    AlbumCardView(card: card, owned: progress.hasCard(card), count: progress.cardCount(card), width: 100)
+                    AlbumCardView(card: card, owned: progress.hasCard(card), count: progress.cardCount(card), width: 104)
                 }
             }
             MetaCard(highlight: progress.canClaimBook(b)) {
-                VStack(spacing: 8) {
-                    Text(lang.t("album.book.reward")).font(Theme.rounded(15, .heavy)).foregroundColor(Theme.brown)
+                VStack(spacing: 10) {
+                    Text(lang.t("album.book.reward")).font(Theme.rounded(16, .black)).foregroundColor(Theme.brown)
                     RewardChips(reward: b.reward)
                     if progress.canClaimBook(b) {
                         Button(lang.t("common.claim")) { granted = progress.claimBook(b) }
-                            .buttonStyle(BigButtonStyle(color: Theme.green))
+                            .buttonStyle(GameButtonStyle(palette: .green))
                     } else if progress.bookClaimed(b) {
-                        Label(lang.t("challenge.done"), systemImage: "checkmark.seal.fill")
-                            .font(Theme.rounded(15, .heavy))
-                            .foregroundColor(Theme.green)
+                        DoneLabel(text: lang.t("challenge.done"))
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -297,15 +300,16 @@ struct AlbumSheet: View {
 
     private var grandCard: some View {
         MetaCard(highlight: progress.canClaimAlbumGrand) {
-            VStack(spacing: 8) {
-                HStack {
-                    Image(systemName: "trophy.fill").foregroundColor(Theme.gold)
-                    Text(lang.t("album.grand")).font(Theme.rounded(16, .heavy)).foregroundColor(Theme.brown)
+            VStack(spacing: 10) {
+                HStack(spacing: 8) {
+                    SpriteImage(name: "icon_trophy", size: 38)
+                    Text(lang.t("album.grand")).font(Theme.rounded(16, .black)).foregroundColor(Theme.brown)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                RewardChips(reward: AlbumCatalog.grand)
+                RewardChips(reward: AlbumCatalog.grand, perRow: 4, tileWidth: 60)
                 if progress.canClaimAlbumGrand {
                     Button(lang.t("common.claim")) { granted = progress.claimAlbumGrand() }
-                        .buttonStyle(BigButtonStyle(color: Theme.green))
+                        .buttonStyle(GameButtonStyle(palette: .green))
                 }
             }
             .frame(maxWidth: .infinity)
@@ -328,12 +332,10 @@ struct ChestOpenView: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.65).ignoresSafeArea()
+            Dim(opacity: 0.7)
                 .onTapGesture(perform: next)
             VStack(spacing: 18) {
-                Text(lang.t("chest.kind." + opening.kind.rawValue))
-                    .font(Theme.rounded(24, .heavy))
-                    .foregroundColor(.white)
+                Ribbon(title: lang.t("chest.kind." + opening.kind.rawValue), size: 22)
                 if !done {
                     ZStack {
                         SpriteImage(name: opened ? opening.kind.openSprite : opening.kind.sprite, size: 170)
@@ -349,12 +351,11 @@ struct ChestOpenView: View {
                     }
                     .frame(height: 260)
                     if opened {
-                        Text(lang.t("chest.cards.left", opening.drops.count - shown))
-                            .font(Theme.rounded(14, .bold))
-                            .foregroundColor(.white.opacity(0.8))
+                        StrokeText(text: lang.t("chest.cards.left", opening.drops.count - shown), size: 16, color: .white,
+                                   stroke: Theme.woodDark, width: 1.5, drop: 2)
                         Text(lang.t("chest.tap"))
-                            .font(Theme.rounded(13, .semibold))
-                            .foregroundColor(.white.opacity(0.6))
+                            .font(Theme.rounded(13, .bold))
+                            .foregroundColor(.white.opacity(0.75))
                     }
                 } else {
                     summary
@@ -394,16 +395,18 @@ struct ChestOpenView: View {
                 }
             }
             HStack(spacing: 14) {
-                Label(lang.t("album.new.count", opening.drops.filter(\.isNew).count), systemImage: "sparkles")
+                Text(lang.t("album.new.count", opening.drops.filter(\.isNew).count))
                     .foregroundColor(Theme.gold)
-                HStack(spacing: 3) { CoinIcon(size: 16); Text("+\(opening.coins)") }
+                HStack(spacing: 3) { CoinIcon(size: 22); Text("+\(opening.coins)") }
                     .foregroundColor(.white)
                 if opening.stars > 0 {
-                    Label("+\(opening.stars)", systemImage: "star.fill").foregroundColor(Color(red: 0.75, green: 0.6, blue: 1.0))
+                    HStack(spacing: 2) { SpriteImage(name: "icon_star", size: 22); Text("+\(opening.stars)") }
+                        .foregroundColor(Color(red: 0.85, green: 0.75, blue: 1.0))
                 }
             }
-            .font(Theme.rounded(15, .heavy))
-            Button(lang.t("common.ok"), action: close).buttonStyle(BigButtonStyle())
+            .font(Theme.rounded(16, .black))
+            .outlined(Theme.woodDark, width: 1)
+            Button(lang.t("common.ok"), action: close).buttonStyle(GameButtonStyle(palette: .green))
                 .frame(maxWidth: 240)
         }
     }

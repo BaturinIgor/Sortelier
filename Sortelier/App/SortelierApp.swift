@@ -6,6 +6,12 @@ struct SortelierApp: App {
     @StateObject private var lang = Lang.shared
     @Environment(\.scenePhase) private var scenePhase
 
+    init() {
+        #if DEBUG
+        UIDebug.prepare()
+        #endif
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
@@ -42,16 +48,58 @@ struct LevelLaunch: Identifiable {
 
 struct RootView: View {
     @State private var launch: LevelLaunch?
+    @ObservedObject private var router = Router.shared
+    @EnvironmentObject private var progress: PlayerProgress
+    @EnvironmentObject private var lang: Lang
 
     var body: some View {
-        MapView(play: { level, mode in launch = LevelLaunch(level: level, mode: mode) })
-            .fullScreenCover(item: $launch) { item in
-                LevelHost(level: item.level, mode: item.mode, close: {
-                    launch = nil
-                    Audio.shared.setTrack(Biomes.music(PlayerProgress.shared.mapBiome))
-                })
+        ZStack(alignment: .bottom) {
+            ZStack {
+                switch router.tab {
+                case .map: MapView(play: play)
+                case .shop: ShopScreen()
+                case .events: EventsHub(play: play)
+                case .album: AlbumScreen()
+                case .kitchen: KitchenHub()
+                }
+            }
+            .transition(.opacity)
+            .fullScreenCover(isPresented: $router.merge) {
+                MergeView(close: { router.merge = false })
                     .environmentObject(PlayerProgress.shared)
                     .environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
             }
+            MainTabBar()
+            if router.settings {
+                SettingsScreen()
+                    .transition(.move(edge: .trailing))
+                    .zIndex(5)
+            }
+            if router.lives {
+                LivesPopup { router.lives = false }.zIndex(6)
+            }
+            if router.streak {
+                StreakPopup { router.streak = false }.zIndex(6)
+            }
+        }
+        .environmentObject(router)
+        .fullScreenCover(item: $launch) { item in
+            LevelHost(level: item.level, mode: item.mode, close: {
+                launch = nil
+                Audio.shared.setTrack(Biomes.music(PlayerProgress.shared.mapBiome))
+            })
+                .environmentObject(PlayerProgress.shared)
+                .environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
+                .environmentObject(Router.shared)
+        }
+        .onAppear {
+            #if DEBUG
+            UIDebug.apply(router)
+            #endif
+        }
+    }
+
+    private func play(_ level: LevelData, _ mode: PlayMode) {
+        launch = LevelLaunch(level: level, mode: mode)
     }
 }

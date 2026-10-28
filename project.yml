@@ -43,6 +43,7 @@ targets:
         UIStatusBarHidden: true
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
+        UIAppFonts: [Nunito-Bold.ttf, Nunito-ExtraBold.ttf, Nunito-Black.ttf]
         AppMetricaAPIKey: ""
     settings:
       base:

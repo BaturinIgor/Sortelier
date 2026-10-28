@@ -1,0 +1,122 @@
+name: UI screenshots
+
+# Снимки экранов из симулятора: отладочная сборка открывается сразу на нужном экране
+# с тестовым прогрессом (-uiDemo) и нужным языком (-uiLang). Снимки уходят в ветку ci-screens.
+on:
+  push:
+    branches: [dev]
+    paths-ignore:
+      - "README.md"
+      - "tools/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ui-shots-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shots:
+    runs-on: macos-26
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Boot simulator
+        id: sim
+        run: |
+          xcrun simctl list devices available
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)['devices']
+          c = [x for k, v in d.items() if 'iOS' in k for x in v
+               if x['name'].startswith('iPhone') and 'Max' not in x['name'] and 'Plus' not in x['name'] and 'Air' not in x['name']]
+          c.sort(key=lambda x: x['name'])
+          print(c[-1]['udid'] if c else '')
+          ")
+          echo "Simulator: $UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Build for simulator
+        run: |
+          set +e
+          xcodebuild \
+            -project Sortelier.xcodeproj \
+            -scheme Sortelier \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            build > build.log 2>&1
+          status=$?
+          grep -E "error:|fatal error" build.log | sort -u | head -150
+          tail -30 build.log
+          exit $status
+
+      - name: Take screenshots
+        run: |
+          UDID="${{ steps.sim.outputs.udid }}"
+          APP="build/Build/Products/Debug-iphonesimulator/Sortelier.app"
+          xcrun simctl install "$UDID" "$APP"
+          mkdir -p shots
+          shoot() {
+            name="$1"; shift
+            xcrun simctl terminate "$UDID" com.personal.sortelier >/dev/null 2>&1 || true
+            xcrun simctl launch "$UDID" com.personal.sortelier -uiDemo "$@" >/dev/null
+            sleep 7
+            xcrun simctl io "$UDID" screenshot "shots/$name.png" >/dev/null 2>&1
+            echo "shot $name"
+          }
+          shoot map         -uiLang ru -uiScreen map
+          shoot shop        -uiLang ru -uiScreen shop
+          shoot events      -uiLang ru -uiScreen events
+          shoot challenges  -uiLang ru -uiScreen challenges
+          shoot quests      -uiLang ru -uiScreen quests
+          shoot album       -uiLang ru -uiScreen album
+          shoot book        -uiLang ru -uiScreen book
+          shoot achievements -uiLang ru -uiScreen achievements
+          shoot backgrounds -uiLang ru -uiScreen backgrounds
+          shoot settings    -uiLang ru -uiScreen settings
+          shoot language    -uiLang ru -uiScreen language
+          shoot lives       -uiLang ru -uiScreen lives
+          shoot streak      -uiLang ru -uiScreen streak
+          shoot info        -uiLang ru -uiScreen album -uiInfo gold
+          shoot merge       -uiLang ru -uiScreen merge
+          shoot shop_de     -uiLang de -uiScreen shop
+          shoot events_de   -uiLang de -uiScreen events
+          shoot map_ar      -uiLang ar -uiScreen map
+          shoot achievements_ja -uiLang ja -uiScreen achievements
+
+      - name: Publish screenshots
+        run: |
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout --orphan ci-screens
+          git rm -rf --cached . > /dev/null
+          git add -f shots/*.png
+          git commit -q -m "UI screenshots run ${{ github.run_number }} for ${{ github.sha }}"
+          git push -q -f origin ci-screens
+
+      - name: Publish errors on failure
+        if: failure()
+        run: |
+          grep -E "error:|fatal error" build.log | sort -u > errors.txt || true
+          tail -250 build.log > tail.txt || true
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout --orphan ci-logs-ui
+          git rm -rf --cached . > /dev/null
+          git add -f errors.txt tail.txt
+          git commit -q -m "UI CI errors run ${{ github.run_number }}"
+          git push -q -f origin ci-logs-ui
