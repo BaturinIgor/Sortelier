@@ -81,11 +81,12 @@ struct LevelContent: View {
                         boosterBar
                     } else {
                         Text(lang.t("rule.noboosters.bar"))
-                            .font(Theme.rounded(15, .heavy))
-                            .foregroundColor(Theme.brownSoft)
+                            .font(Theme.rounded(15, .black))
+                            .foregroundColor(Color(red: 1.0, green: 0.93, blue: 0.8))
+                            .outlined(Theme.woodDark, width: 1)
                             .padding(.horizontal, 20)
                             .frame(height: 58)
-                            .background(Capsule().fill(Theme.card.opacity(0.92)))
+                            .background(woodTray)
                     }
                 }
                 .padding(.horizontal, 14)
@@ -115,20 +116,20 @@ struct LevelContent: View {
         HStack(spacing: 10) {
             CircleIconButton(symbol: "pause.fill", size: 42) { paused = true }
             VStack(alignment: .leading, spacing: 0) {
-                Text(title)
-                    .font(Theme.rounded(19, .heavy))
-                    .foregroundColor(Theme.brown)
+                StrokeText(text: title, size: 19, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
+                           stroke: Theme.woodDark, width: 1.5, drop: 2, alignment: .leading)
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 if session.level.hard && session.mode == .main {
                     Text(lang.t("map.hard"))
-                        .font(Theme.rounded(12, .heavy))
-                        .foregroundColor(Theme.red)
+                        .font(Theme.rounded(12, .black))
+                        .foregroundColor(Color(red: 1.0, green: 0.55, blue: 0.45))
+                        .outlined(Theme.woodDark, width: 1)
                 }
             }
-            .padding(.horizontal, 14)
-            .frame(minHeight: 42)
-            .background(Capsule().fill(Theme.card).shadow(color: Theme.brown.opacity(0.18), radius: 4, y: 2))
+            .padding(.horizontal, 16)
+            .frame(minHeight: 44)
+            .background(woodTray)
             Spacer()
         }
         .padding(.top, 6)
@@ -162,8 +163,17 @@ struct LevelContent: View {
             }
         }
         .padding(.vertical, 10)
-        .padding(.horizontal, 16)
-        .background(Capsule().fill(Theme.card.opacity(0.92)).shadow(color: Theme.brown.opacity(0.2), radius: 8, y: 3))
+        .padding(.horizontal, 14)
+        .background(woodTray)
+    }
+
+    /// Деревянная подложка панелей уровня.
+    private var woodTray: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 22, style: .continuous).fill(Theme.woodDark).offset(y: 4)
+            WoodBackground().clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+            RoundedRectangle(cornerRadius: 22, style: .continuous).strokeBorder(Theme.woodDark, lineWidth: 3)
+        }
     }
 
     private func boosterButton(_ booster: Booster, use: @escaping () -> Bool) -> some View {
@@ -177,21 +187,28 @@ struct LevelContent: View {
             }
         } label: {
             ZStack(alignment: .topTrailing) {
-                Image(systemName: booster.symbol)
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(width: 52, height: 52)
-                    .background(Circle().fill(booster == .pause ? Theme.blue : Theme.orange)
-                        .shadow(color: (booster == .pause ? Theme.blue : Theme.orange).opacity(0.5), radius: 0, y: 4))
+                ZStack {
+                    RoundedRectangle(cornerRadius: 15, style: .continuous).fill(Theme.woodDark).offset(y: 3)
+                    RoundedRectangle(cornerRadius: 15, style: .continuous).fill(Theme.card)
+                    RoundedRectangle(cornerRadius: 15, style: .continuous).strokeBorder(Theme.paperBorder, lineWidth: 2.5)
+                    SpriteImage(name: booster.icon, size: 44)
+                }
+                .frame(width: 54, height: 54)
                 Text(count > 0 ? "\(count)" : "+")
-                    .font(Theme.rounded(13, .heavy))
+                    .font(Theme.rounded(14, .black))
                     .foregroundColor(.white)
-                    .frame(minWidth: 22, minHeight: 22)
-                    .background(Circle().fill(count > 0 ? Theme.green : Theme.brownSoft))
-                    .offset(x: 4, y: -4)
+                    .outlined(count > 0 ? ButtonPalette.green.dark : ButtonPalette.orange.dark, width: 1)
+                    .frame(minWidth: 24, minHeight: 24)
+                    .background(
+                        ZStack {
+                            Circle().fill(count > 0 ? Theme.green : Theme.orange)
+                            Circle().strokeBorder(Color.white, lineWidth: 2)
+                        }
+                    )
+                    .offset(x: 6, y: -6)
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressScaleStyle())
     }
 
 
@@ -260,22 +277,18 @@ struct PauseView: View {
     var body: some View {
         ZStack {
             Dim()
-            Panel(padding: 22) {
-                VStack(spacing: 14) {
-                    Text(lang.t("pause.title"))
-                        .font(Theme.rounded(26, .heavy))
-                        .foregroundColor(Theme.brown)
+            PopupCard(title: lang.t("pause.title"), close: resume, maxWidth: 300) {
+                VStack(spacing: 12) {
                     if session.costsLife && session.hasMoves {
                         Text(lang.t("pause.lifewarning"))
                             .font(Theme.rounded(14, .semibold))
                             .foregroundColor(Theme.red)
                             .multilineTextAlignment(.center)
                     }
-                    Button(lang.t("pause.resume"), action: resume).buttonStyle(BigButtonStyle(color: Theme.green))
-                    Button(lang.t("pause.restart"), action: restart).buttonStyle(BigButtonStyle())
-                    Button(lang.t("pause.exit"), action: exit).buttonStyle(BigButtonStyle(color: Theme.brownSoft))
+                    Button(lang.t("pause.resume"), action: resume).buttonStyle(GameButtonStyle(palette: .green))
+                    Button(lang.t("pause.restart"), action: restart).buttonStyle(GameButtonStyle(palette: .orange))
+                    Button(lang.t("pause.exit"), action: exit).buttonStyle(GameButtonStyle(palette: .paper))
                 }
-                .frame(maxWidth: 290)
             }
         }
     }
@@ -290,22 +303,20 @@ struct StuckView: View {
     var body: some View {
         ZStack {
             Dim()
-            Panel(padding: 22) {
-                VStack(spacing: 14) {
+            PopupCard(title: lang.t("stuck.title"), maxWidth: 320) {
+                VStack(spacing: 12) {
                     SpriteImage(name: progress.goldShelves ? "shelf_gold" : "shelf", size: 110)
-                    Text(lang.t("stuck.title"))
-                        .font(Theme.rounded(24, .heavy))
-                        .foregroundColor(Theme.brown)
                     Text(lang.t("stuck.text"))
                         .font(Theme.rounded(15, .semibold))
-                        .foregroundColor(Theme.brownSoft)
+                        .foregroundColor(Theme.brown)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                     Button {
                         if !session.continueWithCoins() { Toast.error(lang.t("common.nocoins")) }
                     } label: {
-                        HStack { Text(lang.t("stuck.shelf")); CoinIcon(size: 20); Text("\(session.continuePrice)") }
+                        HStack(spacing: 6) { Text(lang.t("stuck.shelf")); CoinIcon(size: 24); Text("\(session.continuePrice)") }
                     }
-                    .buttonStyle(BigButtonStyle())
+                    .buttonStyle(GameButtonStyle(palette: .orange))
                     if !session.adContinueUsed {
                         Button {
                             session.continueWithAd { ok in if !ok { Toast.error(lang.t("ads.limit")) } }
@@ -316,9 +327,8 @@ struct StuckView: View {
                         AdsLeftLabel()
                     }
                     Button(lang.t(session.costsLife ? "stuck.giveup" : "stuck.giveup.replay"), action: giveUp)
-                        .buttonStyle(BigButtonStyle(color: Theme.brownSoft))
+                        .buttonStyle(GameButtonStyle(palette: .paper))
                 }
-                .frame(maxWidth: 300)
             }
         }
     }
@@ -335,19 +345,13 @@ struct WinView: View {
         ZStack {
             Dim()
             if let result = session.result {
-                Panel(padding: 22) {
-                    VStack(spacing: 14) {
-                        Text(lang.t("win.title"))
-                            .font(Theme.rounded(28, .heavy))
-                            .foregroundColor(Theme.brown)
-                        HStack(spacing: 6) {
+                PopupCard(title: lang.t("win.title"), maxWidth: 330) {
+                    VStack(spacing: 12) {
+                        HStack(spacing: 4) {
                             ForEach(0..<3, id: \.self) { i in
-                                Image(systemName: "star.fill")
-                                    .font(.system(size: i == 1 ? 58 : 46))
-                                    .foregroundColor(i < shown ? Theme.gold : Theme.brown.opacity(0.15))
-                                    .scaleEffect(i < shown ? 1 : 0.6)
+                                SpriteImage(name: "icon_star", size: i == 1 ? 78 : 62, silhouette: i >= shown)
+                                    .scaleEffect(i < shown ? 1 : 0.7)
                                     .offset(y: i == 1 ? -8 : 0)
-                                    .shadow(color: i < shown ? Theme.orange.opacity(0.5) : .clear, radius: 0, y: 3)
                             }
                         }
                         VStack(spacing: 6) {
@@ -355,10 +359,11 @@ struct WinView: View {
                             if result.tips > 0 { row(lang.t("win.tips"), result.tips) }
                             if result.comboCoins > 0 { row(lang.t("win.combo"), result.comboCoins) }
                             row(lang.t("win.efficiency"), result.efficiency)
-                            Divider()
+                            Rectangle().fill(Theme.chipBorder).frame(height: 2)
                             row(lang.t("win.total"), result.total, bold: true)
                         }
-                        .padding(.horizontal, 6)
+                        .padding(12)
+                        .background(InsetBackground())
                         rewardText(result)
                         extras(result)
                         if result.reward.coinsAdded > 0 && !session.doubled {
@@ -367,17 +372,16 @@ struct WinView: View {
                             } label: {
                                 HStack { AdIcon(); Text(lang.t("win.double")) }
                             }
-                            .buttonStyle(BigButtonStyle(color: Theme.green))
+                            .buttonStyle(GameButtonStyle(palette: .green))
                             AdsLeftLabel()
                         }
                         HStack(spacing: 10) {
-                            Button(lang.t("win.map"), action: close).buttonStyle(BigButtonStyle(color: Theme.brownSoft))
+                            Button(lang.t("win.map"), action: close).buttonStyle(GameButtonStyle(palette: .paper))
                             if session.nextLevel != nil {
-                                Button(lang.t("win.next"), action: next).buttonStyle(BigButtonStyle())
+                                Button(lang.t("win.next"), action: next).buttonStyle(GameButtonStyle(palette: .orange))
                             }
                         }
                     }
-                    .frame(maxWidth: 310)
                 }
                 .onAppear {
                     Audio.shared.play(.win, volume: 0.8)
@@ -395,10 +399,10 @@ struct WinView: View {
 
     private func row(_ title: String, _ value: Int, bold: Bool = false) -> some View {
         HStack {
-            Text(title).font(Theme.rounded(16, bold ? .heavy : .semibold)).foregroundColor(Theme.brownSoft)
+            Text(title).font(Theme.rounded(15, bold ? .black : .bold)).foregroundColor(bold ? Theme.brown : Theme.brownSoft)
             Spacer()
-            CoinIcon(size: 18)
-            Text("\(value)").font(Theme.rounded(17, bold ? .heavy : .bold)).foregroundColor(Theme.brown).monospacedDigit()
+            CoinIcon(size: 20)
+            Text("\(value)").font(Theme.rounded(17, bold ? .black : .heavy)).foregroundColor(Theme.brown).monospacedDigit()
         }
     }
 
@@ -568,13 +572,13 @@ struct IntroView: View {
         case "gourmet":
             ZStack(alignment: .topLeading) {
                 SpriteImage(name: "customer_10_happy", size: 90)
-                Image(systemName: "crown.fill").font(.system(size: 22)).foregroundColor(Theme.gold).offset(x: 4, y: 0)
+                SpriteImage(name: "icon_crown", size: 34).offset(x: 0, y: -4)
             }
         case "lock":
             ZStack {
                 SpriteImage(name: progress.goldShelves ? "shelf_gold" : "shelf", size: 120)
                     .overlay(Color.black.opacity(0.25).clipShape(RoundedRectangle(cornerRadius: 10)))
-                Image(systemName: "lock.fill").font(.system(size: 34, weight: .bold)).foregroundColor(Theme.gold)
+                SpriteImage(name: "icon_lock", size: 50)
             }
         case "conflict":
             HStack(spacing: 6) {
@@ -586,11 +590,7 @@ struct IntroView: View {
             ZStack {
                 HStack(spacing: 8) {
                     ForEach(Booster.allCases) { b in
-                        Image(systemName: b.symbol)
-                            .font(.system(size: 22, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(width: 48, height: 48)
-                            .background(Circle().fill(Theme.brownSoft))
+                        SpriteImage(name: b.icon, size: 48).saturation(0.3)
                     }
                 }
                 Rectangle().fill(Theme.red).frame(width: 190, height: 5).rotationEffect(.degrees(-12))
@@ -687,9 +687,10 @@ struct AdsLeftLabel: View {
 
     var body: some View {
         if progress.isVIP {
-            Label(lang.t("vip.noads"), systemImage: "crown.fill")
-                .font(Theme.rounded(12, .bold))
-                .foregroundColor(Theme.gold)
+            HStack(spacing: 4) {
+                SpriteImage(name: "icon_crown", size: 18)
+                Text(lang.t("vip.noads")).font(Theme.rounded(12, .heavy)).foregroundColor(Theme.brownSoft)
+            }
         } else {
             Text(lang.t("ads.left", progress.adsLeftToday, Balance.adDailyLimit))
                 .font(Theme.rounded(12, .semibold))
@@ -707,29 +708,21 @@ struct BuyBoosterView: View {
     var body: some View {
         ZStack {
             Dim().onTapGesture(perform: close)
-            Panel(padding: 22) {
+            PopupCard(title: lang.t("booster." + booster.rawValue), close: close, maxWidth: 310) {
                 VStack(spacing: 14) {
-                    Image(systemName: booster.symbol)
-                        .font(.system(size: 40, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(width: 84, height: 84)
-                        .background(Circle().fill(Theme.orange))
-                    Text(lang.t("booster." + booster.rawValue))
-                        .font(Theme.rounded(22, .heavy))
-                        .foregroundColor(Theme.brown)
+                    SpriteImage(name: booster.icon, size: 96)
                     Text(lang.t("booster." + booster.rawValue + ".text"))
                         .font(Theme.rounded(15, .semibold))
-                        .foregroundColor(Theme.brownSoft)
+                        .foregroundColor(Theme.brown)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                     Button {
                         if progress.buy(booster) { close() } else { Toast.error(lang.t("common.nocoins")) }
                     } label: {
-                        HStack { Text(lang.t("booster.buy")); CoinIcon(size: 20); Text("\(booster.price)") }
+                        HStack(spacing: 6) { Text(lang.t("booster.buy")); CoinIcon(size: 24); Text("\(booster.price)") }
                     }
-                    .buttonStyle(BigButtonStyle())
-                    Button(lang.t("common.cancel"), action: close).buttonStyle(BigButtonStyle(color: Theme.brownSoft))
+                    .buttonStyle(GameButtonStyle(palette: .green))
                 }
-                .frame(maxWidth: 290)
             }
         }
     }

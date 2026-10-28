@@ -82,14 +82,19 @@ struct MergeView: View {
     private var header: some View {
         HStack(spacing: 8) {
             CircleIconButton(symbol: "xmark", size: 42, action: close)
-            Text(lang.t("merge.title"))
-                .font(Theme.rounded(20, .heavy))
-                .foregroundColor(Theme.brown)
+            StrokeText(text: lang.t("merge.title"), size: 21, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
+                       stroke: Theme.woodDark, width: 1.5, drop: 2)
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-                .padding(.horizontal, 12)
-                .frame(height: 40)
-                .background(Capsule().fill(Theme.card))
+                .padding(.horizontal, 14)
+                .frame(height: 42)
+                .background(
+                    ZStack {
+                        Capsule().fill(Theme.woodDark).offset(y: 3)
+                        WoodBackground().clipShape(Capsule())
+                        Capsule().strokeBorder(Theme.woodDark, lineWidth: 2.5)
+                    }
+                )
                 .layoutPriority(1)
             Spacer(minLength: 4)
             Button { showEnergy = true } label: { EnergyPill() }.buttonStyle(.plain)
@@ -112,7 +117,7 @@ struct MergeView: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(RoundedRectangle(cornerRadius: 16).fill(Theme.card.opacity(0.95)))
+        .background(PaperBackground(radius: 16))
     }
 
     private var hintInfo: some View {
@@ -134,13 +139,8 @@ struct MergeView: View {
                     AdIcon()
                     Text(lang.t("merge.supply", MergeBalance.supplyItems))
                 }
-                .font(Theme.rounded(14, .heavy))
-                .foregroundColor(.white)
-                .padding(.horizontal, 14)
-                .frame(height: 34)
-                .background(Capsule().fill(Theme.green))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(GameButtonStyle(palette: .green, height: 36, fontSize: 15, fullWidth: false, radius: 12))
         }
     }
 
@@ -157,23 +157,18 @@ struct MergeView: View {
                     let coins = model.game.sell(at: index)
                     if coins > 0 {
                         Audio.shared.play(.coin)
-                        Toast.success(lang.t("merge.sold", coins), icon: "bitcoinsign.circle.fill")
+                        Toast.success(lang.t("merge.sold", coins))
                         focus = nil
                         model.scene.clearSelection()
                     }
                 } label: {
                     HStack(spacing: 4) {
                         Text(lang.t("merge.sell"))
-                        CoinIcon(size: 16)
+                        CoinIcon(size: 18)
                         Text("\(item.sellPrice)")
                     }
-                    .font(Theme.rounded(13, .heavy))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .frame(height: 30)
-                    .background(Capsule().fill(Theme.orange))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(GameButtonStyle(palette: .orange, height: 32, fontSize: 14, fullWidth: false, radius: 11))
             }
             chainRow(item, highlight: item.tier)
         }
@@ -197,16 +192,22 @@ struct MergeView: View {
         let size: CGFloat = last >= 6 ? 28 : 32
         return HStack(spacing: 2) {
             SpriteImage(name: item.chain.generator, size: size)
-            Image(systemName: "chevron.right").font(.system(size: 8, weight: .bold)).foregroundColor(Theme.brownSoft)
+            chevron
             ForEach(0...last, id: \.self) { i in
                 SpriteImage(name: items[i], size: size, silhouette: i > progressTier(item.chain))
                     .padding(2)
                     .background(RoundedRectangle(cornerRadius: 8).fill(i == highlight ? Theme.gold.opacity(0.45) : Color.clear))
-                if i < last {
-                    Image(systemName: "chevron.right").font(.system(size: 8, weight: .bold)).foregroundColor(Theme.brownSoft)
-                }
+                if i < last { chevron }
             }
         }
+    }
+
+    private var chevron: some View {
+        BackArrowShape()
+            .stroke(Theme.brownSoft, style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+            .frame(width: 5, height: 9)
+            .rotationEffect(.degrees(180))
+            .flipsForRightToLeftLayoutDirection(true)
     }
 
     /// Ступени выше достигнутой показываем силуэтами: интересно, что дальше.
@@ -243,10 +244,7 @@ struct MergeOrdersRow: View {
                     ZStack(alignment: .bottomTrailing) {
                         SpriteImage(name: order.needs[i].sprite, size: order.needs.count > 1 ? 36 : 46)
                         if game.has(order.needs[i]) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 14))
-                                .foregroundColor(Theme.green)
-                                .background(Circle().fill(Color.white))
+                            SpriteImage(name: "icon_check", size: 18)
                         }
                     }
                 }
@@ -255,20 +253,12 @@ struct MergeOrdersRow: View {
             RewardChips(reward: order.reward, perRow: 2, tileWidth: 46, compact: true)
                 .frame(height: 44)
             Button(lang.t("merge.give")) { deliver(order) }
-                .font(Theme.rounded(13, .heavy))
-                .foregroundColor(.white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity)
-                .frame(height: 30)
-                .background(Capsule().fill(ready ? Theme.green : Theme.brownSoft.opacity(0.5)))
+                .buttonStyle(GameButtonStyle(palette: ready ? .green : .gray, height: 30, fontSize: 13, radius: 10))
                 .disabled(!ready)
         }
         .padding(8)
         .frame(maxWidth: .infinity)
-        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.card)
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(ready ? Theme.green : (focused == order.id ? Theme.gold : Color.clear), lineWidth: 2)))
+        .background(PaperBackground(radius: 16, highlight: ready || focused == order.id))
         .contentShape(Rectangle())
         .onTapGesture { select(order) }
     }
@@ -280,24 +270,29 @@ struct EnergyPill: View {
 
     var body: some View {
         HStack(spacing: 5) {
-            Image(systemName: "bolt.fill").font(.system(size: 18)).foregroundColor(Theme.gold)
+            SpriteImage(name: "icon_energy", size: 28)
             VStack(alignment: .leading, spacing: -2) {
                 Text("\(progress.energy)")
-                    .font(Theme.rounded(16))
-                    .foregroundColor(Theme.brown)
+                    .font(Theme.rounded(16, .black))
+                    .foregroundColor(Color(red: 1.0, green: 0.91, blue: 0.68))
                     .monospacedDigit()
                 if let next = progress.nextEnergyIn {
                     Text(Lang.time(next))
-                        .font(Theme.rounded(10, .bold))
-                        .foregroundColor(Theme.brownSoft)
+                        .font(Theme.rounded(10, .heavy))
+                        .foregroundColor(Color(red: 1.0, green: 0.91, blue: 0.68).opacity(0.8))
                         .monospacedDigit()
                 }
             }
         }
-        .padding(.leading, 6)
-        .padding(.trailing, 10)
-        .frame(height: 36)
-        .background(Capsule().fill(Theme.card).shadow(color: Theme.brown.opacity(0.18), radius: 4, y: 2))
+        .padding(.leading, 4)
+        .padding(.trailing, 12)
+        .frame(height: 38)
+        .background(
+            ZStack {
+                Capsule().fill(Theme.woodDark)
+                Capsule().strokeBorder(Color.black.opacity(0.35), lineWidth: 2)
+            }
+        )
     }
 }
 
@@ -309,39 +304,36 @@ struct EnergyPopup: View {
     var body: some View {
         ZStack {
             Dim().onTapGesture(perform: close)
-            Panel(padding: 22) {
-                VStack(spacing: 14) {
-                    Image(systemName: "bolt.fill").font(.system(size: 50)).foregroundColor(Theme.gold)
-                    Text(lang.t("merge.energy", progress.energy, MergeBalance.maxEnergy))
-                        .font(Theme.rounded(22, .heavy))
-                        .foregroundColor(Theme.brown)
+            PopupCard(title: lang.t("merge.energy", progress.energy, MergeBalance.maxEnergy), close: close) {
+                VStack(spacing: 12) {
+                    SpriteImage(name: "icon_energy", size: 84)
                     if let next = progress.nextEnergyIn {
                         Text(lang.t("merge.energy.next", Lang.time(next)))
-                            .font(Theme.rounded(14, .semibold))
-                            .foregroundColor(Theme.brownSoft)
+                            .font(Theme.rounded(15, .heavy))
+                            .foregroundColor(Theme.brown)
+                            .monospacedDigit()
                     }
                     Text(lang.t("merge.energy.text"))
                         .font(Theme.rounded(13, .semibold))
                         .foregroundColor(Theme.brownSoft)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                     Button {
                         Ads.shared.showRewarded(placement: "energy") { ok in
                             if ok { progress.addMergeEnergy(MergeBalance.adEnergy) } else { Toast.error(lang.t("ads.limit")) }
                         }
                     } label: {
-                        HStack { AdIcon(); Text(lang.t("merge.energy.ad", MergeBalance.adEnergy)) }
+                        HStack(spacing: 6) { AdIcon(); Text(lang.t("merge.energy.ad", MergeBalance.adEnergy)) }
                     }
-                    .buttonStyle(BigButtonStyle(color: Theme.green))
+                    .buttonStyle(GameButtonStyle(palette: .green))
                     AdsLeftLabel()
                     Button {
                         if !progress.buyEnergy() { Toast.error(lang.t("common.nocoins")) }
                     } label: {
-                        HStack { Text(lang.t("merge.energy.buy", MergeBalance.buyEnergy)); CoinIcon(size: 20); Text("\(MergeBalance.buyEnergyPrice)") }
+                        HStack(spacing: 6) { Text(lang.t("merge.energy.buy", MergeBalance.buyEnergy)); CoinIcon(size: 24); Text("\(MergeBalance.buyEnergyPrice)") }
                     }
-                    .buttonStyle(BigButtonStyle())
-                    Button(lang.t("common.ok"), action: close).buttonStyle(BigButtonStyle(color: Theme.brownSoft))
+                    .buttonStyle(GameButtonStyle(palette: .orange))
                 }
-                .frame(maxWidth: 300)
             }
         }
     }

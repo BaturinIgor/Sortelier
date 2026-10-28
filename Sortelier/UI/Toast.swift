@@ -55,20 +55,32 @@ struct ToastOverlay: View {
             Spacer()
             if let item = toast.current {
                 HStack(spacing: 8) {
-                    if let icon = item.icon {
-                        Image(systemName: icon)
-                            .font(.system(size: 17, weight: .bold))
-                            .foregroundColor(color(item.style))
+                    if item.style == .success {
+                        SpriteImage(name: "icon_check", size: 26)
+                    } else if let icon = item.icon {
+                        if let sprite = GameIcon.sprite(for: icon) {
+                            SpriteImage(name: sprite, size: 26)
+                        } else {
+                            Image(systemName: icon)
+                                .font(.system(size: 18, weight: .heavy))
+                                .foregroundColor(color(item.style))
+                        }
                     }
                     Text(item.text)
-                        .font(Theme.rounded(15, .bold))
-                        .foregroundColor(.white)
+                        .font(Theme.rounded(15, .black))
+                        .foregroundColor(Color(red: 1.0, green: 0.95, blue: 0.84))
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(.horizontal, 18)
                 .padding(.vertical, 12)
-                .background(Capsule().fill(Theme.brown.opacity(0.94)).shadow(color: .black.opacity(0.25), radius: 10, y: 4))
+                .background(
+                    ZStack {
+                        Capsule().fill(Color.black.opacity(0.35)).offset(y: 4)
+                        Capsule().fill(Theme.woodDark.opacity(0.96))
+                        Capsule().strokeBorder(item.style == .error ? Theme.red : Theme.woodLight, lineWidth: 2.5)
+                    }
+                )
                 .padding(.horizontal, 24)
                 .padding(.bottom, 110)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
