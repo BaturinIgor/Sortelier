@@ -196,8 +196,7 @@ struct ShopScreen: View {
     private var jarCard: some View {
         Panel(padding: 14, highlight: progress.jarCanBreak) {
             HStack(spacing: 12) {
-                JarGlyph(fill: Double(progress.jarCoins) / Double(TipJar.capacity))
-                    .frame(width: 70, height: 84)
+                SpriteImage(name: "icon_jar", size: 84)
                 VStack(alignment: .leading, spacing: 6) {
                     Text(lang.t("jar.title")).font(Theme.rounded(18, .black)).foregroundColor(Theme.brown)
                     HStack(spacing: 4) {

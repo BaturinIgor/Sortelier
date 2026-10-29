@@ -20,7 +20,10 @@ struct MapView: View {
             path
             VStack(spacing: 0) {
                 topBar
-                HStack {
+                HStack(alignment: .top) {
+                    if progress.marketUnlocked && HappyHour.active(progress.now) {
+                        HappyHourChip()
+                    }
                     Spacer()
                     sideRail
                 }
@@ -106,9 +109,6 @@ struct MapView: View {
             Button { router.lives = true } label: { LivesPill() }.buttonStyle(PressScaleStyle())
             Button { router.open(.shop) } label: { CoinsPill() }.buttonStyle(PressScaleStyle())
             StreakButton { router.streak = true }
-            if progress.marketUnlocked && HappyHour.active(progress.now) {
-                HappyHourChip()
-            }
             Spacer(minLength: 0)
             VIPBadge { router.open(.shop) }
             CircleIconButton(symbol: "gearshape.fill", size: 42) { withAnimation(.easeInOut(duration: 0.22)) { router.settings = true } }

@@ -38,3 +38,13 @@ Sortelier - уютная казуальная игра для iPhone: игрок
 - lock with a key - замок с ключом (на замке продукт-ключ); chained shelves / chain - полки на цепи, цепь
 - event map - карта ивента (мини-карта на 20 уровней); event guest - гость ивента (покупатель в костюме)
 - event treats - угощения ивентов (страница кулинарной книги)
+- Market - Рынок (мини-игра "3 в ряд" на рыночном прилавке); match 3 - собери три в ряд; moves - ходы
+- special pieces: rolling pin - скалка (сносит ряд или столбец), whisk - венчик, cherry bomb - вишневая бомба, rainbow donut - радужный пончик; combo - комбо
+- Market boosters: Mallet - молоток, Knife - нож, Spatula - лопатка, Mixer - миксер
+- obstacles: crate - ящик, ice / thick ice - лед / толстый лед, jam stain - пятно варенья
+- win streak - серия побед (5 ступеней); out of moves - ходы закончились; give up - сдаться
+- Big Recipe - Большой рецепт (недельное событие, 25 шагов, гигантское блюдо); ingredient - ингредиент
+- Supplier's garden - Огород поставщика (грядки, урожай, полив); harvest - урожай
+- Tip jar - Банка чаевых (копилка); break the jar - разбить банку
+- Secret critic - Тайный критик; review - рецензия; restaurant rating - рейтинг ресторана
+- Happy hour - Счастливый час

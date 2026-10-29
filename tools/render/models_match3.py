@@ -1,12 +1,14 @@
-"""Мини-игра "три в ряд" на рынке: спецфишки, препятствия и иконки бустеров.
+"""Мини-игра "три в ряд" на рынке: спецфишки, препятствия и иконки бустеров; тайный критик и иконки ивентов.
 
 Подключается из models.py (EXTENSIONS): все функции добавляются в M.MODELS.
 Фишки и препятствия (m3_*) рендерятся как продукты. Иконки (icon_*) собраны помощниками icons.py
 (глянцевый пластик toy(), окружение gold_world) и рендерятся тем же models.py:
   python tools/render/models.py art/new/match3 --only m3_pin,m3_bomb,...
   python tools/render/models.py art/new/match3 --only icon_m3_mallet,icon_market,...
+Портрет critic собирается из customers.py и снимается в кадре покупателей (см. portrait_frame).
 """
 import math
+import random
 
 import bpy
 from mathutils import Matrix, Vector
@@ -14,8 +16,10 @@ from mathutils import Matrix, Vector
 import models as M
 from models import *  # noqa: F401,F403  помощники
 import coins as C
+import customers as CU
 import icons as I
-from models_events import spline, sweep
+import render as RD
+from models_events import citrus_mat, leaf, spline, sweep
 from models_mexico import vcol, vmat
 
 
@@ -832,6 +836,559 @@ def icon_market():
     return I.finish(parts, tilt=10)
 
 
+# MARK: - Тайный критик
+
+def portrait_frame():
+    """Кадр как у покупателей (customers.render): камера с азимута 8 и высоты 6 градусов, поле 1.04.
+    models.render ставит свою камеру (14 и 26 градусов) по границам мешей, поэтому поворачиваем модель
+    вместе со светом так, чтобы его камера видела то же самое, а границы кадра задаем невидимой рамкой."""
+    bpy.context.view_layer.update()
+    meshes = [o for o in bpy.data.objects if o.type == "MESH"]
+    _, _, pts = RD.bounds(meshes)
+    frame = [p for p in pts if p.z > -0.25] + [Vector((-1.25, 0, -0.25)), Vector((1.25, 0, -0.25))]
+
+    def cam_rot(az, el):
+        d = Vector((math.sin(az) * math.cos(el), -math.cos(az) * math.cos(el), math.sin(el)))
+        return (-d).to_track_quat("-Z", "Y")
+    qc = cam_rot(math.radians(8), math.radians(6))
+    qp = cam_rot(M.AZIMUTH, M.ELEVATION)
+    loc = [qc.inverted() @ p for p in frame]
+    x0, x1 = min(p.x for p in loc), max(p.x for p in loc)
+    y0, y1 = min(p.y for p in loc), max(p.y for p in loc)
+    h = max(x1 - x0, y1 - y0) * 1.04 / 1.08 / 2
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    rot = (qp @ qc.inverted()).to_matrix().to_4x4()
+    for o in bpy.data.objects:
+        if o.type in ("MESH", "LIGHT"):
+            o.matrix_world = rot @ o.matrix_world
+        if o.type == "MESH":
+            o["no_bounds"] = True
+    corners = [(cx - h, cy - h, 0), (cx + h, cy - h, 0), (cx + h, cy + h, 0), (cx - h, cy + h, 0)]
+    fr = from_data("PortraitFrame", corners, [(0, 1, 2, 3)])
+    fr.matrix_world = qp.to_matrix().to_4x4()
+    fr.hide_render = True
+    bpy.context.view_layer.update()
+
+
+def body_y(x, z):
+    """Передняя поверхность туловища покупателя (эллипсоид из customers.build)."""
+    return 0.1 - 0.82 * math.sqrt(max(0.0, 1 - (x / 1.38) ** 2 - ((z + 0.2) / 0.78) ** 2))
+
+
+def critic():
+    """Тайный ресторанный критик: шляпа, круглые темные очки, тонкие усики, тренч с поднятым воротником,
+    водолазка, блокнот и ручка у подбородка. Собран из customers.build, одно настроение (любопытство)."""
+    HZ = CU.HEAD_Z
+    CU.build(("fair", "bald", (0.18, 0.11, 0.07), (0.80, 0.63, 0.38), None), "happy")
+    # заменяем воротник, брови и рот, глаза закрыты очками
+    for o in list(bpy.data.objects):
+        if o.type == "MESH" and o.name.startswith(("Collar", "Brow", "Eye", "Highlight", "Mouth")):
+            bpy.data.objects.remove(o)
+    skin = bpy.data.objects["Head"].data.materials[0]
+    hair_m = bpy.data.materials["Hair"]
+    brow_m = bpy.data.materials["Brow"]
+    lip = bpy.data.materials["Mouth"]
+    coat = bpy.data.materials["Shirt"]
+    white = M.flat("Shine", (1.0, 1.0, 1.0), rough=0.1)
+    # линия волос выше, чем у ковбоя: брови над очками должны быть видны
+    parts = [CU.hair_shell("Hair", hair_m, low=-0.3, front_cut=0.46)]
+    # фетровая шляпа: поля спереди чуть опущены, тулья с ложбинкой и щипками
+    felt = M.material("Fedora", [(0.0, (0.12, 0.11, 0.14)), (1.0, (0.36, 0.33, 0.40))], coord="z", lo=HZ + 0.4,
+                      hi=HZ + 1.4, rough=0.5, sheen=0.5, coat=0.15)
+    tilt = (math.radians(-8), math.radians(5), 0)
+    brim = cylinder("HatBrim", 1.45, 0.06, 96)
+    deform(brim, lambda co: Vector((co.x, co.y,
+                                    co.z + 0.14 * (co.x / 1.45) ** 2 - 0.1 * max(0.0, -co.y / 1.45) ** 1.5)))
+    bevel(brim, 0.03, 3, 30)
+    brim.location = (0, 0.05, HZ + 0.6)
+    brim.rotation_euler = tilt
+    apply_transform(brim)
+    subdivide(brim, 1)
+    assign(smooth(brim, 40), felt)
+    crown = lathe_smooth("HatCrown", [(0.8, 0.0), (0.78, 0.3), (0.72, 0.54), (0.6, 0.66), (0.35, 0.71), (0.05, 0.7)],
+                         96, 6)
+
+    def crease(co):
+        t = max(0.0, (co.z - 0.35) / 0.36)
+        z = co.z - 0.17 * t * math.exp(-(co.x / 0.24) ** 2)
+        x = co.x * (1 - 0.18 * t * max(0.0, -co.y / 0.75))
+        return Vector((x, co.y, z))
+    deform(crown, crease)
+    crown.location = (0, 0.08, HZ + 0.6)
+    crown.rotation_euler = tilt
+    apply_transform(crown)
+    assign(smooth(crown), felt)
+    band = lathe("HatBand", [(0.0, 0.0), (0.825, 0.0), (0.83, 0.02), (0.815, 0.16), (0.0, 0.16)], 96)
+    band.location = (0, 0.08, HZ + 0.62)
+    band.rotation_euler = tilt
+    apply_transform(band)
+    assign(smooth(band, 40), M.flat("HatBandMat", (0.70, 0.13, 0.20), rough=0.4, sheen=0.4))
+    parts += [brim, crown, band]
+    # круглые темные очки в золотой оправе, блик на стеклах
+    lens_m = M.material("Lens", [(0.0, (0.16, 0.13, 0.24)), (1.0, (0.02, 0.02, 0.04))], coord="z", lo=HZ - 0.2,
+                        hi=HZ + 0.22, rough=0.06, coat=1.0, coat_rough=0.02, spec=0.8)
+    gold_m = M.material("FrameGold", [(0.0, (0.80, 0.55, 0.12)), (1.0, (1.0, 0.85, 0.40))], coord="z", lo=HZ - 0.2,
+                        hi=HZ + 0.3, rough=0.2, metal=1.0)
+    for side in (-1, 1):
+        x = side * 0.35
+        lens = CU.ellipsoid(f"Lens{side}", (0.21, 0.05, 0.2), lens_m, 48, 24)
+        CU.at_face(lens, x, 0.02, -0.05)
+        ring = torus(f"Rim{side}", 0.21, 0.03, 64, 12)
+        ring.rotation_euler = (math.radians(90), 0, 0)
+        CU.at_face(ring, x, 0.02, -0.07)
+        assign(smooth(ring), gold_m)
+        sh = CU.ellipsoid(f"LensShine{side}", (0.08, 0.02, 0.035), white, 16, 10)
+        sh.rotation_euler = (0, math.radians(-35), 0)
+        sh.location = (x - 0.07, CU.head_surface_y(x - 0.07, 0.11) * 0.97 - 0.11, HZ + 0.11)
+        temple = M.tube(f"Temple{side}", [(side * 0.55, CU.head_surface_y(0.55, 0.06) * 0.97 - 0.06, HZ + 0.07),
+                                         (side * 0.8, -0.45, HZ + 0.08), (side * 0.99, -0.05, HZ + 0.06)], 0.022)
+        assign(smooth(temple), gold_m)
+        parts += [lens, ring, sh, temple]
+    bridge = []
+    for i in range(9):
+        t = -1 + 2 * i / 8
+        xx = 0.14 * t
+        zz = HZ + 0.09 + 0.03 * (1 - t * t)
+        bridge.append((xx, CU.head_surface_y(xx, zz - HZ) * 0.97 - 0.08, zz))
+    parts.append(assign(smooth(M.tube("Bridge", bridge, 0.022)), gold_m))
+    # брови над очками: правая приподнята от любопытства
+    for side, bz, arch in ((-1, HZ + 0.33, 0.02), (1, HZ + 0.41, 0.06)):
+        x = side * 0.35
+        pts = []
+        for i in range(10):
+            t = i / 9
+            xx = x - side * 0.12 + side * 0.24 * t
+            zz = bz + arch * math.sin(math.pi * t) + (0.02 * (1 - t) if side > 0 else 0.0)
+            pts.append((xx, CU.head_surface_y(xx, zz - HZ) * 0.99 - 0.015, zz))
+        parts.append(assign(smooth(M.tube(f"NewBrow{side}", pts, 0.036, taper=(1.0, 0.75))), brow_m))
+    # тонкие усики с подкрученными кончиками и легкая улыбка
+    mz = HZ - 0.245
+    for side in (-1, 1):
+        pts = []
+        for i in range(12):
+            t = i / 11
+            xx = side * (0.03 + 0.24 * t)
+            zz = mz + 0.07 * t ** 2.2 - 0.015 * math.sin(math.pi * t)
+            pts.append((xx, CU.head_surface_y(xx, zz - HZ) * 0.985 - 0.04, zz))
+        parts.append(assign(smooth(M.tube(f"Mustache{side}", pts, 0.042, taper=(1.0, 0.4))), hair_m))
+    parts.append(CU.arc_tube("Smile", 0.03, HZ - 0.39, 0.26, 0.05, 0.028, lip))
+    # водолазка: толстый вязаный ворот под подбородком
+    knit = M.material("Knit", [(0.0, (0.10, 0.10, 0.13)), (1.0, (0.30, 0.30, 0.36))], coord="z", lo=0.0, hi=0.6,
+                      rough=0.6, sheen=0.4)
+    roll = torus("Turtleneck", 0.5, 0.15, 64, 24)
+    roll.location = (0, 0.03, 0.34)
+    apply_transform(roll)
+    push_normals(roll, lambda co, n: 0.012 * math.sin(math.atan2(co.y, co.x) * 40))
+    parts.append(assign(smooth(roll), knit))
+    # тренч распахнут: в вырезе между лацканами видна водолазка
+    body = bpy.data.objects["Body"]
+    assign_faces(body, coat, [(lambda n, c: c.y < 0 and -0.5 < c.z < 0.5 and abs(c.x) < 0.12 + 0.34 * (c.z + 0.4) / 0.8,
+                               knit)])
+    # тренч: лацканы по груди и поднятый воротник за шеей
+    lapel_m = M.material("Lapel", [(0.0, (0.66, 0.50, 0.30)), (1.0, (0.90, 0.74, 0.50))], coord="z", lo=-0.6, hi=0.6,
+                         rough=0.45, coat=0.2, sheen=0.3)
+    for side in (-1, 1):
+        pts = []
+        for i in range(14):
+            t = i / 13
+            x = side * (0.46 - 0.34 * t)
+            z = 0.4 - 0.8 * t
+            pts.append((x, body_y(x, z) - 0.03, z))
+        lp = sweep(f"Lapel{side}", pts, lambda t: 0.17 - 0.04 * t, segs=24, section=(0.3, 1.0), up=(0, -1, 0))
+        parts.append(assign(lp, lapel_m))
+        btn = CU.ellipsoid(f"Button{side}", (0.055, 0.03, 0.055), M.flat("ButtonM", (0.32, 0.20, 0.12), rough=0.3,
+                                                                        coat=0.6), 16, 10)
+        btn.location = (side * 0.34, body_y(side * 0.34, -0.15) - 0.03, -0.15)
+        parts.append(btn)
+    # блокнот в левой руке (справа в кадре): бордовая обложка, листок с линейками, золотая звездочка-оценка
+    pad = [I.slab("PadCover", I.rounded_rect(0.5, 0.64, 0.05), 0.05, 0.015,
+                  M.flat("PadCoverM", (0.60, 0.12, 0.16), rough=0.4, coat=0.4))]
+    page = I.slab("PadPage", I.rounded_rect(0.44, 0.54, 0.035), 0.03, 0.01,
+                  M.flat("Paper", (0.99, 0.97, 0.92), rough=0.5), y=-0.035)
+    page.location.z -= 0.03
+    apply_transform(page)
+    pad.append(page)
+    ink = M.flat("Ink", (0.45, 0.55, 0.75), rough=0.5)
+    for k, (w, z) in enumerate(((0.3, 0.1), (0.26, 0.0), (0.3, -0.1), (0.18, -0.2))):
+        ln = I.slab(f"Line{k}", I.rounded_rect(w, 0.022, 0.01), 0.01, 0.0, ink, y=-0.055)
+        ln.location = (-0.04 + (0.3 - w) / 2 * -1, 0, z)
+        apply_transform(ln)
+        pad.append(ln)
+    star = I.slab("PadStar", I.star_pts(0.075, 0.034), 0.03, 0.008, I.gold(), y=-0.06)
+    star.location = (0.13, 0, 0.17)
+    apply_transform(star)
+    pad.append(star)
+    for k in range(5):
+        sp = torus(f"Spiral{k}", 0.035, 0.011, 24, 8)
+        sp.rotation_euler = (0, math.radians(90), 0)
+        sp.location = (-0.16 + k * 0.08, -0.01, 0.31)
+        apply_transform(sp)
+        pad.append(assign(smooth(sp), M.flat("SpiralM", (0.8, 0.82, 0.86), rough=0.2, metal=1.0)))
+    rotate_all(pad, (math.radians(-12), math.radians(-12), math.radians(-10)))
+    for o in pad:
+        o.location = o.location + Vector((0.66, -1.0, 0.12))
+    parts += pad
+    # руки в рукавах тренча: правая держит блокнот снизу, левая подносит ручку к подбородку
+    for side, wrist, fist in ((1, (0.86, -1.0, -0.22), (0.86, -1.08, -0.1)),
+                              (-1, (-0.6, -1.0, -0.12), (-0.5, -1.06, 0.02))):
+        elbow = Vector((side * 1.05, -0.62, -0.9))
+        sleeve = sweep(f"Sleeve{side}", [elbow, wrist], 0.2, segs=32)
+        parts.append(assign(sleeve, coat))
+        cuff = sweep(f"Cuff{side}", [Vector(wrist) - (Vector(wrist) - elbow).normalized() * 0.05, wrist], 0.215, segs=32)
+        parts.append(assign(cuff, lapel_m))
+        hand = CU.ellipsoid(f"Hand{side}", (0.2, 0.16, 0.2), skin, 32, 20)
+        hand.location = fist
+        thumb = CU.ellipsoid(f"Thumb{side}", (0.06, 0.05, 0.1), skin, 16, 10)
+        thumb.rotation_euler = (0, math.radians(side * -30), 0)
+        thumb.location = (fist[0] - side * 0.1, fist[1] - 0.1, fist[2] + 0.06)
+        parts += [hand, thumb]
+    # ручка: темный корпус, золотое кольцо, кончиком к подбородку
+    p0, p1 = Vector((-0.58, -1.14, -0.12)), Vector((-0.27, -0.88, 0.3))
+    dirv = (p1 - p0).normalized()
+    pen_body = sweep("Pen", [p0, p1], 0.042, segs=24)
+    parts.append(assign(pen_body, M.flat("PenM", (0.10, 0.10, 0.16), rough=0.2, coat=0.9)))
+    ring = sweep("PenRing", [p1 - dirv * 0.09, p1 - dirv * 0.03], 0.046, segs=24)
+    parts.append(assign(ring, gold_m))
+    tip = I.cone_head("PenTip", p1 + dirv * 0.12, dirv, 0.04, 0.14, gold_m)
+    parts.append(tip)
+    portrait_frame()
+    return parts
+
+
+# MARK: - Иконки ивентов
+
+def tomato_slice(name, r=0.17, th=0.045):
+    """Кружок помидора: темная кожица по краю, светлая мякоть с семенными камерами."""
+    ob = cylinder(name, r, th, 48)
+    bevel(ob, th * 0.35, 3, 30)
+    smooth(ob, 40)
+    # как срез цитруса, только камеры светлые с семечками, а стенки и кожица красные
+    mat = citrus_mat(f"{name}M", r, n=4, rind=(0.82, 0.07, 0.05), flesh=(1.0, 0.52, 0.34), memb=(0.94, 0.20, 0.13))
+    add_speckles(mat, (1.0, 0.88, 0.45), scale=34.0, threshold=0.68, strength=0.9)
+    return assign(ob, mat)
+
+
+def golden_spoon(name):
+    """Золотая поварская ложка: черпачок у начала координат (открыт вверх), ручка по +X."""
+    g = I.gold()
+    bowl = sphere(f"{name}Bowl", 1.0, 48, 24)
+    bowl.scale = (0.34, 0.26, 0.13)
+    apply_transform(bowl)
+    bisect(bowl, (0, 0, 0.0), (0, 0, 1), fill=False)
+    solidify(bowl, 0.03)
+    assign(smooth(bowl), g)
+    path = spline([(0.26, 0.0, 0.0), (0.6, 0.0, 0.08), (1.1, 0.0, 0.16), (1.55, 0.0, 0.2)], 8)
+    handle = sweep(f"{name}Handle", path, lambda t: 0.065 - 0.015 * t + 0.035 * max(0.0, t - 0.85) / 0.15, segs=24,
+                   section=(0.6, 1.0), up=(0, 0, 1))
+    assign(handle, g)
+    return [bowl, handle]
+
+
+def place(parts, origin, xdir, zhint):
+    """Ставит группу: локальная X вдоль xdir, Z как можно ближе к zhint."""
+    x = Vector(xdir).normalized()
+    z = Vector(zhint)
+    z = (z - x * z.dot(x)).normalized()
+    y = z.cross(x)
+    m = Matrix((x, y, z)).transposed().to_4x4()
+    m.translation = Vector(origin)
+    for o in parts:
+        o.matrix_world = m @ o.matrix_world
+    bpy.context.view_layer.update()
+    return parts
+
+
+def icon_recipe():
+    """Большой рецепт: огромная пицца на круглой доске, помидоры, сыр, долька лайма, золотая ложка."""
+    I._prep()
+    board_m = wood("Board", (0.82, 0.54, 0.28), axis="x", rough=0.45, coat=0.4, grain=0.3)
+    board = cylinder("Board", 1.22, 0.14, 128)
+    board.location = (0, 0, 0.07)
+    apply_transform(board)
+    bevel(board, 0.05, 4, 30)
+    parts = [assign(smooth(board, 30), board_m)]
+    hd = box_mesh("BoardHandle", 0.62, 0.36, 0.14, 0.0)
+    hd.rotation_euler = (0, 0, math.radians(35))
+    hd.location = (1.32 * math.cos(math.radians(35)), 1.32 * math.sin(math.radians(35)), 0)
+    apply_transform(hd)
+    bevel(hd, 0.06, 4, 30)
+    parts.append(assign(smooth(hd, 30), board_m))
+    top = 0.14
+    dough = cylinder("Dough", 0.98, 0.06, 96)
+    dough.location = (0, 0, top + 0.03)
+    apply_transform(dough)
+    parts.append(assign(smooth(dough), I.toy("DoughM", (0.98, 0.78, 0.48), rough=0.5, coat=0.2)))
+    crust = torus("Crust", 0.92, 0.12, 128, 24)
+    crust.scale = (1, 1, 0.85)
+    crust.location = (0, 0, top + 0.1)
+    apply_transform(crust)
+    push_normals(crust, lambda co, n: 0.018 * fbm(co * 4))
+    parts.append(assign(smooth(crust), material("CrustM", [(0.0, (0.86, 0.52, 0.20)), (0.6, (0.96, 0.68, 0.32)),
+                                                           (1.0, (0.78, 0.40, 0.14))], coord="z", lo=top + 0.02,
+                                                hi=top + 0.21, rough=0.5, sss=0.2, coat=0.3)))
+    sauce = cylinder("Sauce", 0.86, 0.03, 96)
+    sauce.location = (0, 0, top + 0.075)
+    apply_transform(sauce)
+    parts.append(assign(smooth(sauce), I.toy("SauceM", (0.86, 0.18, 0.10), rough=0.25, coat=0.7)))
+    cheese_c = ((0.0, 0.0, 0.5), (0.4, 0.3, 0.32), (-0.35, 0.4, 0.3), (-0.45, -0.25, 0.32), (0.2, -0.5, 0.3),
+                (0.55, -0.15, 0.24))
+
+    def reach(a):
+        dx, dy = math.cos(a), math.sin(a)
+        acc = 0.0
+        for cx, cy, r in cheese_c:
+            b = cx * dx + cy * dy
+            q = r * r - (cx * cx + cy * cy - b * b)
+            if q > 0:
+                acc += max(0.0, b + math.sqrt(q)) ** 8
+        return acc ** (1 / 8)
+    # расплавленный сыр: тонкая линза по контуру из кругов, края сходят на нет
+    ch = quad_sphere("Cheese", 32)
+
+    def melt(co):
+        d = reach(math.atan2(co.y, co.x))
+        return Vector((co.x * d, co.y * d, max(co.z, -0.3) * 0.05 + top + 0.1))
+    deform(ch, melt)
+    parts.append(assign(smooth(ch), I.toy("CheeseM", (1.0, 0.78, 0.26), rough=0.2, coat=0.8)))
+    for k in range(4):
+        a = math.radians(20 + 90 * k)
+        sl = tomato_slice(f"Slice{k}", 0.23, 0.05)
+        sl.location = (0.54 * math.cos(a), 0.54 * math.sin(a), top + 0.15)
+        parts.append(sl)
+    for k, (x, y, a) in enumerate(((-0.3, 0.1, 100), (0.3, -0.12, 300), (0.05, 0.4, 200))):
+        lf = leaf(f"Basil{k}", length=0.3, width=0.18, fold=0.15, curl=0.1, thick=0.02, petiole=0.03)
+        rotate_all(lf, (0, 0, math.radians(a)))
+        for o in lf:
+            o.location = o.location + Vector((x, y, top + 0.13))
+        parts += lf
+    # половинка лайма стоит в середине, срезом к камере
+    lime = cylinder("Lime", 0.4, 0.15, 64)
+    bevel(lime, 0.05, 3, 30)
+    bisect(lime, (0, 0, 0), (0, -1, 0))
+    smooth(lime, 40)
+    assign(lime, citrus_mat("LimeM", 0.4, n=8, rind=(0.36, 0.72, 0.14), flesh=(0.72, 0.92, 0.36),
+                            memb=(0.94, 1.0, 0.82)))
+    lime.matrix_world = (Matrix.Translation((0.0, -0.06, top + 0.12)) @ Matrix.Rotation(math.radians(-10), 4, "Z")
+                         @ Matrix.Rotation(math.radians(90), 4, "X"))
+    parts.append(lime)
+    spoon = golden_spoon("Spoon")
+    place(spoon, (0.74, 0.2, 1.62), (0.36, 0.4, -1.5), (0.2, -1.0, 0.3))
+    parts += spoon
+    rotate_all(parts, (math.radians(14), 0, 0))
+    return I.finish(parts, tilt=8)
+
+
+def sprout(name, x, y, z, h=0.24, lean=0.0, size=1.0):
+    """Росток: стебелек и два круглых листика галочкой."""
+    green = I.toy("SproutGreen", (0.42, 0.80, 0.24), rough=0.3, coat=0.6)
+    pts = spline([(x, y, z - 0.05), (x + lean * 0.4, y, z + h * 0.5), (x + lean, y, z + h)], 6)
+    parts = [assign(sweep(f"{name}Stem", pts, 0.025 * size, segs=12), green)]
+    for side in (-1, 1):
+        lf = sphere(f"{name}Leaf{side}", 1.0, 24, 12)
+        lf.scale = (0.13 * size, 0.07 * size, 0.022 * size)
+        apply_transform(lf)
+        deform(lf, lambda co: co + Vector((0, 0, 0.6 * co.x * co.x / size)))
+        lf.rotation_euler = (0, math.radians(side * -30), 0)
+        lf.location = (x + lean + side * 0.11 * size, y, z + h + 0.04 * size)
+        apply_transform(lf)
+        parts.append(assign(smooth(lf), green))
+    return parts
+
+
+def icon_garden():
+    """Грядка: деревянный ящик с темной землей, ростки и спелый помидор на подвязанном стебле."""
+    I._prep()
+    W, D, H = 1.56, 0.8, 0.62
+    xl, xr, yf, yb = -W / 2, W / 2, -D / 2, D / 2
+    plank_m = wood("Plank", (0.82, 0.52, 0.27), axis="x", rough=0.45, coat=0.4, grain=0.35)
+    plank2_m = wood("Plank2", (0.76, 0.46, 0.23), axis="x", rough=0.45, coat=0.4, grain=0.35)
+    post_m = wood("Post", (0.70, 0.42, 0.21), axis="z", rough=0.45, coat=0.4, grain=0.35)
+    parts = [rbox("Inside", xl + 0.05, xr - 0.05, yf + 0.05, yb - 0.05, 0.02, H - 0.04,
+                  flat("Inside", (0.22, 0.12, 0.06), rough=0.8), 0.0)]
+    for k, (z0, z1) in enumerate(((0.0, 0.3), (0.32, H))):
+        m = plank_m if k else plank2_m
+        parts.append(rbox(f"Front{k}", xl + 0.06, xr - 0.06, yf - 0.02, yf + 0.06, z0, z1, m, 0.025))
+        parts.append(rbox(f"Back{k}", xl + 0.06, xr - 0.06, yb - 0.06, yb + 0.02, z0, z1, m, 0.025))
+        for sx in (-1, 1):
+            x0, x1 = (xr - 0.06, xr + 0.02) if sx > 0 else (xl - 0.02, xl + 0.06)
+            parts.append(rbox(f"Side{sx}{k}", x0, x1, yf + 0.04, yb - 0.04, z0, z1, m, 0.025))
+    for k, (x, y) in enumerate(((xl, yf), (xr, yf), (xl, yb), (xr, yb))):
+        parts.append(rbox(f"Post{k}", x - 0.08, x + 0.08, y - 0.08, y + 0.08, 0.0, H + 0.07, post_m, 0.035))
+    soil = box_mesh("Soil", W - 0.14, D - 0.14, 0.2, H - 0.24, cuts=24)
+    deform(soil, lambda co: co + Vector((0, 0, (0.035 * fbm(co * 5) + 0.03 * math.cos(co.x * 1.6)) if co.z > H - 0.05
+                                         else 0.0)))
+    soil_m = material("Soil", [(0.0, (0.20, 0.12, 0.07)), (1.0, (0.40, 0.25, 0.13))], coord="z", lo=H - 0.08,
+                      hi=H + 0.02, rough=0.9, bump=0.6, bump_scale=30, vary=0.15, vary_scale=6)
+    parts.append(assign(smooth(soil), soil_m))
+    for k, (x, y, h, lean) in enumerate(((-0.5, -0.06, 0.3, -0.03), (-0.14, 0.04, 0.24, 0.02))):
+        parts += sprout(f"Sprout{k}", x, y, H - 0.02, h, lean, 1.25)
+    # помидорный куст у колышка
+    sx = 0.36
+    stake = cylinder("Stake", 0.035, 1.35, 16)
+    stake.location = (sx + 0.06, 0.12, H + 0.6)
+    apply_transform(stake)
+    parts.append(assign(smooth(stake), I.toy("StakeM", (0.86, 0.66, 0.40), rough=0.5)))
+    vine_m = I.toy("Vine", (0.30, 0.62, 0.18), rough=0.35, coat=0.5)
+    vine = []
+    for i in range(41):
+        t = i / 40
+        a = t * math.pi * 3.2
+        vine.append((sx + 0.06 + 0.07 * math.cos(a), 0.12 - 0.07 * math.sin(a), H - 0.02 + 1.2 * t))
+    parts.append(assign(sweep("Vine", vine, lambda t: 0.04 - 0.015 * t, segs=16), vine_m))
+    for k, (z, ang, ln) in enumerate(((0.45, 160, 0.42), (0.85, 20, 0.4), (1.12, 140, 0.32), (0.25, 40, 0.3))):
+        lf = leaf(f"TLeaf{k}", length=ln, width=ln * 0.55, fold=0.1, curl=-0.15, thick=0.02, petiole=0.04, serr=0.12)
+        rotate_all(lf, (math.radians(-20), math.radians(-25), math.radians(ang)))
+        for o in lf:
+            o.location = o.location + Vector((sx + 0.06, 0.12, H + z))
+        parts += lf
+    truss = spline([(sx + 0.08, 0.06, H + 0.74), (sx + 0.22, -0.08, H + 0.72), (sx + 0.29, -0.17, H + 0.6)], 6)
+    parts.append(assign(sweep("Truss", truss, 0.025, segs=12), vine_m))
+    before = set(bpy.data.objects)
+    tomato()
+    tom = [o for o in bpy.data.objects if o not in before and o.type == "MESH"]
+    for o in tom:
+        o.matrix_world = Matrix.Translation((sx + 0.3, -0.18, H + 0.34)) @ Matrix.Scale(0.31, 4) @ o.matrix_world
+    parts += tom
+    return I.finish(parts, tilt=10)
+
+
+def glass(name, tint=(0.93, 0.97, 1.0), edge=(0.70, 0.86, 1.0), center=0.06, rim=0.85):
+    """Стекло для иконки: посередине прозрачное с голубым оттенком, к краям светлое голубоватое и блестящее."""
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nodes, links = mat.node_tree.nodes, mat.node_tree.links
+    bsdf = nodes["Principled BSDF"]
+    bsdf.inputs["Base Color"].default_value = (*lin(edge), 1)
+    bsdf.inputs["Roughness"].default_value = 0.05
+    bsdf.inputs["Coat Weight"].default_value = 1.0
+    bsdf.inputs["Coat Roughness"].default_value = 0.02
+    out = nodes["Material Output"]
+    tr = nodes.new("ShaderNodeBsdfTransparent")
+    tr.inputs["Color"].default_value = (*lin(tint), 1)
+    lw = nodes.new("ShaderNodeLayerWeight")
+    lw.inputs["Blend"].default_value = 0.35
+    mr = nodes.new("ShaderNodeMapRange")
+    mr.inputs["To Min"].default_value = center
+    mr.inputs["To Max"].default_value = rim
+    links.new(lw.outputs["Facing"], mr.inputs["Value"])
+    mix = nodes.new("ShaderNodeMixShader")
+    links.new(mr.outputs["Result"], mix.inputs["Fac"])
+    links.new(tr.outputs[0], mix.inputs[1])
+    links.new(bsdf.outputs[0], mix.inputs[2])
+    links.new(mix.outputs[0], out.inputs["Surface"])
+    return mat
+
+
+def icon_jar():
+    """Банка-копилка: широкая стеклянная банка, на три четверти полная монет, красная жестяная крышка, монеты сверху."""
+    I._prep()
+    rnd = random.Random(21)
+    prof = [(1.18, 0.0), (1.36, 0.06), (1.44, 0.3), (1.47, 1.2), (1.44, 2.2), (1.34, 2.55), (1.22, 2.72), (1.2, 2.95)]
+    outer = [(r, z) for r, _, z in spline([(r, 0.0, z) for r, z in prof], 8)]
+    jar = lathe("Jar", [(0.0, 0.0)] + outer, 128)
+    smooth(jar)
+    # монеты насыпаем физикой в невидимый цилиндр чуть уже стекла
+    wall = lathe("Wall", [(0.0, 0.07), (1.37, 0.07), (1.37, 3.6)], 64)
+    coins_ = C.deposit("Jar", 84, 0.92, rnd, statics=[wall], per_wave=8, frames=60, tilt=0.5)
+    bpy.data.objects.remove(wall)
+    # монеты выше трех четвертей (застрявшие у горлышка) убираем
+    for c in list(coins_):
+        if c.matrix_world.translation.z > 2.3:
+            coins_.remove(c)
+            bpy.data.objects.remove(c)
+    assign(jar, glass("Glass"))
+    # стекло не дает тени: монеты внутри светлые, как на витрине
+    jar.visible_shadow = False
+    parts = [jar] + coins_
+    lid = cylinder("Lid", 1.3, 0.34, 128)
+    lid.location = (0, 0, 2.95 + 0.15)
+    apply_transform(lid)
+    push_normals(lid, lambda co, n: -0.02 * (0.5 + 0.5 * math.cos(math.atan2(co.y, co.x) * 48))
+                 if abs(n.z) < 0.5 else 0.0)
+    bevel(lid, 0.07, 4, 30)
+    parts.append(assign(smooth(lid, 30), I.toy("LidRed", (0.90, 0.18, 0.20), rough=0.25, coat=0.9, metal=0.3)))
+    top = 2.95 + 0.32
+    st = C.stack("TopCoin", 0.38, -0.12, 2, rnd, z0=top, jitter=0.06)
+    flat_ = C.coin("TopFlat", loc=(-0.36, -0.36, top + 0.062), rot=(0.03, -0.02, 1.1))
+    parts += st + [flat_]
+    # блики на стекле: две белые полоски слева
+    shine_m = glow_mat("ShineW", (1.0, 1.0, 1.0), 1.0)
+    for k, (a, z0, z1, r) in enumerate(((-128, 0.4, 2.2, 0.1), (-110, 0.6, 1.4, 0.06), (-110, 1.62, 1.86, 0.06))):
+        ar = math.radians(a)
+        pts = [(1.5 * math.cos(ar), 1.5 * math.sin(ar), z0 + (z1 - z0) * i / 12) for i in range(13)]
+        parts.append(assign(sweep(f"Shine{k}", pts, r, segs=16, section=(0.3, 1.0), up=(math.cos(ar), math.sin(ar), 0)),
+                            shine_m))
+    return I.finish(parts, tilt=8)
+
+
+def icon_happy():
+    """Счастливый час: розовый будильник с золотыми колокольчиками, стрелки на 10:10 (улыбка), золотые искорки."""
+    I._prep()
+    pink = I.toy("ClockPink", (0.95, 0.30, 0.62), rough=0.22, coat=0.9)
+    g = I.gold()
+    plum = I.toy("Hands", (0.36, 0.10, 0.32), rough=0.25, coat=0.8)
+    parts = [I.disc("Body", 0.86, 0.5, pink)]
+    rim = torus("Rim", 0.72, 0.06, 96, 16)
+    rim.rotation_euler = (math.radians(90), 0, 0)
+    rim.location = (0, -0.25, 0)
+    apply_transform(rim)
+    parts.append(assign(smooth(rim), g))
+    parts.append(I.disc("Dial", 0.7, 0.06, I.white("Dial"), y=-0.24))
+    for k in range(12):
+        a = math.radians(90 - 30 * k)
+        big = k % 3 == 0
+        d = sphere(f"Tick{k}", 0.055 if big else 0.032, 16, 8)
+        d.scale = (1, 0.5, 1)
+        d.location = (0.55 * math.cos(a), -0.28, 0.55 * math.sin(a))
+        apply_transform(d)
+        parts.append(assign(smooth(d), pink if big else plum))
+    for k, (ang, ln, w) in enumerate(((150, 0.34, 0.085), (30, 0.5, 0.065))):
+        hand = I.slab(f"Hand{k}", I.rounded_rect(ln, w, w / 2 - 0.002), 0.04, 0.012, plum, y=-0.3 - 0.02 * k)
+        hand.location.x += ln / 2 - w / 2
+        apply_transform(hand)
+        hand.rotation_euler = (0, -math.radians(ang), 0)
+        apply_transform(hand)
+        parts.append(hand)
+    cap = I.disc("Cap", 0.07, 0.06, g, y=-0.35)
+    parts.append(cap)
+    # колокольчики и молоточек
+    bell_prof = [(0.0, 0.0), (0.3, 0.0), (0.31, 0.03), (0.28, 0.12), (0.22, 0.24), (0.12, 0.3), (0.0, 0.31)]
+    for side in (-1, 1):
+        bell = lathe_smooth(f"Bell{side}", bell_prof, 64, 4)
+        knob = sphere(f"Knob{side}", 0.06, 16, 8)
+        knob.location = (0, 0, 0.33)
+        apply_transform(knob)
+        post = cylinder(f"BellPost{side}", 0.035, 0.25, 16)
+        post.location = (0, 0, -0.1)
+        apply_transform(post)
+        grp = [assign(smooth(bell), g), assign(smooth(knob), g), assign(smooth(post), g)]
+        a = math.radians(90 - side * 42)
+        rotate_all(grp, (0, math.radians(side * 40), 0))
+        for o in grp:
+            o.location = o.location + Vector((0.86 * math.cos(a), 0.05, 0.86 * math.sin(a)))
+        parts += grp
+    stick = cylinder("Hammer", 0.03, 0.22, 16)
+    stick.location = (0, 0.05, 0.92)
+    apply_transform(stick)
+    ball = sphere("HammerBall", 0.07, 16, 8)
+    ball.location = (0, 0.05, 1.05)
+    apply_transform(ball)
+    parts += [assign(smooth(stick), g), assign(smooth(ball), g)]
+    for side in (-1, 1):
+        leg = M.capsule(f"Leg{side}", 0.3, 0.07, 16, 12)
+        leg.rotation_euler = (0, math.radians(90 + side * -35), 0)
+        leg.location = (side * 0.5, 0.05, -0.82)
+        apply_transform(leg)
+        parts.append(assign(smooth(leg), g))
+    # искорки близко к часам: на 30 точках будильник остается крупным
+    for k, (x, z, r) in enumerate(((-1.08, 0.6, 0.2), (1.1, 0.12, 0.16), (-0.98, -0.62, 0.12), (0.98, 0.9, 0.11))):
+        st = I.slab(f"Sparkle{k}", I.star_pts(r, r * 0.3, n=4), 0.08, 0.025, g)
+        st.location = (x, 0, z)
+        apply_transform(st)
+        parts.append(st)
+    return I.finish(parts, tilt=6)
+
+
 M.MODELS.update({
     "m3_pin": m3_pin,
     "m3_bomb": m3_bomb,
@@ -846,4 +1403,9 @@ M.MODELS.update({
     "icon_m3_spatula": icon_m3_spatula,
     "icon_m3_mixer": icon_m3_mixer,
     "icon_market": icon_market,
+    "critic": critic,
+    "icon_recipe": icon_recipe,
+    "icon_garden": icon_garden,
+    "icon_jar": icon_jar,
+    "icon_happy": icon_happy,
 })

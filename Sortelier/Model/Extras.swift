@@ -188,9 +188,9 @@ struct GardenState: Codable {
 
 enum Garden {
     static var bedCount: Int { 3 }
-    static var growSeconds: Double { Double(RemoteConfig.shared.int("garden.growMinutes", 180)) * 60 }
+    static var growSeconds: Double { Double(RemoteConfig.shared.int("garden.growMinutes", 240)) * 60 }
     /// Каждая победа поливает грядки: минус столько секунд.
-    static var waterSeconds: Double { Double(RemoteConfig.shared.int("garden.waterMinutes", 12)) * 60 }
+    static var waterSeconds: Double { Double(RemoteConfig.shared.int("garden.waterMinutes", 10)) * 60 }
     static var yield: Int { RemoteConfig.shared.int("garden.yield", 12) }
     /// Что растет на грядке по очереди.
     static let crops: [[String]] = [["tomato", "carrot"], ["lime", "grapes"], ["cheese", "milk"]]

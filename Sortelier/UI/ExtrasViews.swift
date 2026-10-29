@@ -16,9 +16,12 @@ struct GardenView: View {
             VStack(spacing: 12) {
                 HStack(spacing: 8) {
                     CircleIconButton(symbol: "xmark", size: 42, action: close)
+                    SpriteImage(name: "icon_garden", size: 40)
                     StrokeText(text: lang.t("garden.title"), size: 22, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
                                stroke: Theme.woodDark, width: 1.5, drop: 2)
-                    Spacer()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                    Spacer(minLength: 0)
                     if HappyHour.active(progress.now) { HappyHourChip() }
                 }
                 .padding(.top, 8)
@@ -114,8 +117,9 @@ struct JarPopup: View {
             Dim().onTapGesture(perform: close)
             PopupCard(title: lang.t("jar.title"), close: close, maxWidth: 330) {
                 VStack(spacing: 12) {
-                    JarGlyph(fill: Double(progress.jarCoins) / Double(TipJar.capacity))
-                        .frame(width: 130, height: 150)
+                    SpriteImage(name: "icon_jar", size: 140)
+                        .modifier(Pulse(active: progress.jarFull))
+                    JarBar(coins: progress.jarCoins)
                     HStack(spacing: 6) {
                         CoinIcon(size: 28)
                         Text("\(progress.jarCoins)").font(Theme.rounded(26, .black)).foregroundColor(Theme.brown).monospacedDigit()
@@ -147,6 +151,27 @@ struct JarPopup: View {
                 RewardPopup(title: lang.t("jar.broken"), granted: g) { granted = nil; close() }
             }
         }
+    }
+}
+
+/// Заполнение банки с отметкой, с какой суммы ее можно разбить.
+struct JarBar: View {
+    let coins: Int
+
+    var body: some View {
+        GeometryReader { g in
+            let w = g.size.width
+            ZStack(alignment: .leading) {
+                Capsule().fill(Theme.cream)
+                Capsule().fill(LinearGradient(colors: [Theme.gold, Theme.orange], startPoint: .leading, endPoint: .trailing))
+                    .frame(width: max(16, w * CGFloat(min(1, Double(coins) / Double(TipJar.capacity)))))
+                Rectangle().fill(Theme.woodDark.opacity(0.5))
+                    .frame(width: 2, height: 18)
+                    .offset(x: w * CGFloat(Double(TipJar.minimum) / Double(TipJar.capacity)))
+                Capsule().strokeBorder(Theme.chipBorder, lineWidth: 2)
+            }
+        }
+        .frame(height: 18)
     }
 }
 

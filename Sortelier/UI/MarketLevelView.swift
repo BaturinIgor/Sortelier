@@ -62,7 +62,13 @@ struct MarketLevelContent: View {
                 model.scene.hudHeight = geo.safeAreaInsets.top + 58 + 96
                 model.scene.bottomReserved = geo.safeAreaInsets.bottom + 92
                 Audio.shared.setTrack(model.level.chapter == 1 ? "music_italy" : "music_bakery")
-                if let kind = model.level.intro, !progress.seenIntro("m3." + kind) {
+                var pending: String?
+                if let raw = model.level.intro {
+                    let kind = raw.hasPrefix("m3.") ? String(raw.dropFirst(3)) : raw
+                    if !progress.seenIntro("m3." + kind) { pending = kind }
+                }
+                if let kind = pending {
+                    // обучение показывается до старта, поле стартует после него
                     intro = kind
                 } else if model.critic {
                     showCritic()
@@ -97,9 +103,11 @@ struct MarketLevelContent: View {
             StrokeText(text: lang.t("m3.level", model.level.id), size: 19, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
                        stroke: Theme.woodDark, width: 1.5, drop: 2)
                 .lineLimit(1)
-                .padding(.horizontal, 16)
+                .fixedSize()
+                .padding(.horizontal, 14)
                 .frame(minHeight: 44)
                 .background(WoodTray(radius: 18))
+                .layoutPriority(2)
             if model.level.hard == true {
                 Text(lang.t("map.hard"))
                     .font(Theme.rounded(13, .black))

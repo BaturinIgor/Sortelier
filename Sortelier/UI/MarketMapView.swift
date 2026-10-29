@@ -24,6 +24,13 @@ struct MarketMapView: View {
         ZStack {
             KitchenBackground(veil: 0.08, style: MarketCatalog.style(chapter: chapterOf(progress.marketCurrent)))
             path
+            VStack {
+                LinearGradient(colors: [Theme.woodDark.opacity(0.55), Theme.woodDark.opacity(0)], startPoint: .top, endPoint: .bottom)
+                    .frame(height: 150)
+                    .ignoresSafeArea(edges: .top)
+                Spacer()
+            }
+            .allowsHitTesting(false)
             VStack(spacing: 8) {
                 header
                 HStack(spacing: 8) {
@@ -321,15 +328,20 @@ struct HappyHourChip: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            SpriteImage(name: "icon_happy", size: 26)
+            SpriteImage(name: "icon_happy", size: 28)
             VStack(alignment: .leading, spacing: -1) {
-                Text(lang.t("happy.title")).font(Theme.rounded(12, .black)).foregroundColor(.white).outlined(Theme.woodDark, width: 1)
+                Text(lang.t("happy.title")).font(Theme.rounded(12, .black)).foregroundColor(.white).outlined(Theme.ribbonDark, width: 1)
+                    .lineLimit(1)
+                    .fixedSize()
                 if let window = HappyHour.current(progress.now) {
-                    Text(Lang.time(window.end.timeIntervalSince(progress.now)))
-                        .font(Theme.rounded(11, .heavy)).foregroundColor(Color(red: 1, green: 0.9, blue: 0.5)).monospacedDigit()
+                    Text("x2 · " + Lang.time(window.end.timeIntervalSince(progress.now)))
+                        .font(Theme.rounded(11, .heavy)).foregroundColor(Color(red: 1, green: 0.95, blue: 0.6)).monospacedDigit()
+                        .lineLimit(1)
+                        .fixedSize()
                 }
             }
         }
+        .fixedSize()
         .padding(.horizontal, 9)
         .padding(.vertical, 4)
         .background(Capsule().fill(LinearGradient(colors: [Color(red: 0.95, green: 0.45, blue: 0.6), Color(red: 0.75, green: 0.25, blue: 0.55)],
