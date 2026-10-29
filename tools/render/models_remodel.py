@@ -1550,11 +1550,11 @@ def onion():
     for o in wp:
         o.location += Vector((-0.30, 0.35, 0))
     half = MX.onion_bulb("RedOnionHalf")
-    bisect(half, (0, 0, 0), (0, 1, 0))
+    bisect(half, (0, 0, 0), (0, 1, 0), fill=False)
     smooth(half)
     assign(half, skin)
     face = onion_face_crisp("RedOnionFace")
-    face.location = (0, 0.002, 0)
+    face.location = (0, 0.0, 0)
     apply_transform(face)
     hp = [half, face]
     rotate_all(hp, (math.radians(180), 0, 0))
