@@ -501,7 +501,11 @@ def replay(shelves, orders, path, locks=None, keys=None, chains=None):
     for _, shelf in settle_detail(CAT, sh, od, range(len(sh))):
         cst = obs.fired(cst, shelf)
     first_touch, served_at = {}, {}
+    # сколько покупателей обслужено перед каждым ходом
+    served_before = []
+    count = len(orders) - len(od)
     for m, (s, k, d) in enumerate(path):
+        served_before.append(count)
         first_touch.setdefault(s, m)
         first_touch.setdefault(d, m)
         before = list(od)
@@ -511,9 +515,31 @@ def replay(shelves, orders, path, locks=None, keys=None, chains=None):
         sh, od, fired, cst = res
         for idx, _ in fired:
             served_at.setdefault(sprite(before.pop(idx)), m)
+        count = len(orders) - len(od)
     if od:
         return None
+    replay.served_before = served_before
     return first_touch, served_at
+
+
+def place_locks(rng, shelves, orders, path, count):
+    """Замки по числу обслуженных по готовому решению: полка, которую решение не трогает, пока не обслужено N,
+    запирается на N (2..5). Так уровень с замками гарантированно проходим."""
+    first_touch, _ = replay(shelves, orders, path)
+    before = replay.served_before
+    locks = [0] * len(shelves)
+    options = []
+    for s, layers in enumerate(shelves):
+        if not any(c for c in layers[0]):
+            continue
+        touch = first_touch.get(s, len(path))
+        n = before[touch] if touch < len(before) else len(orders)
+        if n >= 2:
+            options.append((s, min(5, n)))
+    rng.shuffle(options)
+    for s, n in options[:count]:
+        locks[s] = rng.randint(2, n)
+    return locks if any(locks) else None
 
 
 def place_keys(rng, shelves, orders, path, count, locks):
@@ -590,13 +616,22 @@ def generate_level(level_no, params, seed, biome=1):
             continue
         if n_ice:
             add_ice(rng, shelves, n_ice, n_orders)
-        locks = pick_locks(rng, shelves, n_locks, n_orders) if n_locks else None
         # глубину поиска ограничиваем: слишком длинное решение все равно не возьмем, а тупиковые раскладки
         # иначе ищутся очень долго
         depth_cap = int(len(items) * 2.4) + 12 if strict else 400
-        path = solve(CAT, shelves, orders, beam=120 if n_orders > 12 else 200, max_depth=depth_cap, locks=locks)
-        if path is None:
-            continue
+        if biome >= 4:
+            # кухни 4-5: сначала решение без замков, замки ставятся по нему
+            path = solve(CAT, shelves, orders, beam=120 if n_orders > 12 else 200, max_depth=depth_cap)
+            if path is None:
+                continue
+            locks = place_locks(rng, shelves, orders, path, n_locks) if n_locks else None
+            if n_locks and not locks:
+                continue
+        else:
+            locks = pick_locks(rng, shelves, n_locks, n_orders) if n_locks else None
+            path = solve(CAT, shelves, orders, beam=120 if n_orders > 12 else 200, max_depth=depth_cap, locks=locks)
+            if path is None:
+                continue
         # замки с ключом и цепи ставятся по найденному решению: оно остается верным
         keys = place_keys(rng, shelves, orders, path, n_keys, locks) if n_keys else None
         # по плану может быть два ключа или три цепи; если решение позволяет меньше, хватит одного

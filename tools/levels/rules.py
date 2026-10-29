@@ -120,8 +120,16 @@ class Obstacles:
 
     @property
     def ordered(self):
-        """Полки нельзя переставлять при сравнении состояний: у них разные препятствия."""
+        """Есть полки с препятствиями: их нельзя переставлять при сравнении состояний."""
         return bool(any(self.locks) or any(self.keys) or self.chains)
+
+    @property
+    def special(self):
+        """Номера полок с препятствиями (остальные взаимозаменяемы)."""
+        out = {s for s, n in enumerate(self.locks) if n} | {s for s, k in enumerate(self.keys) if k}
+        for a, b in self.chains:
+            out |= {a, b}
+        return out
 
     def start(self):
         return tuple((None, False, False) for _ in self.chains)
@@ -265,14 +273,17 @@ def has_move(shelves, orders, obs, cst=()):
     return bool(legal_moves(shelves, orders, obs, cst))
 
 
-def key_of(shelves, orders, cst=(), ordered=False):
+def key_of(shelves, orders, cst=(), special=()):
+    """Ключ состояния для отсечения повторов. Обычные полки взаимозаменяемы (сортируем),
+    полки с препятствиями (special) остаются на своих местах."""
     shelf_keys = []
     for layers in shelves:
         front = tuple(sorted((c or "") for c in layers[0]))
         rest = tuple(tuple(c or "" for c in l) for l in layers[1:])
         shelf_keys.append((front, rest))
-    shelf_part = tuple(shelf_keys) if ordered else tuple(sorted(shelf_keys))
-    return (shelf_part, tuple(sorted((o.kind, o.target) for o in orders)), cst)
+    fixed = tuple(shelf_keys[i] for i in sorted(special) if i < len(shelf_keys))
+    plain = tuple(sorted(k for i, k in enumerate(shelf_keys) if i not in special))
+    return (fixed, plain, tuple(sorted((o.kind, o.target) for o in orders)), cst)
 
 
 def heuristic(catalog, shelves, orders, obs=None, cst=()):
@@ -319,7 +330,8 @@ def solve(catalog, shelves, orders, beam=160, max_depth=400, locks=None, keys=No
     for _, shelf in settle_detail(catalog, shelves, orders, range(len(shelves))):
         cst = obs.fired(cst, shelf)
     frontier = [(heuristic(catalog, shelves, orders, obs, cst), 0, shelves, orders, cst, [])]
-    seen = {key_of(shelves, orders, cst, obs.ordered)}
+    special = obs.special
+    seen = {key_of(shelves, orders, cst, special)}
     counter = 0
     for _ in range(max_depth):
         candidates = []
@@ -331,7 +343,7 @@ def solve(catalog, shelves, orders, beam=160, max_depth=400, locks=None, keys=No
                 if res is None:
                     continue
                 nsh, nod, fired, ncs = res
-                key = key_of(nsh, nod, ncs, obs.ordered)
+                key = key_of(nsh, nod, ncs, special)
                 if key in seen:
                     continue
                 seen.add(key)
