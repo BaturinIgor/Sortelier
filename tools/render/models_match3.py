@@ -5,13 +5,15 @@
 (глянцевый пластик toy(), окружение gold_world) и рендерятся тем же models.py:
   python tools/render/models.py art/new/match3 --only m3_pin,m3_bomb,...
   python tools/render/models.py art/new/match3 --only icon_m3_mallet,icon_market,...
-Портрет critic собирается из customers.py и снимается в кадре покупателей (см. portrait_frame).
+Портрет critic собирается из customers.py (customers.build) и снимается в кадре покупателей
+(см. portrait_frame, кадр зафиксирован CRITIC_RECT):
+  python tools/render/models.py art/new/customers2 --only critic
 """
 import math
 import random
 
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Euler, Matrix, Vector
 
 import models as M
 from models import *  # noqa: F401,F403  помощники
@@ -838,23 +840,30 @@ def icon_market():
 
 # MARK: - Тайный критик
 
-def portrait_frame():
+# Кадр прежнего портрета критика в осях камеры покупателя (x0, x1, y0, y1). Игра ставит спрайт по нему,
+# поэтому кадр зафиксирован и не зависит от шляпы и прически (как FRAMES в customers.py).
+CRITIC_RECT = (-1.611960, 1.647799, -0.353431, 2.685863)
+
+
+def portrait_frame(rect=None):
     """Кадр как у покупателей (customers.render): камера с азимута 8 и высоты 6 градусов, поле 1.04.
     models.render ставит свою камеру (14 и 26 градусов) по границам мешей, поэтому поворачиваем модель
-    вместе со светом так, чтобы его камера видела то же самое, а границы кадра задаем невидимой рамкой."""
+    вместе со светом так, чтобы его камера видела то же самое, а границы кадра задаем невидимой рамкой.
+    rect - готовые границы (x0, x1, y0, y1) в осях камеры покупателя; без него считаются по мешам."""
     bpy.context.view_layer.update()
-    meshes = [o for o in bpy.data.objects if o.type == "MESH"]
-    _, _, pts = RD.bounds(meshes)
-    frame = [p for p in pts if p.z > -0.25] + [Vector((-1.25, 0, -0.25)), Vector((1.25, 0, -0.25))]
 
     def cam_rot(az, el):
         d = Vector((math.sin(az) * math.cos(el), -math.cos(az) * math.cos(el), math.sin(el)))
         return (-d).to_track_quat("-Z", "Y")
     qc = cam_rot(math.radians(8), math.radians(6))
     qp = cam_rot(M.AZIMUTH, M.ELEVATION)
-    loc = [qc.inverted() @ p for p in frame]
-    x0, x1 = min(p.x for p in loc), max(p.x for p in loc)
-    y0, y1 = min(p.y for p in loc), max(p.y for p in loc)
+    if rect is None:
+        meshes = [o for o in bpy.data.objects if o.type == "MESH"]
+        _, _, pts = RD.bounds(meshes)
+        frame = [p for p in pts if p.z > -0.25] + [Vector((-1.25, 0, -0.25)), Vector((1.25, 0, -0.25))]
+        loc = [qc.inverted() @ p for p in frame]
+        rect = (min(p.x for p in loc), max(p.x for p in loc), min(p.y for p in loc), max(p.y for p in loc))
+    x0, x1, y0, y1 = rect
     h = max(x1 - x0, y1 - y0) * 1.04 / 1.08 / 2
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
     rot = (qp @ qc.inverted()).to_matrix().to_4x4()
@@ -876,35 +885,47 @@ def body_y(x, z):
 
 
 def critic():
-    """Тайный ресторанный критик: шляпа, круглые темные очки, тонкие усики, тренч с поднятым воротником,
-    водолазка, блокнот и ручка у подбородка. Собран из customers.build, одно настроение (любопытство)."""
+    """Тайный ресторанный критик: шляпа с пером, круглые темные очки, подкрученные усики, тренч с лацканами,
+    водолазка, блокнот и ручка у подбородка. Собран из customers.build (кожа, румянец, пряди, ткань),
+    одно настроение (любопытство: бровь приподнята, ухмылка)."""
     HZ = CU.HEAD_Z
-    CU.build(("fair", "bald", (0.18, 0.11, 0.07), (0.80, 0.63, 0.38), None), "happy")
-    # заменяем воротник, брови и рот, глаза закрыты очками
-    for o in list(bpy.data.objects):
-        if o.type == "MESH" and o.name.startswith(("Collar", "Brow", "Eye", "Highlight", "Mouth")):
-            bpy.data.objects.remove(o)
+    hair_col = (0.18, 0.11, 0.07)
+    CU.build(("fair", "none", hair_col, (0.80, 0.63, 0.38), None, {"garment": "trench"}), "happy", face_on=False)
     skin = bpy.data.objects["Head"].data.materials[0]
-    hair_m = bpy.data.materials["Hair"]
-    brow_m = bpy.data.materials["Brow"]
-    lip = bpy.data.materials["Mouth"]
+    hm = [bpy.data.materials[n] for n in ("Hair", "Hair1", "Hair2")]
     coat = bpy.data.materials["Shirt"]
+    brow_m = M.flat("Brow", CU.shade(hair_col, 0.8), rough=0.45, coat=0.15)
+    lip = CU.glossy("Mouth", (0.50, 0.15, 0.15), rough=0.35, coat=0.3)
     white = M.flat("Shine", (1.0, 1.0, 1.0), rough=0.1)
-    # линия волос выше, чем у ковбоя: брови над очками должны быть видны
-    parts = [CU.hair_shell("Hair", hair_m, low=-0.3, front_cut=0.46)]
-    # фетровая шляпа: поля спереди чуть опущены, тулья с ложбинкой и щипками
-    felt = M.material("Fedora", [(0.0, (0.12, 0.11, 0.14)), (1.0, (0.36, 0.33, 0.40))], coord="z", lo=HZ + 0.4,
-                      hi=HZ + 1.4, rough=0.5, sheen=0.5, coat=0.15)
+    rnd = random.Random(42)
+    # волосы из-под шляпы: пряди по бокам и сзади, бакенбарды; лоб открыт, чтобы над очками были видны брови
+    parts = CU.hair_under_hat(hm, rnd, th0=54, side_end=93, back_end=110, front_gap=50)
+    base_m = M.material("HairBase", [(0.0, CU.shade(hair_col, 0.42)), (1.0, CU.shade(hair_col, 0.78))], coord="z",
+                        lo=HZ - 0.4, hi=HZ + 1.0, rough=0.5, coat=0.2)
+    hl = CU.hairline_default(56, 88, 110)
+    parts.append(CU.scalp("HairBase", base_m, lambda ph: hl(ph) - 3))
+    # фетровая шляпа: поля спереди чуть опущены, тулья с ложбинкой и щипками, окантовка полей
+    felt = M.material("Fedora", [(0.0, (0.12, 0.11, 0.14)), (1.0, (0.38, 0.35, 0.42))], coord="z", lo=HZ + 0.4,
+                      hi=HZ + 1.4, rough=0.55, sheen=0.6, coat=0.12)
+    CU._bump(felt, CU._felt_noise(felt, 38.0), strength=0.1)
     tilt = (math.radians(-8), math.radians(5), 0)
-    brim = cylinder("HatBrim", 1.45, 0.06, 96)
-    deform(brim, lambda co: Vector((co.x, co.y,
-                                    co.z + 0.14 * (co.x / 1.45) ** 2 - 0.1 * max(0.0, -co.y / 1.45) ** 1.5)))
+
+    def brim_z(co):
+        return co.z + 0.14 * (co.x / 1.45) ** 2 - 0.1 * max(0.0, -co.y / 1.45) ** 1.5
+    brim = cylinder("HatBrim", 1.45, 0.06, 128)
+    deform(brim, lambda co: Vector((co.x, co.y, brim_z(co))))
     bevel(brim, 0.03, 3, 30)
     brim.location = (0, 0.05, HZ + 0.6)
     brim.rotation_euler = tilt
     apply_transform(brim)
     subdivide(brim, 1)
     assign(smooth(brim, 40), felt)
+    binding = torus("BrimBinding", 1.44, 0.034, 128, 12)
+    deform(binding, lambda co: Vector((co.x, co.y, brim_z(co))))
+    binding.location = (0, 0.05, HZ + 0.6)
+    binding.rotation_euler = tilt
+    apply_transform(binding)
+    assign(smooth(binding), M.flat("Binding", (0.10, 0.09, 0.12), rough=0.3, sheen=0.8, coat=0.4))
     crown = lathe_smooth("HatCrown", [(0.8, 0.0), (0.78, 0.3), (0.72, 0.54), (0.6, 0.66), (0.35, 0.71), (0.05, 0.7)],
                          96, 6)
 
@@ -918,12 +939,27 @@ def critic():
     crown.rotation_euler = tilt
     apply_transform(crown)
     assign(smooth(crown), felt)
+    band_m = M.flat("HatBandMat", (0.70, 0.13, 0.20), rough=0.4, sheen=0.6, coat=0.2)
     band = lathe("HatBand", [(0.0, 0.0), (0.825, 0.0), (0.83, 0.02), (0.815, 0.16), (0.0, 0.16)], 96)
     band.location = (0, 0.08, HZ + 0.62)
     band.rotation_euler = tilt
     apply_transform(band)
-    assign(smooth(band, 40), M.flat("HatBandMat", (0.70, 0.13, 0.20), rough=0.4, sheen=0.4))
-    parts += [brim, crown, band]
+    assign(smooth(band, 40), band_m)
+    mx = Matrix.Translation((0, 0.08, HZ + 0.62)) @ Euler(tilt).to_matrix().to_4x4()
+    th = CU.thread_mat((1.0, 0.82, 0.78))
+    parts += [brim, binding, crown, band,
+              CU.ring_stitches("BandStitch0", th, mx, 0.836, 0.035, 64, radial=True),
+              CU.ring_stitches("BandStitch1", th, mx, 0.826, 0.13, 64, radial=True)]
+    # перо за лентой сбоку: стержень и опахало из двух прядок
+    root = mx @ Vector((-0.62, -0.5, 0.08))
+    feather_m = M.material("Feather", [(0.0, (0.15, 0.45, 0.42)), (0.6, (0.25, 0.68, 0.6)), (1.0, (0.95, 0.75, 0.3))],
+                           coord="z", lo=HZ + 0.65, hi=HZ + 1.2, rough=0.35, sheen=0.8, coat=0.2)
+    ctrl = [root, root + Vector((-0.08, 0.02, 0.18)), root + Vector((-0.1, 0.06, 0.38)), root + Vector((-0.04, 0.1, 0.52))]
+    up = Vector((-0.75, -0.65, 0.0))
+    parts.append(CU.strand("Feather", feather_m, ctrl, 0.085, 0.018, n=30, tip=0.35, root=0.3, root_w=0.2, groove=0.5,
+                           up=up, flat=0.8))
+    parts.append(CU.tube("Quill", [root - Vector((0.0, 0, 0.04)), ctrl[1], ctrl[2], ctrl[3]], 0.008,
+                         M.flat("QuillM", (0.95, 0.92, 0.85), rough=0.4), taper=(1.0, 0.3)))
     # круглые темные очки в золотой оправе, блик на стеклах
     lens_m = M.material("Lens", [(0.0, (0.16, 0.13, 0.24)), (1.0, (0.02, 0.02, 0.04))], coord="z", lo=HZ - 0.2,
                         hi=HZ + 0.22, rough=0.06, coat=1.0, coat_rough=0.02, spec=0.8)
@@ -940,10 +976,12 @@ def critic():
         sh = CU.ellipsoid(f"LensShine{side}", (0.08, 0.02, 0.035), white, 16, 10)
         sh.rotation_euler = (0, math.radians(-35), 0)
         sh.location = (x - 0.07, CU.head_surface_y(x - 0.07, 0.11) * 0.97 - 0.11, HZ + 0.11)
+        sh2 = CU.ellipsoid(f"LensShineS{side}", (0.025, 0.015, 0.025), white, 12, 8)
+        sh2.location = (x + 0.09, CU.head_surface_y(x + 0.09, -0.08) * 0.97 - 0.1, HZ - 0.08)
         temple = M.tube(f"Temple{side}", [(side * 0.55, CU.head_surface_y(0.55, 0.06) * 0.97 - 0.06, HZ + 0.07),
                                          (side * 0.8, -0.45, HZ + 0.08), (side * 0.99, -0.05, HZ + 0.06)], 0.022)
         assign(smooth(temple), gold_m)
-        parts += [lens, ring, sh, temple]
+        parts += [lens, ring, sh, sh2, temple]
     bridge = []
     for i in range(9):
         t = -1 + 2 * i / 8
@@ -952,41 +990,27 @@ def critic():
         bridge.append((xx, CU.head_surface_y(xx, zz - HZ) * 0.97 - 0.08, zz))
     parts.append(assign(smooth(M.tube("Bridge", bridge, 0.022)), gold_m))
     # брови над очками: правая приподнята от любопытства
-    for side, bz, arch in ((-1, HZ + 0.33, 0.02), (1, HZ + 0.41, 0.06)):
-        x = side * 0.35
-        pts = []
-        for i in range(10):
-            t = i / 9
-            xx = x - side * 0.12 + side * 0.24 * t
-            zz = bz + arch * math.sin(math.pi * t) + (0.02 * (1 - t) if side > 0 else 0.0)
-            pts.append((xx, CU.head_surface_y(xx, zz - HZ) * 0.99 - 0.015, zz))
-        parts.append(assign(smooth(M.tube(f"NewBrow{side}", pts, 0.036, taper=(1.0, 0.75))), brow_m))
-    # тонкие усики с подкрученными кончиками и легкая улыбка
-    mz = HZ - 0.245
-    for side in (-1, 1):
-        pts = []
-        for i in range(12):
-            t = i / 11
-            xx = side * (0.03 + 0.24 * t)
-            zz = mz + 0.07 * t ** 2.2 - 0.015 * math.sin(math.pi * t)
-            pts.append((xx, CU.head_surface_y(xx, zz - HZ) * 0.985 - 0.04, zz))
-        parts.append(assign(smooth(M.tube(f"Mustache{side}", pts, 0.042, taper=(1.0, 0.4))), hair_m))
-    parts.append(CU.arc_tube("Smile", 0.03, HZ - 0.39, 0.26, 0.05, 0.028, lip))
+    parts.append(CU.brow(-1, brow_m, 0.335, 0.02, 0.0, 0.032, x=-0.35, L=0.15))
+    parts.append(CU.brow(1, brow_m, 0.4, 0.065, -0.025, 0.032, x=0.35, L=0.15))
+    # подкрученные усики и ухмылка уголком
+    parts += CU.moustache("Mustache", hm, rnd, mz=HZ - 0.245, width=0.25, droop=0.0, curl=0.032, thick=0.046, tufts=3)
+    mz, cx, W = HZ - 0.4, 0.03, 0.15
+    parts.append(CU.stroke("Smile", lip, CU.head_surf, cx - W, cx + W,
+                           lambda u: mz + 0.05 * ((u - cx) / W) ** 2 + 0.03 * (u - cx) / W,
+                           lambda u: 0.022 * (1 - 0.45 * ((u - cx) / W) ** 2), lift=0.015, end=0.45, nu=28, nv=8))
     # водолазка: толстый вязаный ворот под подбородком
-    knit = M.material("Knit", [(0.0, (0.10, 0.10, 0.13)), (1.0, (0.30, 0.30, 0.36))], coord="z", lo=0.0, hi=0.6,
-                      rough=0.6, sheen=0.4)
-    roll = torus("Turtleneck", 0.5, 0.15, 64, 24)
+    knit = CU.fabric_mat("Knit", (0.22, 0.22, 0.27), knit=True, weave=110.0, bump=0.22, rough=0.7, lo=-0.2, hi=0.6)
+    roll = torus("Turtleneck", 0.5, 0.15, 96, 24)
     roll.location = (0, 0.03, 0.34)
     apply_transform(roll)
-    push_normals(roll, lambda co, n: 0.012 * math.sin(math.atan2(co.y, co.x) * 40))
+    push_normals(roll, lambda co, n: 0.014 * abs(math.sin(math.atan2(co.y, co.x) * 26)))
     parts.append(assign(smooth(roll), knit))
     # тренч распахнут: в вырезе между лацканами видна водолазка
     body = bpy.data.objects["Body"]
     assign_faces(body, coat, [(lambda n, c: c.y < 0 and -0.5 < c.z < 0.5 and abs(c.x) < 0.12 + 0.34 * (c.z + 0.4) / 0.8,
                                knit)])
-    # тренч: лацканы по груди и поднятый воротник за шеей
-    lapel_m = M.material("Lapel", [(0.0, (0.66, 0.50, 0.30)), (1.0, (0.90, 0.74, 0.50))], coord="z", lo=-0.6, hi=0.6,
-                         rough=0.45, coat=0.2, sheen=0.3)
+    # тренч: лацканы по груди со строчкой по краю, пуговицы
+    lapel_m = CU.fabric_mat("Lapel", (0.88, 0.72, 0.48), weave=140.0, bump=0.16, rough=0.5, sheen=0.4)
     for side in (-1, 1):
         pts = []
         for i in range(14):
@@ -996,10 +1020,17 @@ def critic():
             pts.append((x, body_y(x, z) - 0.03, z))
         lp = sweep(f"Lapel{side}", pts, lambda t: 0.17 - 0.04 * t, segs=24, section=(0.3, 1.0), up=(0, -1, 0))
         parts.append(assign(lp, lapel_m))
-        btn = CU.ellipsoid(f"Button{side}", (0.055, 0.03, 0.055), M.flat("ButtonM", (0.32, 0.20, 0.12), rough=0.3,
-                                                                        coat=0.6), 16, 10)
-        btn.location = (side * 0.34, body_y(side * 0.34, -0.15) - 0.03, -0.15)
-        parts.append(btn)
+
+        def edge(t, side=side):
+            x = side * (0.46 - 0.34 * t) + side * 0.11
+            z = 0.4 - 0.8 * t
+            return Vector((x, body_y(x, z) - 0.075, z)), Vector((0, -1, 0))
+        parts.append(CU.stitch_line(f"LapelStitch{side}", edge, 18, CU.thread_mat((0.66, 0.5, 0.3)),
+                                    size=(0.018, 0.006, 0.005)))
+        btn_p = Vector((side * 0.34, body_y(side * 0.34, -0.15) - 0.03, -0.15))
+        parts += CU.button(f"Button{side}", btn_p, Vector((0, -1, 0)), 0.05,
+                           CU.glossy("ButtonM", (0.32, 0.20, 0.12), rough=0.3, coat=0.6),
+                           M.flat("ButtonHole", (0.12, 0.08, 0.06), rough=0.5))
     # блокнот в левой руке (справа в кадре): бордовая обложка, листок с линейками, золотая звездочка-оценка
     pad = [I.slab("PadCover", I.rounded_rect(0.5, 0.64, 0.05), 0.05, 0.015,
                   M.flat("PadCoverM", (0.60, 0.12, 0.16), rough=0.4, coat=0.4))]
@@ -1051,7 +1082,7 @@ def critic():
     parts.append(assign(ring, gold_m))
     tip = I.cone_head("PenTip", p1 + dirv * 0.12, dirv, 0.04, 0.14, gold_m)
     parts.append(tip)
-    portrait_frame()
+    portrait_frame(CRITIC_RECT)
     return parts
 
 
