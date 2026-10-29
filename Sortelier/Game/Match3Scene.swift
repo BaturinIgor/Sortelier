@@ -611,7 +611,9 @@ final class Match3Scene: SKScene {
     }
 
     private func shuffle(_ list: [(id: Int, cell: M3Cell)]) {
-        idAt = [:]
+        // перемешиваются только обычные фишки: лед и спецфишки остаются на своих местах
+        let moving = Set(list.map(\.id))
+        for (cellKey, value) in idAt where moving.contains(value) { idAt[cellKey] = nil }
         for (i, entry) in list.enumerated() {
             guard let node = nodes[entry.id] else { continue }
             idAt[entry.cell] = entry.id

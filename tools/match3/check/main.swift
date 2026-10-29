@@ -22,6 +22,10 @@ func problem(_ s: String) {
 struct Mirror {
     var idAt: [M3Cell: Int] = [:]
     var alive = Set<Int>()
+    var history: [Int: [String]] = [:]
+    var reported = 0
+
+    mutating func note(_ id: Int, _ s: String) { history[id, default: []].append(s) }
 
     init(_ b: M3Board) {
         for p in b.allCells { if let t = b.tile(p) { idAt[p] = t.id; alive.insert(t.id) } }
@@ -32,6 +36,18 @@ struct Mirror {
         for e in line.events {
             if e.t < last { problem("L\(level) events out of order") }
             last = e.t
+            let ts = String(format: "%.2f", e.t)
+            switch e.event {
+            case let .pop(id, cell, _, _): note(id, "\(ts) pop \(cell.r),\(cell.c)")
+            case let .create(tile, cell): note(tile.id, "\(ts) create \(cell.r),\(cell.c) \(tile.kind)")
+            case let .fire(id, cell, f): if let id = id { note(id, "\(ts) fire \(cell.r),\(cell.c) \(f.special)") }
+            case let .combo(a, b, cell, _, _): note(a, "\(ts) combo \(cell.r),\(cell.c)"); note(b, "\(ts) combo \(cell.r),\(cell.c)")
+            case let .convert(id, cell, sp, _): note(id, "\(ts) convert \(cell.r),\(cell.c) \(sp)")
+            case let .move(id, path, _): note(id, "\(ts) move \(path.map { "\($0.r),\($0.c)" })")
+            case let .spawn(tile, path, _): note(tile.id, "\(ts) spawn \(path.last!.r),\(path.last!.c)")
+            case let .swap(a, b, back): if let ia = idAt[a] { note(ia, "\(ts) swap \(a.r),\(a.c)->\(b.r),\(b.c) back \(back)") }; if let ib = idAt[b] { note(ib, "\(ts) swap \(b.r),\(b.c)->\(a.r),\(a.c) back \(back)") }
+            default: break
+            }
             switch e.event {
             case let .swap(a, b, back):
                 if idAt[a] == nil || idAt[b] == nil { problem("L\(level) swap of empty cell") }
@@ -46,7 +62,13 @@ struct Mirror {
                 alive.insert(tile.id)
             case let .fire(id, cell, _):
                 if let id = id {
-                    if !alive.contains(id) { problem("L\(level) fire of dead \(id)") }
+                    if !alive.contains(id) {
+                        problem("L\(level) fire of dead \(id)")
+                        if reported < 3 {
+                            reported += 1
+                            print("  history \(id): " + (history[id] ?? []).suffix(8).joined(separator: " | "))
+                        }
+                    }
                     alive.remove(id)
                     if idAt[cell] == id { idAt[cell] = nil }
                     for (k, v) in idAt where v == id { idAt[k] = nil }
@@ -69,9 +91,9 @@ struct Mirror {
                 alive.insert(tile.id)
                 if let to = path.last { idAt[to] = tile.id }
             case let .shuffle(list):
-                idAt = [:]
+                let moving = Set(list.map(\.id))
+                for (k, v) in idAt where moving.contains(v) { idAt[k] = nil }
                 for (id, cell) in list { idAt[cell] = id }
-                for (k, v) in idAt where !alive.contains(v) { idAt[k] = nil }
             }
         }
     }
