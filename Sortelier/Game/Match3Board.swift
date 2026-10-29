@@ -916,7 +916,12 @@ struct M3Board {
             if !moved { break }
         }
         var end = t0
-        for (id, path) in paths {
+        // порядок событий постоянный: снизу вверх
+        let ordered = paths.sorted { a, b in
+            let pa = a.value.last!, pb = b.value.last!
+            return (pa.r, -pa.c, -a.key) > (pb.r, -pb.c, -b.key)
+        }
+        for (id, path) in ordered {
             var length = 0.0
             for i in 1..<path.count {
                 let a = path[i - 1], b = path[i]

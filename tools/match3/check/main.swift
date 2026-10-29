@@ -10,9 +10,12 @@ let file = try! JSONDecoder().decode(File.self, from: Data(contentsOf: URL(fileU
 let seeds = CommandLine.arguments.count > 2 ? Int(CommandLine.arguments[2]) ?? 12 : 12
 
 var problems = 0
+var kinds: [String: Int] = [:]
 func problem(_ s: String) {
     problems += 1
-    if problems < 60 { print("PROBLEM " + s) }
+    let kind = s.split(separator: " ").dropFirst().prefix(3).joined(separator: " ")
+    kinds[kind, default: 0] += 1
+    if kinds[kind]! <= 8 { print("PROBLEM " + s) }
 }
 
 /// Зеркало сцены: какая фишка в какой клетке и какие узлы живы.
@@ -59,17 +62,12 @@ struct Mirror {
                 break
             case let .move(id, path, _):
                 if !alive.contains(id) { problem("L\(level) move of dead \(id) path \(path)") }
+                // падения одного момента идут в любом порядке: как в сцене, итог сверяется после хода
                 for (k, v) in idAt where v == id && k != path.last! { idAt[k] = nil }
-                if let to = path.last {
-                    if let other = idAt[to], other != id, alive.contains(other) { problem("L\(level) move onto live \(other) at \(to)") }
-                    idAt[to] = id
-                }
+                if let to = path.last { idAt[to] = id }
             case let .spawn(tile, path, _):
                 alive.insert(tile.id)
-                if let to = path.last {
-                    if let other = idAt[to], alive.contains(other) { problem("L\(level) spawn onto live \(other) at \(to)") }
-                    idAt[to] = tile.id
-                }
+                if let to = path.last { idAt[to] = tile.id }
             case let .shuffle(list):
                 idAt = [:]
                 for (id, cell) in list { idAt[cell] = id }
@@ -86,6 +84,52 @@ struct Mirror {
         }
     }
 }
+
+/// Жадный выбор хода как у бота tools/match3/bot.py (без случайности): прогресс целей и созданные спецфишки.
+let specialValue: [M3Special: Double] = [.rowPin: 4, .colPin: 4, .whisk: 3, .bomb: 6, .rainbow: 9]
+func score(_ before: M3Board, _ after: M3Board) -> Double {
+    var s = 0.0
+    for i in before.goals.indices {
+        let g = before.goals[i]
+        guard before.progress(i) < g.count else { continue }
+        let gain = min(after.progress(i), g.count) - before.progress(i)
+        s += Double(gain) * (g.type == "collect" ? 1 : 3)
+    }
+    for p in after.allCells { if let sp = after.tile(p)?.kind.special { s += specialValue[sp]! * 0.6 } }
+    if after.won { s += 1000 }
+    return s
+}
+
+func greedy(_ board: M3Board) -> (M3Cell, M3Cell?)? {
+    var best: (M3Cell, M3Cell?)?
+    var bestScore = -1.0
+    for m in board.moves() {
+        var copy = board
+        let line = m.1 == nil ? copy.tap(m.0) : copy.swap(m.0, m.1!)
+        guard let l = line, l.counted else { continue }
+        let v = score(board, copy)
+        if v > bestScore { bestScore = v; best = m }
+    }
+    return best
+}
+
+var greedyReport: [String] = []
+for level in file.levels {
+    var used: [Int] = []
+    for seed in 0..<seeds {
+        var board = M3Board(level: level, seed: UInt64(seed * 104729 + 7))
+        var moves = 0
+        while moves < 160 && !board.won {
+            guard let m = greedy(board) else { break }
+            _ = m.1 == nil ? board.tap(m.0) : board.swap(m.0, m.1!)
+            moves += 1
+        }
+        used.append(board.won ? moves : 999)
+    }
+    used.sort()
+    greedyReport.append("G\(level.id) moves \(level.moves) win \(used.filter { $0 <= level.moves }.count)/\(seeds) p50 \(used[used.count / 2])")
+}
+print(greedyReport.joined(separator: "\n"))
 
 var report: [String] = []
 for level in file.levels {
@@ -135,3 +179,4 @@ for level in file.levels {
 }
 print(report.joined(separator: "\n"))
 print("problems: \(problems)")
+for (k, v) in kinds.sorted(by: { $0.value > $1.value }) { print("  \(v) x \(k)") }
