@@ -24,10 +24,9 @@ ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 OUT = os.path.join(ROOT, "Sortelier", "Resources", "Data", "match3.json")
 REPORT = os.path.join(os.path.dirname(__file__), "balance.json")
 
+# Полная проверка режимов - tools/match3/balance.py; здесь только контроль без бустеров.
 MODES = {
     "free": [],
-    "pre": ["H", "B", "R"],
-    "streak5": ["H", "W", "B", "H", "R"],
 }
 
 
@@ -72,9 +71,9 @@ def main():
     ap.add_argument("--only", default="")
     args = ap.parse_args()
     only = set()
-    if args.only:
-        a, b = args.only.split("-")
-        only = set(range(int(a), int(b) + 1))
+    for part in filter(None, args.only.split(",")):
+        a, _, b = part.partition("-")
+        only |= set(range(int(a), int(b or a) + 1))
     existing = {}
     if os.path.exists(OUT):
         existing = {lv["id"]: lv for lv in json.load(open(OUT))["levels"]}

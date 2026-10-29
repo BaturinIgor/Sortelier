@@ -209,7 +209,7 @@ struct M3Board {
 
     // Тайминги (секунды).
     static let swapTime = 0.17
-    static let popTime = 0.16
+    static let popTime = 0.14
     static let whiskFlight = 0.42
     /// Ускорение падения: клеток в секунду в квадрате.
     static let gravity = 120.0
@@ -678,6 +678,8 @@ struct M3Board {
                 let tile = newTile(.special(kind))
                 tiles[index(a)] = tile
                 emit(t + Self.popTime, .create(tile, a))
+                // падение начинается, когда спецфишка уже на поле
+                lastHit = max(lastHit, t + Self.popTime)
             }
         }
     }

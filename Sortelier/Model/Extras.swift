@@ -71,7 +71,8 @@ enum BigRecipe {
         }
         if isMilestone(step) {
             let chest: ChestKind = step >= 14 ? .silver : .bronze
-            return hard ? Reward(coins: 200 + step * 10, market: [.bomb: 1], chests: [step >= 14 ? .gold : .silver: 1])
+            let better: ChestKind = step >= 14 ? .gold : .silver
+            return hard ? Reward(coins: 200 + step * 10, market: [.bomb: 1], chests: [better: 1])
                         : Reward(coins: 120 + step * 8, chests: [chest: 1])
         }
         let coins = 30 + step * 4
@@ -195,11 +196,13 @@ enum Garden {
     static let crops: [[String]] = [["tomato", "carrot"], ["lime", "grapes"], ["cheese", "milk"]]
 
     static func reward(bed: Int, harvest: Int) -> Reward {
+        let market: [M3Booster] = [.mallet, .pin, .mixer]
+        let main: [Booster] = [.hint, .undo, .shuffle]
         switch (bed + harvest) % 4 {
         case 0: return Reward(coins: 40)
         case 1: return Reward(coins: 25, energy: 6)
-        case 2: return Reward(coins: 25, market: [[.mallet, .pin, .mixer][harvest % 3]: 1])
-        default: return Reward(coins: 30, boosters: [[Booster.hint, .undo, .shuffle][harvest % 3]: 1])
+        case 2: return Reward(coins: 25, market: [market[harvest % 3]: 1])
+        default: return Reward(coins: 30, boosters: [main[harvest % 3]: 1])
         }
     }
 }

@@ -59,6 +59,8 @@ def play(level, seed, limit=120, slack=0.25, specials=()):
         m = choose(board, rng, slack)
         if m is None:
             board.shuffle()
-            continue
+            m = choose(board, rng, slack)
+            if m is None:
+                return None
         board.play(m)
     return board.moves if board.won() else None

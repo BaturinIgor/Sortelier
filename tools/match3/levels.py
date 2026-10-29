@@ -46,6 +46,11 @@ def block(r0, c0, h, w):
     return [(r, c) for r in range(r0, r0 + h) for c in range(c0, c0 + w)]
 
 
+def checker(r0, c0, h, w, parity=0):
+    """Клетки блока в шахматном порядке: под ними фишки падают по диагонали."""
+    return [(r, c) for r in range(r0, r0 + h) for c in range(c0, c0 + w) if (r + c) % 2 == parity]
+
+
 def mirror(cells, width=8):
     return sorted(set(cells) | {(r, width - 1 - c) for r, c in cells})
 
@@ -96,10 +101,10 @@ LEVELS = [
     level(10, "full", 5, [CRATE, c("cheese", 30)], hard=True,
            build=lambda g: put(g, "1", rows_(g, [6, 7, 8], range(1, 7)))),
     level(11, "full", 5, [ICE], intro="m3.ice",
-          build=lambda g: put(g, "i", block(3, 2, 3, 4))),
+          build=lambda g: put(g, "i", checker(3, 2, 3, 4))),
     level(12, "hourglass", 5, [c("lime", 45), c("grapes", 45)]),
     level(13, "full", 5, [CRATE, ICE],
-          build=lambda g: (put(g, "1", rows_(g, [8])), put(g, "i", mirror(block(4, 0, 2, 2))))),
+          build=lambda g: (put(g, "1", rows_(g, [8])), put(g, "i", mirror(checker(4, 0, 2, 2))))),
     level(14, "ring", 5, [c("tomato", 40), c("cheese", 40), c("milk", 40)]),
     level(15, "columns", 5, [CRATE], hard=True,
            build=lambda g: put(g, "1", rows_(g, [7, 8]) + block(4, 3, 1, 2))),
@@ -109,7 +114,7 @@ LEVELS = [
     level(18, "plus", 5, [JAM, c("tomato", 35)],
           build=lambda g: put(g, "j", rows_(g, [2, 3, 4, 5]))),
     level(19, "twins", 5, [ICE, c("milk", 35)],
-          build=lambda g: put(g, "i", rows_(g, [0, 1], [0, 1, 2, 5, 6, 7]))),
+          build=lambda g: put(g, "i", [p for p in checker(2, 0, 4, 8) if p[1] not in (3, 4)])),
     level(20, "full", 5, [CRATE, JAM], hard=True, intro="m3.crate2",
            build=lambda g: (put(g, "j", rows_(g, [3, 4, 5])), put(g, "2", rows_(g, [8], range(2, 6))),
                             put(g, "1", rows_(g, [8], [0, 1, 6, 7]) + rows_(g, [7], range(2, 6))))),
@@ -124,11 +129,11 @@ LEVELS = [
     level(26, "diamond", 5, [JAM, ICE],
            build=lambda g: (put(g, "j", rows_(g, [0, 1, 7, 8])), put(g, "i", block(3, 3, 3, 2)))),
     level(27, "hourglass", 5, [CRATE],
-           build=lambda g: put(g, "2", rows_(g, [3, 4], [3, 4]) + rows_(g, [7], range(0, 8)))),
+           build=lambda g: put(g, "2", [(1, 1), (1, 6), (6, 1), (6, 6)] + rows_(g, [7], range(0, 8)))),
     level(28, "heart", 5, [JAM, c("tomato", 45)],
            build=lambda g: put(g, "j", rows_(g, [1, 2, 3]))),
     level(29, "full", 5, [ICE, JAM],
-           build=lambda g: (put(g, "j", rows_(g, [6, 7, 8])), put(g, "i", rows_(g, [2], range(0, 8))))),
+           build=lambda g: (put(g, "j", rows_(g, [6, 7, 8])), put(g, "i", checker(2, 0, 1, 8)))),
     level(30, "full", 5, [CRATE, ICE, c("cheese", 40)], hard=True,
            build=lambda g: (put(g, "2", rows_(g, [8])), put(g, "1", rows_(g, [7])), put(g, "i", mirror(block(2, 1, 2, 1))))),
 
@@ -137,35 +142,35 @@ LEVELS = [
     level(32, "diamond", 6, [CRATE],
            build=lambda g: put(g, "1", rows_(g, [6, 7, 8]))),
     level(33, "full", 6, [ICE], intro="m3.ice2",
-           build=lambda g: put(g, "I", block(3, 2, 2, 4))),
+           build=lambda g: put(g, "I", checker(3, 2, 2, 4))),
     level(34, "plus", 6, [JAM, c("carrot", 30)],
            build=lambda g: put(g, "j", rows_(g, [0, 1, 7, 8]))),
     level(35, "ring", 6, [CRATE, JAM], hard=True,
            build=lambda g: (put(g, "j", rows_(g, [0, 1])), put(g, "2", rows_(g, [7])))),
     level(36, "stairs", 6, [c("lime", 40), c("cheese", 40), c("grapes", 40)]),
     level(37, "full", 6, [CRATE], intro="m3.crate3",
-           build=lambda g: put(g, "3", rows_(g, [8], range(2, 6))) and put(g, "1", rows_(g, [7]))),
+           build=lambda g: put(g, "3", rows_(g, [8], range(2, 6))) and put(g, "1", rows_(g, [7]) + [(8, 0), (8, 1), (8, 6), (8, 7)])),
     level(38, "twins", 6, [ICE, JAM],
-           build=lambda g: (put(g, "k", rows_(g, [5], range(0, 8))), put(g, "j", rows_(g, [6], range(0, 8))))),
+           build=lambda g: (put(g, "k", checker(5, 0, 1, 8)), put(g, "j", rows_(g, [6], range(0, 8)) + checker(5, 0, 1, 8, 1)))),
     level(39, "mushroom", 6, [JAM],
            build=lambda g: put(g, "j", rows_(g, [0, 1, 2, 3]))),
     level(40, "full", 6, [CRATE, ICE, c("milk", 35)], hard=True,
            build=lambda g: (put(g, "2", rows_(g, [7, 8], [0, 1, 6, 7])), put(g, "3", rows_(g, [8], [3, 4])),
                             put(g, "I", [(3, 3), (3, 4)]))),
     level(41, "corners", 6, [JAM, ICE],
-           build=lambda g: (put(g, "j", block(2, 1, 5, 6)), put(g, "i", [(0, 2), (0, 5), (8, 2), (8, 5)]))),
+           build=lambda g: (put(g, "j", block(2, 1, 5, 6)), put(g, "i", [(1, 2), (1, 5), (8, 2), (8, 5)]))),
     level(42, "house", 6, [c("carrot", 45), c("milk", 45)]),
     level(43, "bowl", 6, [CRATE],
            build=lambda g: put(g, "2", rows_(g, [5, 6, 7]))),
     level(44, "window", 6, [JAM, c("tomato", 40)],
            build=lambda g: put(g, "j", rows_(g, [0, 1, 7, 8]))),
     level(45, "columns", 6, [ICE, CRATE], hard=True,
-           build=lambda g: (put(g, "I", [(2, 2), (2, 5), (4, 2), (4, 5)]), put(g, "1", rows_(g, [8]) + rows_(g, [7], [0, 1, 6, 7])))),
+           build=lambda g: (put(g, "I", [(3, 2), (3, 5), (5, 2), (5, 5)]), put(g, "1", rows_(g, [8]) + rows_(g, [7], [0, 1, 6, 7])))),
     level(46, "heart", 6, [c("grapes", 45), c("lime", 45)]),
     level(47, "full", 6, [JAM],
            build=lambda g: put(g, "j", [(r, c2) for r in range(9) for c2 in range(8) if (r + c2) % 2 == 0])),
     level(48, "hourglass", 6, [ICE, c("cheese", 40)],
-           build=lambda g: put(g, "i", rows_(g, [0, 7]))),
+           build=lambda g: put(g, "i", checker(1, 0, 1, 8) + checker(7, 0, 1, 8, 1))),
     level(49, "plus", 6, [CRATE, JAM],
            build=lambda g: (put(g, "3", [(8, 3), (8, 4)]), put(g, "2", [(7, 3), (7, 4), (8, 2), (8, 5)]), put(g, "j", rows_(g, [2, 3])))),
     level(50, "full", 6, [CRATE, ICE, JAM], hard=True,
@@ -175,7 +180,7 @@ LEVELS = [
     level(52, "stairs", 6, [CRATE],
            build=lambda g: put(g, "2", rows_(g, [6, 7, 8]))),
     level(53, "twins", 6, [JAM, ICE],
-           build=lambda g: (put(g, "j", rows_(g, [4, 5, 6])), put(g, "I", [(0, 0), (0, 7), (8, 0), (8, 7)]))),
+           build=lambda g: (put(g, "j", rows_(g, [4, 5, 6])), put(g, "I", [(1, 0), (1, 7), (8, 0), (8, 7)]))),
     level(54, "ring", 6, [CRATE, c("milk", 40)],
            build=lambda g: put(g, "3", [(7, 0), (7, 7)]) and put(g, "2", rows_(g, [7], range(1, 7)))),
     level(55, "corners", 6, [CRATE, ICE, c("grapes", 40)], hard=True,
@@ -202,5 +207,5 @@ def target(lv):
     if n <= 15:
         return 0.88 if not lv["hard"] else 0.7
     if n <= 30:
-        return 0.68 if not lv["hard"] else 0.48
-    return 0.6 if not lv["hard"] else 0.42
+        return 0.64 if not lv["hard"] else 0.45
+    return 0.56 if not lv["hard"] else 0.38
