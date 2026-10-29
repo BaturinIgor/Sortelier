@@ -154,7 +154,7 @@ enum Stat: String, CaseIterable {
     case dailyDone, weeklyDone, weeklyLevels, streakBest, rareCards, cards, chests, chefBest
     case merges, mergeOrders
     case gourmets, eventRewards, medals, kitchens, coinsEarned, albumCards, booksDone, raceWins
-    case marketWins, marketStars, recipeSteps, harvests, reviews
+    case marketWins, recipeSteps, harvests, reviews
 }
 
 // MARK: - Сохранение меты
@@ -455,7 +455,12 @@ enum Achievements {
         Achievement(id: "merge", category: .pantry, stat: .mergeOrders, tiers: [5, 20, 60, 150, 400], symbol: "square.grid.3x3.fill"),
         Achievement(id: "merges", category: .pantry, stat: .merges, tiers: [20, 100, 400, 1200, 3000], symbol: "arrow.triangle.merge"),
         Achievement(id: "boosters", category: .pantry, stat: .boostersUsed, tiers: [5, 20, 50, 120, 300], symbol: "wand.and.stars"),
-        Achievement(id: "rich", category: .pantry, stat: .coinsEarned, tiers: [1000, 5000, 20000, 60000, 150000], symbol: "bitcoinsign.circle.fill")
+        Achievement(id: "rich", category: .pantry, stat: .coinsEarned, tiers: [1000, 5000, 20000, 60000, 150000], symbol: "bitcoinsign.circle.fill"),
+        // рынок и фоновые события
+        Achievement(id: "market", category: .pantry, stat: .marketWins, tiers: [5, 15, 30, 45, 60], symbol: "basket.fill"),
+        Achievement(id: "recipe", category: .pantry, stat: .recipeSteps, tiers: [5, 25, 60, 120, 250], symbol: "takeoutbag.and.cup.and.straw.fill"),
+        Achievement(id: "garden", category: .pantry, stat: .harvests, tiers: [3, 10, 30, 80, 200], symbol: "leaf.fill"),
+        Achievement(id: "critic", category: .habits, stat: .reviews, tiers: [1, 3, 8, 15, 30], symbol: "text.bubble.fill")
     ]
 
     static var maxStars: Int { all.reduce(0) { $0 + $1.tiers.count } }

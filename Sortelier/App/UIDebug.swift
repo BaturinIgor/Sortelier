@@ -86,6 +86,8 @@ extension PlayerProgress {
             d.seenIntros = ["basics", "patience", "recipes", "hidden", "conflict", "onigiri", "ice", "gourmet", "juice", "dough",
                             "lock", "masa", "limeade", "key", "bakery", "truffles", "chain"]
             d.meta.biomes = [1, 2, 3, 4, 5]
+            d.seenIntros += ["basic", "pin", "whisk", "bomb", "rainbow", "combo", "crate", "ice", "jam", "crate2", "carrot", "ice2", "crate3"]
+                .map { "m3." + $0 }
         }
         let stats: [Stat: Int] = [.levelsWon: 34, .served: 260, .tips: 120, .dishes: 40, .triples: 150, .threeStars: 20,
                                   .maxCombo: 6, .boostersUsed: 12, .chests: 3, .merges: 40, .albumCards: 20,

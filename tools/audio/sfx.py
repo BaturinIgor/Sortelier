@@ -133,10 +133,76 @@ def unlock():
     return normalize(out, 0.6)
 
 
+def pop():
+    """Рынок: совпадение - сочный пузырьковый "чпок"."""
+    out = buf(0.25)
+    add_at(out, tone(380, 0.14, 0.03, 0.001, ((1, 1.0), (2, 0.35), (3, 0.1)), sweep=1.1), 0)
+    n = int(0.03 * SR)
+    noise = np.random.default_rng(5).normal(0, 1, n)
+    add_at(out, bandpass(noise, 1500, 5000) * np.exp(-np.arange(n) / SR / 0.006) * 0.25, 0)
+    return normalize(lowpass(out, 7000), 0.5)
+
+
+def swoosh():
+    """Рынок: скалка катится - свист шума по нарастающей частоте."""
+    n = int(0.42 * SR)
+    t = np.arange(n) / SR
+    noise = np.random.default_rng(7).normal(0, 1, n)
+    env = np.sin(np.pi * np.clip(t / 0.42, 0, 1)) ** 1.5
+    x = bandpass(noise, 900, 4500) * env
+    x += tone(300, 0.42, 0.3, 0.02, ((1, 1.0),), sweep=1.5) * 0.25
+    return normalize(x, 0.45)
+
+
+def boom():
+    """Рынок: бомба - низкий удар и рассыпающийся шум."""
+    n = int(0.7 * SR)
+    t = np.arange(n) / SR
+    body = np.sin(2 * math.pi * (95 - 50 * t) * t) * np.exp(-t / 0.16)
+    noise = np.random.default_rng(9).normal(0, 1, n)
+    crackle = lowpass(noise, 2500) * np.exp(-t / 0.09) * 0.6
+    return normalize(body + crackle, 0.7)
+
+
+def sparkle():
+    """Рынок: радужный пончик - каскад высоких колокольчиков."""
+    out = buf(1.0)
+    for i, m in enumerate((84, 88, 91, 96, 100, 103)):
+        add_at(out, bell_note(midi_freq(m), 0.5, 0.45 - 0.04 * i), int(i * 0.045 * SR))
+    return normalize(out, 0.5)
+
+
+def crack():
+    """Рынок: ящик трещит - сухой деревянный треск."""
+    n = int(0.22 * SR)
+    t = np.arange(n) / SR
+    rng = np.random.default_rng(11)
+    noise = rng.normal(0, 1, n)
+    clicks = np.zeros(n)
+    for k in range(5):
+        i = int((0.004 + 0.018 * k + rng.uniform(0, 0.006)) * SR)
+        clicks[i:i + 80] += np.exp(-np.arange(min(80, n - i)) / 14) * (1 - 0.15 * k)
+    x = bandpass(noise, 500, 3000) * np.exp(-t / 0.05) * 0.5 + bandpass(clicks, 300, 4000) * 3
+    x += np.sin(2 * math.pi * 180 * t) * np.exp(-t / 0.04) * 0.4
+    return normalize(x, 0.55)
+
+
+def glass():
+    """Рынок: лед раскалывается - звон и осколки."""
+    out = buf(0.6)
+    n = int(0.25 * SR)
+    noise = np.random.default_rng(13).normal(0, 1, n)
+    add_at(out, highpass(noise, 4000) * np.exp(-np.arange(n) / SR / 0.04) * 0.5, 0)
+    for i, m in enumerate((96, 101, 105)):
+        add_at(out, bell_note(midi_freq(m), 0.35, 0.3), int(i * 0.02 * SR))
+    return normalize(out, 0.45)
+
+
 SOUNDS = {
     "pick": pick, "place": place, "invalid": invalid, "triple": triple, "dish": dish, "coin": coin,
     "combo": combo, "star1": lambda: star(0), "star2": lambda: star(1), "star3": lambda: star(2),
     "win": win, "button": button, "chest": chest, "customer": customer, "unlock": unlock,
+    "pop": pop, "swoosh": swoosh, "boom": boom, "sparkle": sparkle, "crack": crack, "glass": glass,
 }
 
 

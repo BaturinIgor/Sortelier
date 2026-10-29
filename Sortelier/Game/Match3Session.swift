@@ -71,6 +71,20 @@ final class Match3Model: ObservableObject {
         let delay = 0.5 + Double(level.rows) * 0.035 + 0.45
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             guard let self = self else { return }
+            #if DEBUG
+            if UIDebug.flag("uiM3Out") {
+                self.movesLeft = 0
+                self.moved = true
+                self.phase = .outOfMoves
+                return
+            }
+            if UIDebug.flag("uiM3Win") {
+                self.movesLeft = 4
+                self.phase = .playing
+                self.beginFinale()
+                return
+            }
+            #endif
             guard !specials.isEmpty else {
                 self.phase = .playing
                 return

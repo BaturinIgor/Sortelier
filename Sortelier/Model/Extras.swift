@@ -20,16 +20,6 @@ struct ExtrasData: Codable {
     }
 }
 
-/// Стабильный хеш строки: одинаковый на всех устройствах (в отличие от hashValue).
-func stableHash(_ s: String) -> UInt64 {
-    var h: UInt64 = 1469598103934665603
-    for b in s.utf8 {
-        h ^= UInt64(b)
-        h = h &* 1099511628211
-    }
-    return h
-}
-
 // MARK: - Большой рецепт
 
 struct RecipeState: Codable {

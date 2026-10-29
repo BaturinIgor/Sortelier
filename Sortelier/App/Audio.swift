@@ -6,6 +6,7 @@ final class Audio {
 
     enum Effect: String, CaseIterable {
         case pick, place, invalid, triple, dish, coin, combo, star1, star2, star3, win, button, chest, customer, unlock
+        case pop, swoosh, boom, sparkle, crack, glass
     }
 
     private var pools: [Effect: [AVAudioPlayer]] = [:]
@@ -24,7 +25,7 @@ final class Audio {
         try? AVAudioSession.sharedInstance().setActive(true)
         for effect in Effect.allCases {
             guard let url = Bundle.main.url(forResource: "sfx_" + effect.rawValue, withExtension: "wav") else { continue }
-            let count = [.pick, .place, .coin, .button].contains(effect) ? 3 : 2
+            let count = effect == .pop ? 4 : ([.pick, .place, .coin, .button, .crack, .glass].contains(effect) ? 3 : 2)
             pools[effect] = (0..<count).compactMap { _ in
                 let player = try? AVAudioPlayer(contentsOf: url)
                 player?.prepareToPlay()

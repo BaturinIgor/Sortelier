@@ -191,7 +191,7 @@ final class Match3Scene: SKScene {
         boardNode.addChild(overLayer)
         fxLayer.zPosition = 10
         boardNode.addChild(fxLayer)
-        var names = level.colors
+        var names = level.colors.map { "m3t_" + $0 }
         names += M3Special.allCases.map(\.sprite) + ["m3_crate_1", "m3_crate_2", "m3_crate_3", "m3_jam"]
         SKTexture.preload(names.map { Art.texture($0) }) {}
         _ = (M3Art.glow, M3Art.sparkle, M3Art.ring, M3Art.beam, M3Art.ice(1), M3Art.ice(2))
@@ -336,7 +336,7 @@ final class Match3Scene: SKScene {
         node.zRotation = 0
         switch kind {
         case let .color(k):
-            node.texture = Art.texture(level.colors[k])
+            node.texture = Art.texture("m3t_" + level.colors[k])
             node.size = CGSize(width: cell * 0.86, height: cell * 0.86)
         case let .special(s):
             node.texture = Art.texture(s.sprite)
@@ -462,11 +462,11 @@ final class Match3Scene: SKScene {
         case let .convert(id, p, special, color): convert(id, p, special, color: color)
         case let .crate(p, left):
             setCrate(p, left: left, animated: true)
-            sound(.place, volume: 0.5)
+            sound(.crack, volume: 0.6)
             if left == 0 { flyBlocker("crate", from: point(p), texture: Art.texture("m3_crate_1")) }
         case let .ice(p, left):
             setIce(p, left: left, animated: true)
-            sound(.invalid, volume: 0.25)
+            sound(.glass, volume: 0.5)
             if left == 0 { flyBlocker("ice", from: point(p), texture: M3Art.ice(1)) }
         case let .jam(p):
             if let jam = jams.removeValue(forKey: p) {
@@ -528,7 +528,7 @@ final class Match3Scene: SKScene {
                                 .removeFromParent()]))
         }
         burst(at: point(p), tint: M3Art.tint(item), count: 5)
-        sound(.triple, volume: 0.45)
+        sound(.pop, volume: 0.55)
     }
 
     private func create(_ tile: M3Tile, _ p: M3Cell) {
@@ -642,7 +642,7 @@ final class Match3Scene: SKScene {
                 if fire.cross || fire.special == .rowPin { pinLine(origin: origin, offset: CGFloat(d), horizontal: true, width: fire.width) }
                 if fire.cross || fire.special == .colPin { pinLine(origin: origin, offset: CGFloat(d), horizontal: false, width: fire.width) }
             }
-            sound(.combo, volume: 0.55)
+            sound(.swoosh, volume: 0.6)
             Haptics.light()
         case .bomb:
             let reach = (CGFloat(fire.radius) * 2 + 1) * cell
@@ -655,8 +655,7 @@ final class Match3Scene: SKScene {
             flash(at: origin, scale: reach / cell * 0.9, color: UIColor(red: 1, green: 0.85, blue: 0.5, alpha: 1))
             burst(at: origin, tint: UIColor(red: 1, green: 0.6, blue: 0.2, alpha: 1), count: 14, spread: reach * 0.5)
             shake(CGFloat(fire.radius) * 2.5)
-            sound(.combo, volume: 0.8)
-            sound(.dish, volume: 0.5)
+            sound(.boom, volume: 0.8)
             Haptics.success()
         case .whisk:
             spin(at: origin, texture: Art.texture("m3_whisk"))
@@ -677,7 +676,7 @@ final class Match3Scene: SKScene {
                 flyer.run(.sequence([.group([fly, .rotate(byAngle: .pi * 4, duration: M3Board.whiskFlight)]),
                                      .group([.scale(to: 1.4, duration: 0.08), .fadeOut(withDuration: 0.08)]), .removeFromParent()]))
             }
-            sound(.pick, volume: 0.6)
+            sound(.swoosh, volume: 0.45)
         case .rainbow:
             spin(at: origin, texture: Art.texture("m3_rainbow"))
             if fire.all {
@@ -694,7 +693,7 @@ final class Match3Scene: SKScene {
                     beam(from: origin, to: point(target), tint: tint, delay: 0.22 + 0.028 * Double(i) - 0.06)
                 }
             }
-            sound(.star3, volume: 0.5)
+            sound(.sparkle, volume: 0.6)
         }
     }
 

@@ -793,6 +793,14 @@ S.update({
  "push.happy.body": ("For 30 minutes everything you collect counts double.", "30 минут все собранное засчитывается вдвое."),
  "push.garden.title": ("The harvest is ripe", "Урожай поспел"),
  "push.garden.body": ("Come pick it up in the supplier's garden.", "Загляни в огород поставщика и собери его."),
+ "ach.market": ("Market regular", "Завсегдатай рынка"),
+ "ach.recipe": ("Big cook", "Большой повар"),
+ "ach.garden": ("Gardener", "Огородник"),
+ "ach.critic": ("Critics' darling", "Любимец критиков"),
+ "task.marketWins": ("Win {0} Market levels", "Пройди {0} уровней рынка"),
+ "task.recipeSteps": ("Complete {0} Big Recipe steps", "Закрой {0} шагов Большого рецепта"),
+ "task.harvests": ("Harvest {0} times", "Собери урожай {0} раз"),
+ "task.reviews": ("Get {0} critic reviews", "Получи {0} рецензий критика"),
 })
 
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
