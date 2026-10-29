@@ -275,9 +275,14 @@ def key_of(shelves, orders, cst=(), ordered=False):
     return (shelf_part, tuple(sorted((o.kind, o.target) for o in orders)), cst)
 
 
-def heuristic(catalog, shelves, orders):
-    """Чем меньше, тем ближе к решению."""
+def heuristic(catalog, shelves, orders, obs=None, cst=()):
+    """Чем меньше, тем ближе к решению. Продукты на закрытых полках (замки, цепи) - штраф:
+    решатель стремится открыть полку, а не копит ходы вокруг нее."""
     score = len(orders) * 10.0
+    if obs is not None and obs.ordered:
+        for s, layers in enumerate(shelves):
+            if obs.closed(s, orders, cst):
+                score += 0.6 * sum(1 for l in layers for c in l if c)
     buried = 0
     for layers in shelves:
         front = [base(c) for c in layers[0] if c]
@@ -313,7 +318,7 @@ def solve(catalog, shelves, orders, beam=160, max_depth=400, locks=None, keys=No
     cst = obs.start()
     for _, shelf in settle_detail(catalog, shelves, orders, range(len(shelves))):
         cst = obs.fired(cst, shelf)
-    frontier = [(heuristic(catalog, shelves, orders), 0, shelves, orders, cst, [])]
+    frontier = [(heuristic(catalog, shelves, orders, obs, cst), 0, shelves, orders, cst, [])]
     seen = {key_of(shelves, orders, cst, obs.ordered)}
     counter = 0
     for _ in range(max_depth):
@@ -335,7 +340,7 @@ def solve(catalog, shelves, orders, beam=160, max_depth=400, locks=None, keys=No
                 if not has_move(nsh, nod, obs, ncs):
                     continue
                 counter += 1
-                h = heuristic(catalog, nsh, nod) - len(fired) * 3
+                h = heuristic(catalog, nsh, nod, obs, ncs) - len(fired) * 3
                 candidates.append((h, counter, nsh, nod, ncs, path + [(s, k, d)]))
         if not candidates:
             return None

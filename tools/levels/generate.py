@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 import os
 import random
 import sys
@@ -318,21 +319,21 @@ LEVELS4 = [
     (8, 4, 14, 5, 7, 0.4, 1, F, None, 4, 1, 2, 2, 0),
     (9, 4, 15, 6, 7, 0.45, 1, F, None, 4, 1, 1, 2, 0),
     (9, 5, 16, 6, 6, 0.45, 2, T, None, 4, 2, 2, 2, 0),
-    (8, 4, 14, 5, 7, 0.4, 1, F, None, 4, 1, 1, 1, 0),
-    (9, 4, 15, 6, 7, 0.45, 1, F, None, 4, 1, 2, 2, 0),
-    (9, 5, 16, 6, 7, 0.45, 2, F, None, 5, 1, 1, 2, 0),
-    (9, 5, 17, 7, 7, 0.5, 2, F, None, 5, 2, 2, 2, 0),
-    (9, 5, 18, 7, 6, 0.5, 2, T, None, 5, 1, 2, 2, 0),
-    (9, 5, 17, 7, 7, 0.5, 2, F, None, 5, 1, 1, 2, 0),
-    (9, 5, 18, 7, 7, 0.5, 2, F, None, 6, 2, 2, 2, 0),
-    (9, 5, 18, 7, 7, 0.5, 2, F, None, 6, 1, 2, 2, 0),
-    (9, 5, 19, 8, 7, 0.5, 2, F, None, 6, 2, 2, 2, 0),
-    (9, 5, 20, 8, 6, 0.55, 2, T, None, 6, 1, 3, 3, 0),
-    (9, 5, 19, 8, 7, 0.5, 2, F, None, 6, 2, 2, 2, 0),
-    (9, 5, 20, 8, 7, 0.55, 2, F, None, 6, 1, 2, 3, 0),
-    (9, 5, 20, 8, 7, 0.55, 2, F, None, 7, 2, 2, 2, 0),
-    (9, 5, 21, 9, 7, 0.55, 2, F, None, 7, 2, 3, 3, 0),
-    (9, 5, 22, 9, 6, 0.6, 2, T, None, 7, 2, 3, 3, 0),
+    (8, 4, 14, 5, 8, 0.4, 1, F, None, 4, 1, 1, 1, 0),
+    (9, 4, 15, 6, 8, 0.45, 1, F, None, 4, 0, 2, 2, 0),
+    (9, 5, 16, 6, 8, 0.45, 2, F, None, 5, 0, 1, 2, 0),
+    (9, 5, 17, 7, 8, 0.5, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 18, 7, 7, 0.5, 2, T, None, 5, 0, 2, 2, 0),
+    (9, 5, 17, 7, 8, 0.5, 2, F, None, 5, 0, 1, 2, 0),
+    (9, 5, 18, 7, 8, 0.5, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 18, 7, 8, 0.5, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 19, 8, 8, 0.5, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 20, 8, 7, 0.55, 2, T, None, 5, 0, 3, 2, 0),
+    (9, 5, 19, 8, 8, 0.5, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 20, 8, 8, 0.55, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 20, 8, 8, 0.55, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 21, 9, 8, 0.55, 2, F, None, 5, 0, 3, 2, 0),
+    (9, 5, 22, 9, 7, 0.6, 2, T, None, 5, 0, 3, 2, 0),
 ]
 
 LEVELS5 = [
@@ -346,26 +347,26 @@ LEVELS5 = [
     (7, 4, 11, 4, 6, 0.35, 1, F, None, 2, 0, 1, 1, 1),
     (8, 4, 12, 4, 7, 0.35, 1, F, None, 3, 1, 1, 0, 1),
     (8, 4, 13, 5, 6, 0.4, 1, T, None, 3, 1, 2, 1, 1),
-    (8, 4, 13, 5, 7, 0.4, 1, F, None, 3, 0, 1, 1, 1),
-    (8, 4, 14, 5, 7, 0.4, 1, F, None, 3, 1, 1, 1, 1),
-    (8, 4, 14, 5, 7, 0.4, 1, F, None, 4, 1, 2, 1, 2),
-    (9, 4, 15, 6, 7, 0.45, 1, F, None, 4, 1, 1, 1, 1),
-    (9, 5, 16, 6, 6, 0.45, 2, T, None, 4, 1, 2, 2, 2),
-    (8, 4, 14, 5, 7, 0.4, 1, F, None, 4, 1, 1, 1, 1),
-    (9, 4, 15, 6, 7, 0.45, 1, F, None, 4, 1, 2, 1, 2),
-    (9, 5, 16, 6, 7, 0.45, 2, F, None, 5, 1, 1, 2, 1),
-    (9, 5, 17, 7, 7, 0.5, 2, F, None, 5, 2, 2, 1, 2),
-    (9, 5, 18, 7, 6, 0.5, 2, T, None, 5, 1, 2, 2, 2),
-    (9, 5, 17, 7, 7, 0.5, 2, F, None, 5, 1, 1, 1, 2),
-    (9, 5, 18, 7, 7, 0.5, 2, F, None, 6, 1, 2, 2, 2),
-    (9, 5, 18, 7, 7, 0.5, 2, F, None, 6, 1, 2, 1, 2),
-    (9, 5, 19, 8, 7, 0.5, 2, F, None, 6, 2, 2, 2, 2),
-    (9, 5, 20, 8, 6, 0.55, 2, T, None, 6, 1, 3, 2, 3),
-    (9, 5, 19, 8, 7, 0.5, 2, F, None, 6, 1, 2, 2, 2),
-    (9, 5, 20, 8, 7, 0.55, 2, F, None, 6, 1, 2, 2, 3),
-    (9, 5, 20, 8, 7, 0.55, 2, F, None, 7, 2, 2, 2, 2),
-    (9, 5, 21, 9, 7, 0.55, 2, F, None, 7, 1, 3, 2, 3),
-    (9, 5, 22, 9, 6, 0.6, 2, T, None, 7, 2, 3, 2, 3),
+    (8, 4, 13, 5, 8, 0.4, 1, F, None, 3, 0, 1, 1, 1),
+    (8, 4, 14, 5, 8, 0.4, 1, F, None, 3, 0, 1, 1, 1),
+    (8, 4, 14, 5, 8, 0.4, 1, F, None, 4, 0, 2, 1, 2),
+    (9, 4, 15, 6, 8, 0.45, 1, F, None, 4, 0, 1, 1, 1),
+    (9, 5, 16, 6, 7, 0.45, 2, T, None, 4, 0, 2, 1, 2),
+    (8, 4, 14, 5, 8, 0.4, 1, F, None, 4, 0, 1, 1, 1),
+    (9, 4, 15, 6, 8, 0.45, 1, F, None, 4, 0, 2, 1, 2),
+    (9, 5, 16, 6, 8, 0.45, 2, F, None, 5, 0, 1, 1, 1),
+    (9, 5, 17, 7, 8, 0.5, 2, F, None, 5, 1, 2, 0, 2),
+    (9, 5, 18, 7, 7, 0.5, 2, T, None, 5, 0, 2, 1, 2),
+    (9, 5, 17, 7, 8, 0.5, 2, F, None, 5, 0, 1, 1, 2),
+    (9, 5, 18, 7, 8, 0.5, 2, F, None, 5, 0, 2, 1, 2),
+    (9, 5, 18, 7, 8, 0.5, 2, F, None, 5, 0, 2, 1, 2),
+    (9, 5, 19, 8, 8, 0.5, 2, F, None, 5, 0, 2, 1, 2),
+    (9, 5, 20, 8, 7, 0.55, 2, T, None, 5, 0, 3, 1, 3),
+    (9, 5, 19, 8, 8, 0.5, 2, F, None, 5, 0, 2, 1, 2),
+    (9, 5, 20, 8, 8, 0.55, 2, F, None, 5, 0, 2, 1, 3),
+    (9, 5, 20, 8, 8, 0.55, 2, F, None, 5, 0, 2, 1, 2),
+    (9, 5, 21, 9, 8, 0.55, 2, F, None, 5, 0, 3, 1, 3),
+    (9, 5, 22, 9, 7, 0.6, 2, T, None, 5, 0, 3, 1, 3),
 ]
 
 BIOME_LEVELS = {1: (1, LEVELS), 2: (31, LEVELS2), 3: (61, LEVELS3), 4: (91, LEVELS4), 5: (121, LEVELS5)}
@@ -489,33 +490,66 @@ def pick_locks(rng, shelves, count, n_orders):
     return locks
 
 
-def pick_keys(rng, shelves, count, orders, locks):
-    """Замки с ключом: полка откроется, когда обслужат заказ с продуктом на замке."""
-    from rules import sprite
+def replay(shelves, orders, path, locks=None, keys=None, chains=None):
+    """Проигрывает решение с препятствиями. Возвращает (первый ход, задевший полку; ход, на котором впервые
+    обслужен каждый спрайт заказа) или None, если с этими препятствиями решение не проходит."""
+    from rules import Obstacles, apply_move_detail, settle_detail, sprite
+    sh = normalize(shelves)
+    od = list(orders)
+    obs = Obstacles(od, locks, keys, chains)
+    cst = obs.start()
+    for _, shelf in settle_detail(CAT, sh, od, range(len(sh))):
+        cst = obs.fired(cst, shelf)
+    first_touch, served_at = {}, {}
+    for m, (s, k, d) in enumerate(path):
+        first_touch.setdefault(s, m)
+        first_touch.setdefault(d, m)
+        before = list(od)
+        res = apply_move_detail(CAT, sh, od, s, k, d, obs, cst)
+        if res is None:
+            return None
+        sh, od, fired, cst = res
+        for idx, _ in fired:
+            served_at.setdefault(sprite(before.pop(idx)), m)
+    if od:
+        return None
+    return first_touch, served_at
+
+
+def place_keys(rng, shelves, orders, path, count, locks):
+    """Замки с ключом по готовому решению: полку, которую решение не трогает до первого обслуживания заказа X,
+    запираем на ключ X. Решение остается верным, уровень гарантированно проходим."""
+    first_touch, served_at = replay(shelves, orders, path, locks)
     keys = [None] * len(shelves)
-    candidates = [s for s, layers in enumerate(shelves)
-                  if any(c for c in layers[0]) and not (locks and locks[s])]
-    rng.shuffle(candidates)
-    # ключ - заказ, который можно собрать без запертых полок; лучше блюдо или тройка из первой половины очереди
-    pool = list(orders[: max(3, len(orders) // 2)])
-    for s in candidates[:count]:
-        # ключ нельзя собрать из продуктов, запертых на этой же полке
-        on_shelf = {base(c) for layer in shelves[s] for c in layer if c}
-        fits = [o for o in pool if not (set(items_for([o])) & on_shelf)]
-        if not fits:
+    options = []
+    for s, layers in enumerate(shelves):
+        if locks and locks[s]:
             continue
-        o = fits[rng.randrange(len(fits))]
-        pool.remove(o)
-        keys[s] = sprite(o)
-    return keys
+        if not all(c for c in layers[0]):
+            continue
+        touch = first_touch.get(s, len(path))
+        for x, m in served_at.items():
+            # ключ не самый первый заказ и полка ждет его хотя бы пару ходов
+            if 2 <= m and m + 1 < touch:
+                options.append((s, x, touch - m))
+    rng.shuffle(options)
+    used = set()
+    for s, x, _ in sorted(options, key=lambda o: -o[2])[: max(count * 4, 1)]:
+        if len([k for k in keys if k]) >= count:
+            break
+        if s in used or x in keys:
+            continue
+        keys[s] = x
+        used.add(s)
+    return keys if any(keys) else None
 
 
-def pick_chains(rng, shelves, count, locks, keys):
-    """Цепи между соседними полками одного ряда (при трех полках в ряду)."""
+def place_chains(rng, shelves, orders, path, count, locks, keys):
+    """Цепи между соседними полками одного ряда, которые решение проходит без нарушений."""
     pairs = [(i, i + 1) for i in range(len(shelves) - 1) if i % 3 != 2]
     rng.shuffle(pairs)
-    used = set()
     chains = []
+    used = set()
     for a, b in pairs:
         if len(chains) >= count:
             break
@@ -525,7 +559,10 @@ def pick_chains(rng, shelves, count, locks, keys):
             continue
         if not any(c for c in shelves[a][0]) or not any(c for c in shelves[b][0]):
             continue
-        chains.append([a, b])
+        trial = chains + [[a, b]]
+        if replay(shelves, orders, path, locks, keys, trial) is None:
+            continue
+        chains = trial
         used |= {a, b}
     return chains
 
@@ -554,16 +591,19 @@ def generate_level(level_no, params, seed, biome=1):
         if n_ice:
             add_ice(rng, shelves, n_ice, n_orders)
         locks = pick_locks(rng, shelves, n_locks, n_orders) if n_locks else None
-        keys = pick_keys(rng, shelves, n_keys, orders, locks) if n_keys else None
-        chains = pick_chains(rng, shelves, n_chains, locks, keys) if n_chains else None
-        if n_chains and len(chains or []) < n_chains:
-            continue
         # глубину поиска ограничиваем: слишком длинное решение все равно не возьмем, а тупиковые раскладки
-        # иначе ищутся очень долго (замки и цепи)
+        # иначе ищутся очень долго
         depth_cap = int(len(items) * 2.4) + 12 if strict else 400
-        path = solve(CAT, shelves, orders, beam=120 if n_orders > 12 else 200, max_depth=depth_cap,
-                     locks=locks, keys=keys, chains=chains)
+        path = solve(CAT, shelves, orders, beam=120 if n_orders > 12 else 200, max_depth=depth_cap, locks=locks)
         if path is None:
+            continue
+        # замки с ключом и цепи ставятся по найденному решению: оно остается верным
+        keys = place_keys(rng, shelves, orders, path, n_keys, locks) if n_keys else None
+        # по плану может быть два ключа или три цепи; если решение позволяет меньше, хватит одного
+        if n_keys and not any(keys or []):
+            continue
+        chains = place_chains(rng, shelves, orders, path, n_chains, locks, keys) if n_chains else None
+        if n_chains and not chains:
             continue
         # слишком простой уровень для своей позиции пропускаем
         if level_no > 3 and len(path) < len(items) * 0.45:
