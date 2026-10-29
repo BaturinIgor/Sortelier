@@ -243,7 +243,9 @@ final class GameScene: SKScene {
         let gapX: CGFloat = 10
         let gapY: CGFloat = 16
         var best: (w: CGFloat, cols: Int) = (0, 1)
-        for cols in 1...3 where cols <= n {
+        // цепи рассчитаны на три полки в ряду: соседние полки пары стоят рядом
+        let columns: ClosedRange<Int> = !session.board.chains.isEmpty && n >= 4 ? 3...3 : 1...3
+        for cols in columns where cols <= n {
             let rows = Int((Double(n) / Double(cols)).rounded(.up))
             let byWidth = (area.width - gapX * CGFloat(cols - 1)) / CGFloat(cols)
             let byHeight = (area.height - gapY * CGFloat(rows - 1)) / CGFloat(rows) * shelfAspect

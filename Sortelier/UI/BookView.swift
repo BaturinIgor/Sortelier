@@ -126,8 +126,10 @@ struct BookContent: View {
             Text(open ? lang.dishName(dish.id) : "???")
                 .font(Theme.rounded(14, .heavy))
                 .foregroundColor(Theme.brown)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.8)
+                .frame(minHeight: 36)
             HStack(spacing: 1) {
                 ForEach(dish.ingredients, id: \.self) { ing in
                     SpriteImage(name: ing, size: 22, silhouette: !open)
