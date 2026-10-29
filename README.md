@@ -128,7 +128,7 @@
 
 Покупатели - аватары по пояс в 4 настроениях (доволен, ждет, расстроен, радуется), скрипт `tools/render/customers.py`.
 
-Полки, прилавок и фон кухни собраны скриптом `tools/render/environment.py`: деревянные полки с процедурной текстурой, стена из плитки, полка с посудой, рейлинг с утварью и столешница. Посуда и утварь на фоне - модели [Kenney Food Kit](https://kenney.nl/assets/food-kit) (лицензия CC0).
+Полки, прилавок и фон кухни собраны скриптом `tools/render/environment.py`: деревянные полки с процедурной текстурой, стена из плитки, полка с посудой, рейлинг с утварью и столешница. Сцена фона описана в `tools/render/kitchen.py`: плитка отдельной геометрией с глазурью, ручные предметы на полке и столешнице, своя раскладка у стилей kitchen, japan, italy, diner, winter, night (остальные берут раскладку kitchen в цветах своей плитки). Часть утвари на фоне - модели [Kenney Food Kit](https://kenney.nl/assets/food-kit) (лицензия CC0).
 
 Рендер (нужен `pip install bpy`):
 
@@ -138,7 +138,7 @@
 - монеты, паки монет и иконка монеты: `python tools/render/coins.py art/coins` (кучи насыпаются физикой Blender: монеты падают партиями на невидимый холм и не проходят друг сквозь друга, под кучей мягкая контактная тень)
 - прилавок: `python tools/render/environment.py counter art/renders`
 - полки: `python tools/render/environment.py shelf art/renders` - печатает разметку (края, пол, верх), ее значения стоят в `GameScene.swift`
-- фон: `python tools/render/environment.py background "<папка Models/GLB format>" art/renders` (с `--preview` - быстрый черновик)
+- фон: `python tools/render/environment.py background "<папка Models/GLB format>" art/renders --style=kitchen,japan` (с `--preview` - быстрый черновик, `--samples=40` - качество, `--border=0,1,0.79,1` - только полоса кадра в полном размере для проверки)
 
 Спрайты для игры: `python3 tools/render/pack.py art/renders`. Продукты при упаковке ставятся на нижний край кадра, чтобы одинаково стояли на полке; фон слегка размывается, получает виньетку и сохраняется в JPEG. Иконка: `python3 tools/render/icon.py art/renders`.
 
