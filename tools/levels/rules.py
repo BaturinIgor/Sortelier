@@ -19,6 +19,11 @@
 - лед "rice@2": продукт нельзя брать, пока не обслужено 2 покупателя (собрать на месте можно);
 - замок полки locks[s]: в полку нельзя класть и из нее нельзя брать, пока не обслужено locks[s];
 - гурман: чаевые x GOURMET_MULT.
+
+Биомы 4 и 5 (класс Obstacles):
+- замок с ключом keys[s]: полка закрыта, пока не обслужен заказ с этим продуктом или блюдом;
+- цепь (a, b): положил продукт на одну полку пары - вторая заблокирована, пока первая не сработает;
+  когда обе полки хоть раз сработали, цепь снимается.
 """
 from __future__ import annotations
 
@@ -91,13 +96,93 @@ def normalize(shelves):
     return out
 
 
+def sprite(order):
+    """Имя спрайта заказа: продукт или "dish_<блюдо>". Так же обозначается ключ замка."""
+    return "dish_" + order.target if order.kind == "dish" else order.target
+
+
+class Obstacles:
+    """Неизменная часть уровня: замки по числу обслуженных, замки с ключом и цепи.
+
+    - locks[s]: полка закрыта, пока не обслужено locks[s] покупателей;
+    - keys[s]: полка закрыта, пока не обслужен заказ с этим спрайтом (продукт-ключ на замке);
+    - chains: пары полок (a, b). Положил продукт на a - полка b заблокирована, пока a не сработает
+      (и наоборот). Когда обе полки хоть раз сработали, цепь снимается.
+    Состояние цепей cst: для каждой цепи (last, fired_a, fired_b) или None, если цепь снята.
+    """
+
+    def __init__(self, orders, locks=None, keys=None, chains=None):
+        self.total = len(orders)
+        self.locks = list(locks or [])
+        self.keys = list(keys or [])
+        self.key_total = Counter(sprite(o) for o in orders)
+        self.chains = [tuple(c) for c in (chains or [])]
+
+    @property
+    def ordered(self):
+        """Есть полки с препятствиями: их нельзя переставлять при сравнении состояний."""
+        return bool(any(self.locks) or any(self.keys) or self.chains)
+
+    @property
+    def special(self):
+        """Номера полок с препятствиями (остальные взаимозаменяемы)."""
+        out = {s for s, n in enumerate(self.locks) if n} | {s for s, k in enumerate(self.keys) if k}
+        for a, b in self.chains:
+            out |= {a, b}
+        return out
+
+    def start(self):
+        return tuple((None, False, False) for _ in self.chains)
+
+    def served(self, orders):
+        return self.total - len(orders)
+
+    def locked(self, s, orders):
+        if s < len(self.locks) and self.locks[s] > self.served(orders):
+            return True
+        key = self.keys[s] if s < len(self.keys) else None
+        return bool(key) and sum(1 for o in orders if sprite(o) == key) == self.key_total[key]
+
+    def blocked(self, s, cst):
+        for (a, b), st in zip(self.chains, cst):
+            if st is None:
+                continue
+            if (s == a and st[0] == b) or (s == b and st[0] == a):
+                return True
+        return False
+
+    def closed(self, s, orders, cst):
+        return self.locked(s, orders) or self.blocked(s, cst)
+
+    def placed(self, cst, dst):
+        out = list(cst)
+        for i, ((a, b), st) in enumerate(zip(self.chains, cst)):
+            if st is not None and dst in (a, b):
+                out[i] = (dst, st[1], st[2])
+        return tuple(out)
+
+    def fired(self, cst, shelf):
+        out = list(cst)
+        for i, ((a, b), st) in enumerate(zip(self.chains, cst)):
+            if st is None or shelf not in (a, b):
+                continue
+            last = None if st[0] == shelf else st[0]
+            fa = st[1] or shelf == a
+            fb = st[2] or shelf == b
+            out[i] = None if (fa and fb) else (last, fa, fb)
+        return tuple(out)
+
+
+NO_OBSTACLES = None
+
+
 def settle(catalog, shelves, orders, changed):
     """Срабатывания на полках из changed, пока что-то срабатывает. Возвращает число срабатываний."""
     return len(settle_detail(catalog, shelves, orders, changed))
 
 
 def settle_detail(catalog, shelves, orders, changed):
-    """То же, но возвращает индексы обслуженных покупателей в очереди на момент обслуживания."""
+    """То же, но возвращает [(индекс покупателя в очереди на момент обслуживания, полка)]."""
     fired = []
     queue = list(changed)
     while queue:
@@ -117,21 +202,9 @@ def settle_detail(catalog, shelves, orders, changed):
         shelves[s][0] = [None] * SLOTS
         if len(shelves[s]) > 1:
             shelves[s].pop(0)
-        fired.append(idx)
+        fired.append((idx, s))
         queue.append(s)
     return fired
-
-
-def apply_move(catalog, shelves, orders, src, slot, dst, locks=None, total=0):
-    """Делает ход. Возвращает (новые полки, новые заказы, сколько сработало) или None."""
-    res = apply_move_detail(catalog, shelves, orders, src, slot, dst, locks, total)
-    if res is None:
-        return None
-    return res[0], res[1], len(res[2])
-
-
-def is_locked(locks, s, served):
-    return bool(locks) and s < len(locks) and locks[s] > served
 
 
 def thaw(shelves, served):
@@ -143,16 +216,13 @@ def thaw(shelves, served):
                     layer[k] = base(c)
 
 
-def apply_move_detail(catalog, shelves, orders, src, slot, dst, locks=None, total=0):
-    """Делает ход. Возвращает (новые полки, новые заказы, индексы обслуженных) или None.
-
-    total - сколько всего покупателей на уровне: обслужено = total - len(orders).
-    """
+def apply_move_detail(catalog, shelves, orders, src, slot, dst, obs, cst=()):
+    """Делает ход. Возвращает (новые полки, новые заказы, [(индекс, полка)] обслуженных, состояние цепей) или None."""
     if src == dst:
         return None
-    served = total - len(orders) if total else 0
-    if is_locked(locks, src, served) or is_locked(locks, dst, served):
+    if obs.closed(src, orders, cst) or obs.closed(dst, orders, cst):
         return None
+    served = obs.served(orders)
     item = shelves[src][0][slot]
     if item is None or ice_of(item) > served:
         return None
@@ -163,38 +233,67 @@ def apply_move_detail(catalog, shelves, orders, src, slot, dst, locks=None, tota
     shelves[src][0][slot] = None
     j = shelves[dst][0].index(None)
     shelves[dst][0][j] = item
+    cst = obs.placed(cst, dst)
     changed = []
     if all(c is None for c in shelves[src][0]) and len(shelves[src]) > 1:
         shelves[src].pop(0)
         changed.append(src)
     changed.append(dst)
     fired = settle_detail(catalog, shelves, orders, changed)
-    if total:
-        thaw(shelves, total - len(orders))
-    return shelves, orders, fired
+    for _, shelf in fired:
+        cst = obs.fired(cst, shelf)
+    thaw(shelves, obs.served(orders))
+    return shelves, orders, fired, cst
 
 
 def has_free_slot(shelves):
     return any(None in layers[0] for layers in shelves)
 
 
-def has_move(shelves, orders, locks=None, total=0):
+def legal_moves(shelves, orders, obs, cst=()):
+    served = obs.served(orders)
+    moves = []
+    free_dst = [d for d, layers in enumerate(shelves) if None in layers[0] and not obs.closed(d, orders, cst)]
+    for s, layers in enumerate(shelves):
+        if obs.closed(s, orders, cst):
+            continue
+        seen = set()
+        for k, item in enumerate(layers[0]):
+            if item is None or item in seen or ice_of(item) > served:
+                continue
+            seen.add(item)
+            for d in free_dst:
+                if d != s:
+                    moves.append((s, k, d))
+    return moves
+
+
+def has_move(shelves, orders, obs, cst=()):
     """Есть ли хоть один ход: незамороженный продукт и свободный слот на другой открытой полке."""
-    return bool(legal_moves(shelves, orders, locks, total))
+    return bool(legal_moves(shelves, orders, obs, cst))
 
 
-def key_of(shelves, orders):
+def key_of(shelves, orders, cst=(), special=()):
+    """Ключ состояния для отсечения повторов. Обычные полки взаимозаменяемы (сортируем),
+    полки с препятствиями (special) остаются на своих местах."""
     shelf_keys = []
     for layers in shelves:
         front = tuple(sorted((c or "") for c in layers[0]))
         rest = tuple(tuple(c or "" for c in l) for l in layers[1:])
         shelf_keys.append((front, rest))
-    return (tuple(sorted(shelf_keys)), tuple(sorted((o.kind, o.target) for o in orders)))
+    fixed = tuple(shelf_keys[i] for i in sorted(special) if i < len(shelf_keys))
+    plain = tuple(sorted(k for i, k in enumerate(shelf_keys) if i not in special))
+    return (fixed, plain, tuple(sorted((o.kind, o.target) for o in orders)), cst)
 
 
-def heuristic(catalog, shelves, orders):
-    """Чем меньше, тем ближе к решению."""
+def heuristic(catalog, shelves, orders, obs=None, cst=()):
+    """Чем меньше, тем ближе к решению. Продукты на закрытых полках (замки, цепи) - штраф:
+    решатель стремится открыть полку, а не копит ходы вокруг нее."""
     score = len(orders) * 10.0
+    if obs is not None and obs.ordered:
+        for s, layers in enumerate(shelves):
+            if obs.closed(s, orders, cst):
+                score += 0.6 * sum(1 for l in layers for c in l if c)
     buried = 0
     for layers in shelves:
         front = [base(c) for c in layers[0] if c]
@@ -218,54 +317,43 @@ def heuristic(catalog, shelves, orders):
     return score + buried * 0.08 - free * 0.2
 
 
-def legal_moves(shelves, orders=(), locks=None, total=0):
-    served = total - len(orders) if total else 0
-    moves = []
-    free_dst = [d for d, layers in enumerate(shelves) if None in layers[0] and not is_locked(locks, d, served)]
-    for s, layers in enumerate(shelves):
-        if is_locked(locks, s, served):
-            continue
-        seen = set()
-        for k, item in enumerate(layers[0]):
-            if item is None or item in seen or ice_of(item) > served:
-                continue
-            seen.add(item)
-            for d in free_dst:
-                if d != s:
-                    moves.append((s, k, d))
-    return moves
+def make_obstacles(orders, locks=None, keys=None, chains=None):
+    return Obstacles(orders, locks, keys, chains)
 
 
-def solve(catalog, shelves, orders, beam=160, max_depth=400, locks=None):
+def solve(catalog, shelves, orders, beam=160, max_depth=400, locks=None, keys=None, chains=None):
     """Лучевой поиск. Возвращает список ходов или None."""
     shelves = normalize(shelves)
     orders = list(orders)
-    total = len(orders)
-    settle(catalog, shelves, orders, range(len(shelves)))
-    frontier = [(heuristic(catalog, shelves, orders), 0, shelves, orders, [])]
-    seen = {key_of(shelves, orders)}
+    obs = Obstacles(orders, locks, keys, chains)
+    cst = obs.start()
+    for _, shelf in settle_detail(catalog, shelves, orders, range(len(shelves))):
+        cst = obs.fired(cst, shelf)
+    frontier = [(heuristic(catalog, shelves, orders, obs, cst), 0, shelves, orders, cst, [])]
+    special = obs.special
+    seen = {key_of(shelves, orders, cst, special)}
     counter = 0
     for _ in range(max_depth):
         candidates = []
-        for _, _, sh, od, path in frontier:
+        for _, _, sh, od, cs, path in frontier:
             if not od:
                 return path
-            for (s, k, d) in legal_moves(sh, od, locks, total):
-                res = apply_move(catalog, sh, od, s, k, d, locks, total)
+            for (s, k, d) in legal_moves(sh, od, obs, cs):
+                res = apply_move_detail(catalog, sh, od, s, k, d, obs, cs)
                 if res is None:
                     continue
-                nsh, nod, fired = res
-                key = key_of(nsh, nod)
+                nsh, nod, fired, ncs = res
+                key = key_of(nsh, nod, ncs, special)
                 if key in seen:
                     continue
                 seen.add(key)
                 if not nod:
                     return path + [(s, k, d)]
-                if not has_move(nsh, nod, locks, total):
+                if not has_move(nsh, nod, obs, ncs):
                     continue
                 counter += 1
-                h = heuristic(catalog, nsh, nod) - fired * 3
-                candidates.append((h, counter, nsh, nod, path + [(s, k, d)]))
+                h = heuristic(catalog, nsh, nod, obs, ncs) - len(fired) * 3
+                candidates.append((h, counter, nsh, nod, ncs, path + [(s, k, d)]))
         if not candidates:
             return None
         frontier = heapq.nsmallest(beam, candidates, key=lambda c: (c[0], c[1]))
@@ -282,7 +370,7 @@ def tip_for(left, patience, tip_max):
 
 
 def replay_score(catalog, shelves, orders, path, coins_per_order=5, combo_bonus=2, combo_from=3,
-                 patience=0, tip_max=0, detail=False, locks=None, gourmet=()):
+                 patience=0, tip_max=0, detail=False, locks=None, gourmet=(), keys=None, chains=None):
     """Монеты за прохождение по правилам игры (без бонуса за экономию ходов).
 
     Серия: срабатывание не дальше COMBO_WINDOW ходов от предыдущего продолжает серию.
@@ -290,17 +378,19 @@ def replay_score(catalog, shelves, orders, path, coins_per_order=5, combo_bonus=
     """
     shelves = normalize(shelves)
     orders = list(orders)
-    total = len(orders)
-    settle(catalog, shelves, orders, range(len(shelves)))
+    obs = Obstacles(orders, locks, keys, chains)
+    cst = obs.start()
+    for _, shelf in settle_detail(catalog, shelves, orders, range(len(shelves))):
+        cst = obs.fired(cst, shelf)
     pat = [patience] * len(orders)
     gm = [i in gourmet for i in range(len(orders))]
     coins = tips = 0
     combo = 0
     since = 99
     for (s, k, d) in path:
-        shelves, orders, fired = apply_move_detail(catalog, shelves, orders, s, k, d, locks, total)
+        shelves, orders, fired, cst = apply_move_detail(catalog, shelves, orders, s, k, d, obs, cst)
         since += 1
-        for idx in fired:
+        for idx, _ in fired:
             tip = tip_for(pat.pop(idx), patience, tip_max) * (GOURMET_MULT if gm.pop(idx) else 1)
             tips += tip
             combo = combo + 1 if (combo > 0 and since <= COMBO_WINDOW) else 1

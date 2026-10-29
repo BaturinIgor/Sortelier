@@ -161,6 +161,9 @@ struct MapView: View {
                 }
             }
             .background(trail(levels: levels, width: width))
+            // тропинка рисуется в координатах слева направо: при арабском языке не зеркалим, иначе она
+            // расходится с кружками уровней
+            .environment(\.layoutDirection, .leftToRight)
             title(biome)
                 .padding(.top, 10)
                 .padding(.bottom, 26)
@@ -304,7 +307,9 @@ struct MapView: View {
                     Text(lang.t("map.stars", total, maxStars))
                         .font(Theme.rounded(15, .heavy))
                         .foregroundColor(Theme.brown)
-                    Spacer()
+                        .lineLimit(1)
+                        .fixedSize()
+                    Spacer(minLength: 6)
                     Text(lang.t("biome.\(biome).name"))
                         .font(Theme.rounded(13, .bold))
                         .foregroundColor(Theme.brownSoft)
@@ -618,7 +623,7 @@ struct SettingsScreen: View {
                     .background(PaperBackground(radius: 18))
                 }
                 .buttonStyle(PressScaleStyle())
-                Text(lang.t("settings.player", String(progress.playerId.prefix(8))))
+                Text(lang.t("settings.player", String(progress.playerId.prefix(8))) + " · v\(RemoteConfig.shared.version)")
                     .font(Theme.rounded(13, .heavy))
                     .foregroundColor(Color(red: 1.0, green: 0.93, blue: 0.8))
                     .outlined(Theme.woodDark, width: 1)

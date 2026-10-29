@@ -1,0 +1,98 @@
+{
+ "_limits": {
+  "name": 30,
+  "subtitle": 30,
+  "keywords": 100,
+  "promo": 170,
+  "description": 4000,
+  "release_notes": 4000,
+  "caption": 26,
+  "caption_sub": 40
+ },
+ "name": {
+  "en": "Sortelier: Sort & Cook",
+  "ru": "Sortelier: сортируй и готовь"
+ },
+ "subtitle": {
+  "en": "Sort, cook and serve",
+  "ru": "Сортируй, готовь, угощай"
+ },
+ "keywords": {
+  "en": "sort,puzzle,cooking,food,recipe,goods,shelf,kitchen,chef,restaurant,match,triple,merge,casual,brain",
+  "ru": "сортировка,головоломка,готовка,еда,рецепты,полки,кухня,шеф,повар,ресторан,товары,мерж,логика"
+ },
+ "promo": {
+  "en": "New: Mexican Kitchen and French Bakery, plus a Halloween event with its own map, spooky treats and a little witch guest!",
+  "ru": "Новое: Мексиканская кухня и Французская пекарня, а еще Ночь Хэллоуина со своей картой, угощениями и гостьей-ведьмочкой!"
+ },
+ "description": {
+  "en": "Sortelier is a cozy sorting puzzle about food. Drag products between kitchen shelves, cook dishes by recipe and serve the customers waiting at the counter.\n\nCOOK, DON'T JUST SORT\nThree of the same product go to a customer, but three different ingredients become a dish: bun, patty and lettuce make a burger, rice, fish and soy make sushi. Flour turns into dough, dough goes into pizza. Every move counts.\n\nFIVE KITCHENS OF THE WORLD\nAmerican diner, Japanese kitchen, Italian trattoria, Mexican cantina and French bakery: 150 hand-checked levels, each with its own products, music and background.\n\nNEW TWISTS ALONG THE WAY\nFrozen products, mystery items, picky Gourmets with big tips, shelves locked with a key product and shelves chained together.\n\nNO TIMER, NO STRESS\nCustomers never leave. Serve them quickly and they tip more, take your time and they simply stop tipping.\n\nEVERY DAY THERE IS SOMETHING\nDaily and weekly challenges, a monthly medal, a streak with rewards, chef races and seasonal events with their own map, treats and costumed guests.\n\nCOLLECT IT ALL\nFill the cookbook, complete the card album, earn achievements and decorate your kitchen with new backgrounds.\n\nNo forced ads between levels. Rewarded ads are always optional.",
+  "ru": "Sortelier - уютная головоломка-сортировка про еду. Перетаскивай продукты по кухонным полкам, готовь блюда по рецептам и обслуживай покупателей у прилавка.\n\nНЕ ПРОСТО СОРТИРУЙ, А ГОТОВЬ\nТри одинаковых продукта уходят покупателю, а три разных ингредиента превращаются в блюдо: булочка, котлета и салат - это бургер, рис, рыба и соус - суши. Мука становится тестом, тесто идет в пиццу. Каждый ход важен.\n\nПЯТЬ КУХОНЬ МИРА\nАмериканская закусочная, японская кухня, итальянская траттория, мексиканская кантина и французская пекарня: 150 проверенных уровней, у каждой кухни свои продукты, музыка и фон.\n\nНОВЫЕ ПРАВИЛА ПО ПУТИ\nЗамороженные продукты, загадочные товары, привередливые Гурманы с щедрыми чаевыми, полки под замком с продуктом-ключом и полки на цепи.\n\nБЕЗ ТАЙМЕРА И СТРЕССА\nПокупатели никогда не уходят. Обслужишь быстро - получишь больше чаевых, не торопишься - они просто перестанут их давать.\n\nКАЖДЫЙ ДЕНЬ ЕСТЬ ЧЕМ ЗАНЯТЬСЯ\nИспытания дня и недели, медаль месяца, серия дней с наградами, гонки поваров и сезонные ивенты со своей картой, угощениями и гостями в костюмах.\n\nСОБЕРИ ВСЕ\nЗаполняй кулинарную книгу, собирай альбом карточек, получай достижения и украшай кухню новыми фонами.\n\nНикакой навязчивой рекламы между уровнями. Реклама за награду - только по желанию."
+ },
+ "release_notes": {
+  "en": "- Mexican Kitchen and French Bakery: 60 new levels, new products, dishes and music\n- New obstacles: locks with a key product and chained shelves\n- Seasonal events now have their own map with special treats and a costumed guest\n- Halloween Night event",
+  "ru": "- Мексиканская кухня и Французская пекарня: 60 новых уровней, продукты, блюда и музыка\n- Новые препятствия: замки с продуктом-ключом и полки на цепи\n- У сезонных ивентов своя карта с особыми угощениями и гостем в костюме\n- Ивент Ночь Хэллоуина"
+ },
+ "captions": {
+  "recipes": {
+   "en": [
+    "Cook by recipe",
+    "Three ingredients make a dish"
+   ],
+   "ru": [
+    "Готовь по рецептам",
+    "Три ингредиента - и блюдо готово"
+   ]
+  },
+  "customers": {
+   "en": [
+    "Serve every guest",
+    "Faster service, bigger tips"
+   ],
+   "ru": [
+    "Обслужи каждого гостя",
+    "Чем быстрее, тем больше чаевых"
+   ]
+  },
+  "kitchens": {
+   "en": [
+    "Kitchens of the world",
+    "5 cuisines, 150 levels"
+   ],
+   "ru": [
+    "Кухни со всего мира",
+    "5 кухонь и 150 уровней"
+   ]
+  },
+  "events": {
+   "en": [
+    "Seasonal events",
+    "Special treats and costumed guests"
+   ],
+   "ru": [
+    "Сезонные ивенты",
+    "Угощения и гости в костюмах"
+   ]
+  },
+  "twists": {
+   "en": [
+    "Clever twists",
+    "Ice, keys and chained shelves"
+   ],
+   "ru": [
+    "Хитрые препятствия",
+    "Лед, ключи и полки на цепи"
+   ]
+  },
+  "collect": {
+   "en": [
+    "Fill your cookbook",
+    "Dishes, cards and medals"
+   ],
+   "ru": [
+    "Собери кулинарную книгу",
+    "Блюда, карточки и медали"
+   ]
+  }
+ }
+}

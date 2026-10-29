@@ -1,6 +1,6 @@
 """Уровни больших ивентов: своя мини-карта на 20 уровней для каждой темы.
 
-Запуск: python3 tools/levels/events.py
+Запуск: python3 tools/levels/events.py [тема ...]
 Пишет Sortelier/Resources/Data/events.json: {тема: [уровни]}. Каждый уровень проверен решателем.
 """
 import json
@@ -13,12 +13,18 @@ sys.path.insert(0, os.path.dirname(__file__))
 import generate as G  # noqa: E402
 from rules import Order  # noqa: E402
 
-# Тема: какие блюда и сладости попадаются в заказах
+# Тема: свое блюдо и свои сладости ивента (биом 0 в каталоге) плюс знакомые блюда и снеки
 THEMES = {
-    "autumn": {"dishes": ["pancakes", "sandwich", "burger"], "snacks": ["pie", "corn", "muffin", "cookie", "waffle"]},
-    "winter": {"dishes": ["pancakes", "hotdog", "cheeseburger"], "snacks": ["cookie", "cupcake", "donut", "pie", "soda"]},
-    "sweets": {"dishes": ["pancakes", "sub", "sandwich"], "snacks": ["donut", "cupcake", "icecream", "waffle", "muffin"]},
-    "bbq": {"dishes": ["burger", "hotdog", "cheeseburger"], "snacks": ["corn", "corndog", "fries", "soda", "icecream"]},
+    "halloween": {"special": ["pumpkin_soup"], "dishes": ["pancakes", "sandwich"],
+                  "treats": ["caramel_apple", "ghost_cookie", "candy_corn"], "snacks": ["pie", "cookie", "donut"]},
+    "winter": {"special": ["hot_cocoa"], "dishes": ["pancakes", "hotdog"],
+               "treats": ["gingerbread", "candy_cane", "mandarin"], "snacks": ["cookie", "cupcake", "donut"]},
+    "sweets": {"special": ["sundae"], "dishes": ["pancakes", "sub"],
+               "treats": ["lollipop", "cotton_candy", "cake_slice"], "snacks": ["donut", "cupcake", "waffle"]},
+    "bbq": {"special": ["kebab"], "dishes": ["burger", "hotdog"],
+            "treats": ["watermelon", "lemonade", "smores"], "snacks": ["corn", "fries", "soda"]},
+    "autumn": {"special": ["charlotte"], "dishes": ["pancakes", "sandwich"],
+               "treats": ["chestnuts", "cider", "cinnamon_bun"], "snacks": ["pie", "muffin", "cookie"]},
 }
 
 # Параметры 20 уровней: от простых к сложным (как в генераторе основной карты)
@@ -40,13 +46,17 @@ def themed_orders(theme):
     cfg = THEMES[theme]
 
     def pick(rng, level_no, n_orders, n_dishes, n_ing_triples, biome=1):
-        orders = [Order("dish", rng.choice(cfg["dishes"])) for _ in range(n_dishes)]
-        used = sorted({ing for o in orders for ing in G.CAT.dishes[o.target]["ingredients"]})
+        # блюдо ивента в каждом уровне, сладости ивента - больше половины троек
+        orders = [Order("dish", cfg["special"][0])]
+        for _ in range(n_dishes - 1):
+            orders.append(Order("dish", rng.choice(cfg["special"] + cfg["dishes"])))
+        used = sorted({ing for o in orders for ing in G.CAT.dishes[o.target]["ingredients"] if G.triple_ok(ing)})
         for _ in range(n_ing_triples):
             if used:
                 orders.append(Order("triple", rng.choice(used)))
         while len(orders) < n_orders:
-            orders.append(Order("triple", rng.choice(cfg["snacks"])))
+            pool = cfg["treats"] if rng.random() < 0.65 else cfg["snacks"]
+            orders.append(Order("triple", rng.choice(pool)))
         rng.shuffle(orders)
         return orders
     return pick
@@ -56,7 +66,14 @@ def main():
     out = {}
     t = time.time()
     original = G.pick_orders
+    G.STRICT_LENGTH = True
+    only = [a for a in sys.argv[1:] if a in THEMES]
+    path = os.path.join(G.DATA, "events.json")
+    if only and os.path.exists(path):
+        out = json.load(open(path))
     for ti, theme in enumerate(THEMES):
+        if only and theme not in only:
+            continue
         G.pick_orders = themed_orders(theme)
         levels = []
         for i, params in enumerate(PARAMS):

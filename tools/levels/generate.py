@@ -7,13 +7,14 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 import os
 import random
 import sys
 import time
 
 sys.path.insert(0, os.path.dirname(__file__))
-from rules import Catalog, Order, solve, replay_score, normalize, settle, SLOTS, GOURMET_MULT  # noqa: E402
+from rules import Catalog, Order, solve, replay_score, normalize, settle, base, SLOTS, GOURMET_MULT  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DATA = os.path.join(ROOT, "Sortelier", "Resources", "Data")
@@ -88,6 +89,61 @@ CATALOG = {
         {"id": "focaccia", "kind": "snack", "biome": 3},
         {"id": "grissini", "kind": "snack", "biome": 3},
         {"id": "panna_cotta", "kind": "snack", "biome": 3},
+        # биом 4: мексиканская кухня
+        {"id": "masa", "kind": "raw", "biome": 4, "chain": "tortilla"},
+        {"id": "tortilla", "kind": "chain", "biome": 4},
+        {"id": "beef", "kind": "ingredient", "biome": 4},
+        {"id": "salsa", "kind": "ingredient", "biome": 4},
+        {"id": "beans", "kind": "ingredient", "biome": 4},
+        {"id": "chili", "kind": "ingredient", "biome": 4},
+        {"id": "lime", "kind": "ingredient", "biome": 4},
+        {"id": "onion", "kind": "ingredient", "biome": 4},
+        {"id": "avocado", "kind": "ingredient", "biome": 4, "shared": True},
+        {"id": "rice", "kind": "ingredient", "biome": 4, "shared": True},
+        {"id": "cheese", "kind": "ingredient", "biome": 4, "shared": True},
+        {"id": "nachos", "kind": "snack", "biome": 4},
+        {"id": "churros", "kind": "snack", "biome": 4},
+        {"id": "horchata", "kind": "snack", "biome": 4},
+        {"id": "tamale", "kind": "snack", "biome": 4},
+        {"id": "flan", "kind": "snack", "biome": 4},
+        {"id": "concha", "kind": "snack", "biome": 4},
+        {"id": "paleta", "kind": "snack", "biome": 4},
+        # биом 5: французская пекарня
+        {"id": "flour", "kind": "raw", "biome": 5, "chain": "dough", "shared": True},
+        {"id": "dough", "kind": "chain", "biome": 5, "shared": True},
+        {"id": "butter", "kind": "ingredient", "biome": 5},
+        {"id": "chocolate", "kind": "ingredient", "biome": 5},
+        {"id": "strawberry", "kind": "ingredient", "biome": 5},
+        {"id": "cream", "kind": "ingredient", "biome": 5},
+        {"id": "sugar", "kind": "ingredient", "biome": 5},
+        {"id": "egg", "kind": "ingredient", "biome": 5, "shared": True},
+        {"id": "milk", "kind": "ingredient", "biome": 5, "shared": True},
+        {"id": "macaron", "kind": "snack", "biome": 5},
+        {"id": "madeleine", "kind": "snack", "biome": 5},
+        {"id": "brioche", "kind": "snack", "biome": 5},
+        {"id": "canele", "kind": "snack", "biome": 5},
+        {"id": "meringue", "kind": "snack", "biome": 5},
+        {"id": "cafe_creme", "kind": "snack", "biome": 5},
+        {"id": "millefeuille", "kind": "snack", "biome": 5},
+        # продукты сезонных ивентов (биом 0): заказываются только на уровнях своей темы
+        {"id": "pumpkin", "kind": "ingredient", "biome": 0, "event": "halloween"},
+        {"id": "caramel_apple", "kind": "snack", "biome": 0, "event": "halloween"},
+        {"id": "ghost_cookie", "kind": "snack", "biome": 0, "event": "halloween"},
+        {"id": "candy_corn", "kind": "snack", "biome": 0, "event": "halloween"},
+        {"id": "marshmallow", "kind": "ingredient", "biome": 0, "event": "winter"},
+        {"id": "gingerbread", "kind": "snack", "biome": 0, "event": "winter"},
+        {"id": "candy_cane", "kind": "snack", "biome": 0, "event": "winter"},
+        {"id": "mandarin", "kind": "snack", "biome": 0, "event": "winter"},
+        {"id": "lollipop", "kind": "snack", "biome": 0, "event": "sweets"},
+        {"id": "cotton_candy", "kind": "snack", "biome": 0, "event": "sweets"},
+        {"id": "cake_slice", "kind": "snack", "biome": 0, "event": "sweets"},
+        {"id": "watermelon", "kind": "snack", "biome": 0, "event": "bbq"},
+        {"id": "lemonade", "kind": "snack", "biome": 0, "event": "bbq"},
+        {"id": "smores", "kind": "snack", "biome": 0, "event": "bbq"},
+        {"id": "apple", "kind": "ingredient", "biome": 0, "event": "autumn"},
+        {"id": "chestnuts", "kind": "snack", "biome": 0, "event": "autumn"},
+        {"id": "cider", "kind": "snack", "biome": 0, "event": "autumn"},
+        {"id": "cinnamon_bun", "kind": "snack", "biome": 0, "event": "autumn"},
     ],
     "dishes": [
         {"id": "burger", "ingredients": ["bun", "patty", "lettuce"], "biome": 1},
@@ -106,6 +162,22 @@ CATALOG = {
         {"id": "pizza", "ingredients": ["dough", "tomato", "mozzarella"], "biome": 3},
         {"id": "caprese", "ingredients": ["mozzarella", "basil", "olive_oil"], "biome": 3},
         {"id": "bruschetta", "ingredients": ["baguette", "tomato", "olive_oil"], "biome": 3},
+        {"id": "taco", "ingredients": ["tortilla", "beef", "salsa"], "biome": 4},
+        {"id": "limeade", "ingredients": ["lime", "lime", "lime"], "biome": 4},
+        {"id": "guacamole", "ingredients": ["avocado", "lime", "onion"], "biome": 4},
+        {"id": "quesadilla", "ingredients": ["tortilla", "cheese", "chili"], "biome": 4},
+        {"id": "burrito", "ingredients": ["tortilla", "beans", "rice"], "biome": 4},
+        {"id": "croissant", "ingredients": ["dough", "butter", "egg"], "biome": 5},
+        {"id": "crepes", "ingredients": ["egg", "milk", "sugar"], "biome": 5},
+        {"id": "truffles", "ingredients": ["chocolate", "chocolate", "chocolate"], "biome": 5},
+        {"id": "pain_chocolat", "ingredients": ["dough", "butter", "chocolate"], "biome": 5},
+        {"id": "eclair", "ingredients": ["dough", "cream", "chocolate"], "biome": 5},
+        {"id": "tart", "ingredients": ["dough", "strawberry", "cream"], "biome": 5},
+        {"id": "pumpkin_soup", "ingredients": ["pumpkin", "milk", "bread"], "biome": 0, "event": "halloween"},
+        {"id": "hot_cocoa", "ingredients": ["milk", "chocolate", "marshmallow"], "biome": 0, "event": "winter"},
+        {"id": "sundae", "ingredients": ["icecream", "strawberry", "chocolate"], "biome": 0, "event": "sweets"},
+        {"id": "kebab", "ingredients": ["beef", "onion", "tomato"], "biome": 0, "event": "bbq"},
+        {"id": "charlotte", "ingredients": ["apple", "egg", "sugar"], "biome": 0, "event": "autumn"},
     ],
 }
 
@@ -119,6 +191,11 @@ UNLOCKS = {
     3: ({"pasta": 61, "juice": 62, "pizza": 64, "caprese": 68, "bruschetta": 72},
         {"gelato": 61, "espresso": 61, "cannoli": 62, "tiramisu": 63, "olives": 65, "focaccia": 67,
          "grissini": 70, "panna_cotta": 74}),
+    4: ({"taco": 91, "limeade": 92, "guacamole": 94, "quesadilla": 98, "burrito": 103},
+        {"nachos": 91, "churros": 91, "horchata": 92, "tamale": 93, "flan": 95, "concha": 97, "paleta": 100}),
+    5: ({"croissant": 121, "crepes": 122, "truffles": 123, "pain_chocolat": 125, "eclair": 128, "tart": 132},
+        {"macaron": 121, "madeleine": 121, "brioche": 122, "canele": 124, "meringue": 126, "cafe_creme": 129,
+         "millefeuille": 131}),
 }
 DISH_UNLOCK, SNACK_UNLOCK = UNLOCKS[1]
 
@@ -224,7 +301,75 @@ LEVELS3 = [
     (9, 5, 22, 9, 6, 0.6, 2, T, None, 7, 2, 3),
 ]
 
-BIOME_LEVELS = {1: (1, LEVELS), 2: (31, LEVELS2), 3: (61, LEVELS3)}
+# биомы 4 и 5: еще замки с ключом (keys) и цепи (chains)
+# shelves, depth, orders, dishes, free, hidden, ing_triples, hard, intro, ice, locks, gourmet, keys, chains
+LEVELS4 = [
+    (6, 3, 8, 2, 5, 0.25, 0, F, "masa", 0, 0, 0, 0, 0),
+    (6, 3, 9, 3, 5, 0.25, 0, F, "limeade", 1, 0, 1, 0, 0),
+    (7, 3, 10, 3, 6, 0.3, 0, F, None, 2, 0, 1, 0, 0),
+    (7, 3, 10, 3, 6, 0.3, 0, F, None, 2, 1, 0, 0, 0),
+    (7, 3, 11, 4, 6, 0.3, 0, T, None, 2, 1, 1, 0, 0),
+    (7, 3, 10, 3, 6, 0.3, 0, F, "key", 0, 0, 0, 1, 0),
+    (7, 3, 11, 4, 6, 0.3, 0, F, None, 2, 0, 1, 1, 0),
+    (7, 4, 11, 4, 6, 0.35, 1, F, None, 2, 0, 1, 1, 0),
+    (8, 4, 12, 4, 7, 0.35, 1, F, None, 3, 1, 1, 1, 0),
+    (8, 4, 13, 5, 6, 0.4, 1, T, None, 3, 1, 2, 1, 0),
+    (8, 4, 13, 5, 7, 0.4, 1, F, None, 3, 0, 1, 2, 0),
+    (8, 4, 14, 5, 7, 0.4, 1, F, None, 3, 1, 1, 1, 0),
+    (8, 4, 14, 5, 7, 0.4, 1, F, None, 4, 1, 2, 2, 0),
+    (9, 4, 15, 6, 7, 0.45, 1, F, None, 4, 1, 1, 2, 0),
+    (9, 5, 16, 6, 6, 0.45, 2, T, None, 4, 2, 2, 2, 0),
+    (8, 4, 14, 5, 8, 0.4, 1, F, None, 4, 1, 1, 1, 0),
+    (9, 4, 15, 6, 8, 0.45, 1, F, None, 4, 0, 2, 2, 0),
+    (9, 5, 16, 6, 8, 0.45, 2, F, None, 5, 0, 1, 2, 0),
+    (9, 5, 17, 7, 8, 0.5, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 18, 7, 7, 0.5, 2, T, None, 5, 0, 2, 2, 0),
+    (9, 5, 17, 7, 8, 0.5, 2, F, None, 5, 0, 1, 2, 0),
+    (9, 5, 18, 7, 8, 0.5, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 18, 7, 8, 0.5, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 19, 8, 8, 0.5, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 20, 8, 7, 0.55, 2, T, None, 5, 0, 3, 2, 0),
+    (9, 5, 19, 8, 8, 0.5, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 20, 8, 8, 0.55, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 20, 8, 8, 0.55, 2, F, None, 5, 0, 2, 2, 0),
+    (9, 5, 21, 9, 8, 0.55, 2, F, None, 5, 0, 3, 2, 0),
+    (9, 5, 22, 9, 7, 0.6, 2, T, None, 5, 0, 3, 2, 0),
+]
+
+LEVELS5 = [
+    (6, 3, 8, 2, 5, 0.25, 0, F, "bakery", 0, 0, 0, 0, 0),
+    (6, 3, 9, 3, 5, 0.25, 0, F, None, 1, 0, 1, 1, 0),
+    (7, 3, 10, 3, 6, 0.3, 0, F, "truffles", 2, 0, 1, 1, 0),
+    (7, 3, 10, 3, 6, 0.3, 0, F, None, 2, 1, 0, 1, 0),
+    (7, 3, 11, 4, 6, 0.3, 0, T, None, 2, 1, 1, 1, 0),
+    (7, 3, 10, 3, 6, 0.3, 0, F, "chain", 0, 0, 0, 0, 1),
+    (7, 3, 11, 4, 6, 0.3, 0, F, None, 2, 0, 1, 0, 1),
+    (7, 4, 11, 4, 6, 0.35, 1, F, None, 2, 0, 1, 1, 1),
+    (8, 4, 12, 4, 7, 0.35, 1, F, None, 3, 1, 1, 0, 1),
+    (8, 4, 13, 5, 6, 0.4, 1, T, None, 3, 1, 2, 1, 1),
+    (8, 4, 13, 5, 8, 0.4, 1, F, None, 3, 0, 1, 1, 1),
+    (8, 4, 14, 5, 8, 0.4, 1, F, None, 3, 0, 1, 1, 1),
+    (8, 4, 14, 5, 8, 0.4, 1, F, None, 4, 0, 2, 1, 2),
+    (9, 4, 15, 6, 8, 0.45, 1, F, None, 4, 0, 1, 1, 1),
+    (9, 5, 16, 6, 7, 0.45, 2, T, None, 4, 0, 2, 1, 2),
+    (8, 4, 14, 5, 8, 0.4, 1, F, None, 4, 0, 1, 1, 1),
+    (9, 4, 15, 6, 8, 0.45, 1, F, None, 4, 0, 2, 1, 2),
+    (9, 5, 16, 6, 8, 0.45, 2, F, None, 5, 0, 1, 1, 1),
+    (9, 5, 17, 7, 8, 0.5, 2, F, None, 5, 1, 2, 0, 2),
+    (9, 5, 18, 7, 7, 0.5, 2, T, None, 5, 0, 2, 1, 2),
+    (9, 5, 17, 7, 8, 0.5, 2, F, None, 5, 0, 1, 1, 2),
+    (9, 5, 18, 7, 8, 0.5, 2, F, None, 5, 0, 2, 1, 2),
+    (9, 5, 18, 7, 8, 0.5, 2, F, None, 5, 0, 2, 1, 2),
+    (9, 5, 19, 8, 8, 0.5, 2, F, None, 5, 0, 2, 1, 2),
+    (9, 5, 20, 8, 7, 0.55, 2, T, None, 5, 0, 3, 1, 3),
+    (9, 5, 19, 8, 8, 0.5, 2, F, None, 5, 0, 2, 1, 2),
+    (9, 5, 20, 8, 8, 0.55, 2, F, None, 5, 0, 2, 1, 3),
+    (9, 5, 20, 8, 8, 0.55, 2, F, None, 5, 0, 2, 1, 2),
+    (9, 5, 21, 9, 8, 0.55, 2, F, None, 5, 0, 3, 1, 3),
+    (9, 5, 22, 9, 7, 0.6, 2, T, None, 5, 0, 3, 1, 3),
+]
+
+BIOME_LEVELS = {1: (1, LEVELS), 2: (31, LEVELS2), 3: (61, LEVELS3), 4: (91, LEVELS4), 5: (121, LEVELS5)}
 
 
 def triple_ok(item):
@@ -345,10 +490,122 @@ def pick_locks(rng, shelves, count, n_orders):
     return locks
 
 
+def replay(shelves, orders, path, locks=None, keys=None, chains=None):
+    """Проигрывает решение с препятствиями. Возвращает (первый ход, задевший полку; ход, на котором впервые
+    обслужен каждый спрайт заказа) или None, если с этими препятствиями решение не проходит."""
+    from rules import Obstacles, apply_move_detail, settle_detail, sprite
+    sh = normalize(shelves)
+    od = list(orders)
+    obs = Obstacles(od, locks, keys, chains)
+    cst = obs.start()
+    for _, shelf in settle_detail(CAT, sh, od, range(len(sh))):
+        cst = obs.fired(cst, shelf)
+    first_touch, served_at = {}, {}
+    # сколько покупателей обслужено перед каждым ходом
+    served_before = []
+    count = len(orders) - len(od)
+    for m, (s, k, d) in enumerate(path):
+        served_before.append(count)
+        first_touch.setdefault(s, m)
+        first_touch.setdefault(d, m)
+        before = list(od)
+        res = apply_move_detail(CAT, sh, od, s, k, d, obs, cst)
+        if res is None:
+            return None
+        sh, od, fired, cst = res
+        for idx, _ in fired:
+            served_at.setdefault(sprite(before.pop(idx)), m)
+        count = len(orders) - len(od)
+    if od:
+        return None
+    replay.served_before = served_before
+    return first_touch, served_at
+
+
+def place_locks(rng, shelves, orders, path, count):
+    """Замки по числу обслуженных по готовому решению: полка, которую решение не трогает, пока не обслужено N,
+    запирается на N (2..5). Так уровень с замками гарантированно проходим."""
+    first_touch, _ = replay(shelves, orders, path)
+    before = replay.served_before
+    locks = [0] * len(shelves)
+    options = []
+    for s, layers in enumerate(shelves):
+        if not any(c for c in layers[0]):
+            continue
+        touch = first_touch.get(s, len(path))
+        n = before[touch] if touch < len(before) else len(orders)
+        if n >= 2:
+            options.append((s, min(5, n)))
+    rng.shuffle(options)
+    for s, n in options[:count]:
+        locks[s] = rng.randint(2, n)
+    return locks if any(locks) else None
+
+
+def place_keys(rng, shelves, orders, path, count, locks):
+    """Замки с ключом по готовому решению: полку, которую решение не трогает до первого обслуживания заказа X,
+    запираем на ключ X. Решение остается верным, уровень гарантированно проходим."""
+    first_touch, served_at = replay(shelves, orders, path, locks)
+    keys = [None] * len(shelves)
+    options = []
+    for s, layers in enumerate(shelves):
+        if locks and locks[s]:
+            continue
+        if not all(c for c in layers[0]):
+            continue
+        touch = first_touch.get(s, len(path))
+        for x, m in served_at.items():
+            # ключ не самый первый заказ и полка ждет его хотя бы пару ходов
+            if 2 <= m and m + 1 < touch:
+                options.append((s, x, touch - m))
+    rng.shuffle(options)
+    used = set()
+    for s, x, _ in sorted(options, key=lambda o: -o[2])[: max(count * 4, 1)]:
+        if len([k for k in keys if k]) >= count:
+            break
+        if s in used or x in keys:
+            continue
+        keys[s] = x
+        used.add(s)
+    return keys if any(keys) else None
+
+
+def place_chains(rng, shelves, orders, path, count, locks, keys):
+    """Цепи между соседними полками одного ряда, которые решение проходит без нарушений."""
+    pairs = [(i, i + 1) for i in range(len(shelves) - 1) if i % 3 != 2]
+    rng.shuffle(pairs)
+    chains = []
+    used = set()
+    for a, b in pairs:
+        if len(chains) >= count:
+            break
+        if a in used or b in used:
+            continue
+        if (locks and (locks[a] or locks[b])) or (keys and (keys[a] or keys[b])):
+            continue
+        if not any(c for c in shelves[a][0]) or not any(c for c in shelves[b][0]):
+            continue
+        trial = chains + [[a, b]]
+        if replay(shelves, orders, path, locks, keys, trial) is None:
+            continue
+        chains = trial
+        used |= {a, b}
+    return chains
+
+
+# Уровни ивентов включают проверку длины решения сами (events.py)
+STRICT_LENGTH = False
+
+
 def generate_level(level_no, params, seed, biome=1):
     shelves_n, depth, n_orders, n_dishes, free, hidden, ing_triples, hard, intro = params[:9]
     n_ice, n_locks, n_gourmet = params[9:12] if len(params) > 9 else (0, 0, 0)
+    n_keys, n_chains = params[12:14] if len(params) > 12 else (0, 0)
     rng = random.Random(seed)
+    # слишком длинное решение (решатель петлял) дает нечестные пороги звезд и терпение: ищем короче,
+    # но после нескольких длинных берем самое короткое из них (для кухонь 4-5 и ивентов)
+    strict = STRICT_LENGTH or biome >= 4
+    long_ones = []
     for attempt in range(600):
         orders = pick_orders(rng, level_no, n_orders, n_dishes, ing_triples, biome)
         items = items_for(orders)
@@ -359,13 +616,38 @@ def generate_level(level_no, params, seed, biome=1):
             continue
         if n_ice:
             add_ice(rng, shelves, n_ice, n_orders)
-        locks = pick_locks(rng, shelves, n_locks, n_orders) if n_locks else None
-        path = solve(CAT, shelves, orders, beam=120 if n_orders > 12 else 200, locks=locks)
-        if path is None:
+        # глубину поиска ограничиваем: слишком длинное решение все равно не возьмем, а тупиковые раскладки
+        # иначе ищутся очень долго
+        depth_cap = int(len(items) * 2.4) + 12 if strict else 400
+        if biome >= 4:
+            # кухни 4-5: сначала решение без замков, замки ставятся по нему
+            path = solve(CAT, shelves, orders, beam=120 if n_orders > 12 else 200, max_depth=depth_cap)
+            if path is None:
+                continue
+            locks = place_locks(rng, shelves, orders, path, n_locks) if n_locks else None
+            if n_locks and not locks:
+                continue
+        else:
+            locks = pick_locks(rng, shelves, n_locks, n_orders) if n_locks else None
+            path = solve(CAT, shelves, orders, beam=120 if n_orders > 12 else 200, max_depth=depth_cap, locks=locks)
+            if path is None:
+                continue
+        # замки с ключом и цепи ставятся по найденному решению: оно остается верным
+        keys = place_keys(rng, shelves, orders, path, n_keys, locks) if n_keys else None
+        # по плану может быть два ключа или три цепи; если решение позволяет меньше, хватит одного
+        if n_keys and not any(keys or []):
+            continue
+        chains = place_chains(rng, shelves, orders, path, n_chains, locks, keys) if n_chains else None
+        if n_chains and not chains:
             continue
         # слишком простой уровень для своей позиции пропускаем
         if level_no > 3 and len(path) < len(items) * 0.45:
             continue
+        if strict and len(path) > len(items) * 1.8:
+            long_ones.append((len(path) / len(items), attempt, orders, shelves, path, locks, keys, chains))
+            if len(long_ones) < 4:
+                continue
+            _, attempt, orders, shelves, path, locks, keys, chains = min(long_ones, key=lambda c: c[0])
         # Гурман: не больше одного за уровень, приходит посреди уровня (не в первой тройке очереди),
         # обычно ждет блюдо
         gourmet = []
@@ -377,7 +659,7 @@ def generate_level(level_no, params, seed, biome=1):
                 gourmet = [rng.choice(pool)]
         patience = max(PATIENCE_MIN, round(PATIENCE_K * len(path) / n_orders))
         coins = replay_score(CAT, shelves, orders, path, COINS_PER_ORDER, patience=patience, tip_max=TIP_MAX,
-                             locks=locks, gourmet=gourmet)
+                             locks=locks, gourmet=gourmet, keys=keys, chains=chains)
         base = COINS_PER_ORDER * n_orders
         best = coins + round(EFFICIENCY_SHARE * base)
         star2 = base + round(0.35 * (best - base))
@@ -406,6 +688,10 @@ def generate_level(level_no, params, seed, biome=1):
         }
         if locks:
             level["locks"] = locks
+        if keys and any(keys):
+            level["keys"] = keys
+        if chains:
+            level["chains"] = chains
         if gourmet:
             level["gourmet"] = gourmet
         return level

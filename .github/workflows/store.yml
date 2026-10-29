@@ -5,6 +5,11 @@ name: Store screenshots
 # tools/appstore/build.py.
 on:
   workflow_dispatch:
+    inputs:
+      langs:
+        description: "Языки через пробел"
+        required: false
+        default: "en ru es pt-BR de fr it tr pl id vi th hi ar ja ko zh-Hans zh-Hant"
 
 permissions:
   contents: write
@@ -61,12 +66,12 @@ jobs:
             xcrun simctl io "$UDID" screenshot "store/$name.png" >/dev/null 2>&1
             echo "$name"
           }
-          for lang in en ru es pt-BR de fr it tr pl id vi th hi ar ja ko zh-Hans zh-Hant; do
+          for lang in ${{ github.event.inputs.langs }}; do
             shoot "${lang}_recipes" -uiLang $lang -uiLevel 25 -uiAutoplay 5
             shoot "${lang}_customers" -uiLang $lang -uiLevel 94 -uiAutoplay 4
             shoot "${lang}_kitchens" -uiLang $lang -uiScreen map
             shoot "${lang}_events" -uiLang $lang -uiScreen eventmap
-            shoot "${lang}_twists" -uiLang $lang -uiLevel 133 -uiAutoplay 3
+            shoot "${lang}_twists" -uiLang $lang -uiLevel 140 -uiAutoplay 3
             shoot "${lang}_collect" -uiLang $lang -uiScreen book
           done
           ls store | wc -l

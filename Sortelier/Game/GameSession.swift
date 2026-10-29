@@ -82,6 +82,13 @@ final class GameSession: ObservableObject {
         self.isReplay = mode == .main && PlayerProgress.shared.isPassed(level.id)
         self.board = Board(level: level)
         Analytics.log("level_start", ["level": level.id, "replay": isReplay, "mode": mode.analyticsName])
+        #if DEBUG
+        // снимки экрана в середине уровня: несколько ходов подсказки
+        for _ in 0..<UIDebug.autoplay {
+            guard let m = board.hint(), move(from: m.from, slot: m.slot, to: m.to) != nil, !board.isWon else { break }
+        }
+        pendingDish = nil
+        #endif
     }
 
     var hasMoves: Bool { moves > 0 }

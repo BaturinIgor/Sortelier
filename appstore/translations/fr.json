@@ -1,0 +1,34 @@
+{
+ "name": "Sortelier: Trie et Cuisine",
+ "subtitle": "Trie, cuisine et sers",
+ "keywords": "puzzle,casse-tête,recettes,étagères,chef,restaurant,nourriture,fusion,logique,casual,boulangerie",
+ "promo": "Nouveau : cuisine mexicaine et boulangerie française, plus un événement Halloween avec sa propre carte, des douceurs effrayantes et une petite sorcière !",
+ "description": "Sortelier est un puzzle de tri tout doux autour de la nourriture. Fais glisser les produits entre les étagères de la cuisine, prépare des plats selon les recettes et sers les clients qui attendent au comptoir.\n\nNE TRIE PAS SEULEMENT, CUISINE !\nTrois produits identiques partent chez un client, mais trois ingrédients différents deviennent un plat : pain, steak et salade font un burger, riz, poisson et sauce soja font des sushis. La farine devient pâte, et la pâte file dans la pizza. Chaque coup compte.\n\nCINQ CUISINES DU MONDE\nDiner américain, cuisine japonaise, trattoria italienne, cantina mexicaine et boulangerie française : 150 niveaux vérifiés à la main, et chaque cuisine a ses propres produits, sa musique et son décor.\n\nDE NOUVEAUX DÉFIS EN CHEMIN\nProduits congelés, articles mystères, Gourmets difficiles avec de gros pourboires, étagères verrouillées par un produit-clé et étagères enchaînées entre elles.\n\nPAS DE CHRONO, PAS DE STRESS\nLes clients ne partent jamais. Sers-les vite et ils laissent plus de pourboire, prends ton temps et ils arrêtent simplement d'en laisser.\n\nIL Y A TOUJOURS QUELQUE CHOSE À FAIRE\nDéfis du jour et de la semaine, médaille du mois, série avec récompenses, courses de chefs et événements saisonniers avec leur propre carte, leurs douceurs et leurs invités déguisés.\n\nCOLLECTIONNE TOUT\nRemplis le livre de recettes, complète l'album de cartes, décroche des succès et décore ta cuisine avec de nouveaux fonds.\n\nPas de publicité forcée entre les niveaux. Les publicités avec récompense sont toujours facultatives.",
+ "release_notes": "- Cuisine mexicaine et boulangerie française : 60 nouveaux niveaux, avec de nouveaux produits, plats et musiques\n- Nouveaux obstacles : cadenas avec produit-clé et étagères enchaînées\n- Les événements saisonniers ont désormais leur propre carte avec des douceurs spéciales et un invité déguisé\n- Événement Nuit d'Halloween",
+ "captions": {
+  "recipes": [
+   "Cuisine avec des recettes",
+   "Trois ingrédients, un plat"
+  ],
+  "customers": [
+   "Sers chaque client",
+   "Plus vite, plus de pourboires"
+  ],
+  "kitchens": [
+   "Cuisines du monde",
+   "5 cuisines, 150 niveaux"
+  ],
+  "events": [
+   "Événements saisonniers",
+   "Douceurs et invités déguisés"
+  ],
+  "twists": [
+   "Des défis malins",
+   "Glace, clés et étagères enchaînées"
+  ],
+  "collect": [
+   "Ton livre de recettes",
+   "Plats, cartes et médailles"
+  ]
+ }
+}

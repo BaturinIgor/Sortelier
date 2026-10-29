@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "balance": {
+    "coinsPerOrder": 5,
+    "comboBonus": 2,
+    "comboFrom": 3,
+    "comboWindow": 3,
+    "efficiencyShare": 0.3,
+    "maxLives": 5,
+    "lifeRegenMinutes": 30,
+    "livesRefillPrice": 200,
+    "startCoins": 300,
+    "pauseMoves": 5,
+    "continuePrices": [150, 300, 600],
+    "adDailyLimit": 10,
+    "boosterPrices": {"undo": 60, "hint": 80, "shuffle": 100, "pause": 120, "shelf": 150},
+    "biomeUnlockPrice": 3000,
+    "biomeStars": {"2": 54, "default": 63},
+    "streakCoins": [20, 30, 40, 60, 80, 100, 200],
+    "streakFreezePrice": 150,
+    "streakMaxFreezes": 2,
+    "vipCoinMultiplier": 1.5,
+    "vipMaxLives": 8,
+    "energyMax": 30,
+    "energyRegenSeconds": 180,
+    "energyAd": 10,
+    "energyBuy": 10,
+    "energyBuyPrice": 60
+  },
+  "events": {
+    "season": [
+      {"theme": "halloween", "start": "2026-10-29", "end": "2026-11-16"}
+    ],
+    "seasonAuto": true,
+    "seasonThemes": {
+      "1": ["winter", "sweets"], "2": ["sweets", "winter"], "3": ["sweets", "bbq"], "4": ["bbq", "sweets"],
+      "5": ["bbq", "sweets"], "6": ["bbq", "sweets"], "7": ["bbq", "sweets"], "8": ["bbq", "autumn"],
+      "9": ["autumn", "sweets"], "10": ["autumn", "halloween"], "11": ["autumn", "winter"], "12": ["sweets", "winter"]
+    },
+    "stamps": {"newLevel": 2, "replay": 1, "challenge": 3, "threeStars": 1},
+    "hunt": [],
+    "huntAuto": true,
+    "huntItems": ["egg", "tomato", "honey", "corn"],
+    "race": {"enabled": true, "goal": 5, "chestRaces": 3},
+    "double": {
+      "weekends": true,
+      "multiplier": 2,
+      "bonusMinutes": 60,
+      "extra": [
+        {"start": "2026-12-31", "end": "2027-01-03"}
+      ]
+    }
+  }
+}

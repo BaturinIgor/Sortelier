@@ -580,6 +580,41 @@ struct IntroView: View {
                     .overlay(Color.black.opacity(0.25).clipShape(RoundedRectangle(cornerRadius: 10)))
                 SpriteImage(name: "icon_lock", size: 50)
             }
+        case "masa":
+            chainRecipe(raw: "masa", made: "tortilla", with: ["beef", "salsa"], dish: "dish_taco")
+        case "bakery":
+            chainRecipe(raw: "flour", made: "dough", with: ["butter", "egg"], dish: "dish_croissant")
+        case "limeade":
+            threeOf("lime", dish: "dish_limeade")
+        case "truffles":
+            threeOf("chocolate", dish: "dish_truffles")
+        case "key":
+            ZStack {
+                SpriteImage(name: progress.goldShelves ? "shelf_gold" : "shelf", size: 120)
+                    .overlay(Color.black.opacity(0.25).clipShape(RoundedRectangle(cornerRadius: 10)))
+                SpriteImage(name: "icon_lock", size: 54).offset(x: -26)
+                ZStack {
+                    Circle().fill(Theme.cream).frame(width: 52, height: 52)
+                    Circle().strokeBorder(Theme.gold, lineWidth: 3).frame(width: 52, height: 52)
+                    SpriteImage(name: "nachos", size: 40)
+                }
+                .offset(x: 26)
+            }
+        case "chain":
+            HStack(spacing: 0) {
+                SpriteImage(name: progress.goldShelves ? "shelf_gold" : "shelf", size: 96)
+                ZStack {
+                    ForEach(0..<4, id: \.self) { i in
+                        Capsule()
+                            .stroke(Color(red: 0.42, green: 0.58, blue: 0.86), lineWidth: 3)
+                            .frame(width: 16, height: 10)
+                            .offset(x: CGFloat(i) * 11 - 16)
+                    }
+                }
+                .frame(width: 30)
+                SpriteImage(name: progress.goldShelves ? "shelf_gold" : "shelf", size: 96)
+                    .overlay(Color(red: 0.16, green: 0.12, blue: 0.2).opacity(0.4).clipShape(RoundedRectangle(cornerRadius: 10)))
+            }
         case "conflict":
             HStack(spacing: 6) {
                 SpriteImage(name: "baguette", size: 56)
@@ -616,6 +651,39 @@ struct IntroView: View {
                 SpriteImage(name: "donut", size: 54)
                 SpriteImage(name: "donut", size: 54)
             }
+        }
+    }
+}
+
+/// Три одинаковых продукта дают блюдо (онигири, лимонад, трюфели).
+private func threeOf(_ item: String, dish: String) -> some View {
+    HStack(spacing: 4) {
+        SpriteImage(name: item, size: 46)
+        SpriteImage(name: item, size: 46)
+        SpriteImage(name: item, size: 46)
+        Text("=").font(Theme.rounded(22, .heavy)).foregroundColor(Theme.brownSoft)
+        SpriteImage(name: dish, size: 64)
+    }
+}
+
+/// Цепочка (три сырых - одно) и рецепт из получившегося продукта.
+private func chainRecipe(raw: String, made: String, with others: [String], dish: String) -> some View {
+    VStack(spacing: 6) {
+        HStack(spacing: 4) {
+            SpriteImage(name: raw, size: 40)
+            SpriteImage(name: raw, size: 40)
+            SpriteImage(name: raw, size: 40)
+            Image(systemName: "arrow.right").font(.system(size: 18, weight: .heavy)).foregroundColor(Theme.orange)
+            SpriteImage(name: made, size: 50)
+        }
+        HStack(spacing: 4) {
+            SpriteImage(name: made, size: 40)
+            ForEach(others, id: \.self) { item in
+                Text("+").font(Theme.rounded(18, .heavy)).foregroundColor(Theme.brownSoft)
+                SpriteImage(name: item, size: 40)
+            }
+            Text("=").font(Theme.rounded(18, .heavy)).foregroundColor(Theme.brownSoft)
+            SpriteImage(name: dish, size: 56)
         }
     }
 }

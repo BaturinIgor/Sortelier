@@ -1,24 +1,27 @@
 import Foundation
 
-/// Стартовый баланс из документа требований. Позже переедет в удаленный конфиг.
+/// Стартовый баланс из документа требований. Числа можно поменять удаленным конфигом (раздел "balance"),
+/// значения здесь - запасные, если в конфиге ключа нет.
 enum Balance {
-    static let coinsPerOrder = 5
-    static let comboBonus = 2
-    static let comboFrom = 3
-    static let comboWindow = 3
-    static let efficiencyShare = 0.3
+    private static var config: RemoteConfig { .shared }
 
-    static let maxLives = 5
-    static let lifeRegen: TimeInterval = 30 * 60
-    static let livesRefillPrice = 200
+    static var coinsPerOrder: Int { config.int("balance.coinsPerOrder", 5) }
+    static var comboBonus: Int { config.int("balance.comboBonus", 2) }
+    static var comboFrom: Int { config.int("balance.comboFrom", 3) }
+    static var comboWindow: Int { config.int("balance.comboWindow", 3) }
+    static var efficiencyShare: Double { config.double("balance.efficiencyShare", 0.3) }
 
-    static let startCoins = 300
+    static var maxLives: Int { config.int("balance.maxLives", 5) }
+    static var lifeRegen: TimeInterval { TimeInterval(config.int("balance.lifeRegenMinutes", 30) * 60) }
+    static var livesRefillPrice: Int { config.int("balance.livesRefillPrice", 200) }
+
+    static var startCoins: Int { config.int("balance.startCoins", 300) }
     static let startBoosters: [Booster: Int] = [.hint: 3, .undo: 3, .shuffle: 1, .shelf: 1]
     /// Сколько ходов терпение стоит на паузе после бустера.
-    static let pauseMoves = 5
+    static var pauseMoves: Int { config.int("balance.pauseMoves", 5) }
 
-    static let continuePrices = [150, 300, 600]
-    static let adDailyLimit = 10
+    static var continuePrices: [Int] { config.ints("balance.continuePrices", [150, 300, 600]) }
+    static var adDailyLimit: Int { config.int("balance.adDailyLimit", 10) }
 
     static let levelsPerBiome = 30
 
@@ -47,13 +50,15 @@ enum Booster: String, Codable, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     var price: Int {
+        let fallback: Int
         switch self {
-        case .undo: return 60
-        case .hint: return 80
-        case .shuffle: return 100
-        case .pause: return 120
-        case .shelf: return 150
+        case .undo: fallback = 60
+        case .hint: fallback = 80
+        case .shuffle: fallback = 100
+        case .pause: fallback = 120
+        case .shelf: fallback = 150
         }
+        return RemoteConfig.shared.int("balance.boosterPrices." + rawValue, fallback)
     }
 
     /// Объемная иконка бустера (tools/render/icons.py).

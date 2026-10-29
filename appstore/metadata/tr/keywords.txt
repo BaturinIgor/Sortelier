@@ -1,0 +1,1 @@
+bulmaca,yemek,tarif,raf,mutfak,şef,restoran,eşleştirme,birleştir,zeka,aşçı,oyun,kafe,müşteri,casual

@@ -13,12 +13,15 @@ struct CatalogItem: Decodable, Hashable {
     let biome: Int
     /// Цепочка: три таких продукта в переднем ряду превращаются в chain (мука -> тесто).
     let chain: String?
+    /// Продукт сезонного ивента (биом 0): тема ивента.
+    let event: String?
 }
 
 struct CatalogDish: Decodable, Hashable {
     let id: String
     let ingredients: [String]
     let biome: Int
+    let event: String?
 }
 
 /// Продукты и рецепты. Лежат в Resources/Data/catalog.json, генерирует tools/levels/generate.py.
@@ -112,6 +115,10 @@ struct LevelData: Decodable, Identifiable {
     let locks: [Int]?
     /// Номера заказов, которые ждут гурманы.
     let gourmet: [Int]?
+    /// Замки с ключом: спрайт продукта или блюда, после обслуживания которого полка откроется (null - без замка).
+    let keys: [String?]?
+    /// Цепи: пары полок [a, b].
+    let chains: [[Int]]?
 }
 
 final class LevelStore {

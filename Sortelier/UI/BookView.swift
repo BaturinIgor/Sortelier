@@ -86,8 +86,9 @@ struct BookContent: View {
 
     private var biomePicker: some View {
         HStack(spacing: 8) {
-            ForEach(1...Biomes.playable, id: \.self) { b in
-                let open = progress.isBiomeOpen(b)
+            // последняя страница - продукты сезонных ивентов (биом 0), она открыта всегда
+            ForEach(Array(1...Biomes.playable) + [0], id: \.self) { b in
+                let open = b == 0 || progress.isBiomeOpen(b)
                 let on = biome == b
                 Button {
                     guard open else { return }
@@ -95,7 +96,7 @@ struct BookContent: View {
                     withAnimation(.easeOut(duration: 0.15)) { biome = b }
                 } label: {
                     ZStack {
-                        SpriteImage(name: Biomes.icon(b), size: 46, silhouette: !open)
+                        SpriteImage(name: Biomes.icon(b), size: b == 0 ? 38 : 46, silhouette: !open)
                         if !open { SpriteImage(name: "icon_lock", size: 22).offset(x: 18, y: 12) }
                     }
                     .frame(maxWidth: .infinity)
@@ -125,8 +126,10 @@ struct BookContent: View {
             Text(open ? lang.dishName(dish.id) : "???")
                 .font(Theme.rounded(14, .heavy))
                 .foregroundColor(Theme.brown)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+                .minimumScaleFactor(0.8)
+                .frame(minHeight: 36)
             HStack(spacing: 1) {
                 ForEach(dish.ingredients, id: \.self) { ing in
                     SpriteImage(name: ing, size: 22, silhouette: !open)
@@ -147,7 +150,7 @@ struct BookContent: View {
                 .foregroundColor(Theme.brown)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-            Text(lang.t(kindKey(item)))
+            Text(item.event.map { lang.t("event.season." + $0) } ?? lang.t(kindKey(item)))
                 .font(Theme.rounded(11, .semibold))
                 .foregroundColor(Theme.brownSoft)
                 .lineLimit(1)

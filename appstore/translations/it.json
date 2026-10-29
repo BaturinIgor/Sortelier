@@ -1,0 +1,34 @@
+{
+ "name": "Sortelier: Ordina e Cucina",
+ "subtitle": "Smista, cucina e servi",
+ "keywords": "puzzle,rompicapo,ricette,cibo,scaffali,chef,ristorante,unisci,casual,logica,cuoco,pasticceria",
+ "promo": "Novità: Cucina Messicana e Panetteria Francese, più un evento di Halloween con mappa tutta sua, dolcetti spaventosi e una streghetta ospite!",
+ "description": "Sortelier è un accogliente puzzle a tema cibo. Trascina i prodotti tra gli scaffali della cucina, prepara piatti seguendo le ricette e servi i clienti in attesa al bancone.\n\nNON SOLO ORDINARE, ANCHE CUCINARE\nTre prodotti uguali vanno a un cliente, ma tre ingredienti diversi diventano un piatto: pane, carne e lattuga fanno un hamburger, riso, pesce e salsa di soia fanno il sushi. La farina diventa impasto e l'impasto finisce nella pizza. Ogni mossa conta.\n\nCINQUE CUCINE DAL MONDO\nDiner americano, cucina giapponese, trattoria italiana, cantina messicana e panetteria francese: 150 livelli controllati a mano, e ogni cucina ha i suoi prodotti, la sua musica e il suo sfondo.\n\nNUOVE SFIDE LUNGO LA STRADA\nProdotti congelati, articoli misteriosi, Buongustai esigenti con mance generose, scaffali chiusi a chiave con un prodotto-chiave e scaffali incatenati tra loro.\n\nNIENTE TIMER, NIENTE STRESS\nI clienti non se ne vanno mai. Servili in fretta e lasceranno più mancia, prenditela con calma e smetteranno semplicemente di lasciarla.\n\nOGNI GIORNO C'È QUALCOSA DA FARE\nSfide giornaliere e settimanali, una medaglia mensile, una serie con premi, gare tra chef ed eventi stagionali con una mappa tutta loro, dolcetti e ospiti in costume.\n\nCOLLEZIONA TUTTO\nRiempi il ricettario, completa l'album delle carte, ottieni obiettivi e decora la tua cucina con nuovi sfondi.\n\nNiente pubblicità forzata tra un livello e l'altro. Le pubblicità con ricompensa sono sempre facoltative.",
+ "release_notes": "- Cucina Messicana e Panetteria Francese: 60 nuovi livelli, con nuovi prodotti, piatti e musiche\n- Nuovi ostacoli: lucchetti con prodotto-chiave e scaffali incatenati\n- Gli eventi stagionali hanno ora una mappa tutta loro, con dolcetti speciali e un ospite in costume\n- Evento Notte di Halloween",
+ "captions": {
+  "recipes": [
+   "Cucina con le ricette",
+   "Tre ingredienti, un piatto"
+  ],
+  "customers": [
+   "Servi ogni cliente",
+   "Più veloce, più mance"
+  ],
+  "kitchens": [
+   "Cucine dal mondo",
+   "5 cucine, 150 livelli"
+  ],
+  "events": [
+   "Eventi stagionali",
+   "Dolcetti e ospiti in costume"
+  ],
+  "twists": [
+   "Sfide astute",
+   "Ghiaccio, chiavi e scaffali incatenati"
+  ],
+  "collect": [
+   "Riempi il ricettario",
+   "Piatti, carte e medaglie"
+  ]
+ }
+}

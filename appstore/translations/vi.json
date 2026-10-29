@@ -1,0 +1,34 @@
+{
+ "name": "Sortelier: Xếp Đồ & Nấu Ăn",
+ "subtitle": "Sắp xếp, nấu ăn, phục vụ",
+ "keywords": "sắp xếp,phân loại,giải đố,nấu ăn,món ăn,công thức,đầu bếp,nhà bếp,nhà hàng,xếp đồ,kệ,thư giãn,gộp",
+ "promo": "Mới: Bếp Mexico và Tiệm Bánh Pháp, cùng sự kiện Halloween với bản đồ riêng, món ăn rùng rợn và vị khách phù thủy nhỏ!",
+ "description": "Sortelier là trò giải đố xếp đồ ấm cúng về ẩm thực. Kéo các món giữa những kệ bếp, nấu món ăn theo công thức và phục vụ khách đang chờ ở quầy.\n\nKHÔNG CHỈ XẾP, MÀ CÒN NẤU\nBa món giống nhau sẽ dành cho một vị khách, còn ba nguyên liệu khác nhau sẽ thành một món ăn: bánh mì, thịt viên và rau xà lách làm nên chiếc burger, cơm, cá và nước tương làm nên sushi. Bột mì thành bột nhào, bột nhào thành pizza. Mỗi nước đi đều quan trọng.\n\nNĂM NỀN ẨM THỰC TRÊN THẾ GIỚI\nQuán ăn kiểu Mỹ, bếp Nhật, quán trattoria Ý, quán cantina Mexico và tiệm bánh Pháp: 150 màn chơi được kiểm tra thủ công, mỗi bếp có nguyên liệu, âm nhạc và hình nền riêng.\n\nTHỬ THÁCH MỚI TRÊN ĐƯỜNG ĐI\nThực phẩm đóng băng, món bí ẩn, những vị khách sành ăn khó tính nhưng boa hậu hĩnh, kệ bị khóa bằng món chìa khóa và những kệ bị xích lại với nhau.\n\nKHÔNG ĐỒNG HỒ, KHÔNG ÁP LỰC\nKhách không bao giờ bỏ đi. Phục vụ nhanh thì họ boa nhiều hơn, thong thả thì họ chỉ đơn giản là ngừng boa.\n\nNGÀY NÀO CŨNG CÓ VIỆC HAY\nThử thách theo ngày và theo tuần, huy chương hằng tháng, chuỗi ngày liên tiếp có thưởng, đua đầu bếp và sự kiện theo mùa với bản đồ riêng, món đặc biệt và những vị khách hóa trang.\n\nSƯU TẦM TẤT CẢ\nHoàn thành sách nấu ăn, sưu tầm album thẻ, nhận thành tựu và trang trí bếp với những hình nền mới.\n\nKhông có quảng cáo bắt buộc giữa các màn chơi. Quảng cáo nhận thưởng luôn là tùy chọn.",
+ "release_notes": "- Bếp Mexico và Tiệm Bánh Pháp: 60 màn chơi mới, cùng nguyên liệu, món ăn và nhạc mới\n- Chướng ngại mới: ổ khóa cần món chìa khóa và những kệ bị xích\n- Sự kiện theo mùa nay có bản đồ riêng với món đặc biệt và vị khách hóa trang\n- Sự kiện Đêm Halloween",
+ "captions": {
+  "recipes": [
+   "Nấu theo công thức",
+   "Ba nguyên liệu thành một món"
+  ],
+  "customers": [
+   "Phục vụ mọi vị khách",
+   "Càng nhanh, boa càng nhiều"
+  ],
+  "kitchens": [
+   "Bếp khắp thế giới",
+   "5 nền ẩm thực, 150 màn chơi"
+  ],
+  "events": [
+   "Sự kiện theo mùa",
+   "Món đặc biệt, khách hóa trang"
+  ],
+  "twists": [
+   "Thử thách thông minh",
+   "Băng, chìa khóa và kệ xích"
+  ],
+  "collect": [
+   "Lấp đầy sách nấu ăn",
+   "Món ăn, thẻ và huy chương"
+  ]
+ }
+}

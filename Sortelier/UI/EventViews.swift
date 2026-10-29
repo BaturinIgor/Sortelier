@@ -47,6 +47,7 @@ struct EventsHub: View {
     @State private var granted: Granted?
     @State private var grandTitle = false
     @State private var raceIntro = false
+    @State private var mapEvent: GameEvent?
 
     private var sections: [SegmentPicker<EventsSection>.Item] {
         var items: [SegmentPicker<EventsSection>.Item] = [
@@ -65,17 +66,11 @@ struct EventsHub: View {
 
     var body: some View {
         ZStack {
-            ScreenScaffold(title: lang.t("tab.events"), back: { router.open(.map) }) {
-                SegmentPicker(items: sections, selection: $router.eventsSection)
-                Group {
-                    switch section {
-                    case .events: EventsContent(play: play, granted: $granted, raceIntro: $raceIntro)
-                    case .challenges: ChallengesContent(play: play, granted: $granted)
-                    case .quests: QuestsContent(granted: $granted, grandTitle: $grandTitle)
-                    }
-                }
-                .id(section)
-                .transition(.opacity)
+            if let event = mapEvent {
+                EventMapScreen(event: event, play: play) { withAnimation(.easeInOut(duration: 0.2)) { mapEvent = nil } }
+                    .transition(.move(edge: .trailing))
+            } else {
+                hub.transition(.move(edge: .leading))
             }
             if let granted = granted {
                 RewardPopup(title: lang.t(grandTitle ? "quests.grand.title" : "common.received"), granted: granted) {
@@ -87,6 +82,29 @@ struct EventsHub: View {
                     .transition(.opacity)
             }
         }
+        .onAppear {
+            #if DEBUG
+            if UIDebug.value("uiScreen") == "eventmap" { mapEvent = progress.activeEvents.first { $0.kind == .season } }
+            #endif
+        }
+    }
+
+    private var hub: some View {
+            ScreenScaffold(title: lang.t("tab.events"), back: { router.open(.map) }) {
+                SegmentPicker(items: sections, selection: $router.eventsSection)
+                Group {
+                    switch section {
+                    case .events:
+                        EventsContent(play: play, granted: $granted, raceIntro: $raceIntro) { event in
+                            withAnimation(.easeInOut(duration: 0.2)) { mapEvent = event }
+                        }
+                    case .challenges: ChallengesContent(play: play, granted: $granted)
+                    case .quests: QuestsContent(granted: $granted, grandTitle: $grandTitle)
+                    }
+                }
+                .id(section)
+                .transition(.opacity)
+            }
     }
 }
 
@@ -95,6 +113,8 @@ struct EventsContent: View {
     let play: (LevelData, PlayMode) -> Void
     @Binding var granted: Granted?
     @Binding var raceIntro: Bool
+    /// Открыть мини-карту сезонного ивента.
+    var openMap: (GameEvent) -> Void = { _ in }
     @EnvironmentObject private var progress: PlayerProgress
     @EnvironmentObject private var lang: Lang
 
@@ -148,8 +168,14 @@ struct EventsContent: View {
                     .font(Theme.rounded(14, .heavy))
                     .foregroundColor(Theme.brownSoft)
                 if s.levels < levels.count {
-                    Button(lang.t("event.play", s.levels + 1)) {
-                        play(levels[s.levels], .event(event.id, event.theme, s.levels))
+                    Button {
+                        Audio.shared.play(.button, volume: 0.6)
+                        openMap(event)
+                    } label: {
+                        HStack(spacing: 8) {
+                            SpriteImage(name: "icon_map", size: 30)
+                            Text(lang.t("event.map.open", s.levels + 1))
+                        }
                     }
                     .buttonStyle(GameButtonStyle(palette: .orange))
                 } else {

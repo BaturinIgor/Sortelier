@@ -21,6 +21,7 @@ struct SortelierApp: App {
                 .statusBarHidden()
                 .onAppear {
                     Analytics.start()
+                    RemoteConfig.shared.refresh(force: true)
                     Audio.shared.start()
                     Store.shared.start()
                     PlayerProgress.shared.ensureWelcomeStart()
@@ -30,6 +31,7 @@ struct SortelierApp: App {
             switch phase {
             case .active:
                 Audio.shared.resume()
+                RemoteConfig.shared.refresh()
                 Notifications.clearDelivered()
             case .background:
                 Notifications.reschedule()
@@ -97,6 +99,9 @@ struct RootView: View {
         .onAppear {
             #if DEBUG
             UIDebug.apply(router)
+            if let launch = UIDebug.levelLaunch() {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { play(launch.level, launch.mode) }
+            }
             #endif
         }
     }

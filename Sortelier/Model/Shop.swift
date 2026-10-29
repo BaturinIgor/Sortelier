@@ -72,8 +72,8 @@ enum ShopItem: String, CaseIterable, Identifiable {
 
 /// VIP: все награды за рекламу сразу, монеты x1.5 за уровни, 8 жизней, набор бустеров каждый день.
 enum VIP {
-    static let coinMultiplier = 1.5
-    static let maxLives = 8
+    static var coinMultiplier: Double { RemoteConfig.shared.double("balance.vipCoinMultiplier", 1.5) }
+    static var maxLives: Int { RemoteConfig.shared.int("balance.vipMaxLives", 8) }
     static let daily = Reward(boosters: [.hint: 1, .undo: 1, .shuffle: 1])
 }
 

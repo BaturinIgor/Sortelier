@@ -1,0 +1,34 @@
+{
+ "name": "Sortelier: Susun & Masak",
+ "subtitle": "Susun, masak, dan sajikan",
+ "keywords": "game,puzzle,teka-teki,memasak,kuliner,makanan,resep,rak,dapur,koki,restoran,gabung,santai,otak",
+ "promo": "Baru: Dapur Meksiko dan Toko Roti Prancis, plus event Halloween dengan peta sendiri, kudapan seram, dan tamu penyihir cilik!",
+ "description": "Sortelier adalah puzzle menyortir makanan yang nyaman. Seret produk di antara rak dapur, masak hidangan sesuai resep, dan layani pelanggan yang menunggu di konter.\n\nBUKAN CUMA MENYORTIR, TAPI MEMASAK\nTiga produk yang sama diberikan ke pelanggan, tapi tiga bahan berbeda berubah jadi hidangan: roti, patty, dan selada jadi burger, nasi, ikan, dan kecap asin jadi sushi. Tepung jadi adonan, adonan masuk ke pizza. Setiap langkah berarti.\n\nLIMA DAPUR DUNIA\nDiner Amerika, dapur Jepang, trattoria Italia, cantina Meksiko, dan toko roti Prancis: 150 level yang dicek satu per satu, dan setiap dapur punya produk, musik, serta latar sendiri.\n\nTANTANGAN BARU DI SEPANJANG JALAN\nProduk beku, item misteri, Gourmet pemilih dengan tip besar, rak terkunci yang dibuka dengan produk kunci, dan rak yang saling dirantai.\n\nTANPA TIMER, TANPA STRES\nPelanggan tidak pernah pergi. Layani dengan cepat dan mereka memberi tip lebih banyak, santai saja dan mereka cuma berhenti memberi tip.\n\nADA YANG SERU SETIAP HARI\nTantangan harian dan mingguan, medali bulanan, rentetan hari dengan hadiah, balapan koki, dan event musiman dengan peta, kudapan, dan tamu berkostum sendiri.\n\nKOLEKSI SEMUANYA\nIsi buku resep, lengkapi album kartu, raih pencapaian, dan hias dapurmu dengan latar baru.\n\nTidak ada iklan paksaan di antara level. Iklan berhadiah selalu opsional.",
+ "release_notes": "- Dapur Meksiko dan Toko Roti Prancis: 60 level baru dengan produk, hidangan, dan musik baru\n- Rintangan baru: gembok dengan produk kunci dan rak yang dirantai\n- Event musiman kini punya peta sendiri dengan kudapan spesial dan tamu berkostum\n- Event Malam Halloween",
+ "captions": {
+  "recipes": [
+   "Masak sesuai resep",
+   "Tiga bahan jadi satu hidangan"
+  ],
+  "customers": [
+   "Layani setiap tamu",
+   "Makin cepat, makin banyak tip"
+  ],
+  "kitchens": [
+   "Dapur dari seluruh dunia",
+   "5 dapur, 150 level"
+  ],
+  "events": [
+   "Event musiman",
+   "Kudapan dan tamu berkostum"
+  ],
+  "twists": [
+   "Rintangan cerdik",
+   "Es, kunci, dan rak berantai"
+  ],
+  "collect": [
+   "Isi buku resepmu",
+   "Hidangan, kartu, dan medali"
+  ]
+ }
+}
