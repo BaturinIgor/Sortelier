@@ -40,6 +40,12 @@ CUSTOMERS = [
     ("brown", "bald", (0.10, 0.07, 0.05), (0.32, 0.46, 0.72), "moustache"),
     # гурман: цилиндр, монокль, усы, бабочка, фрак
     ("fair", "tophat", (0.82, 0.80, 0.78), (0.10, 0.10, 0.13), "gourmet"),
+    # гости сезонных ивентов (Guests.swift): 11 ведьмочка, 12 Снегурочка, 13 конфетная фея, 14 ковбой, 15 фермер
+    ("light", "witch", (0.92, 0.42, 0.12), (0.44, 0.20, 0.66), "witch"),
+    ("fair", "snowmaiden", (0.98, 0.84, 0.46), (0.42, 0.66, 0.95), "snowmaiden"),
+    ("tan", "fairy", (1.0, 0.52, 0.74), (1.0, 0.62, 0.78), "fairy"),
+    ("olive", "cowboy", (0.26, 0.15, 0.08), (0.82, 0.28, 0.16), "bandana"),
+    ("fair", "straw", (0.62, 0.30, 0.12), (0.34, 0.62, 0.30), "freckles"),
 ]
 
 HEAD_Z = 1.25
@@ -292,6 +298,213 @@ def build(spec, mood):
         M.smooth(band, 40)
         M.assign(band, M.flat("BandMat", (0.80, 0.10, 0.12), rough=0.4, sheen=0.4))
         parts += [brim, crown, band]
+    # MARK: костюмы гостей ивентов
+    if style == "witch":
+        parts.append(hair_shell("Hair", hair_mat, low=-0.8, front_cut=0.3, r=1.1))
+        for i, (x, dz, rot) in enumerate(((-0.42, 0.44, 30), (-0.12, 0.49, 15), (0.18, 0.48, -5), (0.46, 0.42, -25))):
+            f = ellipsoid(f"Fringe{i}", (0.24, 0.1, 0.15), hair_mat)
+            f.rotation_euler = (0, math.radians(rot), 0)
+            at_face(f, x, dz, -0.06)
+            parts.append(f)
+        felt = M.material("WitchFelt", [(0.0, (0.10, 0.05, 0.16)), (1.0, (0.36, 0.16, 0.50))], coord="z",
+                          lo=HEAD_Z + 0.4, hi=HEAD_Z + 2.4, rough=0.45, coat=0.3, sheen=0.4)
+        brim = M.cylinder("WitchBrim", 1.55, 0.06, 64)
+        M.deform(brim, lambda co: Vector((co.x, co.y, co.z + 0.06 * (co.x * co.x + co.y * co.y) / 2.4)))
+        M.bevel(brim, 0.03, 3, 30)
+        brim.location = (0, 0.05, HEAD_Z + 0.6)
+        brim.rotation_euler = (math.radians(-10), 0, math.radians(4))
+        M.apply_transform(brim)
+        M.smooth(brim, 40)
+        M.assign(brim, felt)
+        cone = M.lathe("WitchCone", [(0.86, 0.0), (0.72, 0.2), (0.54, 0.45), (0.36, 0.7), (0.2, 0.95), (0.06, 1.15), (0.0, 1.2)], 64)
+        # кончик колпака заломлен набок
+        M.deform(cone, lambda co: Vector((co.x + 0.62 * max(0.0, co.z / 1.2) ** 3, co.y + 0.1 * max(0.0, co.z / 1.2) ** 2,
+                                          co.z - 0.12 * max(0.0, co.z / 1.2) ** 4)))
+        cone.location = (0, 0.1, HEAD_Z + 0.62)
+        cone.rotation_euler = (math.radians(-10), 0, math.radians(4))
+        M.apply_transform(cone)
+        M.subdivide(cone, 1)
+        M.smooth(cone)
+        M.assign(cone, felt)
+        band = M.cylinder("WitchBand", 0.84, 0.18, 64)
+        band.location = (0, 0.1, HEAD_Z + 0.73)
+        band.rotation_euler = (math.radians(-10), 0, math.radians(4))
+        M.apply_transform(band)
+        M.smooth(band, 40)
+        M.assign(band, M.flat("WitchBandMat", (1.0, 0.55, 0.08), rough=0.35, coat=0.4))
+        buckle = M.box_mesh("Buckle", 0.26, 0.04, 0.2, 0.0)
+        buckle.location = (0.05, -0.8, HEAD_Z + 0.66)
+        buckle.rotation_euler = (math.radians(-10), 0, math.radians(4))
+        M.apply_transform(buckle)
+        M.bevel(buckle, 0.02, 2, 30)
+        M.assign(buckle, M.material("BuckleGold", [(0.0, (0.86, 0.6, 0.12)), (1.0, (1.0, 0.86, 0.4))], coord="z",
+                                    lo=HEAD_Z + 0.5, hi=HEAD_Z + 0.9, rough=0.2, metal=1.0))
+        parts += [brim, cone, band, buckle]
+    if style == "snowmaiden":
+        parts.append(hair_shell("Hair", hair_mat, low=-0.3, front_cut=0.32))
+        for i, (x, dz, rot) in enumerate(((-0.3, 0.47, 20), (0.0, 0.5, 0), (0.3, 0.47, -20))):
+            f = ellipsoid(f"Fringe{i}", (0.24, 0.1, 0.14), hair_mat)
+            f.rotation_euler = (0, math.radians(rot), 0)
+            at_face(f, x, dz, -0.06)
+            parts.append(f)
+        # две косы через плечи
+        for side in (-1, 1):
+            pts = [(side * 0.86, 0.1, HEAD_Z - 0.1), (side * 0.98, -0.25, HEAD_Z - 0.75), (side * 0.9, -0.62, 0.1),
+                   (side * 0.82, -0.78, -0.35)]
+            braid = M.tube(f"Braid{side}", pts, 0.16, taper=(1.0, 0.7))
+            M.push_normals(braid, lambda co, n: 0.03 * math.sin(co.z * 22))
+            M.smooth(braid)
+            M.assign(braid, hair_mat)
+            tie = ellipsoid(f"BraidTie{side}", (0.12, 0.12, 0.08), M.flat("TieMat", (0.30, 0.55, 0.95), rough=0.4))
+            tie.location = (side * 0.84, -0.74, -0.25)
+            parts += [braid, tie]
+        blue = M.material("Kokoshnik", [(0.0, (0.22, 0.42, 0.85)), (1.0, (0.55, 0.78, 1.0))], coord="z",
+                          lo=HEAD_Z + 0.3, hi=HEAD_Z + 1.4, rough=0.3, coat=0.6, sheen=0.3)
+        crown = M.sphere("Cap", 1.16, 64, 32)
+        crown.location = (0, 0.04, HEAD_Z + 0.05)
+        M.apply_transform(crown)
+        M.bisect(crown, (0, 0, HEAD_Z + 0.42), (0, 0, -1))
+        M.smooth(crown)
+        M.assign(crown, M.material("CapMat", [(0.0, (0.72, 0.84, 1.0)), (1.0, (0.92, 0.96, 1.0))], coord="z",
+                                   lo=HEAD_Z + 0.3, hi=HEAD_Z + 1.3, rough=0.4, sheen=0.5))
+        # кокошник: высокая полукруглая пластина надо лбом
+        arch = [(math.cos(math.pi * k / 24) * 0.92, 0.72 * math.sin(math.pi * k / 24)) for k in range(25)]
+        plate = M.profile_prism("Plate", arch, 0.12)
+        plate.rotation_euler = (math.radians(80), 0, 0)
+        plate.location = (0, -0.66, HEAD_Z + 0.5)
+        M.apply_transform(plate)
+        M.bevel(plate, 0.04, 3, 30)
+        M.smooth(plate, 40)
+        M.assign(plate, blue)
+        gold = M.material("Pearl", [(0.0, (0.92, 0.9, 1.0)), (1.0, (1.0, 1.0, 1.0))], coord="z", lo=HEAD_Z, hi=HEAD_Z + 1.3,
+                          rough=0.15, coat=0.8)
+        for k in range(11):
+            a = math.pi * (k + 0.5) / 11
+            pearl = ellipsoid(f"Pearl{k}", (0.055, 0.055, 0.055), gold, 16, 10)
+            # по кромке наклоненной пластины, чуть впереди нее
+            px, pz = 0.84 * math.cos(a), 0.64 * math.sin(a)
+            pearl.location = (px, -0.66 - 0.09 + pz * math.cos(math.radians(80)), HEAD_Z + 0.5 + pz * math.sin(math.radians(80)))
+            parts.append(pearl)
+        fur = M.torus("Fur", 1.12, 0.12, 64, 16)
+        fur.location = (0, 0.02, HEAD_Z + 0.45)
+        M.push_normals(fur, lambda co, n: 0.03 * M.fbm(co * 9))
+        M.smooth(fur)
+        M.assign(fur, M.material("FurMat", [(0.0, (0.88, 0.92, 1.0)), (1.0, (1.0, 1.0, 1.0))], coord="z",
+                                 lo=HEAD_Z + 0.3, hi=HEAD_Z + 0.6, rough=0.8, sheen=0.6, bump=0.3, bump_scale=40))
+        parts += [crown, plate, fur]
+    if style == "fairy":
+        parts.append(hair_shell("Hair", hair_mat, low=-0.75, front_cut=0.3, r=1.1))
+        for i, (x, dz, rot) in enumerate(((-0.46, 0.42, 35), (-0.16, 0.47, 22), (0.16, 0.46, 12), (0.44, 0.41, -20))):
+            f = ellipsoid(f"Fringe{i}", (0.24, 0.1, 0.15), hair_mat)
+            f.rotation_euler = (0, math.radians(rot), 0)
+            at_face(f, x, dz, -0.06)
+            parts.append(f)
+        # тиара: золотой ободок с зубцами и розовыми камнями
+        gold = M.material("Tiara", [(0.0, (0.86, 0.6, 0.12)), (1.0, (1.0, 0.88, 0.45))], coord="z",
+                          lo=HEAD_Z + 0.5, hi=HEAD_Z + 1.2, rough=0.2, metal=1.0)
+        band = M.torus("TiaraBand", 0.86, 0.05, 64, 12)
+        band.location = (0, 0.05, HEAD_Z + 0.86)
+        band.rotation_euler = (math.radians(-22), 0, 0)
+        M.apply_transform(band)
+        M.smooth(band)
+        M.assign(band, gold)
+        gem = M.material("Gem", [(0.0, (0.85, 0.15, 0.45)), (1.0, (1.0, 0.55, 0.8))], coord="z", lo=HEAD_Z + 0.7,
+                         hi=HEAD_Z + 1.5, rough=0.08, coat=1.0, transmission=0.2)
+        # зубцы короны над лбом: треугольники с камнем на вершине
+        for k, x in enumerate((-0.42, 0.0, 0.42)):
+            h = 0.42 if x == 0 else 0.3
+            spike = M.profile_prism(f"Spike{k}", [(-0.13, 0.0), (0.13, 0.0), (0.0, h)], 0.06)
+            spike.rotation_euler = (math.radians(70), 0, 0)
+            spike.location = (x, -0.72 + 0.18 * abs(x), HEAD_Z + 0.9 - 0.1 * abs(x))
+            M.apply_transform(spike)
+            M.bevel(spike, 0.02, 2, 30)
+            M.smooth(spike, 40)
+            M.assign(spike, gold)
+            g = ellipsoid(f"Gem{k}", (0.08, 0.06, 0.08), gem, 16, 10)
+            g.location = (x, -0.76 + 0.18 * abs(x) - h * math.cos(math.radians(70)) * 0.9,
+                          HEAD_Z + 0.9 - 0.1 * abs(x) + h * math.sin(math.radians(70)))
+            parts += [spike, g]
+        parts.append(band)
+        # леденец-заколка у виска
+        disc = M.cylinder("ClipCandy", 0.24, 0.07, 48)
+        disc.rotation_euler = (math.radians(90), 0, 0)
+        disc.location = (-0.86, -0.42, HEAD_Z + 0.42)
+        M.apply_transform(disc)
+        M.bevel(disc, 0.025, 3, 30)
+        M.smooth(disc, 40)
+        swirl = M.material("Swirl", [(0.0, (1.0, 1.0, 1.0)), (0.5, (0.35, 0.75, 1.0)), (1.0, (1.0, 1.0, 1.0))],
+                           coord="x", lo=-1.06, hi=-0.66, rough=0.1, coat=1.0)
+        M.assign(disc, swirl)
+        parts.append(disc)
+    if style in ("cowboy", "straw"):
+        parts.append(hair_shell("Hair", hair_mat, low=-0.3, front_cut=0.25))
+        if style == "cowboy":
+            hat = M.material("CowboyFelt", [(0.0, (0.36, 0.20, 0.09)), (1.0, (0.62, 0.40, 0.20))], coord="z",
+                             lo=HEAD_Z + 0.4, hi=HEAD_Z + 1.4, rough=0.55, sheen=0.4, coat=0.15)
+            band_col = (0.14, 0.08, 0.05)
+        else:
+            hat = M.material("Straw", [(0.0, (0.80, 0.62, 0.30)), (1.0, (1.0, 0.88, 0.55))], coord="z",
+                             lo=HEAD_Z + 0.4, hi=HEAD_Z + 1.4, rough=0.65, bump=0.35, bump_scale=60, bump_detail=8)
+            band_col = (0.80, 0.18, 0.14)
+        r_brim = 1.6 if style == "cowboy" else 1.55
+        brim = M.cylinder("HatBrim", r_brim, 0.06, 64)
+        curl = 0.32 if style == "cowboy" else 0.06
+        M.deform(brim, lambda co: Vector((co.x, co.y, co.z + curl * (co.x / r_brim) ** 2 - 0.05 * (co.y / r_brim))))
+        M.bevel(brim, 0.03, 3, 30)
+        brim.location = (0, 0.05, HEAD_Z + 0.6)
+        brim.rotation_euler = (math.radians(-8), 0, 0)
+        M.apply_transform(brim)
+        M.subdivide(brim, 1)
+        M.smooth(brim, 40)
+        M.assign(brim, hat)
+        crown = M.cylinder("HatCrown", 0.8, 0.72 if style == "cowboy" else 0.55, 64)
+        top = (0.72 if style == "cowboy" else 0.55) / 2
+        # вмятина сверху у ковбойской шляпы
+        if style == "cowboy":
+            M.deform(crown, lambda co: Vector((co.x, co.y, co.z - (0.16 * (1 - min(1, abs(co.x) / 0.8) ** 2) if co.z > top - 0.01 else 0))))
+        crown.location = (0, 0.08, HEAD_Z + 0.95)
+        crown.rotation_euler = (math.radians(-8), 0, 0)
+        M.apply_transform(crown)
+        M.bevel(crown, 0.12, 4, 30)
+        M.smooth(crown, 40)
+        M.assign(crown, hat)
+        band = M.cylinder("HatBand", 0.82, 0.14, 64)
+        band.location = (0, 0.07, HEAD_Z + 0.72)
+        band.rotation_euler = (math.radians(-8), 0, 0)
+        M.apply_transform(band)
+        M.smooth(band, 40)
+        M.assign(band, M.flat("HatBandMat", band_col, rough=0.4))
+        parts += [brim, crown, band]
+    if acc == "bandana":
+        red = M.material("Bandana", [(0.0, (0.62, 0.08, 0.08)), (1.0, (0.92, 0.18, 0.16))], coord="z", lo=0.0, hi=0.8,
+                         rough=0.5, sheen=0.4)
+        scarf = M.torus("Scarf", 0.42, 0.11, 48, 16)
+        scarf.location = (0, 0.02, 0.56)
+        M.smooth(scarf)
+        M.assign(scarf, red)
+        tri = M.profile_prism("ScarfTip", [(-0.34, 0.0), (0.34, 0.0), (0.0, -0.42)], 0.08)
+        tri.rotation_euler = (math.radians(90), 0, 0)
+        tri.location = (0, -0.5, 0.6)
+        M.apply_transform(tri)
+        M.bevel(tri, 0.03, 3, 30)
+        M.smooth(tri, 40)
+        M.assign(tri, red)
+        mus = arc_tube("Moustache", 0.0, HEAD_Z - 0.25, 0.42, -0.05, 0.065, hair_mat, y_off=-0.05)
+        parts += [scarf, tri, mus]
+    if acc == "freckles":
+        dots = M.flat("Freckle", (0.62, 0.36, 0.22), rough=0.5)
+        for side in (-1, 1):
+            for k, (dx, dz) in enumerate(((0.0, 0.0), (0.09, 0.05), (0.12, -0.05), (-0.06, -0.06))):
+                d = ellipsoid(f"Freckle{side}{k}", (0.025, 0.01, 0.025), dots, 12, 8)
+                at_face(d, side * (0.5 + dx), -0.14 + dz, 0.02)
+                parts.append(d)
+        # клетчатый платок на шее
+        scarf = M.torus("Scarf", 0.42, 0.1, 48, 16)
+        scarf.location = (0, 0.02, 0.56)
+        M.smooth(scarf)
+        M.assign(scarf, M.flat("FarmerScarf", (0.95, 0.75, 0.2), rough=0.5, sheen=0.3))
+        parts.append(scarf)
+
     if acc == "gourmet":
         gold = M.material("Monocle", [(0.0, (0.80, 0.55, 0.12)), (1.0, (1.0, 0.85, 0.40))], coord="z",
                           lo=HEAD_Z - 0.2, hi=HEAD_Z + 0.3, rough=0.2, metal=1.0)

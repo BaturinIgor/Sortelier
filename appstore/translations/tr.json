@@ -1,0 +1,34 @@
+{
+ "name": "Sortelier: Sırala ve Pişir",
+ "subtitle": "Sırala, pişir, servis et",
+ "keywords": "bulmaca,yemek,tarif,raf,mutfak,şef,restoran,eşleştirme,birleştir,zeka,aşçı,oyun,kafe,müşteri,casual",
+ "promo": "Yeni: Meksika Mutfağı ve Fransız Fırını, ayrıca kendi haritası, ürkütücü ikramları ve küçük bir cadı konuğuyla Halloween etkinliği!",
+ "description": "Sortelier, yemek temalı sıcacık bir sıralama bulmacası. Ürünleri mutfak rafları arasında sürükle, tariflere göre yemekler pişir ve tezgâhta bekleyen müşterilere servis yap.\n\nSADECE SIRALAMA, PİŞİR DE\nAynı üç ürün müşteriye gider, ama üç farklı malzeme bir yemeğe dönüşür: ekmek, köfte ve marul hamburger olur, pirinç, balık ve soya sosu suşi olur. Un hamura döner, hamur da pizzaya girer. Her hamle önemli.\n\nDÜNYANIN BEŞ MUTFAĞI\nAmerikan lokantası, Japon mutfağı, İtalyan trattoriası, Meksika kantini ve Fransız fırını: elle kontrol edilmiş 150 seviye, her mutfağın kendi ürünleri, müziği ve arka planı var.\n\nYOLDA YENİ ZORLUKLAR\nDondurulmuş ürünler, gizemli ürünler, bol bahşiş veren seçici Gurmeler, anahtar ürünle açılan kilitli raflar ve birbirine zincirlenmiş raflar.\n\nZAMANLAYICI YOK, STRES YOK\nMüşteriler asla gitmez. Hızlı servis yaparsan daha çok bahşiş bırakırlar, acele etmezsen de bahşiş vermeyi bırakırlar.\n\nHER GÜN YAPACAK BİR ŞEY VAR\nGünlük ve haftalık görevler, aylık madalya, ödüllü seri, şef yarışları ve kendi haritası, ikramları ve kostümlü konukları olan sezonluk etkinlikler.\n\nHEPSİNİ TOPLA\nYemek kitabını doldur, kart albümünü tamamla, başarımlar kazan ve mutfağını yeni arka planlarla süsle.\n\nSeviyeler arasında zorunlu reklam yok. Ödüllü reklamlar her zaman isteğe bağlıdır.",
+ "release_notes": "- Meksika Mutfağı ve Fransız Fırını: yeni ürünler, yemekler ve müziklerle 60 yeni seviye\n- Yeni engeller: anahtar ürünle açılan kilitler ve zincirli raflar\n- Sezonluk etkinliklerin artık kendi haritası, özel ikramları ve kostümlü bir konuğu var\n- Halloween Gecesi etkinliği",
+ "captions": {
+  "recipes": [
+   "Tarife göre pişir",
+   "Üç malzeme, bir yemek"
+  ],
+  "customers": [
+   "Her konuğa servis yap",
+   "Hızlı servis, bol bahşiş"
+  ],
+  "kitchens": [
+   "Dünya mutfakları",
+   "5 mutfak, 150 seviye"
+  ],
+  "events": [
+   "Sezonluk etkinlikler",
+   "Özel ikramlar ve kostümlü konuklar"
+  ],
+  "twists": [
+   "Akıllı zorluklar",
+   "Buz, anahtar ve zincirli raflar"
+  ],
+  "collect": [
+   "Yemek kitabını doldur",
+   "Yemekler, kartlar ve madalyalar"
+  ]
+ }
+}

@@ -639,6 +639,8 @@ S.update({
  "dish.sundae": ("Ice cream sundae", "Мороженое сандей"),
  "dish.kebab": ("Grilled kebabs", "Шашлычки"),
  "dish.charlotte": ("Apple charlotte", "Шарлотка"),
+ "album.book.mexico": ("Mexican cantina", "Мексиканская кантина"),
+ "album.book.bakery": ("French bakery", "Французская пекарня"),
 })
 
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))

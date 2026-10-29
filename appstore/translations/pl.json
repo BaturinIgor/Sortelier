@@ -1,0 +1,34 @@
+{
+ "name": "Sortelier: Sortuj i Gotuj",
+ "subtitle": "Układaj, gotuj i podawaj",
+ "keywords": "układanka,łamigłówka,gotowanie,jedzenie,przepisy,półki,kuchnia,restauracja,logiczna,casual,kucharz",
+ "promo": "Nowość: Kuchnia Meksykańska i Francuska Piekarnia oraz halloweenowe wydarzenie z własną mapą, upiornymi smakołykami i małą czarownicą wśród gości!",
+ "description": "Sortelier to przytulna gra logiczna o jedzeniu. Przeciągaj produkty między kuchennymi półkami, gotuj dania według przepisów i obsługuj klientów czekających przy ladzie.\n\nNIE TYLKO SORTUJ, ALE GOTUJ\nTrzy takie same produkty trafiają do klienta, ale trzy różne składniki zamieniają się w danie: bułka, kotlet i sałata dają burgera, ryż, ryba i sos sojowy dają sushi. Z mąki robi się ciasto, a ciasto ląduje w pizzy. Liczy się każdy ruch.\n\nPIĘĆ KUCHNI ŚWIATA\nAmerykański diner, japońska kuchnia, włoska trattoria, meksykańska cantina i francuska piekarnia: 150 ręcznie sprawdzonych poziomów, a każda kuchnia ma własne produkty, muzykę i tło.\n\nNOWE WYZWANIA PO DRODZE\nMrożone produkty, tajemnicze przedmioty, wybredni Smakosze z hojnymi napiwkami, półki zamknięte na kłódkę z produktem-kluczem i półki połączone łańcuchem.\n\nBEZ CZASOMIERZA, BEZ STRESU\nKlienci nigdy nie odchodzą. Obsłuż ich szybko, a zostawią więcej napiwku. Nie spiesz się, a po prostu przestaną go zostawiać.\n\nCODZIENNIE COŚ SIĘ DZIEJE\nDzienne i tygodniowe wyzwania, miesięczny medal, seria z nagrodami, wyścigi szefów kuchni i sezonowe wydarzenia z własną mapą, smakołykami i gośćmi w kostiumach.\n\nZBIERAJ WSZYSTKO\nWypełnij książkę kucharską, skompletuj album kart, zdobywaj osiągnięcia i urządzaj kuchnię nowymi tłami.\n\nŻadnych natrętnych reklam między poziomami. Reklamy z nagrodą są zawsze opcjonalne.",
+ "release_notes": "- Kuchnia Meksykańska i Francuska Piekarnia: 60 nowych poziomów, nowe produkty, dania i muzyka\n- Nowe przeszkody: kłódki z produktem-kluczem i półki na łańcuchach\n- Wydarzenia sezonowe mają teraz własną mapę ze specjalnymi smakołykami i gościem w kostiumie\n- Wydarzenie Noc Halloween",
+ "captions": {
+  "recipes": [
+   "Gotuj według przepisów",
+   "Trzy składniki, jedno danie"
+  ],
+  "customers": [
+   "Obsłuż każdego gościa",
+   "Szybciej to większy napiwek"
+  ],
+  "kitchens": [
+   "Kuchnie świata",
+   "5 kuchni, 150 poziomów"
+  ],
+  "events": [
+   "Wydarzenia sezonowe",
+   "Smakołyki i goście w kostiumach"
+  ],
+  "twists": [
+   "Sprytne utrudnienia",
+   "Lód, klucze i półki na łańcuchu"
+  ],
+  "collect": [
+   "Twoja książka kucharska",
+   "Dania, karty i medale"
+  ]
+ }
+}

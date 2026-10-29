@@ -1,0 +1,54 @@
+name: Generate levels
+
+# Генерация уровней на раннерах GitHub: решатель долгий, поэтому уровни делятся на части и считаются параллельно.
+# Запуск вручную; готовые JSON лежат в артефактах прогона, их собирает tools/levels/merge_ci.py.
+on:
+  workflow_dispatch:
+    inputs:
+      parts:
+        description: "Части через пробел: b4:91-105 b5:121-135 ev:halloween"
+        required: false
+        default: "b4:91-98 b4:99-105 b4:106-113 b4:114-120 b5:121-128 b5:129-135 b5:136-143 b5:144-150 ev:halloween ev:winter ev:sweets ev:bbq ev:autumn"
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      parts: ${{ steps.p.outputs.parts }}
+    steps:
+      - id: p
+        run: |
+          python3 -c "import json,sys; print('parts=' + json.dumps(sys.argv[1].split()))" "${{ github.event.inputs.parts }}" >> "$GITHUB_OUTPUT"
+
+  generate:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        part: ${{ fromJson(needs.plan.outputs.parts) }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate
+        run: |
+          part="${{ matrix.part }}"
+          kind="${part%%:*}"; spec="${part#*:}"
+          mkdir -p out
+          if [ "$kind" = "ev" ]; then
+            rm -f Sortelier/Resources/Data/events.json
+            python3 tools/levels/events.py "$spec"
+            cp Sortelier/Resources/Data/events.json "out/events_$spec.json"
+          else
+            biome="${kind#b}"; a="${spec%-*}"; b="${spec#*-}"
+            rm -f "Sortelier/Resources/Data/levels_$biome.json"
+            python3 tools/levels/generate.py --biome "$biome" $(seq "$a" "$b")
+            cp "Sortelier/Resources/Data/levels_$biome.json" "out/levels_${biome}_$a.json"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: levels-${{ strategy.job-index }}
+          path: out/

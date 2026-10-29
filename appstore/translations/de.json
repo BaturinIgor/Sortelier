@@ -1,0 +1,34 @@
+{
+ "name": "Sortelier: Sortieren & Kochen",
+ "subtitle": "Ordne, koche, serviere",
+ "keywords": "Puzzle,Denkspiel,Rätsel,Sortierspiel,Kochspiel,Essen,Rezepte,Regal,Küche,Restaurant,Merge,Casual",
+ "promo": "Neu: Mexikanische Küche und Französische Bäckerei, dazu ein Halloween-Event mit eigener Karte, gruseligen Leckereien und einem kleinen Hexen-Gast!",
+ "description": "Sortelier ist ein gemütliches Sortierpuzzle rund ums Essen. Zieh Produkte zwischen den Küchenregalen hin und her, koche Gerichte nach Rezept und bediene die Kundschaft, die am Tresen wartet.\n\nNICHT NUR SORTIEREN, SONDERN KOCHEN\nDrei gleiche Produkte gehen an einen Kunden, aber drei verschiedene Zutaten werden zu einem Gericht: Brötchen, Patty und Salat ergeben einen Burger, Reis, Fisch und Sojasauce ergeben Sushi. Aus Mehl wird Teig, und der Teig kommt auf die Pizza. Jeder Zug zählt.\n\nFÜNF KÜCHEN DER WELT\nAmerikanisches Diner, japanische Küche, italienische Trattoria, mexikanische Cantina und französische Bäckerei: 150 handgeprüfte Level, und jede Küche hat eigene Produkte, eigene Musik und einen eigenen Hintergrund.\n\nNEUE KNIFFE UNTERWEGS\nGefrorene Produkte, Überraschungsartikel, wählerische Gourmets mit großzügigem Trinkgeld, Regale mit Schloss, die sich nur mit einem Schlüsselprodukt öffnen, und aneinandergekettete Regale.\n\nKEIN TIMER, KEIN STRESS\nKunden gehen nie weg. Bediene sie schnell, und sie geben mehr Trinkgeld. Lass dir Zeit, und sie hören einfach auf, Trinkgeld zu geben.\n\nJEDEN TAG GIBT ES WAS ZU TUN\nTägliche und wöchentliche Herausforderungen, eine Monatsmedaille, eine Serie mit Belohnungen, Koch-Rennen und saisonale Events mit eigener Karte, Leckereien und verkleideten Gästen.\n\nSAMMLE ALLES\nFüll das Kochbuch, vervollständige das Kartenalbum, verdiene Erfolge und gestalte deine Küche mit neuen Hintergründen.\n\nKeine aufgezwungene Werbung zwischen den Leveln. Belohnungswerbung ist immer freiwillig.",
+ "release_notes": "- Mexikanische Küche und Französische Bäckerei: 60 neue Level, neue Produkte, Gerichte und Musik\n- Neue Hindernisse: Schlösser mit Schlüsselprodukt und aneinandergekettete Regale\n- Saisonale Events haben jetzt eine eigene Karte mit besonderen Leckereien und einem kostümierten Gast\n- Halloween-Nacht-Event",
+ "captions": {
+  "recipes": [
+   "Koch nach Rezept",
+   "Drei Zutaten, ein Gericht"
+  ],
+  "customers": [
+   "Bediene jeden Gast",
+   "Schneller, mehr Trinkgeld"
+  ],
+  "kitchens": [
+   "Küchen der Welt",
+   "5 Küchen, 150 Level"
+  ],
+  "events": [
+   "Saisonale Events",
+   "Leckereien und kostümierte Gäste"
+  ],
+  "twists": [
+   "Knifflige Hindernisse",
+   "Eis, Schlüssel, Kettenregale"
+  ],
+  "collect": [
+   "Füll dein Kochbuch",
+   "Gerichte, Karten und Medaillen"
+  ]
+ }
+}

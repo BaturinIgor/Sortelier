@@ -9,6 +9,8 @@ on:
       - "appstore/**"
       - "tools/**"
       - "art/**"
+      - ".github/workflows/levels.yml"
+      - ".github/workflows/store.yml"
   workflow_dispatch:
 
 permissions:

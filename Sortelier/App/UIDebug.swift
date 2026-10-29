@@ -93,11 +93,20 @@ extension PlayerProgress {
         for (i, card) in AlbumCatalog.cards.prefix(24).enumerated() { d.meta.album.cards[card.id] = i % 5 == 0 ? 2 : 1 }
         d.meta.album.stars = 18
         d.meta.achievementTiers = ["chef": 1]
+        // снимки для App Store: игрок в мексиканской кухне, открыто много блюд, идет ивент
+        if UIDebug.args.contains("-uiStore") {
+            for id in 1...100 { d.stars["\(id)"] = id % 7 == 0 ? 2 : 3 }
+            d.meta.biomes = [1, 2, 3, 4]
+            let catalog = Catalog.shared
+            d.discovered = catalog.items.filter { (1...4).contains($0.biome) }.map(\.id)
+                + catalog.dishes.filter { (1...4).contains($0.biome) }.map { "dish_" + $0.id }
+            d.meta.guests = ["autumn"]
+        }
         for event in EventCalendar.active(Date()) {
             var st = EventState()
-            st.points = 10
-            st.levels = 3
-            st.claimed = [0]
+            st.points = UIDebug.args.contains("-uiStore") ? 34 : 10
+            st.levels = UIDebug.args.contains("-uiStore") ? 7 : 3
+            st.claimed = UIDebug.args.contains("-uiStore") ? [0, 1, 2, 3, 4] : [0]
             d.meta.events[event.id] = st
         }
         d.meta.race.day = Day.key()

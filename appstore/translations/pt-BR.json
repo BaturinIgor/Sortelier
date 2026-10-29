@@ -1,0 +1,34 @@
+{
+ "name": "Sortelier: Organize e Cozinhe",
+ "subtitle": "Arrume, cozinhe e sirva",
+ "keywords": "quebra-cabeça,puzzle,culinária,comida,receitas,prateleiras,chef,restaurante,casual,lógica,combinar",
+ "promo": "Novidade: Cozinha Mexicana e Padaria Francesa, além de um evento de Halloween com mapa próprio, doces assustadores e uma bruxinha convidada!",
+ "description": "Sortelier é um quebra-cabeça aconchegante sobre comida. Arraste produtos entre as prateleiras da cozinha, prepare pratos seguindo receitas e atenda os clientes que esperam no balcão.\n\nNÃO É SÓ ORGANIZAR, É COZINHAR\nTrês produtos iguais vão para um cliente, mas três ingredientes diferentes viram um prato: pão, carne e alface fazem um hambúrguer; arroz, peixe e shoyu fazem sushi. A farinha vira massa e a massa vai para a pizza. Cada jogada conta.\n\nCINCO COZINHAS DO MUNDO\nLanchonete americana, cozinha japonesa, trattoria italiana, cantina mexicana e padaria francesa: 150 níveis revisados à mão, e cada cozinha tem seus próprios produtos, música e cenário.\n\nNOVAS REVIRAVOLTAS NO CAMINHO\nProdutos congelados, itens misteriosos, Gourmets exigentes com gorjetas generosas, prateleiras trancadas com um produto-chave e prateleiras acorrentadas.\n\nSEM CRONÔMETRO, SEM ESTRESSE\nOs clientes nunca vão embora. Atenda rápido e eles dão mais gorjeta; se preferir ir com calma, eles simplesmente deixam de dar.\n\nTODO DIA TEM ALGO PARA FAZER\nDesafios diários e semanais, uma medalha mensal, uma sequência com recompensas, corridas de chefs e eventos sazonais com mapa próprio, guloseimas e convidados fantasiados.\n\nCOLECIONE TUDO\nComplete o livro de receitas, preencha o álbum de cartas, ganhe conquistas e decore sua cozinha com novos cenários.\n\nSem anúncios forçados entre os níveis. Anúncios com recompensa são sempre opcionais.",
+ "release_notes": "- Cozinha Mexicana e Padaria Francesa: 60 novos níveis, com novos produtos, pratos e músicas\n- Novos obstáculos: cadeados com produto-chave e prateleiras acorrentadas\n- Os eventos sazonais agora têm mapa próprio, com guloseimas especiais e um convidado fantasiado\n- Evento Noite de Halloween",
+ "captions": {
+  "recipes": [
+   "Cozinhe com receitas",
+   "Três ingredientes, um prato"
+  ],
+  "customers": [
+   "Atenda cada cliente",
+   "Mais rápido, mais gorjeta"
+  ],
+  "kitchens": [
+   "Cozinhas do mundo",
+   "5 cozinhas, 150 níveis"
+  ],
+  "events": [
+   "Eventos sazonais",
+   "Guloseimas e convidados fantasiados"
+  ],
+  "twists": [
+   "Desafios espertos",
+   "Gelo, chaves e prateleiras com corrente"
+  ],
+  "collect": [
+   "Seu livro de receitas",
+   "Pratos, cartas e medalhas"
+  ]
+ }
+}

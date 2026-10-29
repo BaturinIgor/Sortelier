@@ -57,7 +57,7 @@ struct AlbumBook: Identifiable {
     let reward: Reward
 }
 
-/// Альбом: 9 книг по 9-12 карточек, всего 84. Сезон длится календарный месяц.
+/// Альбом: 11 книг по 9-12 карточек, всего 106. Сезон длится календарный месяц.
 enum AlbumCatalog {
     private static let raw: [(key: String, cards: [(String, Int)])] = [
         ("burger", [("bun", 1), ("lettuce", 1), ("tomato", 1), ("ketchup", 1), ("cheese", 2), ("patty", 2), ("fries", 2),
@@ -78,7 +78,12 @@ enum AlbumCatalog {
                    ("dish_bruschetta", 3), ("dish_caprese", 4), ("dish_pizza", 5), ("gen_oven", 4)]),
         ("guests", [("customer_0_happy", 1), ("customer_1_happy", 1), ("customer_2_happy", 1), ("customer_3_happy", 2),
                     ("customer_4_happy", 2), ("customer_5_happy", 2), ("customer_6_happy", 3), ("customer_7_happy", 3),
-                    ("customer_8_happy", 3), ("customer_9_happy", 4), ("shelf_gold", 4), ("customer_10_happy", 5)])
+                    ("customer_8_happy", 3), ("customer_9_happy", 4), ("shelf_gold", 4), ("customer_10_happy", 5)]),
+        // новые книги идут после гостей: номера старых книг (полученные награды) не сдвигаются
+        ("mexico", [("masa", 1), ("tortilla", 1), ("beans", 1), ("chili", 1), ("lime", 2), ("salsa", 2), ("nachos", 2),
+                    ("churros", 3), ("dish_guacamole", 3), ("dish_taco", 4), ("dish_burrito", 5)]),
+        ("bakery", [("butter", 1), ("sugar", 1), ("strawberry", 1), ("cream", 2), ("chocolate", 2), ("macaron", 2),
+                    ("madeleine", 3), ("canele", 3), ("dish_croissant", 3), ("dish_eclair", 4), ("dish_tart", 5)])
     ]
 
     static let books: [AlbumBook] = raw.enumerated().map { i, b in
@@ -99,6 +104,8 @@ enum AlbumCatalog {
         case 5: return Reward(coins: 600, unlimitedMinutes: 60)
         case 6: return Reward(coins: 600, boosters: [.undo: 2, .shuffle: 2])
         case 7: return Reward(coins: 800, unlimitedMinutes: 120, energy: 60)
+        case 9: return Reward(coins: 800, boosters: [.hint: 2, .pause: 2])
+        case 10: return Reward(coins: 900, unlimitedMinutes: 120)
         default: return Reward(coins: 1000, boosters: [.hint: 2, .undo: 2, .shuffle: 2, .shelf: 2, .pause: 2])
         }
     }
