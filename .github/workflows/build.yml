@@ -5,6 +5,12 @@ on:
     branches: [main, dev]
     paths-ignore:
       - "README.md"
+      - "config/**"
+      - "appstore/**"
+      - "tools/**"
+      - "art/**"
+      - ".github/workflows/levels.yml"
+      - ".github/workflows/store.yml"
   workflow_dispatch:
 
 permissions:

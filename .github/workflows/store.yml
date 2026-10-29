@@ -1,0 +1,82 @@
+name: Store screenshots
+
+# Снимки для App Store: отладочная сборка на самом большом iPhone, все языки, по 6 экранов.
+# Запуск вручную (workflow_dispatch). Снимки уходят в ветку ci-store, подписи и рамку добавляет
+# tools/appstore/build.py.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  shots:
+    runs-on: macos-26
+    timeout-minutes: 80
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Boot simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)['devices']
+          c = [x for k, v in d.items() if 'iOS' in k for x in v if x['name'].startswith('iPhone') and 'Pro Max' in x['name']]
+          c.sort(key=lambda x: x['name'])
+          print(c[-1]['udid'] if c else '')
+          ")
+          echo "Simulator: $UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          # часы 9:41, полная батарея и сеть на снимках
+          xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3 || true
+
+      - name: Build for simulator
+        run: |
+          set +e
+          xcodebuild -project Sortelier.xcodeproj -scheme Sortelier -configuration Debug -sdk iphonesimulator \
+            -destination "id=${{ steps.sim.outputs.udid }}" -derivedDataPath build CODE_SIGNING_ALLOWED=NO build > build.log 2>&1
+          status=$?
+          grep -E "error:" build.log | sort -u | head -50
+          exit $status
+
+      - name: Take screenshots
+        run: |
+          UDID="${{ steps.sim.outputs.udid }}"
+          xcrun simctl install "$UDID" build/Build/Products/Debug-iphonesimulator/Sortelier.app
+          mkdir -p store
+          shoot() {
+            name="$1"; shift
+            xcrun simctl terminate "$UDID" com.personal.sortelier >/dev/null 2>&1 || true
+            xcrun simctl launch "$UDID" com.personal.sortelier -uiDemo -uiNoIntro -uiStore "$@" >/dev/null
+            sleep 8
+            xcrun simctl io "$UDID" screenshot "store/$name.png" >/dev/null 2>&1
+            echo "$name"
+          }
+          for lang in en ru es pt-BR de fr it tr pl id vi th hi ar ja ko zh-Hans zh-Hant; do
+            shoot "${lang}_recipes" -uiLang $lang -uiLevel 25 -uiAutoplay 5
+            shoot "${lang}_customers" -uiLang $lang -uiLevel 94 -uiAutoplay 4
+            shoot "${lang}_kitchens" -uiLang $lang -uiScreen map
+            shoot "${lang}_events" -uiLang $lang -uiScreen eventmap
+            shoot "${lang}_twists" -uiLang $lang -uiLevel 133 -uiAutoplay 3
+            shoot "${lang}_collect" -uiLang $lang -uiScreen book
+          done
+          ls store | wc -l
+
+      - name: Publish screenshots
+        run: |
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout --orphan ci-store
+          git rm -rf --cached . > /dev/null
+          git add -f store/
+          git commit -q -m "Store screenshots run ${{ github.run_number }} for ${{ github.sha }}"
+          git push -q -f origin ci-store
