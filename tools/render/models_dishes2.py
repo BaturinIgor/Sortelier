@@ -739,24 +739,6 @@ def raspberry_sh(name):
     return sh.mat
 
 
-def currant_cluster(name, mat, stem_mat, n=4, r=0.045, seed=0):
-    rnd = random.Random(seed)
-    parts = []
-    pts = [(0.0, 0.0, 0.0)]
-    for k in range(n):
-        a = rnd.uniform(0, 2 * math.pi)
-        p = Vector((0.03 * k + 0.02, 0.06 * math.cos(a), 0.0))
-        b = sphere(f"{name}B{k}", r * rnd.uniform(0.9, 1.1), 24, 16)
-        b.location = p
-        assign(smooth(b), mat)
-        parts.append(b)
-        pts.append(tuple(p + Vector((0, 0, r * 0.9))))
-    st = EV.sweep(f"{name}Stem", EV.spline([(-0.06, 0, r * 1.3), (0.02, 0, r * 1.5), (0.08 + 0.03 * n, 0.01, r * 1.4)], 6),
-                  0.008, segs=8, step=0.01)
-    assign(st, stem_mat)
-    return parts + [st]
-
-
 def mint_mat(name):
     return RM.leaf_shader(name, [(0.0, (0.46, 0.80, 0.30)), (0.4, (0.32, 0.70, 0.20)), (1.0, (0.22, 0.58, 0.12))],
                           (0.14, 0.46, 0.08), (0.62, 0.90, 0.44), N=5.0, K=1.2, raised=False, rough=0.34, sss=0.3,
@@ -791,169 +773,313 @@ def cream_sh(name, lo=(0.95, 0.92, 0.86), hi=(1.0, 0.99, 0.96)):
     return sh.mat
 
 
-# MARK: - Шарлотка (шарлот рюс): савоярди по кругу, мусс, ягоды, лента с бантом
+# MARK: - Шарлотка (яблочный бисквит): кольцо яблочных долек в корочке, сахарная пудра, вырезанный кусок
 
-def ladyfinger_sh(name):
-    sh = Sh(name, rough=0.5, sss=0.3, sss_radius=(1.0, 0.7, 0.4), sss_scale=0.05, coat=0.15, coat_rough=0.3)
-    _, ny, _ = sh.xyz("Normal")
-    _, _, z = sh.xyz()
-    v = jitter_vec(sh, 9.0)
-    out = sh.remap(ny, -0.2, 0.7)
-    base = sh.ramp(out, [(0.0, (1.0, 0.93, 0.74)), (0.45, (0.99, 0.82, 0.50)), (1.0, (0.92, 0.62, 0.28))])
-    brown = sh.remap(sh.noise(v, 3.0, 3), 0.55, 0.72, 0.0, 0.5)
-    ends = sh.math("MAXIMUM", sh.remap(z, 0.16, 0.04), sh.remap(z, 0.80, 0.93))
-    base = sh.mix(sh.math("MULTIPLY", sh.math("MAXIMUM", brown, sh.math("MULTIPLY", ends, 0.6)), out), base,
-                  (0.80, 0.48, 0.18))
-    dots = sh.voronoi(v, 55.0, "F1")
-    sugar = sh.math("MULTIPLY", sh.remap(dots, 0.14, 0.07), sh.remap(ny, 0.0, 0.4))
-    base = sh.mix(sugar, base, (1.0, 1.0, 0.97))
-    sh.color(base)
-    sh.set("Roughness", sh.math("ADD", 0.52, sh.math("MULTIPLY", sugar, -0.4)))
-    sh.bump(sugar, 0.35, 0.006)
-    sh.bump(sh.noise(v, 18, 4), 0.15, 0.006)
+def sharlotka_crust_sh(name):
+    """Матовая золотисто-коричневая корочка с трещинками; сверху мягкая сахарная пудра, к центру гуще."""
+    sh = Sh(name, rough=0.72, sss=0.2, sss_radius=(1.0, 0.7, 0.35), sss_scale=0.04)
+    x, y, _ = sh.xyz()
+    _, _, nz = sh.xyz("Normal")
+    v = jitter_vec(sh, 3.0)
+    top = sh.remap(nz, 0.5, 0.85)
+    tc = sh.ramp(sh.noise(v, 3.0, 4), [(0.25, (0.90, 0.68, 0.40)), (0.5, (0.82, 0.54, 0.26)), (0.75, (0.72, 0.43, 0.18))])
+    cr = sh.noise(v, 3.4, 4, 0.55, distortion=0.6)
+    cracks = sh.math("MULTIPLY", sh.remap(sh.math("ABSOLUTE", sh.math("SUBTRACT", cr, 0.5)), 0.022, 0.006),
+                     sh.remap(sh.noise(v, 1.8, 2), 0.36, 0.5))
+    tc = sh.mix(sh.math("MULTIPLY", cracks, 0.85), tc, (0.56, 0.32, 0.12))
+    rr = sh.vmath("LENGTH", sh.combine(x, y, 0.0))
+    dense = sh.remap(rr, 0.75, 0.15)
+    patch = sh.remap(sh.noise(v, 5.0, 5), 0.46, 0.64)
+    sugar = sh.math("MULTIPLY", sh.math("MULTIPLY", sh.math("ADD", sh.math("MULTIPLY", dense, 0.6), 0.25), patch), top)
+    sugar = sh.math("MINIMUM", sh.math("MULTIPLY", sugar, 1.6), 1.0)
+    tc = sh.mix(sugar, tc, (0.99, 0.98, 0.96))
+    side = sh.ramp(sh.remap(nz, -1.0, 0.5, smooth=False), [(0.0, (0.56, 0.32, 0.12)), (0.4, (0.72, 0.44, 0.18)),
+                                                          (0.8, (0.84, 0.56, 0.26)), (1.0, (0.88, 0.62, 0.32))])
+    bub = sh.remap(sh.voronoi(v, 34.0, "F1"), 0.1, 0.04, 0.0, 0.5)
+    side = sh.mix(bub, side, (0.62, 0.36, 0.14))
+    col = sh.mix(top, side, tc)
+    sh.color(col)
+    sh.set("Roughness", sh.math("ADD", 0.72, sh.math("MULTIPLY", sugar, 0.2)))
+    sh.bump(sh.math("MULTIPLY", cracks, top), 0.55, 0.012, invert=True)
+    sh.bump(sh.math("MULTIPLY", sugar, sh.noise(v, 60, 3)), 0.25, 0.003)
+    sh.bump(sh.noise(v, 24, 4), 0.18, 0.004)
     return sh.mat
 
 
-def ladyfinger(name, L, W, T, mat, seed=0):
-    def rfn(t):
-        s = abs(2 * t - 1)
-        return W * max(0.0, 1 - s ** 7) ** 0.5 * (0.9 + 0.1 * s ** 2)
-    ob = RM.lathe_fn(name, rfn, 0.0, L, 60, 40)
-
-    def shp(co):
-        y = co.y * (T / W) * (1.0 if co.y > 0 else 0.55)
-        return Vector((co.x * (1 + 0.03 * fbm(co * 6 + Vector((seed, 0, 0)))), y, co.z))
-    deform(ob, shp)
-    push_normals(ob, lambda co, n: 0.004 * fbm(co * 14 + Vector((0, seed, 0))))
-    smooth(ob)
-    return assign(ob, mat)
-
-
-def ribbon_sh(name, c=(0.86, 0.18, 0.28)):
-    sh = Sh(name, rough=0.3, coat=0.35, coat_rough=0.15, sheen=0.6, sheen_rough=0.25)
+def sharlotka_crumb_sh(name, H):
+    """Срез: теплый кремово-бежевый бисквит, много круглых пор разного размера, книзу темнее;
+    мягкие округлые кусочки яблока с бледной мякотью и тонкой красной кожицей по краю."""
+    sh = Sh(name, rough=0.7, sss=0.3, sss_radius=(1.0, 0.8, 0.5), sss_scale=0.04)
     _, _, z = sh.xyz()
-    stripes = sh.math("PINGPONG", sh.math("MULTIPLY", z, 60.0), 0.5)
-    dark = tuple(x * 0.78 for x in c)
-    sh.color(sh.mix(sh.math("MULTIPLY", sh.remap(stripes, 0.1, 0.3), 0.25), c, dark))
+    v = jitter_vec(sh, 2.0)
+    col = sh.ramp(sh.remap(z, 0.0, H, smooth=False), [(0.0, (0.88, 0.68, 0.40)), (0.14, (0.96, 0.82, 0.56)),
+                                                      (0.5, (1.0, 0.90, 0.66)), (1.0, (0.99, 0.88, 0.62))])
+    pores = None
+    for sc, r0, r1, keep in ((16.0, 0.30, 0.20, 0.62), (32.0, 0.28, 0.18, 0.45), (64.0, 0.26, 0.15, 0.2),
+                             (120.0, 0.22, 0.12, 0.0)):
+        vv = sh.mapping(v, loc=(sc * 0.013, sc * 0.007, sc * 0.011))
+        d = sh.voronoi(vv, sc, "F1")
+        cc = sh.xyz(sh.voronoi(vv, sc, "F1", 1.0, "Color"))[0]
+        p_ = sh.remap(d, r0, r1)
+        if keep:
+            p_ = sh.math("MULTIPLY", p_, sh.remap(cc, keep, keep + 0.05))
+        pores = p_ if pores is None else sh.math("MAXIMUM", pores, p_)
+    # яблоки: округлые ячейки с искажением, примерно четверть
+    dv = sh.vmath("ADD", v, sh.vmath("SCALE", sh.vmath("SUBTRACT", sh.noise(v, 3.5, 2, out=1), (0.5, 0.5, 0.5)),
+                                     scale=0.20))
+    ad = sh.voronoi(dv, 4.2, "F1")
+    ac = sh.xyz(sh.voronoi(dv, 4.2, "F1", 1.0, "Color"))[0]
+    sel = sh.remap(ac, 0.66, 0.70)
+    apple = sh.math("MULTIPLY", sh.remap(ad, 0.33, 0.30), sel)
+    edge = sh.math("MULTIPLY", sh.math("MULTIPLY", sh.remap(ad, 0.355, 0.335), sh.remap(ad, 0.29, 0.31)), sel)
+    skin = sh.math("MULTIPLY", edge, sh.remap(sh.noise(dv, 2.0, 2), 0.40, 0.46))
+    pores = sh.math("MULTIPLY", pores, sh.math("SUBTRACT", 1.0, sh.math("MAXIMUM", apple, edge)))
+    col = sh.mix(sh.math("MULTIPLY", pores, 0.75), col, (0.86, 0.68, 0.42))
+    acol = sh.ramp(sh.noise(v, 8, 3), [(0.3, (0.98, 0.94, 0.72)), (0.7, (0.96, 0.88, 0.58))])
+    col = sh.mix(apple, col, acol)
+    col = sh.mix(sh.math("MULTIPLY", edge, 0.55), col, (0.90, 0.68, 0.34))
+    col = sh.mix(skin, col, (0.74, 0.12, 0.10))
+    sh.color(col)
+    sh.set("Roughness", sh.math("ADD", 0.7, sh.math("MULTIPLY", apple, -0.4)))
+    sh.bump(pores, 0.8, 0.008, invert=True)
+    sh.bump(sh.noise(v, 30, 4), 0.2, 0.004)
+    return sh.mat
+
+
+def caramel_apple_sh(name, r):
+    """Запеченная долька: бледная мякоть в центре, янтарная карамель к краю, легкий глянец и пудра сверху."""
+    sh = Sh(name, rough=0.3, sss=0.45, sss_radius=(1.0, 0.85, 0.45), sss_scale=0.03, coat=0.45, coat_rough=0.12)
+    x, y, _ = sh.xyz()
+    _, _, nz = sh.xyz("Normal")
+    v = jitter_vec(sh, 5.0)
+    rr = sh.math("DIVIDE", sh.vmath("LENGTH", sh.combine(x, y, 0.0)), r)
+    col = sh.ramp(rr, [(0.0, (0.99, 0.92, 0.68)), (0.55, (0.98, 0.84, 0.52)), (0.85, (0.90, 0.62, 0.26)),
+                       (1.0, (0.80, 0.48, 0.16))])
+    col = sh.mix(sh.math("MULTIPLY", sh.remap(sh.noise(v, 9, 3), 0.5, 0.7), 0.4), col, (0.86, 0.56, 0.20))
+    sugar = sh.math("MULTIPLY", sh.remap(sh.noise(v, 14, 4), 0.55, 0.68), sh.math("ABSOLUTE", nz))
+    col = sh.mix(sh.math("MULTIPLY", sugar, 0.7), col, (1.0, 0.99, 0.97))
+    sh.color(col)
+    sh.bump(sh.noise(v, 30, 3), 0.1, 0.003)
+    return sh.mat
+
+
+def apple_flesh_sh(name):
+    sh = Sh(name, rough=0.2, sss=0.5, sss_radius=(1.0, 0.95, 0.6), sss_scale=0.04, coat=0.7, coat_rough=0.05)
+    sh.color(sh.ramp(sh.noise(jitter_vec(sh, 4), 12, 3), [(0.3, (1.0, 0.96, 0.80)), (0.7, (0.99, 0.92, 0.70))]))
+    sh.bump(sh.noise(None, 40, 3), 0.08, 0.003)
+    return sh.mat
+
+
+def apple_skin_sh(name):
+    sh = Sh(name, rough=0.16, sss=0.3, sss_radius=(1.0, 0.25, 0.15), coat=0.85, coat_rough=0.04)
+    v = jitter_vec(sh, 3)
+    col = sh.ramp(sh.noise(sh.mapping(v, scale=(1.0, 1.0, 5.0)), 4.0, 3), [(0.3, (0.66, 0.04, 0.07)),
+                                                                          (0.6, (0.84, 0.10, 0.09)), (0.8, (0.92, 0.36, 0.14))])
+    sh.color(col)
+    return sh.mat
+
+
+def cake_sector(name, R, H, A0, A1, mats, na=200, ns=56, nzr=36, nu=24, p=3.0, seed=0.0):
+    """Сектор круглого бисквита от угла A0 до A1 со скругленным профилем, куполом и трещинами сверху.
+    Срезы - отдельные сетки (гладкие, с мелкой неровностью мякиша), материал 1; корка - материал 0."""
+    def rmax(z):
+        q = abs(2 * z / H - 1)
+        return R * max(0.0, 1 - q ** p) ** (1 / p)
+
+    def prof(t):
+        sgn = 1 if t >= 0 else -1
+        c, sn = math.cos(t), abs(math.sin(t))
+        return R * (c ** (2 / p) if c > 0 else 0.0), H / 2 + sgn * (H / 2) * sn ** (2 / p)
+    profile = [prof(-math.pi / 2 + math.pi * k / ns) for k in range(ns + 1)]
+    off = Vector((seed, 0.0, 0.0))
+
+    def place(r, z, a):
+        x, y = r * math.cos(a), r * math.sin(a)
+        rr = r / R
+        co = Vector((x, y, z))
+        if z > H * 0.55:
+            w = ss(0.55, 0.85, z / H)
+            z += w * (0.06 * max(0.0, 1 - rr * rr) + 0.022 * fbm(co * 2.4 + off))
+            c = abs(noise.noise(co * 3.4 + off) * 0.5)
+            z -= w * 0.012 * max(0.0, 1 - c / 0.03) * (1 - ss(0.85, 1.0, rr))
+        k = 1.0 - 0.035 * max(0.0, (H / 2 - z) / (H / 2)) + 0.012 * fbm(co * 3 + Vector((3, 0, 0)) + off)
+        return Vector((x * k, y * k, z))
+    verts, faces, mi = [], [], []
+    m = len(profile)
+    for i in range(na + 1):
+        a = A0 + (A1 - A0) * i / na
+        for r, z in profile:
+            verts.append(place(r, z, a))
+    for i in range(na):
+        for j in range(m - 1):
+            q0, q1 = i * m + j, (i + 1) * m + j
+            faces.append((q0, q1, q1 + 1, q0 + 1))
+            mi.append(0)
+    for a, out_sign in ((A0, -1), (A1, 1)):
+        nrm = Vector((-math.sin(a), math.cos(a), 0.0)) * out_sign
+        base = len(verts)
+        for jz in range(nzr + 1):
+            z = H * (0.002 + 0.996 * jz / nzr)
+            rm = rmax(z)
+            for iu in range(nu + 1):
+                u = iu / nu
+                pnt = place(rm * u, z, a)
+                inner = (0 < iu < nu) and (0 < jz < nzr)
+                if inner:
+                    pnt += nrm * (0.006 * fbm(pnt * 9 + off) + 0.003 * fbm(pnt * 25 + off))
+                verts.append(pnt)
+        for jz in range(nzr):
+            for iu in range(nu):
+                q = base + jz * (nu + 1) + iu
+                f = (q, q + 1, q + nu + 2, q + nu + 1)
+                # обход так, чтобы нормаль смотрела наружу (по nrm)
+                e1 = verts[f[1]] - verts[f[0]]
+                e2 = verts[f[3]] - verts[f[0]]
+                if e1.cross(e2).dot(nrm) < 0:
+                    f = tuple(reversed(f))
+                faces.append(f)
+                mi.append(1)
+    ob = from_data(name, verts, faces)
+    for mt in mats:
+        ob.data.materials.append(mt)
+    for poly, k in zip(ob.data.polygons, mi):
+        poly.material_index = k
+    nsv = (na + 1) * m
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bm.verts.ensure_lookup_table()
+    side_verts = [bm.verts[k] for k in range(nsv)]
+    bmesh.ops.remove_doubles(bm, verts=side_verts, dist=1e-6)
+    bmesh.ops.recalc_face_normals(bm, faces=[f for f in bm.faces if f.material_index == 0])
+    bm.to_mesh(ob.data)
+    bm.free()
+    ob.data.update()
+    smooth(ob)
+    return ob
+
+
+def apple_piece_sh(name, sx):
+    sh = Sh(name, rough=0.3, sss=0.5, sss_radius=(1.0, 0.9, 0.5), sss_scale=0.03, coat=0.4, coat_rough=0.1)
+    x, _, _ = sh.xyz()
+    col = sh.ramp(sh.noise(jitter_vec(sh, 4), 12, 3), [(0.3, (0.98, 0.93, 0.70)), (0.7, (0.95, 0.85, 0.54))])
+    col = sh.mix(sh.math("MULTIPLY", sh.remap(sh.math("ABSOLUTE", x), sx * 0.6, sx * 0.8), 0.6), col, (0.88, 0.62, 0.28))
+    col = sh.mix(sh.remap(x, sx * 0.45, sx * 0.58), col, (0.76, 0.12, 0.10))
+    sh.color(col)
     return sh.mat
 
 
 def dish_charlotte():
-    plate_ = flat_plate("ChPlate", 1.12, [(0.0, (0.97, 0.96, 0.94)), (0.84, (1.0, 1.0, 0.99)), (0.9, (0.96, 0.84, 0.86)),
-                                         (0.95, (0.94, 0.78, 0.82)), (1.0, (0.99, 0.97, 0.96))], rim=0.06, h=0.06)
-    parts = [plate_]
-    base = 0.06
-    Rr, N, L = 0.80, 24, 0.98
-    W = math.pi * Rr / N * 1.02
-    T = 0.075
-    lf_mat = ladyfinger_sh("ChLady")
-    rnd = random.Random(3)
-    for i in range(N):
-        a = 2 * math.pi * i / N
-        f = ladyfinger(f"ChLady{i}", L * rnd.uniform(0.97, 1.02), W, T, lf_mat, i)
-        f.matrix_world = (Matrix.Translation((Rr * math.cos(a), Rr * math.sin(a), base))
-                          @ Matrix.Rotation(a - math.pi / 2, 4, "Z") @ Matrix.Rotation(rnd.uniform(-0.03, 0.03), 4, "X"))
-        parts.append(f)
-    # мусс внутри и бисквитное дно
-    fill_top = base + L * 0.84
-    mousse = RM.lathe_fn("ChMousse", lambda t: Rr - 0.01 if t < 0.98 else (Rr - 0.01) * (1 - (t - 0.98) * 30),
-                         base + 0.02, fill_top, 40, 128)
-    deform(mousse, lambda co: Vector((co.x, co.y, co.z + 0.04 * max(0.0, 1 - (co.x ** 2 + co.y ** 2) / Rr ** 2)
-                                      * (co.z > fill_top - 0.03))))
-    smooth(mousse)
-    ms = Sh("ChMousseMat", rough=0.35, sss=0.6, sss_radius=(1.0, 0.8, 0.8), sss_scale=0.06, coat=0.3)
-    ms.color(ms.ramp(ms.noise(None, 4, 3), [(0.3, (0.99, 0.84, 0.84)), (0.7, (1.0, 0.90, 0.88))]))
-    ms.bump(ms.noise(None, 12, 3), 0.05, 0.01)
-    assign(mousse, ms.mat)
-    parts.append(mousse)
-    # лента с бантом
-    rib_mat = ribbon_sh("ChRibbon")
-    rz0, rz1 = base + 0.30, base + 0.46
-    ro = Rr + T + 0.008
-    band = lathe("ChBand", [(ro - 0.012, rz0), (ro + 0.006, rz0 + 0.004), (ro + 0.012, rz0 + 0.02), (ro + 0.012, rz1 - 0.02),
-                            (ro + 0.006, rz1 - 0.004), (ro - 0.012, rz1)], 192)
-    smooth(band)
-    assign(band, rib_mat)
-    parts.append(band)
-    fa = -math.pi / 2 - math.radians(20)
-    fdir = Vector((math.cos(fa), math.sin(fa), 0))
-    side = Vector((-fdir.y, fdir.x, 0))
-    c0 = fdir * (ro + 0.03) + Vector((0, 0, (rz0 + rz1) / 2))
-    bow = []
-    for sgn in (-1, 1):
-        loop = [c0 + side * sgn * (0.17 * (1 - math.cos(th)) * 0.5) + fdir * (0.05 * math.sin(th) ** 2 + 0.01)
-                + Vector((0, 0, 0.09 * math.sin(th))) for th in [2 * math.pi * k / 40 for k in range(41)]]
-        lp = EV.sweep(f"ChBow{sgn}", [tuple(p) for p in loop], 0.03, segs=14, step=0.01, section=(0.35, 1.0),
-                      up=tuple(fdir))
-        tail = EV.spline([tuple(c0), tuple(c0 + side * sgn * 0.06 + fdir * 0.03 + Vector((0, 0, -0.08))),
-                          tuple(c0 + side * sgn * 0.12 + fdir * 0.05 + Vector((0, 0, -0.2))),
-                          tuple(c0 + side * sgn * 0.16 + fdir * 0.06 + Vector((0, 0, -0.27)))], 6)
-        tl = EV.sweep(f"ChTail{sgn}", tail, 0.032, segs=14, step=0.01, section=(0.3, 1.0), up=tuple(fdir))
-        bow += [lp, tl]
-    knot = sphere("ChKnot", 0.05, 24, 16)
-    knot.scale = (1.0, 0.7, 1.1)
-    knot.location = c0 + fdir * 0.02
-    bow.append(smooth(knot))
-    for o in bow:
-        assign(o, rib_mat)
-    parts += bow
-    bpy.context.view_layer.update()
-    # ягоды горкой: клубника, малина, голубика, смородина, мята
-    berries = [mousse]
-    for i, (rr, deg, tilt) in enumerate(((0.0, 0, 0), (0.42, 30, 22), (0.42, 150, 22), (0.42, 270, 22))):
-        sb = BK.strawberry_obj(f"ChStraw{i}", 0.30 if i else 0.36, i)
-        a = math.radians(deg)
-        rotate_all(sb, (math.radians(tilt), 0, a + math.pi / 2))
-        for o in sb:
-            o.location += Vector((rr * math.cos(a), rr * math.sin(a), 0.0))
-        MX.ground(sb, fill_top + (0.13 if i == 0 else 0.0))
-        berries += sb
-        parts += sb
-    halves = []
-    for i, deg in enumerate((90, 210, 330)):
-        a = math.radians(deg)
-        h = BK.strawberry_half(f"ChHalf{i}", 0.21, i)
-        h.rotation_euler = (math.radians(-90 - 30), 0, a + math.pi / 2)
-        h.location = (0.55 * math.cos(a), 0.55 * math.sin(a), fill_top + 0.14)
-        halves.append(h)
-    parts += halves
-    berries += halves
-    rmat = raspberry_sh("ChRasp")
-    rasp = []
+    """Шарлотка: высокий круглый яблочный бисквит, сверху кольцо запеченных долек и сахарная пудра;
+    кусок вырезан и стоит рядом срезом к зрителю, на доске яблоко и дольки."""
+    board = MX.round_board("ShBoard", 1.30)
+    parts = [board]
+    z0 = 0.14
+    R, H = 0.84, 0.66
+    crust = sharlotka_crust_sh("ShCrust")
+    crumb = sharlotka_crumb_sh("ShCrumb", H)
+    cut_a = math.radians(-58)
+    half = math.radians(24)
+    A0, A1 = cut_a - half, cut_a + half
+    cake = cake_sector("Sharlotka", R, H, A1, A0 + 2 * math.pi, [crust, crumb], 220)
+    slice_ = cake_sector("ShSlice", R, H, A0, A1, [crust, crumb], 50)
+    cake_grp, slice_grp = [cake], [slice_]
 
-    def mk_r(k, rnd):
-        r_ = raspberry(f"ChRasp{k}", 0.075, k, rmat)
-        r_.rotation_euler = (rnd.uniform(-0.6, 0.6), rnd.uniform(-0.6, 0.6), 0)
-        r_.location.z += 0.06
-        rasp.append(r_)
-        return r_
-    scatter_world(berries, 9, mk_r, seed=5, rx=0.66, spacing=0.17, nz_min=0.1)
-    parts += rasp
+    def top_at(r):
+        return H + 0.06 * max(0.0, 1 - (r / R) ** 2)
+    # кольцо запеченных долек, утопленных в корочку; нож прорезал те, что попали на линию разреза
+    skin = apple_skin_sh("ShSkin")
+    ring = [(0.57, 11, 0.20, 52, 0.0), (0.24, 5, 0.15, 40, 0.5)]
+    k = 0
+    for rho, n, rs, tilt, ph in ring:
+        cmat = caramel_apple_sh(f"ShCaramel{k}", rs)
+        for i in range(n):
+            phi = cut_a + 2 * math.pi * (i + ph) / n + math.radians(4)
+            sl = EV.apple_slice_obj(f"ShTopSlice{k}", rs, 0.045)
+            assign_faces(sl, cmat, [(lambda nn, c, rs=rs: abs(nn.z) < 0.6 and c.y > 0.25 * rs, skin)])
+            zc = top_at(rho) - 0.035
+            sl.matrix_world = (Matrix.Translation((rho * math.cos(phi), rho * math.sin(phi), zc))
+                               @ Matrix.Rotation(phi - math.pi / 2 + math.radians(12), 4, "Z")
+                               @ Matrix.Rotation(math.radians(tilt), 4, "X"))
+            bpy.context.view_layer.update()
+            d = math.atan2(math.sin(phi - cut_a), math.cos(phi - cut_a))
+            ext = math.asin(min(1.0, rs * 1.05 / rho))
+            if abs(d) < half - ext:
+                slice_grp.append(sl)
+            elif abs(d) > half + ext:
+                cake_grp.append(sl)
+            else:
+                bnd = cut_a + (half if d > 0 else -half)
+                nw = Vector((-math.sin(bnd), math.cos(bnd), 0.0))  # к росту угла
+                twin = sl.copy()
+                twin.data = sl.data.copy()
+                link(twin)
+                for ob_, keep_plus in ((sl, d > 0), (twin, d <= 0)):
+                    inv = ob_.matrix_world.inverted()
+                    co_l = inv @ Vector((0, 0, 0))
+                    n_world = -nw if keep_plus else nw
+                    n_l = (ob_.matrix_world.to_3x3().transposed() @ n_world).normalized()
+                    bisect(ob_, co_l, n_l, fill=True)
+                    if len(ob_.data.vertices) < 4:
+                        bpy.data.objects.remove(ob_, do_unlink=True)
+                        continue
+                # sl - сторона по росту угла от границы
+                for ob_, plus in ((sl, d > 0), (twin, d <= 0)):
+                    if ob_.name not in bpy.data.objects:
+                        continue
+                    inside = (plus and bnd < cut_a) or (not plus and bnd > cut_a)
+                    (slice_grp if inside else cake_grp).append(ob_)
+            k += 1
+    # мягкие кусочки яблока в срезах
+    tmpl_sx = 0.07
+    amat = apple_piece_sh("ShPiece", tmpl_sx)
+    rnd = random.Random(5)
+    for grp, ob, nm in ((cake_grp, cake, "ShCakePiece"), (slice_grp, slice_, "ShSlicePiece")):
+        for a, sgn in ((A0, -1), (A1, 1)):
+            nrm = Vector((-math.sin(a), math.cos(a), 0.0)) * sgn
+            if ob is cake:
+                nrm = -nrm
+            dirv = Vector((math.cos(a), math.sin(a), 0.0))
+            for q in range(3):
+                z = H * rnd.uniform(0.2, 0.75)
+                u = rnd.uniform(0.25, 0.8)
+                q_r = R * u * (1 - abs(2 * z / H - 1) ** 3) ** (1 / 3)
+                pc = sphere(f"{nm}{len(grp)}", 1.0, 20, 12)
+                deform(pc, lambda co: Vector((co.x * tmpl_sx, co.y * 0.048, co.z * 0.018)))
+                assign(smooth(pc), amat)
+                s_ = rnd.uniform(0.85, 1.25)
+                pc.matrix_world = (Matrix.Translation(dirv * q_r + Vector((0, 0, z)) - nrm * 0.008)
+                                   @ BK.orient(nrm, (0, 0, 1)) @ Matrix.Rotation(rnd.uniform(-0.6, 0.6), 4, "Z")
+                                   @ Matrix.Scale(s_, 4))
+                grp.append(pc)
     bpy.context.view_layer.update()
-    blue = []
-
-    def mk_b(k, rnd):
-        b = BK.blueberry(f"ChBlue{k}", 0.06)
-        b.location.z += 0.045
-        blue.append(b)
-        return b
-    scatter_world(berries + rasp, 12, mk_b, seed=9, rx=0.72, spacing=0.13, nz_min=0.2)
-    parts += blue
-    cur_mat = Sh("ChCurrant", rough=0.06, sss=0.6, sss_radius=(1.0, 0.2, 0.2), sss_scale=0.03, coat=1.0, coat_rough=0.02)
-    cur_mat.color((0.86, 0.06, 0.10))
-    stem_mat = flat("ChCurStem", (0.42, 0.50, 0.20), rough=0.4)
-    for i, (deg, rr) in enumerate(((60, 0.66), (240, 0.62))):
-        a = math.radians(deg)
-        cl = currant_cluster(f"ChCur{i}", cur_mat.mat, stem_mat, 4, 0.045, i)
-        rotate_all(cl, (0, 0, a + 1.0))
-        z = top_z(berries + rasp + blue, rr * math.cos(a), rr * math.sin(a), fill_top) + 0.03
-        for o in cl:
-            o.location += Vector((rr * math.cos(a), rr * math.sin(a), z))
-        parts += cl
-    mm = mint_mat("ChMint")
-    zt = top_z(berries, 0.0, 0.0, fill_top + 0.3)
-    parts += mint_sprig("ChMintA", (0.02, -0.02, zt - 0.05), 0.4, mm, 1.0)
-    return rotate_all(parts, (0, 0, math.radians(10)))
+    # кусок стоит слева спереди одним срезом к зрителю; торт сдвинут назад-вправо, его вырез тоже виден
+    th = math.radians(14) - A0 + math.radians(8)
+    mid = Vector((math.cos(cut_a), math.sin(cut_a), 0.0)) * (R * 0.55)
+    for o in slice_grp:
+        o.matrix_world = (Matrix.Translation((-0.52, -0.62, z0)) @ Matrix.Rotation(th, 4, "Z")
+                          @ Matrix.Translation(-mid) @ o.matrix_world)
+    for o in cake_grp:
+        o.matrix_world = Matrix.Translation((0.22, 0.24, z0)) @ o.matrix_world
+    bpy.context.view_layer.update()
+    parts += cake_grp + slice_grp
+    # яблоко, дольки и палочка корицы
+    ap = EV.apple()
+    RM.transform(ap, Matrix.Scale(0.30, 4))
+    RM.transform(ap, Matrix.Translation(Vector((-0.86, 0.42, 0.0))))
+    MX.ground(ap, z0)
+    parts += ap
+    fl = apple_flesh_sh("ShSliceFlesh")
+    for i, (x, y, rz) in enumerate(((0.62, -0.88, 160), (0.86, -0.66, 130), (-1.06, -0.10, 250))):
+        s_ = EV.apple_slice_obj(f"ShASlice{i}", 0.24, 0.06)
+        assign_faces(s_, fl, [(lambda nn, c: abs(nn.z) < 0.6 and c.y > 0.06, skin)])
+        s_.rotation_euler = (0, 0, math.radians(rz))
+        s_.location = (x, y, z0 + 0.03 + 0.012 * i)
+        parts.append(s_)
+    cin = EV.cinnamon_stick("ShCinnamon", 0.70, 0.06)
+    cin.rotation_euler = (0, 0, math.radians(-40))
+    cin.location = (-0.30, 0.98, z0 + 0.06)
+    parts.append(cin)
+    return rotate_all(parts, (0, 0, math.radians(8)))
 
 
 # MARK: - Блинчики
