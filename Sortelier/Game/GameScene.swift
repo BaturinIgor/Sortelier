@@ -243,8 +243,11 @@ final class GameScene: SKScene {
         let gapX: CGFloat = 10
         let gapY: CGFloat = 16
         var best: (w: CGFloat, cols: Int) = (0, 1)
-        // цепи рассчитаны на три полки в ряду: соседние полки пары стоят рядом
-        let columns: ClosedRange<Int> = !session.board.chains.isEmpty && n >= 4 ? 3...3 : 1...3
+        // полки пары на цепи должны стоять рядом в одном ряду: берем только такие числа колонок
+        let chains = session.board.chains
+        let fits: (Int) -> Bool = { cols in chains.allSatisfy { $0.b == $0.a + 1 && $0.a % cols != cols - 1 } }
+        let allowed = chains.isEmpty ? [1, 2, 3] : [2, 3].filter(fits)
+        let columns = allowed.isEmpty ? [1, 2, 3] : allowed
         for cols in columns where cols <= n {
             let rows = Int((Double(n) / Double(cols)).rounded(.up))
             let byWidth = (area.width - gapX * CGFloat(cols - 1)) / CGFloat(cols)
