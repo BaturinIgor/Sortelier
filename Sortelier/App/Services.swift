@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import QuartzCore
 import SpriteKit
 
 /// Аналитика. Ключ AppMetrica задается в Info.plist (AppMetricaAPIKey).
@@ -48,20 +49,32 @@ final class Ads {
 /// Тактильная отдача.
 enum Haptics {
     private static var on: Bool { PlayerProgress.shared.settings.haptics }
+    // генераторы создаются один раз: новый генератор на каждый удар заметно тормозит при каскадах
+    private static let lightGenerator = UIImpactFeedbackGenerator(style: .light)
+    private static let notifyGenerator = UINotificationFeedbackGenerator()
+    private static var lastAt: CFTimeInterval = 0
+
+    /// Не чаще 20 раз в секунду: вибрация чаще не ощущается, а время занимает.
+    private static func allowed() -> Bool {
+        let now = CACurrentMediaTime()
+        guard on, now - lastAt > 0.05 else { return false }
+        lastAt = now
+        return true
+    }
 
     static func light() {
-        guard on else { return }
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        guard allowed() else { return }
+        lightGenerator.impactOccurred()
     }
 
     static func success() {
-        guard on else { return }
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        guard allowed() else { return }
+        notifyGenerator.notificationOccurred(.success)
     }
 
     static func warning() {
-        guard on else { return }
-        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        guard allowed() else { return }
+        notifyGenerator.notificationOccurred(.warning)
     }
 }
 

@@ -39,11 +39,11 @@ struct MarketLevelContent: View {
                 KitchenBackground(veil: 0.05, style: MarketCatalog.style(chapter: model.level.chapter))
                 VStack(spacing: 6) {
                     Color.clear.frame(height: 52)
-                    GoalsPanel(model: model)
+                    GoalsPanel(model: model, hud: model.hud)
                     Spacer()
                 }
                 .padding(.horizontal, 12)
-                SpriteView(scene: model.scene, options: [.allowsTransparency])
+                SpriteView(scene: model.scene, preferredFramesPerSecond: 120, options: [.allowsTransparency])
                     .ignoresSafeArea()
                 VStack(spacing: 6) {
                     topBar
@@ -230,7 +230,9 @@ struct WoodTray: View {
 // MARK: - Панель целей
 
 struct GoalsPanel: View {
-    @ObservedObject var model: Match3Model
+    /// Модель не наблюдается: панель обновляется только от hud.
+    let model: Match3Model
+    @ObservedObject var hud: M3Hud
     @EnvironmentObject private var lang: Lang
 
     var body: some View {
@@ -240,11 +242,11 @@ struct GoalsPanel: View {
                     .font(Theme.rounded(12, .black))
                     .foregroundColor(Color(red: 1.0, green: 0.9, blue: 0.7))
                     .outlined(Theme.woodDark, width: 1)
-                StrokeText(text: "\(model.movesLeft)", size: 34, weight: .black,
-                           color: model.movesLeft <= 3 && model.phase == .playing ? Color(red: 1, green: 0.55, blue: 0.45) : .white,
+                StrokeText(text: "\(hud.moves)", size: 34, weight: .black,
+                           color: hud.moves <= 3 ? Color(red: 1, green: 0.55, blue: 0.45) : .white,
                            stroke: Theme.woodDark, width: 2, drop: 2)
                     .monospacedDigit()
-                    .animation(.spring(response: 0.25, dampingFraction: 0.5), value: model.movesLeft)
+                    .animation(.spring(response: 0.25, dampingFraction: 0.5), value: hud.moves)
             }
             .frame(width: 74, height: 74)
             .background(
@@ -262,7 +264,7 @@ struct GoalsPanel: View {
             })
             HStack(spacing: 6) {
                 ForEach(model.level.goals.indices, id: \.self) { i in
-                    GoalCell(goal: model.level.goals[i], left: model.shown[i], pulse: model.goalPulse[i])
+                    GoalCell(goal: model.level.goals[i], left: hud.shown[i], pulse: hud.pulse[i])
                         .background(GeometryReader { g in
                             Color.clear
                                 .onAppear { model.goalFrames[i] = g.frame(in: .global) }

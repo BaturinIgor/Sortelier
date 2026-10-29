@@ -142,7 +142,6 @@ final class Match3Scene: SKScene {
 
     private let level: M3Level
     private let boardNode = SKNode()
-    private let crop = SKCropNode()
     private let tileLayer = SKNode()
     private let overLayer = SKNode()
     private let fxLayer = SKNode()
@@ -176,6 +175,8 @@ final class Match3Scene: SKScene {
     private var idle: Double = 0
     private var hintShown = false
     private var soundAt: [Audio.Effect: Double] = [:]
+    /// Сколько частиц можно создать за кадр: при больших каскадах эффекты не роняют частоту кадров.
+    private var budget = 48
 
     init(level: M3Level) {
         self.level = level
@@ -184,9 +185,8 @@ final class Match3Scene: SKScene {
         backgroundColor = .clear
         anchorPoint = .zero
         addChild(boardNode)
-        crop.zPosition = 2
-        crop.addChild(tileLayer)
-        boardNode.addChild(crop)
+        tileLayer.zPosition = 2
+        boardNode.addChild(tileLayer)
         overLayer.zPosition = 3
         boardNode.addChild(overLayer)
         fxLayer.zPosition = 10
@@ -256,22 +256,23 @@ final class Match3Scene: SKScene {
         backing.size = CGSize(width: CGFloat(level.cols) * cell + 20, height: CGFloat(level.rows) * cell + 20)
         backing.zPosition = 0
         boardNode.addChild(backing)
-        let mask = SKSpriteNode(texture: SKTexture(image: maskImage(board)))
-        mask.size = CGSize(width: CGFloat(level.cols) * cell, height: CGFloat(level.rows) * cell)
-        crop.maskNode = mask
         for p in board.allCells where board.inside(p) {
             if board.hasJam(p) { addJam(p) }
             if let tile = board.tile(p) {
                 let node = makeNode(tile)
                 let target = point(p)
-                node.position = CGPoint(x: target.x, y: target.y + CGFloat(level.rows) * cell + cell)
+                node.position = CGPoint(x: target.x, y: target.y + cell * 0.6)
+                node.alpha = 0
+                node.setScale(0.4)
                 tileLayer.addChild(node)
                 nodes[tile.id] = node
                 idAt[p] = tile.id
-                let delay = 0.25 + Double(level.rows - p.r) * 0.035 + Double(p.c) * 0.012
-                let fall = SKAction.move(to: target, duration: 0.42)
-                fall.timingMode = .easeIn
-                node.run(.sequence([.wait(forDuration: delay), fall, squash()]))
+                let delay = 0.25 + Double(level.rows - p.r) * 0.045 + Double(p.c) * 0.018
+                let drop = SKAction.move(to: target, duration: 0.26)
+                drop.timingMode = .easeIn
+                node.run(.sequence([.wait(forDuration: delay),
+                                    .group([drop, .fadeIn(withDuration: 0.16), .scale(to: 1, duration: 0.22)]),
+                                    landing()]))
             }
             if board.crateLeft(p) > 0 { setCrate(p, left: board.crateLeft(p), animated: false) }
             if board.iceLeft(p) > 0 { setIce(p, left: board.iceLeft(p), animated: false) }
@@ -308,16 +309,6 @@ final class Match3Scene: SKScene {
                                        : UIColor(red: 0.95, green: 0.88, blue: 0.76, alpha: 1)).cgColor)
                 cg.addPath(UIBezierPath(roundedRect: rect(p, inset: 1.5), cornerRadius: 7).cgPath)
                 cg.fillPath()
-            }
-        }
-    }
-
-    private func maskImage(_ board: M3Board) -> UIImage {
-        let size = CGSize(width: CGFloat(level.cols) * cell, height: CGFloat(level.rows) * cell)
-        return UIGraphicsImageRenderer(size: size).image { ctx in
-            ctx.cgContext.setFillColor(UIColor.white.cgColor)
-            for p in board.allCells where board.inside(p) {
-                ctx.cgContext.fill(CGRect(x: CGFloat(p.c) * cell - 0.5, y: CGFloat(p.r) * cell - 0.5, width: cell + 1, height: cell + 1))
             }
         }
     }
@@ -360,6 +351,15 @@ final class Match3Scene: SKScene {
     private func squash() -> SKAction {
         .sequence([.group([.scaleX(to: 1.1, duration: 0.05), .scaleY(to: 0.88, duration: 0.05)]),
                    .group([.scaleX(to: 1, duration: 0.09), .scaleY(to: 1, duration: 0.09)])])
+    }
+
+    /// Мягкое приземление: сплющивание и маленький отскок вверх.
+    private func landing() -> SKAction {
+        let up = SKAction.moveBy(x: 0, y: cell * 0.07, duration: 0.07)
+        up.timingMode = .easeOut
+        let down = SKAction.moveBy(x: 0, y: -cell * 0.07, duration: 0.09)
+        down.timingMode = .easeIn
+        return .group([squash(), .sequence([.wait(forDuration: 0.04), up, down])])
     }
 
     private func addJam(_ p: M3Cell) {
@@ -431,9 +431,11 @@ final class Match3Scene: SKScene {
     }
 
     override func update(_ currentTime: TimeInterval) {
-        let dt = lastTime == 0 ? 0 : min(1.0 / 30, currentTime - lastTime)
+        let dt = lastTime == 0 ? 0 : min(0.1, currentTime - lastTime)
         lastTime = currentTime
+        budget = 48
         guard !isPaused else { return }
+        model?.flushHud(currentTime)
         if playing {
             clock += dt
             while queueIndex < queue.count && queue[queueIndex].t <= clock {
@@ -478,9 +480,20 @@ final class Match3Scene: SKScene {
         case let .spawn(tile, path, duration):
             let node = makeNode(tile)
             node.position = point(path[0])
+            node.alpha = 0
             tileLayer.addChild(node)
             nodes[tile.id] = node
             fall(tile.id, path: path, duration: duration)
+            // фишка невидима, пока падает над полем, и проявляется на его верхнем краю
+            if let first = path.first, let last = path.last, let board = model?.board {
+                let edge = point(M3Cell(board.topRow(first.c), first.c)).y + cell * 0.5
+                let total = max(0.01, point(first).y - point(last).y)
+                let above = max(0, point(first).y - edge)
+                let cross = duration * Double(min(1, above / total)).squareRoot()
+                node.run(.sequence([.wait(forDuration: max(0, cross - 0.03)), .fadeIn(withDuration: 0.08)]), withKey: "appear")
+            } else {
+                node.alpha = 1
+            }
         case let .shuffle(list): shuffle(list)
         case let .booster(kind, p): boosterEffect(kind, p)
         }
@@ -497,13 +510,16 @@ final class Match3Scene: SKScene {
             m.timingMode = .easeInEaseOut
             return m
         }
+        // тянутая фишка чуть приподнимается над соседней
+        let lift = SKAction.sequence([.scale(to: 1.14, duration: t * 0.5), .scale(to: 1, duration: t * 0.5)])
         if back {
-            na.run(.sequence([go(na, pb), go(na, pa)]))
+            let wobble = SKAction.sequence([.rotate(toAngle: 0.12, duration: 0.05), .rotate(toAngle: -0.12, duration: 0.08), .rotate(toAngle: 0, duration: 0.05)])
+            na.run(.sequence([.group([go(na, pb), lift]), .group([go(na, pa), lift]), wobble]))
             nb.run(.sequence([go(nb, pa), go(nb, pb)]))
             sound(.invalid, volume: 0.5)
             Haptics.light()
         } else {
-            na.run(go(na, pb))
+            na.run(.group([go(na, pb), lift]))
             nb.run(go(nb, pa))
             idAt[a] = ib
             idAt[b] = ia
@@ -523,8 +539,8 @@ final class Match3Scene: SKScene {
             move.timingMode = .easeIn
             node.run(.sequence([.group([move, .scale(to: 0.7, duration: 0.14)]), .fadeOut(withDuration: 0.04), .removeFromParent()]))
         } else {
-            node.run(.sequence([.scale(to: 1.18, duration: 0.06),
-                                .group([.scale(to: 0.1, duration: 0.12), .fadeOut(withDuration: 0.12)]),
+            node.run(.sequence([.group([.scale(to: 1.22, duration: 0.07), .rotate(byAngle: 0.15, duration: 0.07)]),
+                                .group([.scale(to: 0.05, duration: 0.13), .fadeOut(withDuration: 0.13), .rotate(byAngle: -0.3, duration: 0.13)]),
                                 .removeFromParent()]))
         }
         burst(at: point(p), tint: M3Art.tint(item), count: 5)
@@ -606,7 +622,7 @@ final class Match3Scene: SKScene {
         }
         // равноускоренное падение: все фишки падают с одним ускорением и не наезжают друг на друга
         action.timingFunction = { t in t * t }
-        node.run(.sequence([action, squash()]), withKey: "fall")
+        node.run(.sequence([action, landing()]), withKey: "fall")
         if duration > 0.2 { sound(.coin, volume: 0.06) }
     }
 
@@ -795,6 +811,8 @@ final class Match3Scene: SKScene {
 
     private func burst(at p: CGPoint, tint: UIColor, count: Int, spread: CGFloat? = nil) {
         let spread = spread ?? cell * 0.75
+        let count = min(count, budget)
+        budget -= count
         for i in 0..<count {
             let s = SKSpriteNode(texture: i % 2 == 0 ? M3Art.sparkle : M3Art.glow, size: CGSize(width: cell * 0.32, height: cell * 0.32))
             s.position = p
@@ -811,6 +829,8 @@ final class Match3Scene: SKScene {
     }
 
     private func debris(at p: CGPoint, color: UIColor, count: Int) {
+        let count = min(count, budget)
+        budget -= count
         for i in 0..<count {
             let s = SKSpriteNode(color: color, size: CGSize(width: cell * 0.14, height: cell * 0.1))
             s.position = p
@@ -868,7 +888,8 @@ final class Match3Scene: SKScene {
         let step = 0.035
         let count = max(1, Int(duration / step))
         node.run(.repeat(.sequence([.wait(forDuration: step), .run { [weak self, weak node] in
-            guard let self = self, let node = node, let parent = node.parent else { return }
+            guard let self = self, let node = node, let parent = node.parent, self.budget > 0 else { return }
+            self.budget -= 1
             let s = SKSpriteNode(texture: M3Art.glow, size: CGSize(width: self.cell * 0.5, height: self.cell * 0.5))
             s.position = node.position
             s.color = tint
