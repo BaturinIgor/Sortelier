@@ -1,6 +1,20 @@
 import SwiftUI
 import SpriteKit
 
+/// Панель ходов и целей. Отдельный объект: частые обновления во время каскадов перерисовывают только панель,
+/// а не весь экран уровня вместе с полем.
+final class M3Hud: ObservableObject {
+    @Published var shown: [Int]
+    @Published var pulse: [Int]
+    @Published var moves: Int
+
+    init(goals: [Int], moves: Int) {
+        shown = goals
+        pulse = Array(repeating: 0, count: goals.count)
+        self.moves = moves
+    }
+}
+
 /// Уровень "Рынка": движок, сцена, ходы, цели на панели, бустеры, конец уровня.
 final class Match3Model: ObservableObject {
     enum Phase: Equatable {
@@ -12,9 +26,8 @@ final class Match3Model: ObservableObject {
     private(set) var board: M3Board
 
     @Published private(set) var phase: Phase = .starting
-    @Published private(set) var movesLeft: Int
-    /// Сколько осталось по каждой цели на панели (уменьшается, когда фишка долетает).
-    @Published private(set) var shown: [Int]
+    let hud: M3Hud
+    private(set) var movesLeft: Int { didSet { hud.moves = movesLeft } }
     @Published var targeting: M3Booster?
     /// Окна поверх уровня (пауза, покупка): поле не принимает касания.
     @Published var overlay = false
@@ -23,10 +36,11 @@ final class Match3Model: ObservableObject {
     @Published private(set) var extraBought = 0
     @Published private(set) var adUsed = false
     @Published private(set) var critic: Bool
-    /// Пульс иконки цели при попадании.
-    @Published private(set) var goalPulse: [Int] = []
 
+    /// Фишки в полете к целям и долетевшие, но еще не показанные на панели.
     private var inFlight: [Int]
+    private var arrived: [Int]
+    private var lastFlush: TimeInterval = 0
     private(set) var moved = false
     private let preBoosters: [M3Booster]
     let streakAtStart: Int
@@ -41,9 +55,9 @@ final class Match3Model: ObservableObject {
         let seed = UInt64(level.id) &* 7919 &+ UInt64.random(in: 1...1_000_000)
         board = M3Board(level: level, seed: seed)
         movesLeft = level.moves
-        shown = level.goals.map(\.count)
+        hud = M3Hud(goals: level.goals.map(\.count), moves: level.moves)
         inFlight = Array(repeating: 0, count: level.goals.count)
-        goalPulse = Array(repeating: 0, count: level.goals.count)
+        arrived = Array(repeating: 0, count: level.goals.count)
         preBoosters = pre
         streakAtStart = PlayerProgress.shared.marketStreak
         critic = PlayerProgress.shared.criticHere
@@ -54,7 +68,8 @@ final class Match3Model: ObservableObject {
             guard let h = board.hint(), let line = board.swap(h.0, h.1), line.counted else { break }
             movesLeft -= 1
         }
-        shown = level.goals.indices.map { board.remaining($0) }
+        hud.shown = level.goals.indices.map { board.remaining($0) }
+        hud.moves = movesLeft
         #endif
         scene.model = self
     }
@@ -156,23 +171,44 @@ final class Match3Model: ObservableObject {
 
     // MARK: - Цели
 
+    /// Сколько фишек одновременно летят к целям: больше не нужно, остальные засчитываются сразу.
+    private static let maxFlights = 24
+
+    private func canFly(_ i: Int) -> Bool {
+        hud.shown[i] - arrived[i] - inFlight[i] > 0 && inFlight.reduce(0, +) < Self.maxFlights
+    }
+
     func claimFlight(item: String) -> Int? {
         guard let i = level.goals.indices.first(where: { level.goals[$0].type == "collect" && level.goals[$0].item == item }),
-              shown[i] - inFlight[i] > 0 else { return nil }
+              canFly(i) else { return nil }
         inFlight[i] += 1
         return i
     }
 
     func claimFlight(type: String) -> Int? {
-        guard let i = level.goals.indices.first(where: { level.goals[$0].type == type }), shown[i] - inFlight[i] > 0 else { return nil }
+        guard let i = level.goals.indices.first(where: { level.goals[$0].type == type }), canFly(i) else { return nil }
         inFlight[i] += 1
         return i
     }
 
     func flightArrived(_ i: Int) {
         inFlight[i] = max(0, inFlight[i] - 1)
-        shown[i] = max(0, shown[i] - 1)
-        goalPulse[i] += 1
+        arrived[i] += 1
+    }
+
+    /// Сцена зовет каждый кадр: долетевшие фишки попадают на панель пачкой не чаще 20 раз в секунду.
+    func flushHud(_ now: TimeInterval, force: Bool = false) {
+        guard arrived.contains(where: { $0 > 0 }), force || now - lastFlush > 0.05 else { return }
+        lastFlush = now
+        var shown = hud.shown
+        var pulse = hud.pulse
+        for i in arrived.indices where arrived[i] > 0 {
+            shown[i] = max(0, shown[i] - arrived[i])
+            pulse[i] += 1
+            arrived[i] = 0
+        }
+        hud.shown = shown
+        hud.pulse = pulse
         Audio.shared.play(.coin, volume: 0.25)
     }
 
@@ -189,9 +225,12 @@ final class Match3Model: ObservableObject {
     // MARK: - Конец хода
 
     func lineFinished(_ line: M3Timeline) {
+        flushHud(0, force: true)
+        var shown = hud.shown
         for i in shown.indices {
             shown[i] = min(shown[i], board.remaining(i) + inFlight[i])
         }
+        if shown != hud.shown { hud.shown = shown }
         switch phase {
         case .playing:
             if board.won {

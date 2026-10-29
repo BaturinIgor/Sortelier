@@ -46,7 +46,7 @@ struct MergeView: View {
                     }
                 })
                 .frame(height: 150)
-                SpriteView(scene: model.scene, options: [.allowsTransparency])
+                SpriteView(scene: model.scene, preferredFramesPerSecond: 120, options: [.allowsTransparency])
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 info
                     .frame(height: infoHeight)

@@ -151,7 +151,7 @@
     "winEnergy": 3,
     "boosterEvery": 3,
     "prices": {
-      "pin": 90,
+      "pin": 60,
       "bomb": 130,
       "rainbow": 200,
       "mallet": 90,

@@ -501,8 +501,8 @@ def hotdog_bun():
     wob = sh.math("MULTIPLY", sh.math("SUBTRACT", sh.noise(None, 2.0, 2), 0.5), 0.16)
     crust = sh.ramp(sh.remap(sh.math("ADD", nz, wob), -1.0, 1.0, 0.0, 1.0, smooth=False),
                     [(0.0, (0.88, 0.56, 0.24)), (0.30, (0.96, 0.70, 0.36)), (0.44, (1.0, 0.88, 0.64)),
-                     (0.56, (1.0, 0.86, 0.60)), (0.68, (0.96, 0.64, 0.28)), (0.85, (0.86, 0.48, 0.17)),
-                     (1.0, (0.80, 0.42, 0.14))])
+                     (0.56, (1.0, 0.86, 0.60)), (0.68, (0.97, 0.68, 0.30)), (0.85, (0.89, 0.54, 0.20)),
+                     (1.0, (0.83, 0.47, 0.16))])
     sh.color(crust)
     sh.bump(sh.noise(None, 16, 4), 0.06, 0.01)
     sh.bump(sh.noise(None, 60, 2), 0.05, 0.003)
@@ -1580,4 +1580,1593 @@ M.MODELS.update({
     "grissini": grissini,
     "olive_oil": olive_oil,
     "onion": onion,
+})
+
+
+# ======================================================================================================
+# Партия 2: японская кухня, Мексика, пекарня, итальянские сладости и кофе.
+# ======================================================================================================
+
+import bmesh as _bm  # noqa: E402
+import models_bakery as BK  # noqa: E402
+
+
+def weld(ob, dist=1e-5):
+    """Сшивает совпавшие вершины (шов замкнутой по v сетки)."""
+    bm = _bm.new()
+    bm.from_mesh(ob.data)
+    _bm.ops.remove_doubles(bm, verts=bm.verts, dist=dist)
+    bm.to_mesh(ob.data)
+    bm.free()
+    ob.data.update()
+    return ob
+
+
+def join_one(objs, name, mat):
+    """Сливает много мелких деталей одного материала в один меш."""
+    bpy.context.view_layer.update()
+    bm = _bm.new()
+    for o in objs:
+        me = o.data.copy()
+        me.transform(o.matrix_world)
+        bm.from_mesh(me)
+        bpy.data.meshes.remove(me)
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    for o in objs:
+        bpy.data.objects.remove(o, do_unlink=True)
+    ob = link(bpy.data.objects.new(name, me))
+    smooth(ob)
+    return assign(ob, mat)
+
+
+def ceramic_sh(name, stops, z0, z1, rough=0.14):
+    sh = Sh(name, rough=rough, coat=0.8, coat_rough=0.05)
+    _, _, z = sh.xyz()
+    sh.color(sh.ramp(sh.remap(z, z0, z1, smooth=False), stops))
+    return sh
+
+
+def angle_sock(sh):
+    x, y, _ = sh.xyz()
+    return sh.math("ARCTAN2", y, x)
+
+
+# MARK: - Рис
+
+def rice():
+    """Пиала риса: горка из отдельных блестящих зерен, синяя глазурь снаружи, палочки поперек."""
+    prof = [(0.0, 0.0), (0.30, 0.0), (0.33, 0.015), (0.335, 0.07), (0.31, 0.10), (0.36, 0.12), (0.55, 0.24),
+            (0.70, 0.42), (0.78, 0.60), (0.80, 0.69), (0.787, 0.715), (0.765, 0.70), (0.745, 0.61), (0.665, 0.44),
+            (0.50, 0.28), (0.30, 0.20), (0.0, 0.19)]
+    bowl = lathe("RiceBowl", prof, 128)
+    subdivide(bowl, 1)
+    smooth(bowl, 50)
+    out = Sh("RiceBowlOut", rough=0.12, coat=0.85, coat_rough=0.04)
+    _, _, z = out.xyz()
+    col = out.ramp(out.remap(z, 0.0, 0.72, smooth=False), [(0.0, (0.12, 0.20, 0.52)), (0.6, (0.18, 0.30, 0.68)),
+                                                          (1.0, (0.26, 0.40, 0.80))])
+    ang = angle_sock(out)
+    wave = out.math("SINE", out.math("ADD", out.math("MULTIPLY", ang, 12.0), out.math("MULTIPLY", z, 18.0)))
+    band = out.math("MULTIPLY", out.remap(z, 0.34, 0.38), out.remap(z, 0.50, 0.46))
+    dots = out.math("MULTIPLY", out.remap(wave, 0.75, 0.9), band)
+    col = out.mix(dots, col, (0.96, 0.97, 1.0))
+    col = out.mix(out.math("MULTIPLY", out.remap(z, 0.64, 0.67), 1.0), col, (0.97, 0.97, 1.0))
+    col = out.mix(out.remap(z, 0.11, 0.08), col, (0.95, 0.93, 0.88))
+    out.color(col)
+    inn = ceramic_sh("RiceBowlIn", [(0.0, (0.92, 0.93, 0.96)), (1.0, (1.0, 1.0, 1.0))], 0.2, 0.72)
+    BK.inner_faces(bowl, out.mat, inn.mat, 0.15)
+    parts = [bowl]
+    rice_sh = Sh("RiceBase", rough=0.35, sss=0.6, sss_radius=(1.0, 1.0, 1.0), sss_scale=0.03, coat=0.4)
+    rice_sh.color((0.97, 0.97, 0.95))
+    rice_sh.bump(rice_sh.voronoi(None, 40, "F1"), 0.5, 0.01, invert=True)
+    mound = polar_disc("RiceMound", 30, 128, 0.765, 0.765)
+
+    def mshape(co):
+        rr = min(1.0, math.hypot(co.x, co.y) / 0.765)
+        return Vector((co.x, co.y, 0.60 + 0.30 * max(0.0, 1 - rr * rr) ** 0.8 + 0.015 * fbm(co * 5)))
+    deform(mound, mshape)
+    smooth(mound)
+    assign(mound, rice_sh.mat)
+    parts.append(mound)
+    gsh = Sh("RiceGrain", rough=0.2, sss=0.5, sss_radius=(1.0, 1.0, 0.95), sss_scale=0.02, coat=0.7, coat_rough=0.05)
+    gsh.set("Emission Color", _col((1.0, 1.0, 0.98)))
+    gsh.set("Emission Strength", 0.06)
+    _, _, gz = gsh.xyz()
+    gsh.color(gsh.ramp(gsh.remap(gz, -0.03, 0.03, smooth=False), [(0.0, (0.93, 0.93, 0.93)), (1.0, (1.0, 1.0, 0.99))]))
+    grains = []
+
+    def make(i, rnd):
+        g = sphere(f"Grain{len(grains)}", 1.0, 14, 8)
+        s = rnd.uniform(0.9, 1.1)
+        g.scale = (0.078 * s, 0.036 * s, 0.03 * s)
+        g.rotation_euler = (rnd.uniform(-0.35, 0.35), rnd.uniform(-0.3, 0.3), 0)
+        apply_transform(g)
+        deform(g, lambda co: Vector((co.x, co.y, co.z + 0.06 * co.x * co.x / 0.078)))
+        g.location.z += 0.012
+        assign(g, gsh.mat)
+        grains.append(g)
+        return g
+    scatter_on(mound, 300, make, seed=3, area=0.74, spacing=0.055, zmin=0.6)
+    scatter_on(mound, 160, make, seed=8, area=0.72, spacing=0.0, zmin=0.6)
+    parts.append(join_one(grains, "RiceGrains", gsh.mat))
+    # палочки: лакированные, сужаются к кончику
+    lac = Sh("ChopLacquer", rough=0.18, coat=0.9, coat_rough=0.04)
+    lx, _, _ = lac.xyz()
+    lac.color(lac.mix(lac.remap(lx, 0.55, 0.60), (0.80, 0.12, 0.10), (0.16, 0.08, 0.06)))
+    for i, dy in enumerate((-0.06, 0.06)):
+        st = lathe_fn(f"Chop{i}", lambda t: 0.034 * (1 - 0.55 * t) * (1 - ss(0.985, 1.0, t) * 0.5)
+                      * (1 - ss(0.015, 0.0, t) * 0.4), -0.95, 0.95, 60, 20)
+        to_axis_x(st)
+        deform(st, lambda co: Vector((-co.x, co.y, co.z)))
+        smooth(st)
+        assign(st, lac.mat)
+        st.rotation_euler = (0, math.radians(-3 + 2 * i), math.radians(-24 + 7 * i))
+        st.location = (0.02, 0.26 + dy, 0.93 + 0.035)
+        parts.append(st)
+    return rotate_all(parts, (0, 0, math.radians(-6)))
+
+
+# MARK: - Лосось
+
+def salmon_sh(name, phase=0.0):
+    sh = Sh(name, rough=0.26, sss=0.55, sss_radius=(1.0, 0.4, 0.2), sss_scale=0.06, coat=0.7, coat_rough=0.07)
+    x, y, z = sh.xyz()
+    flesh = sh.ramp(sh.noise(None, 3, 3), [(0.3, (1.0, 0.42, 0.18)), (0.7, (1.0, 0.52, 0.26))])
+    s = sh.math("ADD", sh.math("MULTIPLY", x, 1.0), sh.math("MULTIPLY", sh.math("ABSOLUTE", sh.math("SUBTRACT", y, 0.05)),
+                                                            0.85))
+    s = sh.math("ADD", s, sh.math("MULTIPLY", sh.math("SUBTRACT", sh.noise(None, 2.5, 2), 0.5), 0.08))
+    d = sh.math("PINGPONG", sh.math("ADD", sh.math("MULTIPLY", s, 6.5), phase), 0.5)
+    lines = sh.remap(d, 0.10, 0.04)
+    col = sh.mix(sh.math("MULTIPLY", lines, 0.92), flesh, (1.0, 0.90, 0.82))
+    sh.color(col)
+    sh.bump(lines, 0.08, 0.006)
+    sh.bump(sh.noise(sh.mapping(None, scale=(1, 6, 1)), 12, 2), 0.04, 0.004)
+    return sh
+
+
+def fish():
+    """Кусок филе лосося для суши: оранжевая мякоть с белыми прожилками жира, серебристая кожа; ломтики сашими на шисо."""
+    W, D = 1.5, 0.85
+
+    def rr_out(a):
+        c, s_ = math.cos(a), math.sin(a)
+        return 1.0 / ((abs(c) / (W / 2)) ** 5 + (abs(s_) / (D / 2)) ** 5) ** 0.2
+    outline = MX.polar_outline(rr_out, 160)
+    ob = MX.outline_slab("Salmon", outline, 1.0, p=3.2, cuts=40)
+
+    def shp(co):
+        h = 0.40 + 0.14 * (co.y / (D / 2))
+        z = (co.z + 0.5) * h
+        return Vector((co.x * (1 + 0.04 * co.z), co.y, z))
+    deform(ob, shp)
+    subdivide(ob, 1)
+    push_normals(ob, lambda co, n: 0.01 * fbm(co * 3))
+    smooth(ob)
+    flesh = salmon_sh("SalmonFlesh")
+    skin = Sh("SalmonSkin", rough=0.2, coat=0.8, coat_rough=0.05, metal=0.3)
+    _, sy, _ = skin.xyz()
+    skin.color(skin.ramp(skin.noise(None, 20, 2), [(0.3, (0.30, 0.32, 0.38)), (0.7, (0.62, 0.66, 0.72))]))
+    assign_faces(ob, flesh.mat, [(lambda n, c: c.z < 0.045, skin.mat)])
+    parts = [ob]
+    # лист шисо под филе выглядывает спереди справа и сзади слева
+    shiso = EV.leaf("Shiso", 1.25, 0.86, fold=0.04, curl=0.03, thick=0.016, serr=0.6, petiole=0.08,
+                    stops=[(0.0, (0.20, 0.54, 0.12)), (0.6, (0.30, 0.66, 0.18)), (1.0, (0.40, 0.74, 0.24))])
+    rotate_all(shiso, (0, 0, math.radians(-150)))
+    for o in shiso:
+        o.location += Vector((0.95, 0.42, -0.012))
+    parts += shiso
+    ob.location.z += 0.03
+    return rotate_all(parts, (math.radians(8), 0, math.radians(-14)))
+
+
+# MARK: - Соевый соус
+
+def soy():
+    """Бутылочка соевого соуса: прозрачное стекло, темный соус с красноватым просветом, красная крышка с носиками."""
+    prof = [(0.0, 0.0), (0.37, 0.0), (0.41, 0.03), (0.43, 0.12), (0.43, 0.30), (0.40, 0.52), (0.33, 0.74),
+            (0.24, 0.90), (0.17, 1.02), (0.15, 1.12), (0.15, 1.20), (0.0, 1.20)]
+    glass = lathe("SoyGlass", prof, 96)
+    subdivide(glass, 1)
+    smooth(glass)
+    assign(glass, EV.glass_mat("SoyGlassMat", tint=(0.98, 0.97, 0.95), center=0.06, edge=0.8))
+    inner = [(0.0, 0.035), (0.385, 0.035), (0.405, 0.12), (0.405, 0.30), (0.375, 0.52), (0.31, 0.72), (0.27, 0.80),
+             (0.0, 0.80)]
+    liq = lathe("SoyLiquid", inner, 96)
+    subdivide(liq, 1)
+    smooth(liq)
+    sh = Sh("SoySauce", rough=0.06, sss=0.5, sss_radius=(1.0, 0.25, 0.08), sss_scale=0.15, coat=0.9, coat_rough=0.03)
+    x, _, z = sh.xyz()
+    col = sh.ramp(sh.remap(z, 0.0, 0.8, smooth=False), [(0.0, (0.12, 0.04, 0.02)), (1.0, (0.22, 0.08, 0.03))])
+    lw = sh.nodes.new("ShaderNodeLayerWeight")
+    lw.inputs["Blend"].default_value = 0.35
+    col = sh.mix(sh.remap(lw.outputs["Facing"], 0.45, 0.95, 0.0, 0.85), col, (0.62, 0.18, 0.05))
+    sh.color(col)
+    assign(liq, sh.mat)
+    red = Sh("SoyCapRed", rough=0.2, coat=0.75, coat_rough=0.06, sss=0.1)
+    _, _, cz = red.xyz()
+    red.color(red.ramp(red.remap(cz, 1.0, 1.45, smooth=False), [(0.0, (0.72, 0.05, 0.05)), (1.0, (0.96, 0.16, 0.12))]))
+    cap = lathe("SoyCap", [(0.0, 1.04), (0.19, 1.04), (0.205, 1.06), (0.205, 1.14), (0.19, 1.17), (0.16, 1.24),
+                           (0.12, 1.30), (0.07, 1.33), (0.0, 1.335)], 64)
+    subdivide(cap, 1)
+    smooth(cap)
+    assign(cap, red.mat)
+    # рифление по краю крышки
+    ribs = lathe("SoyCapRibs", [(0.206, 1.065), (0.212, 1.07), (0.212, 1.135), (0.206, 1.14)], 64)
+    deform(ribs, lambda co: Vector((co.x * (1 + 0.025 * math.cos(32 * math.atan2(co.y, co.x))),
+                                    co.y * (1 + 0.025 * math.cos(32 * math.atan2(co.y, co.x))), co.z)))
+    smooth(ribs)
+    assign(ribs, red.mat)
+    parts = [glass, liq, cap, ribs]
+    for i, (sx, h, r) in enumerate(((1, 0.12, 0.035), (-1, 0.07, 0.025))):
+        sp = lathe_fn(f"SoySpout{i}", lambda t, r=r: r * (1 - 0.35 * t), 0.0, h, 12, 24)
+        sp.rotation_euler = (0, math.radians(sx * 32), 0)
+        sp.location = (sx * 0.05, 0.0, 1.29)
+        apply_transform(sp)
+        smooth(sp)
+        assign(sp, red.mat)
+        parts.append(sp)
+    return rotate_all(parts, (0, 0, math.radians(-90 + 20)))
+
+
+# MARK: - Эдамаме
+
+def edamame_pod(name, L, W, T, mat, beans=3, seed=0.0, curve=2.6, nu=110, nv=48):
+    cs = [(k + 0.5) / beans for k in range(beans)]
+
+    def bump(u):
+        return max(math.exp(-((u - c) / (0.42 / beans)) ** 2) for c in cs)
+
+    def fn(u, v):
+        e = math.sin(math.pi * min(1.0, max(0.0, u))) ** 0.5
+        e *= 1 - 0.25 * ss(0.8, 1.0, u)
+        b = bump(u)
+        phi = 2 * math.pi * v
+        c, s_ = math.cos(phi), math.sin(phi)
+        w = W / 2 * e * (0.66 + 0.34 * b)
+        t = T / 2 * e * (0.30 + 0.70 * b)
+        seam = 1 + 0.07 * math.exp(-(s_ / 0.2) ** 2)
+        y = w * c * seam
+        z = t * s_ * (1 - 0.2 * math.exp(-(s_ / 0.25) ** 2))
+        z += 0.01 * noise.noise(Vector((u * 6, c, seed)))
+        return Vector((u * L, y, z + T / 2))
+    ob = surface(name, nu, nv, fn)
+    weld(ob)
+    smooth(ob)
+    bend(ob, curve)
+    assign(ob, mat)
+    return ob
+
+
+def edamame():
+    """Горстка стручков эдамаме: яркие, бархатистые, с бугорками бобов и хлопьями соли."""
+    sh = Sh("EdamamePod", rough=0.45, sss=0.35, sss_radius=(0.5, 1.0, 0.3), sss_scale=0.05, sheen=0.9,
+            sheen_rough=0.3, coat=0.25, coat_rough=0.2)
+    _, _, nz = sh.xyz("Normal")
+    col = sh.ramp(sh.remap(nz, -1, 1, smooth=False), [(0.0, (0.14, 0.38, 0.05)), (0.5, (0.26, 0.58, 0.08)),
+                                                      (1.0, (0.44, 0.76, 0.16))])
+    col = sh.mix(sh.math("MULTIPLY", sh.remap(sh.voronoi(None, 30, "F1"), 0.06, 0.02), 0.5), col, (0.30, 0.54, 0.12))
+    sh.color(col)
+    sh.bump(sh.noise(None, 60, 3), 0.15, 0.003)
+    pod_mat = sh.mat
+    salt_mat = material("EdaSalt", [(0.0, (0.95, 0.96, 0.98)), (1.0, (1.0, 1.0, 1.0))], rough=0.15, coat=0.6, sss=0.3)
+    stem_mat = material("EdaStem", [(0.0, (0.46, 0.62, 0.20)), (1.0, (0.62, 0.74, 0.30))], rough=0.5, sheen=0.5)
+    parts, pods = [], []
+    specs = [(-0.15, 0.32, 10, 1.05, 3, 0.0), (0.22, 0.02, -25, 1.0, 3, 1.0), (-0.32, -0.16, 30, 0.92, 2, 2.0),
+             (0.10, -0.36, -6, 1.02, 3, 4.0), (0.02, 0.06, 78, 0.98, 3, 3.0)]
+    for i, (x, y, rz, L, nb, sd) in enumerate(specs):
+        p = edamame_pod(f"Pod{i}", L, 0.32, 0.23, pod_mat, nb, sd, 2.0 + 0.4 * i)
+        st = lathe_fn(f"PodStem{i}", lambda t: 0.035 * (1 - 0.3 * t), 0.0, 0.09, 8, 16)
+        st.rotation_euler = (0, math.radians(-90), 0)
+        st.location = (0.01, 0, 0.115)
+        apply_transform(st)
+        smooth(st)
+        assign(st, stem_mat)
+        grp = [p, st]
+        for o in grp:
+            o.location.x -= 0.5 * L
+        rotate_all(grp, (0, 0, math.radians(rz)))
+        for o in grp:
+            o.location += Vector((x, y, 0))
+        bpy.context.view_layer.update()
+        MX.drop(grp, pods, floor=0.0, step=0.01, top=1.4)
+        pods.append(p)
+        parts += grp
+    salts = []
+
+    def make(i, rnd):
+        c = MX.rcube(f"Salt{i}", *(rnd.uniform(0.012, 0.022) for _ in range(3)), p=3.0, cuts=2)
+        c.rotation_euler = (rnd.uniform(0, 3), rnd.uniform(0, 3), 0)
+        assign(c, salt_mat)
+        salts.append(c)
+        return c
+    for k, p in enumerate(pods):
+        scatter_on(p, 12, make, seed=k + 4, area=1.0, spacing=0.06)
+    parts.append(join_one(salts, "EdaSalts", salt_mat))
+    bean_mat = material("EdaBean", [(0.0, (0.56, 0.82, 0.30)), (1.0, (0.76, 0.94, 0.48))], coord="z", lo=0.0, hi=0.12,
+                        rough=0.25, sss=0.4, sss_radius=(0.6, 1.0, 0.3), coat=0.6)
+    for i, (x, y) in enumerate(((0.66, -0.52), (0.48, -0.66))):
+        b = sphere(f"EdaBean{i}", 1.0, 32, 20)
+        b.scale = (0.11, 0.085, 0.07)
+        b.rotation_euler = (0, 0, math.radians(30 + 50 * i))
+        b.location = (x, y, 0.07)
+        apply_transform(b)
+        assign(smooth(b), bean_mat)
+        parts.append(b)
+    return rotate_all(parts, (math.radians(12), 0, math.radians(-8)))
+
+
+# MARK: - Гёдза
+
+def gyoza_obj(name, L, B, H, mat, pleats=6, seed=0.0, curve=1.3, nu=150, nv=96):
+    """Полумесяц: пухлое тело с плоским дном, сверху тонкий гребень-защип с волнами, на передней стороне складки."""
+    qf = 0.16
+
+    def fn(u, v):
+        e = math.sin(math.pi * u) ** 0.5
+        h = H * e ** 0.6
+        zf = 0.66 * h
+        b = B * e
+        q = 2 * v if v <= 0.5 else 2 * (1 - v)
+        side = -1.0 if v <= 0.5 else 1.0
+        wav = math.sin(2 * math.pi * pleats * u + seed)
+        if q < qf:
+            k = q / qf
+            z = h - (h - zf) * k
+            y = (0.014 + 0.03 * k) * e
+            shift = 0.045 * e * wav
+            z += 0.04 * H * e * (0.5 + 0.5 * wav) * (1 - k)
+        else:
+            k = (q - qf) / (1 - qf)
+            beta = k * math.pi
+            if beta <= math.pi / 2:
+                z = zf * (0.5 + 0.5 * math.cos(beta))
+            else:
+                z = zf * 0.5 * (1 - (-math.cos(beta)) ** 0.45)
+            y = max(0.044 * e, b * math.sin(beta) ** 0.85 * (1 + 0.12 * k))
+            fold = (0.5 + 0.5 * math.sin(2 * math.pi * (pleats * u + 0.8 * k) + seed)) ** 3
+            amp = math.exp(-k / 0.45)
+            if side < 0:
+                y += 0.32 * b * amp * fold
+                z += 0.03 * H * amp * fold
+            shift = 0.045 * e * wav * math.exp(-k / 0.08)
+        return Vector(((u - 0.5) * L, side * y + shift, z))
+    ob = surface(name, nu, nv, fn)
+    weld(ob, 1e-4)
+    push_normals(ob, lambda co, n: 0.003 * fbm(co * 10))
+    smooth(ob)
+    bend(ob, curve)
+    return assign(ob, mat)
+
+
+def gyoza():
+    """Три гёдза: тонкое тесто со складочками по гребню, донышко обжарено до золотисто-коричневой корочки."""
+    H = 0.46
+    sh = Sh("GyozaMat", rough=0.38, sss=0.55, sss_radius=(1.0, 0.85, 0.6), sss_scale=0.06, coat=0.5, coat_rough=0.1)
+    _, _, z = sh.xyz()
+    wob = sh.math("MULTIPLY", sh.math("SUBTRACT", sh.noise(None, 5, 3), 0.5), 0.10)
+    zz = sh.math("ADD", z, wob)
+    col = sh.ramp(sh.remap(zz, 0.0, H, smooth=False), [(0.0, (0.46, 0.22, 0.06)), (0.06, (0.68, 0.38, 0.11)),
+                                                       (0.16, (0.90, 0.60, 0.22)), (0.26, (0.99, 0.82, 0.54)),
+                                                       (0.40, (1.0, 0.88, 0.68)), (1.0, (1.0, 0.92, 0.78))])
+    spots = sh.math("MULTIPLY", sh.remap(sh.noise(None, 9, 3), 0.6, 0.72, 0.0, 0.6), sh.remap(z, 0.2, 0.1))
+    col = sh.mix(spots, col, (0.56, 0.28, 0.08))
+    sh.color(col)
+    sh.bump(sh.noise(None, 28, 4), 0.07, 0.004)
+    sh.rough_vary(0.28, 0.5, 6)
+    parts = []
+    specs = [(-0.42, 0.30, -8, 0.0, 0), (0.42, 0.34, 10, 0.0, 1), (0.0, -0.36, -2, 0.0, 2)]
+    for i, (x, y, rz, tilt, sd) in enumerate(specs):
+        g = gyoza_obj(f"Gyoza{i}", 1.2, 0.27, H, sh.mat, 6, sd * 1.7, 1.25 + 0.1 * i)
+        g.rotation_euler = (math.radians(tilt), 0, math.radians(rz))
+        g.location = (x, y, 0)
+        parts.append(g)
+    # передняя гёдза завалилась набок: видно поджаристое донышко
+    front = parts[2]
+    front.rotation_euler = (math.radians(-62), 0, math.radians(-4))
+    bpy.context.view_layer.update()
+    MX.ground([front], 0.0)
+    front.location.y -= 0.12
+    return rotate_all(parts, (math.radians(10), 0, math.radians(-6)))
+
+
+M.MODELS.update({
+    "rice": rice,
+    "fish": fish,
+    "soy": soy,
+    "edamame": edamame,
+    "gyoza": gyoza,
+})
+
+
+# MARK: - Темпура
+
+def tempura_obj(name, L, R, mat, tail_mat, seed=0.0):
+    """Креветка в кляре: изогнутое тело, к хвосту тоньше, рваный хрустящий кляр, красный хвостик веером."""
+    pts = EV.spline([(L * 0.5, 0.0, 0.0), (L * 0.18, 0.06, 0.0), (-L * 0.18, 0.05, 0.0), (-L * 0.46, -0.03, 0.0)], 10)
+
+    def rfn(t):
+        return R * (1 - 0.5 * t ** 1.4) * (1 - 0.35 * ss(0.92, 1.0, t))
+    body = EV.sweep(name, pts, rfn, segs=40, step=0.014)
+    subdivide(body, 1)
+    off = Vector((seed * 3.1, seed * 1.3, 0))
+
+    def crag(co, n):
+        return (0.05 * max(0.0, fbm(co * 4.5 + off, 4)) + 0.03 * abs(noise.noise(co * 10 + off))
+                + 0.012 * fbm(co * 22 + off, 2))
+    EV.set_attr(body, "crag", lambda co, n: min(1.0, crag(co, n) / 0.07))
+    push_normals(body, crag)
+    smooth(body)
+    assign(body, mat)
+    parts = [body]
+    bits = []
+
+    def make(i, rnd):
+        b = sphere(f"{name}Bit{len(bits)}", 1.0, 12, 8)
+        sz = rnd.uniform(0.03, 0.06)
+        b.scale = (sz * rnd.uniform(0.8, 1.6), sz, sz * rnd.uniform(0.5, 0.9))
+        apply_transform(b)
+        push_normals(b, lambda co, n: 0.01 * noise.noise(co * 40))
+        bits.append(b)
+        return b
+    scatter_on(body, 45, make, seed=int(seed * 10) + 1, area=1.2, spacing=0.06)
+    for b in bits:
+        b.data.update()
+    jb = join_one(bits, f"{name}Bits", mat)
+    EV.set_attr(jb, "crag", lambda co, n: 0.72)
+    parts.append(jb)
+    # хвост: кольцо панциря и три лопасти
+    end = Vector(pts[-1])
+    tdir = (Vector(pts[-1]) - Vector(pts[-3])).normalized()
+    ring = sphere(f"{name}TailRing", 1.0, 24, 16)
+    ring.scale = (0.08, 0.075, 0.07)
+    ring.location = end + tdir * 0.02
+    apply_transform(ring)
+    assign(smooth(ring), tail_mat)
+    parts.append(ring)
+    base_ang = math.atan2(tdir.y, tdir.x)
+    for k, (da, ln, w) in enumerate(((-0.6, 0.36, 0.12), (0.0, 0.42, 0.11), (0.6, 0.36, 0.12))):
+        f = sphere(f"{name}Fan{k}", 1.0, 24, 12)
+        f.scale = (ln / 2, w, 0.025)
+        apply_transform(f)
+        deform(f, lambda co: Vector((co.x, co.y * (0.5 + 0.5 * (co.x / ln + 0.5)), co.z + 0.25 * (co.x / ln) ** 2)))
+        f.rotation_euler = (math.radians(10 * (k - 1)), math.radians(-18), base_ang + da)
+        f.location = end + tdir * 0.05 + Vector((math.cos(base_ang + da), math.sin(base_ang + da), 0)) * ln * 0.45
+        apply_transform(f)
+        assign(smooth(f), tail_mat)
+        parts.append(f)
+    return parts
+
+
+def tempura():
+    """Две креветки темпура: золотистый неровный кляр с крошками, красно-оранжевые хвостики."""
+    sh = Sh("TempuraBatter", rough=0.45, sss=0.3, sss_radius=(1.0, 0.8, 0.4), sss_scale=0.04, coat=0.35, coat_rough=0.2)
+    crag = sh.attr("crag")
+    col = sh.ramp(crag, [(0.0, (0.90, 0.62, 0.24)), (0.35, (0.98, 0.80, 0.42)), (0.7, (1.0, 0.88, 0.56)),
+                         (1.0, (1.0, 0.92, 0.64))])
+    col = sh.mix(sh.math("MULTIPLY", sh.remap(sh.noise(None, 6, 3), 0.6, 0.72), 0.5), col, (0.82, 0.50, 0.16))
+    sh.color(col)
+    sh.bump(sh.noise(None, 45, 4), 0.25, 0.004)
+    sh.rough_vary(0.35, 0.6, 9)
+    tl = Sh("TempuraTail", rough=0.25, sss=0.5, sss_radius=(1.0, 0.4, 0.3), coat=0.7, coat_rough=0.06)
+    _, _, tz = tl.xyz()
+    tl.color(tl.ramp(tl.noise(None, 6, 2), [(0.3, (0.92, 0.22, 0.10)), (0.7, (1.0, 0.40, 0.20))]))
+    a = tempura_obj("TempA", 1.8, 0.25, sh.mat, tl.mat, 0.0)
+    b = tempura_obj("TempB", 1.7, 0.24, sh.mat, tl.mat, 1.0)
+    for o in a + b:
+        o.location.z += 0.25
+    rotate_all(a, (0, 0, math.radians(206)))
+    rotate_all(b, (0, 0, math.radians(150)))
+    for o in a:
+        o.location += Vector((0.05, 0.34, 0))
+    for o in b:
+        o.location += Vector((-0.05, -0.34, 0))
+    bpy.context.view_layer.update()
+    MX.ground(a, 0.0)
+    MX.drop(b, a, floor=0.0, step=0.01, top=1.5)
+    return rotate_all(a + b, (math.radians(10), 0, math.radians(-14)))
+
+
+# MARK: - Моти
+
+def mochi_obj(name, R, lo, hi, seed=0.0):
+    ob = sphere(name, 1.0, 80, 56)
+    off = Vector((seed, seed * 0.7, 0))
+
+    def shp(co):
+        a = math.atan2(co.y, co.x)
+        k = 1.0 + 0.04 * fbm(co * 1.3 + off) + 0.015 * math.sin(3 * a + seed)
+        z = co.z * 0.74 if co.z > 0 else co.z * 0.30
+        sag = 1.0 + 0.12 * ss(0.25, -0.6, co.z)
+        return Vector((co.x * R * k * sag, co.y * R * k * sag, (z + 0.30) * R))
+    deform(ob, shp)
+    push_normals(ob, lambda co, n: 0.006 * fbm(co * 6 / R + off) - 0.008 * ss(0.3, 0.0, n.z) * (0.5 + 0.5 * math.sin(
+        14 * math.atan2(co.y, co.x) + seed)) * (1 - ss(-0.6, -0.3, n.z)))
+    smooth(ob)
+    sh = Sh(name + "Mat", rough=0.55, sss=0.75, sss_radius=(1.0, 0.9, 0.85), sss_scale=0.15, sheen=0.7,
+            sheen_rough=0.4, coat=0.1, coat_rough=0.3)
+    _, _, z = sh.xyz()
+    _, _, nz = sh.xyz("Normal")
+    col = sh.ramp(sh.remap(z, 0.0, 1.04 * R, smooth=False), [(0.0, lo), (1.0, hi)])
+    dust = sh.math("MULTIPLY", sh.remap(sh.noise(None, 2.5 / R, 5, 0.65), 0.50, 0.68, 0.0, 0.7), sh.remap(nz, 0.35, 0.85))
+    specks = sh.remap(sh.voronoi(None, 50 / R, "F1"), 0.12, 0.05, 0.0, 0.9)
+    flour = sh.math("MAXIMUM", dust, sh.math("MULTIPLY", specks, sh.remap(nz, -0.3, 0.3)))
+    col = sh.mix(flour, col, (1.0, 1.0, 0.99))
+    sh.color(col)
+    sh.set("Roughness", sh.remap(flour, 0.0, 1.0, 0.45, 0.9, smooth=False))
+    sh.bump(flour, 0.12, 0.005)
+    sh.bump(sh.noise(None, 40, 3), 0.05, 0.003)
+    return assign(ob, sh.mat)
+
+
+def mochi():
+    """Три дайфуку пастельных цветов: мягкие, чуть осевшие, присыпаны крахмалом; верхний лежит на двух нижних."""
+    a = mochi_obj("MochiPink", 0.55, (0.98, 0.64, 0.74), (1.0, 0.80, 0.86), 0.0)
+    b = mochi_obj("MochiGreen", 0.55, (0.62, 0.80, 0.42), (0.80, 0.92, 0.62), 1.3)
+    c = mochi_obj("MochiWhite", 0.52, (0.94, 0.92, 0.90), (1.0, 1.0, 0.98), 2.6)
+    a.location = (-0.36, -0.10, 0)
+    b.location = (0.38, -0.06, 0)
+    c.location = (0.0, 0.22, 0)
+    bpy.context.view_layer.update()
+    MX.drop([c], [a, b], floor=0.0, step=0.01, top=1.5)
+    c.location.z -= 0.06
+    return rotate_all([a, b, c], (math.radians(6), 0, math.radians(-8)))
+
+
+# MARK: - Тайяки
+
+def taiyaki_outline(n=80):
+    pts = []
+    for k in range(n + 1):
+        x = 0.92 - 1.50 * k / n
+        e = max(0.0, 1 - ((x - 0.12) / 0.82) ** 2)
+        y = 0.47 * e ** 0.5 + 0.09 * math.exp(-((x + 0.08) / 0.22) ** 2)
+        pts.append((x, max(y, 0.17)))
+    pts += [(-0.70, 0.24), (-0.84, 0.36), (-0.98, 0.44), (-1.04, 0.40), (-1.0, 0.24), (-0.95, 0.10), (-0.93, 0.0)]
+    bot = [(x, -y) for x, y in reversed(pts)][1:]
+    out = pts + bot
+    return out[:-1]
+
+
+def taiyaki_relief(x, y):
+    """Рисунок формы: чешуя, жабра, глаз, лучи хвоста и плавника. 0..1."""
+    r = 0.0
+    if -0.5 < x < 0.42:
+        u = (x + 0.5) / 0.15
+        col_i = math.floor(u)
+        v = y / 0.15 + 0.5 * (col_i % 2)
+        fu, fv = u - col_i, v - math.floor(v) - 0.5
+        d = math.hypot(fu, fv)
+        r = max(r, math.exp(-((d - 0.62) / 0.12) ** 2) * (fu > 0.05) * ss(0.42, 0.30, x))
+    dg = math.hypot((x - 0.86) / 1.0, y * 1.1)
+    if x < 0.62:
+        r = max(r, math.exp(-((dg - 0.42) / 0.035) ** 2) * ss(0.42, 0.30, abs(y)))
+    de = math.hypot(x - 0.66, y - 0.15)
+    r = max(r, math.exp(-((de - 0.075) / 0.018) ** 2), ss(0.04, 0.02, de) * 0.9)
+    if x < -0.62:
+        al = math.atan2(y, -(x + 0.62))
+        r = max(r, (0.5 + 0.5 * math.cos(al * 12)) ** 3 * ss(-0.62, -0.72, x))
+    if -0.32 < x < 0.12 and y > 0.36:
+        r = max(r, (0.5 + 0.5 * math.cos(x * 42)) ** 3 * ss(0.36, 0.42, y))
+    return min(1.0, r)
+
+
+def taiyaki():
+    """Тайяки: золотистая вафля-рыбка с рельефом формы - чешуя, жабра, глаз, плавники, тонкий хрустящий край."""
+    outline = taiyaki_outline()
+    ob = MX.outline_slab("Taiyaki", outline, 1.0, p=2.4, cuts=84, center=(-0.55, 0.0))
+
+    def dome(x, y):
+        return max(0.0, 1 - ((x - 0.12) / 0.86) ** 2 - (y / 0.5) ** 2)
+
+    def shp(co):
+        d = dome(co.x, co.y)
+        half = 0.05 + 0.17 * d ** 0.6
+        return Vector((co.x, co.y, co.z * 2 * half))
+    deform(ob, shp)
+    subdivide(ob, 1)
+
+    def rel(co, n):
+        if n.z < 0.3:
+            return 0.0
+        return 0.028 * taiyaki_relief(co.x, co.y) * ss(0.3, 0.6, n.z)
+    EV.set_attr(ob, "relief", lambda co, n: taiyaki_relief(co.x, co.y) * ss(0.3, 0.6, n.z))
+    push_normals(ob, rel)
+    push_normals(ob, lambda co, n: 0.006 * fbm(co * 6))
+    smooth(ob)
+    sh = Sh("TaiyakiMat", rough=0.42, sss=0.25, sss_radius=(1.0, 0.6, 0.3), coat=0.45, coat_rough=0.12)
+    _, _, nz = sh.xyz("Normal")
+    x, y, z = sh.xyz()
+    col = sh.ramp(sh.remap(sh.math("ADD", nz, sh.math("MULTIPLY", sh.math("SUBTRACT", sh.noise(None, 4, 3), 0.5), 0.5)),
+                           -1, 1, smooth=False),
+                  [(0.0, (0.76, 0.44, 0.15)), (0.4, (0.99, 0.80, 0.46)), (0.55, (1.0, 0.86, 0.56)),
+                   (0.75, (0.96, 0.68, 0.30)), (1.0, (0.88, 0.56, 0.22))])
+    col = sh.mix(sh.math("MULTIPLY", sh.attr("relief"), 0.8), col, (0.70, 0.38, 0.12))
+    col = sh.mix(sh.math("MULTIPLY", sh.remap(sh.noise(None, 7, 3), 0.62, 0.75), 0.4), col, (0.70, 0.38, 0.12))
+    sh.color(col)
+    sh.bump(sh.noise(None, 30, 4), 0.12, 0.004)
+    sh.rough_vary(0.32, 0.55, 8)
+    assign(ob, sh.mat)
+    return rotate_all([ob], (math.radians(58), 0, math.radians(-10)))
+
+
+# MARK: - Эспрессо
+
+def coffee_bean(name, mat, s=0.11):
+    b = sphere(name, 1.0, 32, 20)
+    b.scale = (s, s * 0.72, s * 0.5)
+    apply_transform(b)
+    push_normals(b, lambda co, n: -0.022 * s / 0.11 * math.exp(-(co.y / (0.012 * s / 0.11)) ** 2) * ss(0.0, 0.3, n.z)
+                 * (1 - ss(0.8, 1.0, abs(co.x) / s)))
+    smooth(b)
+    return assign(b, mat)
+
+
+def espresso():
+    """Эспрессо: толстостенная чашечка, крема с тигровым рисунком и темной каймой, ложечка и зерна на блюдце."""
+    white = ceramic_sh("EspPorcelain", [(0.0, (0.90, 0.91, 0.94)), (1.0, (1.0, 1.0, 1.0))], 0.0, 0.8)
+    saucer = lathe("EspSaucer", [(0.0, 0.0), (0.42, 0.0), (0.45, 0.02), (0.46, 0.04), (0.50, 0.05), (0.80, 0.11),
+                                 (0.95, 0.17), (0.98, 0.19), (0.965, 0.205), (0.93, 0.19), (0.78, 0.14), (0.52, 0.10),
+                                 (0.30, 0.095), (0.0, 0.095)], 128)
+    subdivide(saucer, 1)
+    smooth(saucer, 50)
+    sau = Sh("EspSaucerMat", rough=0.12, coat=0.85, coat_rough=0.04)
+    _, _, sz_ = sau.xyz()
+    rr = sau.vmath("LENGTH", sau.combine(*sau.xyz()[:2], 0.0))
+    scol = sau.ramp(sau.remap(sz_, 0.0, 0.2, smooth=False), [(0.0, (0.88, 0.89, 0.93)), (1.0, (1.0, 1.0, 1.0))])
+    scol = sau.mix(sau.math("MULTIPLY", sau.remap(rr, 0.90, 0.92), sau.remap(rr, 0.95, 0.93)), scol, (0.70, 0.24, 0.12))
+    sau.color(scol)
+    assign(saucer, sau.mat)
+    zc = 0.095
+    cup_prof = [(0.0, zc), (0.17, zc), (0.19, zc + 0.01), (0.20, zc + 0.05), (0.24, zc + 0.07), (0.32, zc + 0.16),
+                (0.37, zc + 0.30), (0.39, zc + 0.46), (0.40, zc + 0.56), (0.395, zc + 0.585), (0.37, zc + 0.585),
+                (0.355, zc + 0.50), (0.33, zc + 0.32), (0.27, zc + 0.20), (0.0, zc + 0.16)]
+    cup = lathe("EspCup", cup_prof, 128)
+    subdivide(cup, 1)
+    smooth(cup, 50)
+    assign(cup, white.mat)
+    lz = zc + 0.47
+    crema = polar_disc("EspCrema", 30, 128, 0.355, 0.355)
+    deform(crema, lambda co: Vector((co.x, co.y, lz + 0.012 * (1 - (math.hypot(co.x, co.y) / 0.355) ** 2)
+                                     + 0.004 * fbm(co * 20))))
+    smooth(crema)
+    cm = Sh("EspCremaMat", rough=0.35, sss=0.3, sss_radius=(1.0, 0.6, 0.3), coat=0.5, coat_rough=0.1)
+    cx, cy, _ = cm.xyz()
+    r2 = cm.vmath("LENGTH", cm.combine(cx, cy, 0.0))
+    marb = cm.noise(cm.mapping(None, scale=(1.0, 1.0, 1.0)), 7.0, 5, 0.6, distortion=2.5)
+    col = cm.ramp(marb, [(0.25, (0.62, 0.34, 0.12)), (0.45, (0.82, 0.54, 0.24)), (0.6, (0.92, 0.70, 0.40)),
+                         (0.8, (0.70, 0.42, 0.16))])
+    col = cm.mix(cm.remap(r2, 0.26, 0.345), col, (0.32, 0.15, 0.05))
+    bub = cm.remap(cm.voronoi(None, 60, "F1"), 0.10, 0.05, 0.0, 0.35)
+    col = cm.mix(cm.math("MULTIPLY", bub, cm.remap(r2, 0.33, 0.28)), col, (0.96, 0.84, 0.62))
+    cm.color(col)
+    cm.bump(bub, 0.2, 0.003)
+    assign(crema, cm.mat)
+    hp = EV.spline([(0.36, 0.0, zc + 0.46), (0.52, 0.0, zc + 0.47), (0.58, 0.0, zc + 0.36), (0.50, 0.0, zc + 0.24),
+                    (0.34, 0.0, zc + 0.22)], 8)
+    handle = EV.sweep("EspHandle", hp, lambda t: 0.045 - 0.012 * math.sin(math.pi * t), segs=16, step=0.01,
+                      section=(1.0, 0.75))
+    assign(handle, white.mat)
+    cupset = [cup, crema, handle]
+    for o in cupset:
+        o.scale = (1.22, 1.22, 1.22)
+        o.location.z -= zc * 0.22
+        apply_transform(o)
+    parts = [saucer] + cupset
+    steel = Sh("EspSpoon", rough=0.15, metal=1.0)
+    steel.color((0.86, 0.87, 0.90))
+    spath = [(-0.08, 0.0, 0.0), (0.12, 0.0, 0.01), (0.30, 0.0, 0.03)]
+    stem = EV.sweep("SpoonStem", EV.spline(spath, 6), lambda t: 0.018 + 0.012 * t, segs=12, step=0.01,
+                    section=(1.0, 0.45))
+    bowl_ = sphere("SpoonBowl", 1.0, 32, 20)
+    bowl_.scale = (0.12, 0.075, 0.03)
+    bowl_.location = (-0.20, 0, 0.02)
+    apply_transform(bowl_)
+    smooth(bowl_)
+    sp = [stem, bowl_]
+    for o in sp:
+        assign(o, steel.mat)
+    rotate_all(sp, (0, 0, math.radians(-30)))
+    for o in sp:
+        o.location += Vector((0.60, -0.30, 0.0))
+    bpy.context.view_layer.update()
+    MX.drop(sp, [saucer], floor=0.0, step=0.005, top=0.6)
+    parts += sp
+    bean = Sh("CoffeeBean", rough=0.25, coat=0.7, coat_rough=0.08)
+    bean.color(bean.ramp(bean.noise(None, 20, 2), [(0.3, (0.30, 0.15, 0.06)), (0.7, (0.42, 0.22, 0.09))]))
+    for i, (x, y, rz) in enumerate(((-0.62, -0.38, 30), (-0.46, -0.60, -40))):
+        b = coffee_bean(f"EspBean{i}", bean.mat)
+        b.rotation_euler = (0, 0, math.radians(rz))
+        b.location = (x, y, 0.4)
+        bpy.context.view_layer.update()
+        MX.drop([b], [saucer], floor=0.0, step=0.005, top=0.5)
+        parts.append(b)
+    return rotate_all(parts, (0, 0, math.radians(-24)))
+
+
+# MARK: - Канноли
+
+def scatter_dir(target, count, make, axis, center, radius, seed=1, spacing=0.0):
+    """Россыпь по поверхности лучом вдоль -axis из круга радиуса radius вокруг center (для торцов)."""
+    rnd = random.Random(seed)
+    ax = Vector(axis).normalized()
+    u = ax.orthogonal().normalized()
+    w = ax.cross(u)
+    bpy.context.view_layer.update()
+    inv = target.matrix_world.inverted()
+    placed = []
+    tries = 0
+    while len(placed) < count and tries < count * 80:
+        tries += 1
+        a = rnd.uniform(0, 2 * math.pi)
+        r = radius * math.sqrt(rnd.random())
+        o = Vector(center) + ax * 5.0 + u * r * math.cos(a) + w * r * math.sin(a)
+        ok, loc, nor, _ = target.ray_cast(inv @ o, (inv.to_3x3() @ -ax).normalized())
+        if not ok:
+            continue
+        loc = target.matrix_world @ loc
+        nor = (target.matrix_world.to_3x3() @ nor).normalized()
+        if nor.dot(ax) < 0.2:
+            continue
+        if spacing and any((loc - q).length < spacing for q in placed):
+            continue
+        placed.append(loc)
+        ob = make(len(placed) - 1, rnd)
+        q = nor.to_track_quat("Z", "Y")
+        spin = Matrix.Rotation(rnd.uniform(0, 2 * math.pi), 4, "Z")
+        ob.matrix_world = Matrix.Translation(loc) @ q.to_matrix().to_4x4() @ spin @ ob.matrix_basis
+    return placed
+
+
+def cannoli_obj(prefix, shell_mat, cream_mat, choc_mat, pist_mat, sugar_mat_, seed=0):
+    L, R = 1.35, 0.22
+    shell = lathe_fn(prefix + "Shell", lambda t: R * (1 + 0.16 * (2 * t - 1) ** 2), -L / 2, L / 2, 80, 64,
+                     lambda a, t: 1.0 + 0.02 * noise.noise(Vector((math.cos(a), math.sin(a), t * 5 + seed))))
+    to_axis_x(shell)
+    # полая трубка: срезаем торцы, даем толщину
+    bm = _bm.new()
+    bm.from_mesh(shell.data)
+    kill = [f for f in bm.faces if abs(f.normal.x) > 0.9 and abs(f.calc_center_median().x) > L / 2 - 0.01]
+    _bm.ops.delete(bm, geom=kill, context="FACES")
+    bm.to_mesh(shell.data)
+    bm.free()
+    solidify(shell, 0.035, -1.0)
+    subdivide(shell, 1)
+    off = Vector((seed * 2.3, 0, 0))
+    push_normals(shell, lambda co, n: 0.012 * max(0.0, fbm(co * 9 + off, 3)) if math.hypot(co.y, co.z) > R * 0.95 else 0.0)
+    smooth(shell)
+    assign(shell, shell_mat)
+    parts = [shell]
+    ends = []
+    for side in (-1, 1):
+        def rf(t):
+            return R * 1.05 * (1 - ss(0.55, 1.0, t) ** 1.6 * 0.9)
+
+        def rib(a, t, s=side):
+            return 1.0 + 0.13 * math.cos(8 * a + s * 2.5 * t) * ss(0.15, 0.45, t)
+        c = lathe_fn(f"{prefix}Cream{side}", rf, 0.0, 0.40, 50, 96, rib)
+        to_axis_x(c)
+        if side < 0:
+            c.rotation_euler = (0, 0, math.pi)
+            apply_transform(c)
+        c.location.x = side * (L / 2 - 0.12)
+        apply_transform(c)
+        push_normals(c, lambda co, n: 0.006 * fbm(co * 12))
+        smooth(c)
+        assign(c, cream_mat)
+        parts.append(c)
+        ends.append((c, side))
+    bits = []
+
+    def make_choc(i, rnd):
+        b = sphere(f"{prefix}Choc{len(bits)}", 1.0, 12, 8)
+        b.scale = (0.03, 0.03, 0.035)
+        apply_transform(b)
+        deform(b, lambda co: Vector((co.x * (1 - 0.5 * max(0.0, co.z / 0.035)), co.y * (1 - 0.5 * max(0.0, co.z / 0.035)),
+                                     co.z)))
+        bits.append((b, choc_mat))
+        return b
+
+    def make_pist(i, rnd):
+        b = MX.rcube(f"{prefix}Pist{len(bits)}", rnd.uniform(0.025, 0.04), rnd.uniform(0.02, 0.03), 0.018, p=3.0, cuts=2)
+        b.rotation_euler = (rnd.uniform(-0.5, 0.5), rnd.uniform(-0.5, 0.5), rnd.uniform(0, 3))
+        bits.append((b, pist_mat))
+        return b
+    for c, side in ends:
+        cen = Vector((side * (L / 2 + 0.12), 0, 0))
+        scatter_dir(c, 9, make_choc, (side, 0, 0), cen, 0.2, seed=seed * 7 + (side > 0) + 1, spacing=0.07)
+        scatter_dir(c, 7, make_pist, (side, 0, 0), cen, 0.2, seed=seed * 7 + (side > 0) + 11, spacing=0.06)
+    choc = join_one([b for b, m in bits if m is choc_mat], prefix + "Chocs", choc_mat)
+    pist = join_one([b for b, m in bits if m is pist_mat], prefix + "Pists", pist_mat)
+    parts += [choc, pist]
+    return parts
+
+
+def cannoli():
+    """Два канноли: пузырчатая хрустящая трубочка в сахарной пудре, рикотта звездочкой с крошкой шоколада и фисташки."""
+    sh = Sh("CannoliShell", rough=0.45, sss=0.2, sss_radius=(1.0, 0.6, 0.3), coat=0.45, coat_rough=0.15)
+    _, _, nz = sh.xyz("Normal")
+    blist = sh.voronoi(None, 22, "F1")
+    col = sh.ramp(sh.noise(None, 5, 3), [(0.3, (0.92, 0.62, 0.28)), (0.6, (0.84, 0.50, 0.20)), (0.8, (0.70, 0.38, 0.13))])
+    col = sh.mix(sh.remap(blist, 0.18, 0.05, 0.0, 0.6), col, (0.62, 0.30, 0.08))
+    sugar_m = sh.math("MULTIPLY", sh.remap(sh.noise(None, 6, 4), 0.48, 0.62), sh.remap(nz, 0.35, 0.75))
+    col = sh.mix(sugar_m, col, (1.0, 0.99, 0.97))
+    sh.color(col)
+    sh.set("Roughness", sh.remap(sugar_m, 0.0, 1.0, 0.4, 0.9, smooth=False))
+    sh.bump(blist, 0.5, 0.012, invert=True)
+    sh.bump(sh.noise(None, 40, 3), 0.1, 0.003)
+    cr = Sh("CannoliRicotta", rough=0.45, sss=0.7, sss_radius=(1.0, 0.95, 0.85), sss_scale=0.08, coat=0.2, sheen=0.3)
+    cr.color(cr.ramp(cr.noise(None, 8, 3), [(0.3, (1.0, 0.98, 0.93)), (0.7, (0.97, 0.94, 0.86))]))
+    cr.bump(cr.voronoi(None, 70, "F1"), 0.15, 0.003, invert=True)
+    choc = material("CannoliChoc", [(0.0, (0.18, 0.08, 0.04)), (1.0, (0.32, 0.16, 0.07))], rough=0.3, coat=0.5)
+    pist = material("CannoliPist", [(0.0, (0.40, 0.62, 0.18)), (1.0, (0.62, 0.80, 0.30))], rough=0.35, coat=0.4,
+                    sss=0.2)
+    a = cannoli_obj("CanA", sh.mat, cr.mat, choc, pist, None, 0)
+    b = cannoli_obj("CanB", sh.mat, cr.mat, choc, pist, None, 1)
+    for o in a + b:
+        o.location.z += 0.3
+    rotate_all(a, (0, 0, math.radians(-28)))
+    rotate_all(b, (0, 0, math.radians(22)))
+    for o in a:
+        o.location += Vector((0.0, 0.26, 0))
+    for o in b:
+        o.location += Vector((0.05, -0.25, 0))
+    bpy.context.view_layer.update()
+    MX.ground(a, 0.0)
+    MX.drop(b, a, floor=0.0, step=0.01, top=1.6)
+    return rotate_all(a + b, (math.radians(8), 0, math.radians(-8)))
+
+
+M.MODELS.update({
+    "tempura": tempura,
+    "mochi": mochi,
+    "taiyaki": taiyaki,
+    "espresso": espresso,
+    "cannoli": cannoli,
+})
+
+
+# MARK: - Мексика: общие материалы
+
+def terracotta_sh(name, z0, z1, band=None, dots=None):
+    """Неглазурованная терракота снаружи: теплый градиент, пятнистость, расписной кремовый поясок с точками."""
+    sh = Sh(name, rough=0.55, coat=0.25, coat_rough=0.3, sss=0.05)
+    _, _, z = sh.xyz()
+    col = sh.ramp(sh.remap(z, z0, z1, smooth=False), [(0.0, (0.58, 0.24, 0.10)), (0.6, (0.80, 0.40, 0.18)),
+                                                     (1.0, (0.90, 0.52, 0.26))])
+    col = sh.mix(sh.math("MULTIPLY", sh.remap(sh.noise(None, 6, 4), 0.45, 0.7), 0.35), col, (0.66, 0.28, 0.12))
+    if band:
+        b0, b1 = band
+        bm_ = sh.math("MULTIPLY", sh.remap(z, b0 - 0.006, b0), sh.remap(z, b1 + 0.006, b1))
+        col = sh.mix(bm_, col, (1.0, 0.92, 0.74))
+    if dots:
+        dz, n, rad = dots
+        ang = angle_sock(sh)
+        ph = sh.math("PINGPONG", sh.math("MULTIPLY", ang, n / (2 * math.pi)), 0.5)
+        dd = sh.vmath("LENGTH", sh.combine(sh.math("MULTIPLY", ph, 2 * math.pi / n * 0.8), sh.math("SUBTRACT", z, dz), 0.0))
+        col = sh.mix(sh.remap(dd, rad, rad * 0.7), col, (1.0, 0.92, 0.74))
+    sh.color(col)
+    sh.bump(sh.noise(None, 25, 4), 0.12, 0.004)
+    return sh
+
+
+def glazed_in_sh(name):
+    sh = Sh(name, rough=0.14, coat=0.85, coat_rough=0.05)
+    sh.color(sh.ramp(sh.noise(None, 5, 3), [(0.3, (0.50, 0.24, 0.10)), (0.7, (0.62, 0.32, 0.14))]))
+    return sh
+
+
+# MARK: - Маса
+
+def masa_dough_sh(name, z0, z1):
+    sh = Sh(name, rough=0.6, sss=0.55, sss_radius=(1.0, 0.8, 0.4), sss_scale=0.08, sheen=0.4, sheen_rough=0.5,
+            coat=0.08, coat_rough=0.4)
+    _, _, z = sh.xyz()
+    col = sh.ramp(sh.remap(z, z0, z1, smooth=False), [(0.0, (0.92, 0.68, 0.24)), (0.5, (0.99, 0.80, 0.36)),
+                                                     (1.0, (1.0, 0.88, 0.50))])
+    grit = sh.remap(sh.voronoi(None, 70, "F1"), 0.12, 0.05, 0.0, 0.6)
+    col = sh.mix(sh.math("MULTIPLY", grit, sh.remap(sh.noise(None, 9, 2), 0.4, 0.6)), col, (0.90, 0.66, 0.26))
+    col = sh.mix(sh.math("MULTIPLY", sh.remap(sh.voronoi(None, 40, "F1"), 0.08, 0.03), 0.5), col, (1.0, 0.96, 0.80))
+    sh.color(col)
+    sh.bump(grit, 0.25, 0.003)
+    sh.bump(sh.noise(None, 14, 4), 0.12, 0.008)
+    return sh
+
+
+def masa():
+    """Миска кукурузного теста масы: зернистое тесто с вмятинами и трещинками, шарики теста на сухом початочном листе."""
+    prof = [(0.0, 0.0), (0.34, 0.0), (0.38, 0.02), (0.40, 0.06), (0.56, 0.16), (0.72, 0.32), (0.80, 0.46),
+            (0.83, 0.54), (0.81, 0.58), (0.76, 0.57), (0.72, 0.49), (0.62, 0.35), (0.46, 0.21), (0.0, 0.18)]
+    bowl = lathe("MasaBowl", prof, 128)
+    subdivide(bowl, 1)
+    smooth(bowl, 50)
+    out = terracotta_sh("MasaBowlOut", 0.0, 0.58, band=(0.40, 0.43), dots=(0.30, 18, 0.025))
+    BK.inner_faces(bowl, out.mat, glazed_in_sh("MasaBowlIn").mat, 0.15)
+    parts = [bowl]
+    dough_ = sphere("Masa", 0.70, 96, 64)
+
+    def shape(co):
+        z = co.z * 0.66 if co.z > 0 else co.z * 0.3
+        return Vector((co.x, co.y, z + 0.44))
+    deform(dough_, shape)
+
+    def dents(co, n):
+        d = 0.03 * fbm(co * 2.2) + 0.006 * fbm(co * 9)
+        for cx, cy in ((0.14, -0.20), (-0.22, 0.04), (0.02, 0.22)):
+            d -= 0.055 * math.exp(-((co.x - cx) ** 2 + (co.y - cy) ** 2) / 0.012)
+        d -= 0.012 * max(0.0, 1 - abs(noise.noise(co * 5.0)) / 0.08) * ss(0.3, 0.8, n.z)
+        return d
+    push_normals(dough_, dents)
+    smooth(dough_)
+    dsh = masa_dough_sh("MasaMat", 0.3, 0.92)
+    assign(dough_, dsh.mat)
+    parts.append(dough_)
+    h1 = MX.husk_leaf("MasaHusk", 1.6, 0.55, cup=0.12)
+    h1.rotation_euler = (0, 0, math.radians(150))
+    h1.location = (-0.75, 0.55, 0.0)
+    h2 = MX.husk_leaf("MasaHusk2", 1.3, 0.50, cup=0.10)
+    h2.rotation_euler = (0, 0, math.radians(-25))
+    h2.location = (0.95, -0.45, 0.0)
+    parts += [h1, h2]
+    bpy.context.view_layer.update()
+    MX.ground([h1], 0.0)
+    MX.ground([h2], 0.0)
+    bsh = masa_dough_sh("MasaBallMat", 0.0, 0.3)
+    for i, (x, y) in enumerate(((0.88, -0.55), (1.16, -0.42))):
+        b = sphere(f"MasaBall{i}", 0.17, 48, 32)
+        b.scale = (1, 1, 0.82)
+        apply_transform(b)
+        push_normals(b, lambda co, n: 0.008 * fbm(co * 10))
+        smooth(b)
+        assign(b, bsh.mat)
+        b.location = (x, y, 0.5)
+        bpy.context.view_layer.update()
+        MX.drop([b], [h1, h2], floor=0.0, step=0.006, top=0.6)
+        parts.append(b)
+    return rotate_all(parts, (0, 0, math.radians(-12)))
+
+
+# MARK: - Тортильи
+
+def tortilla_sh(name):
+    sh = Sh(name, rough=0.55, sss=0.35, sss_radius=(1.0, 0.8, 0.5), sss_scale=0.04, sheen=0.3, coat=0.1, coat_rough=0.4)
+    x, y, _ = sh.xyz()
+    rr = sh.vmath("LENGTH", sh.combine(x, y, 0.0))
+    col = sh.ramp(sh.remap(rr, 0.0, 1.0, smooth=False), [(0.0, (1.0, 0.89, 0.58)), (0.75, (0.99, 0.85, 0.52)),
+                                                        (1.0, (0.94, 0.74, 0.40))])
+    grain = sh.remap(sh.voronoi(None, 80, "F1"), 0.1, 0.04, 0.0, 0.4)
+    col = sh.mix(grain, col, (0.92, 0.72, 0.38))
+    cells = sh.voronoi(None, 5.5, "F1", 1.0, "Distance")
+    rnd_c = sh.xyz(sh.voronoi(None, 5.5, "F1", 1.0, "Color"))[0]
+    sel = sh.remap(rnd_c, 0.30, 0.40)
+    halo = sh.math("MULTIPLY", sh.remap(cells, 0.36, 0.18, 0.0, 0.65), sel)
+    core = sh.math("MULTIPLY", sh.remap(sh.math("ADD", cells, sh.math("MULTIPLY", sh.noise(None, 20, 3), 0.08)), 0.19,
+                                        0.10), sel)
+    col = sh.mix(halo, col, (0.78, 0.50, 0.20))
+    col = sh.mix(core, col, (0.34, 0.17, 0.06))
+    small = sh.math("MULTIPLY", sh.remap(sh.voronoi(None, 16, "F1"), 0.07, 0.03), sh.remap(sh.noise(None, 4, 2), 0.5, 0.6))
+    col = sh.mix(sh.math("MULTIPLY", small, 0.8), col, (0.50, 0.28, 0.10))
+    sh.color(col)
+    sh.bump(sh.math("MAXIMUM", core, small), 0.2, 0.006)
+    sh.bump(sh.noise(None, 25, 4), 0.1, 0.004)
+    return sh
+
+
+def tortilla():
+    """Стопка мягких кукурузных тортилий: края чуть свисают волной, сверху подпалины с комаля и пузырьки."""
+    mats = [tortilla_sh(f"TortillaMat{i}").mat for i in range(2)]
+    parts = []
+    n = 5
+    for i in range(n):
+        ob = polar_disc(f"Tortilla{i}", 34, 180, 1.0, 1.0)
+        rnd = random.Random(i * 7 + 1)
+        ph = rnd.uniform(0, 6.28)
+        droop = 0.03 + 0.03 * i
+
+        def shp(co, ph=ph, droop=droop):
+            a = math.atan2(co.y, co.x)
+            rr = math.hypot(co.x, co.y)
+            k = 1.0 + 0.025 * math.sin(3 * a + ph) + 0.012 * math.sin(7 * a + 2 * ph)
+            z = -droop * ss(0.55, 1.0, rr) * (0.7 + 0.3 * math.sin(4 * a + ph)) + 0.02 * math.sin(2 * a + ph) * rr ** 3
+            z += 0.008 * fbm(co * 4 + Vector((ph, 0, 0)))
+            return Vector((co.x * k, co.y * k, z))
+        deform(ob, shp)
+        solidify(ob, 0.04, 1.0)
+        subdivide(ob, 1)
+        smooth(ob)
+        assign(ob, mats[i % 2])
+        ob.rotation_euler = (0, 0, i * 1.1)
+        ob.location = (0.05 * math.cos(i * 2.3), 0.05 * math.sin(i * 2.3), 0.30 + i * 0.05)
+        parts.append(ob)
+    bpy.context.view_layer.update()
+    placed = []
+    for ob in parts:
+        if placed:
+            MX.drop([ob], placed, floor=0.0, step=0.004, top=ob.location.z + 0.3)
+        else:
+            MX.ground([ob], 0.0)
+        placed.append(ob)
+    # сверху тортилья, сложенная пополам
+    top = polar_disc("TortillaFold", 34, 180, 0.95, 0.95)
+    deform(top, lambda co: Vector((co.x * (1 + 0.02 * math.sin(3 * math.atan2(co.y, co.x))),
+                                   co.y * (1 + 0.02 * math.sin(3 * math.atan2(co.y, co.x))), 0.008 * fbm(co * 4))))
+    deform(top, MX.fold_fn(-0.02, 0.05, math.radians(172)))
+    solidify(top, 0.04, 1.0)
+    subdivide(top, 1)
+    smooth(top)
+    assign(top, mats[0])
+    top.rotation_euler = (0, 0, math.radians(-100))
+    top.location = (0.05, -0.12, 1.0)
+    bpy.context.view_layer.update()
+    MX.drop([top], parts, floor=0.0, step=0.004, top=0.8)
+    parts.append(top)
+    return rotate_all(parts, (math.radians(24), 0, math.radians(-10)))
+
+
+# MARK: - Фасоль
+
+def beans():
+    """Глиняная миска с горкой блестящей черной фасоли, листики кинзы, пара фасолин рядом."""
+    prof = [(0.0, 0.0), (0.36, 0.0), (0.40, 0.02), (0.42, 0.07), (0.60, 0.18), (0.76, 0.38), (0.82, 0.56),
+            (0.83, 0.64), (0.81, 0.68), (0.76, 0.67), (0.73, 0.56), (0.64, 0.38), (0.46, 0.22), (0.0, 0.19)]
+    bowl = lathe("BeanBowl", prof, 128)
+    subdivide(bowl, 1)
+    smooth(bowl, 50)
+    out = terracotta_sh("BeanBowlOut", 0.0, 0.68, band=(0.46, 0.50), dots=(0.34, 20, 0.024))
+    BK.inner_faces(bowl, out.mat, glazed_in_sh("BeanBowlIn").mat, 0.15)
+    parts = [bowl]
+    for i, sx in enumerate((-1, 1)):
+        h = torus(f"BeanHandle{i}", 0.10, 0.035, 48, 16)
+        h.rotation_euler = (math.radians(90), 0, 0)
+        h.location = (sx * 0.84, 0, 0.52)
+        apply_transform(h)
+        assign(smooth(h), out.mat)
+        parts.append(h)
+    mound = polar_disc("BeanMound", 28, 128, 0.75, 0.75)
+    deform(mound, lambda co: Vector((co.x, co.y, 0.58 + 0.26 * max(0.0, 1 - (math.hypot(co.x, co.y) / 0.75) ** 2) ** 0.8)))
+    smooth(mound)
+    assign(mound, flat("BeanSauce", (0.10, 0.05, 0.07), rough=0.15, coat=0.9, coat_rough=0.04))
+    parts.append(mound)
+    bsh = Sh("BlackBean", rough=0.14, coat=0.9, coat_rough=0.04, sss=0.1, sss_radius=(0.6, 0.3, 0.5))
+    _, _, nz = bsh.xyz("Normal")
+    bcol = bsh.ramp(bsh.remap(nz, -1, 1, smooth=False), [(0.0, (0.06, 0.03, 0.05)), (0.6, (0.16, 0.08, 0.13)),
+                                                        (1.0, (0.30, 0.16, 0.24))])
+    x, y, z = bsh.xyz()
+    hil = bsh.vmath("LENGTH", bsh.combine(x, bsh.math("SUBTRACT", y, -0.045), bsh.math("SUBTRACT", z, 0.0)))
+    bcol = bsh.mix(bsh.remap(hil, 0.022, 0.014), bcol, (0.92, 0.90, 0.86))
+    bsh.color(bcol)
+    beans_ = []
+
+    def bean_obj(nm):
+        b = sphere(nm, 1.0, 20, 12)
+        b.scale = (0.092, 0.058, 0.05)
+        apply_transform(b)
+        bend(b, 0.32)
+        return b
+
+    def make(i, rnd):
+        b = bean_obj(f"Bean{len(beans_)}")
+        b.rotation_euler = (rnd.uniform(-0.4, 0.4), rnd.uniform(-0.4, 0.4), 0)
+        b.location.z += 0.02
+        beans_.append(b)
+        return b
+    scatter_on(mound, 130, make, seed=6, area=0.74, spacing=0.095, zmin=0.58)
+    scatter_on(mound, 70, make, seed=9, area=0.70, spacing=0.0, zmin=0.62)
+    parts.append(join_one(beans_, "Beans", bsh.mat))
+    for i, (x_, y_, rz) in enumerate(((0.72, -0.78, 20), (0.95, -0.62, -50), (0.55, -0.95, 80))):
+        b = bean_obj(f"BeanOut{i}")
+        assign(b, bsh.mat)
+        smooth(b)
+        b.rotation_euler = (0, 0, math.radians(rz))
+        b.location = (x_, y_, 0.044)
+        parts.append(b)
+    herb = MX.herb_mat("BeanHerb")
+    bpy.context.view_layer.update()
+    for i, (x_, y_, rz, s_) in enumerate(((-0.12, -0.10, 30, 0.16), (0.10, 0.05, -60, 0.13))):
+        c = MX.cilantro(f"BeanCil{i}", s_)
+        c.rotation_euler = (math.radians(12), 0, math.radians(rz))
+        c.location = (x_, y_, 1.2)
+        assign(c, herb)
+        bpy.context.view_layer.update()
+        MX.drop([c], [p for p in parts if p.name.startswith("Beans")], floor=0.5, step=0.005, top=1.1)
+        parts.append(c)
+    return rotate_all(parts, (0, 0, math.radians(-8)))
+
+
+# MARK: - Тамале
+
+def tamale():
+    """Тамале: кукурузный лист лодочкой раскрыт, видна зернистая маса с красной начинкой; хвост перевязан полоской листа."""
+    parts = MX.tamale()
+    husk, fill, tie = parts[0], parts[1], parts[2]
+    # исходный tamale уже повернут: работаем в его локальной системе через обратный поворот
+    back = Matrix.Rotation(math.radians(-10), 4, "X") @ Matrix.Rotation(math.radians(22), 4, "Z")
+    for o in parts:
+        o.matrix_world = back @ o.matrix_world
+    bpy.context.view_layer.update()
+    bake_all(parts)
+    dsh = masa_dough_sh("TamaleMasa", 0.15, 0.75)
+    assign(fill, dsh.mat)
+    # кармашек с красной начинкой в масе вдоль верха
+    zc = 0.42
+    red = Sh("TamaleRed", rough=0.3, sss=0.4, sss_radius=(1.0, 0.3, 0.2), coat=0.6, coat_rough=0.1)
+    red.color(red.ramp(red.noise(None, 14, 4), [(0.3, (0.58, 0.12, 0.06)), (0.6, (0.74, 0.20, 0.08)),
+                                                (0.8, (0.86, 0.32, 0.12))]))
+    red.bump(red.noise(None, 30, 4), 0.4, 0.01)
+    bpy.context.view_layer.update()
+    rf = polar_disc("TamaleRedFill", 20, 120, 1.0, 1.0)
+
+    def pocket(co):
+        a = math.atan2(co.y, co.x)
+        t = math.hypot(co.x, co.y)
+        k = 1.0 + 0.12 * fbm(Vector((math.cos(a) * 2, math.sin(a) * 2, 0.5)))
+        x = -0.42 + co.x * 0.60 * k
+        y = co.y * 0.15 * k
+        ok, loc, _, _ = fill.ray_cast(Vector((x, y, 3.0)), Vector((0, 0, -1)))
+        zt = loc.z if ok else zc + 0.28
+        return Vector((x, y, zt - 0.006 + 0.03 * max(0.0, 1 - t * t) + 0.012 * fbm(co * 6)))
+    deform(rf, pocket)
+    solidify(rf, 0.02, 1.0)
+    smooth(rf)
+    assign(rf, red.mat)
+    # рыхлые волокна мяса сверху начинки
+    shreds = []
+    rnd = random.Random(4)
+    for i in range(14):
+        x = rnd.uniform(-0.90, 0.06)
+        y = rnd.uniform(-0.06, 0.06)
+        a = rnd.uniform(-0.6, 0.6)
+        ok, loc, _, _ = rf.ray_cast(Vector((x, y, 3.0)), Vector((0, 0, -1)))
+        zt = (loc.z if ok else zc + 0.3) + 0.008
+        pts = [(x + 0.07 * math.cos(a) * s_, y + 0.07 * math.sin(a) * s_, zt + 0.01 * math.sin(s_ * 3))
+               for s_ in (-1.0, -0.3, 0.3, 1.0)]
+        sh_ = EV.sweep(f"Shred{i}", pts, 0.013, segs=8, step=0.01)
+        shreds.append(sh_)
+    sj = join_one(shreds, "TamaleShreds", red.mat)
+    parts += [rf, sj]
+    return rotate_all(parts, (math.radians(16), 0, math.radians(-24)))
+
+
+# MARK: - Орчата
+
+def horchata():
+    """Стакан орчаты: сливочный рисовый напиток с корицей сверху, лед, палочка корицы, капли конденсата на стекле."""
+    prof = [(0.0, 0.0), (0.40, 0.0), (0.43, 0.03), (0.44, 0.08), (0.48, 1.45), (0.455, 1.46), (0.42, 0.14),
+            (0.40, 0.12), (0.0, 0.12)]
+    glass = lathe("HorGlass", prof, 96)
+    subdivide(glass, 1)
+    smooth(glass, 50)
+    assign(glass, MX.glass_mat("HorGlassMat"))
+    milk_ = lathe("HorMilk", [(0.0, 0.125), (0.415, 0.125), (0.448, 1.22), (0.0, 1.22)], 96)
+    smooth(milk_, 50)
+    m = Sh("HorMilkMat", rough=0.3, sss=0.2, sss_radius=(1.0, 0.9, 0.7), sss_scale=0.05, coat=0.3, coat_rough=0.15)
+    _, _, z = m.xyz()
+    mcol = m.ramp(m.remap(z, 0.1, 1.22, smooth=False), [(0.0, (0.95, 0.82, 0.62)), (0.6, (1.0, 0.92, 0.78)),
+                                                        (1.0, (1.0, 0.95, 0.86))])
+    m.color(mcol)
+    m.set("Emission Color", _col((1.0, 0.94, 0.84)))
+    m.set("Emission Strength", 0.5)
+    assign(milk_, m.mat)
+    top = polar_disc("HorTop", 24, 96, 0.447, 0.447)
+    deform(top, lambda co: Vector((co.x, co.y, 1.222 + 0.008 * fbm(co * 8))))
+    smooth(top)
+    t = Sh("HorTopMat", rough=0.5, sss=0.15, sss_radius=(1.0, 0.9, 0.7), sheen=0.4)
+    tcol = t.ramp(t.noise(None, 5, 3), [(0.3, (1.0, 0.95, 0.86)), (0.7, (0.98, 0.90, 0.78))])
+    dust = t.remap(t.noise(None, 3.5, 5, 0.6), 0.5, 0.66, 0.0, 0.8)
+    tcol = t.mix(dust, tcol, (0.78, 0.48, 0.24))
+    sp = t.remap(t.voronoi(None, 50, "F1"), 0.1, 0.04, 0.0, 0.9)
+    tcol = t.mix(sp, tcol, (0.52, 0.26, 0.10))
+    t.color(tcol)
+    t.set("Emission Color", _col((1.0, 0.94, 0.84)))
+    t.set("Emission Strength", 0.2)
+    assign(top, t.mat)
+    parts = [glass, milk_, top]
+    for i, (x, y, rot) in enumerate(((-0.17, -0.10, (0.3, 0.2, 0.5)), (0.14, -0.14, (-0.2, 0.4, 1.2)),
+                                     (-0.02, 0.18, (0.5, -0.3, 0.2)))):
+        c = MX.ice_cube(f"HorIce{i}", 0.14, rot)
+        c.location = (x, y, 1.26)
+        parts.append(c)
+    # ободок из сахара с корицей по краю стакана
+    rim = torus("HorRim", 0.466, 0.032, 128, 16)
+    rim.scale = (1, 1, 1.3)
+    rim.location = (0, 0, 1.425)
+    apply_transform(rim)
+    push_normals(rim, lambda co, n: 0.008 * fbm(co * 30))
+    smooth(rim)
+    rs = Sh("HorRimMat", rough=0.7, sss=0.2, sheen=0.4)
+    rcol = rs.ramp(rs.noise(None, 30, 3), [(0.3, (0.96, 0.84, 0.64)), (0.7, (0.86, 0.62, 0.36))])
+    rcol = rs.mix(rs.remap(rs.voronoi(None, 90, "F1"), 0.12, 0.05), rcol, (0.52, 0.26, 0.10))
+    rs.color(rcol)
+    rs.bump(rs.voronoi(None, 90, "F1"), 0.5, 0.004, invert=True)
+    assign(rim, rs.mat)
+    parts.append(rim)
+    cin = EV.cinnamon_stick("HorCinnamon", 1.5, 0.075)
+    cin.rotation_euler = (0, math.radians(-68), math.radians(30))
+    cin.location = (0.12, 0.10, 1.45)
+    parts.append(cin)
+    cin2 = EV.cinnamon_stick("HorCinnamon2", 0.8, 0.065)
+    cin2.rotation_euler = (0, 0, math.radians(18))
+    cin2.location = (0.40, -0.55, 0.065)
+    parts.append(cin2)
+    return rotate_all(parts, (0, 0, math.radians(-14)))
+
+
+M.MODELS.update({
+    "masa": masa,
+    "tortilla": tortilla,
+    "beans": beans,
+    "tamale": tamale,
+    "horchata": horchata,
+})
+
+
+# MARK: - Сахар
+
+def sugar_crystal_sh(name):
+    """Рафинад: белый, зернистый; часть кристалликов блестит."""
+    sh = Sh(name, rough=0.5, sss=0.35, sss_radius=(1.0, 1.0, 1.0), sss_scale=0.04, coat=0.15, coat_rough=0.2)
+    cells = sh.voronoi(None, 70, "F1", 1.0, "Color")
+    cr, cg, _ = sh.xyz(cells)
+    _, _, nz = sh.xyz("Normal")
+    col = sh.ramp(sh.remap(nz, -1, 1, smooth=False), [(0.0, (0.86, 0.88, 0.93)), (1.0, (1.0, 1.0, 1.0))])
+    col = sh.mix(sh.math("MULTIPLY", sh.remap(cr, 0.0, 1.0), 0.25), col, (0.84, 0.86, 0.92))
+    sh.color(col)
+    sh.set("Roughness", sh.remap(cg, 0.80, 0.86, 0.55, 0.06))
+    sh.bump(sh.voronoi(None, 70, "F1"), 0.35, 0.004)
+    sh.bump(sh.noise(None, 120, 2), 0.15, 0.002)
+    return sh.mat
+
+
+def sugar():
+    """Сахарница с кобальтовым узором, горка искрящегося рафинада, серебряные щипцы, пара кубиков рядом."""
+    prof = [(0.0, 0.0), (0.30, 0.0), (0.33, 0.02), (0.34, 0.06), (0.31, 0.09), (0.36, 0.12), (0.50, 0.21),
+            (0.60, 0.34), (0.625, 0.45), (0.60, 0.56), (0.555, 0.65), (0.56, 0.70), (0.565, 0.725), (0.54, 0.74),
+            (0.515, 0.715), (0.52, 0.62), (0.555, 0.47), (0.50, 0.30), (0.32, 0.2), (0.0, 0.18)]
+    bowl = lathe("SugarBowl", prof, 128)
+    subdivide(bowl, 1)
+    smooth(bowl, 50)
+    out = Sh("SugarPorcelain", rough=0.12, coat=0.85, coat_rough=0.04)
+    _, _, z = out.xyz()
+    col = out.ramp(out.remap(z, 0.0, 0.74, smooth=False), [(0.0, (0.88, 0.90, 0.96)), (1.0, (1.0, 1.0, 1.0))])
+    cobalt = (0.14, 0.28, 0.72)
+    bands = out.math("MAXIMUM", out.remap(z, 0.665, 0.68), out.remap(z, 0.10, 0.085))
+    bands = out.math("MAXIMUM", bands, out.math("MULTIPLY", out.remap(z, 0.535, 0.545), out.remap(z, 0.575, 0.565)))
+    ang = angle_sock(out)
+    vine = out.math("SUBTRACT", z, out.math("ADD", 0.40, out.math("MULTIPLY", out.math("SINE", out.math("MULTIPLY", ang, 8)),
+                                                                     0.05)))
+    vine_m = out.remap(out.math("ABSOLUTE", vine), 0.012, 0.006)
+    ph = out.math("PINGPONG", out.math("MULTIPLY", ang, 8 / (2 * math.pi)), 0.5)
+    flower = out.vmath("LENGTH", out.combine(out.math("MULTIPLY", out.math("SUBTRACT", ph, 0.25), 0.62),
+                                             out.math("SUBTRACT", z, 0.40), 0.0))
+    fl_m = out.remap(flower, 0.045, 0.035)
+    col = out.mix(out.math("MAXIMUM", out.math("MAXIMUM", bands, vine_m), fl_m), col, cobalt)
+    out.color(col)
+    inn = ceramic_sh("SugarPorcelainIn", [(0.0, (0.90, 0.92, 0.97)), (1.0, (1.0, 1.0, 1.0))], 0.2, 0.74)
+    BK.inner_faces(bowl, out.mat, inn.mat, 0.15)
+    parts = [bowl]
+    for i, sx in enumerate((-1, 1)):
+        h = torus(f"SugarHandle{i}", 0.11, 0.032, 48, 16)
+        h.rotation_euler = (math.radians(90), 0, 0)
+        h.location = (sx * 0.64, 0, 0.5)
+        apply_transform(h)
+        assign(smooth(h), inn.mat)
+        parts.append(h)
+    smat = sugar_crystal_sh("SugarCubeMat")
+    rnd = random.Random(3)
+    cubes = []
+    inside = [(0.0, 0.0, 0.2)]
+    for k in range(5):
+        a_ = 2 * math.pi * k / 5 + 0.3
+        inside.append((0.27 * math.cos(a_), 0.27 * math.sin(a_), rnd.uniform(0, 1.5)))
+    for k in range(3):
+        a_ = 2 * math.pi * k / 3 + 0.9
+        inside.append((0.13 * math.cos(a_), 0.13 * math.sin(a_), rnd.uniform(0, 1.5)))
+    for i, (x, y, rz) in enumerate(inside):
+        c = BK.sugar_cube(f"SugarIn{i}", 0.21, smat)
+        c.rotation_euler = (rnd.uniform(-0.2, 0.2), rnd.uniform(-0.2, 0.2), rz)
+        c.location = (x, y, 1.6)
+        bpy.context.view_layer.update()
+        MX.drop([c], [bowl] + cubes, floor=0.2, step=0.006, top=1.5)
+        cubes.append(c)
+    parts += cubes
+    for i, (x, y, rz) in enumerate(((0.66, -0.62, 0.4), (0.40, -0.80, -0.3), (0.56, -0.80, 0.9))):
+        c = BK.sugar_cube(f"SugarOut{i}", 0.21, smat)
+        c.rotation_euler = (0, 0, rz)
+        c.location = (x, y, 0.6)
+        bpy.context.view_layer.update()
+        MX.drop([c], [o for o in parts if o.name.startswith("SugarOut")], floor=0.0, step=0.008, top=0.5)
+        parts.append(c)
+    # крышка прислонена к сахарнице слева
+    lid = lathe("SugarLid", [(0.0, 0.0), (0.56, 0.0), (0.575, 0.02), (0.55, 0.05), (0.42, 0.13), (0.22, 0.18),
+                             (0.10, 0.19), (0.09, 0.23), (0.12, 0.27), (0.10, 0.32), (0.0, 0.33)], 96)
+    subdivide(lid, 1)
+    smooth(lid, 50)
+    lm = Sh("SugarLidMat", rough=0.12, coat=0.85, coat_rough=0.04)
+    _, _, lz = lm.xyz()
+    lcol = lm.ramp(lm.remap(lz, 0.0, 0.33, smooth=False), [(0.0, (0.90, 0.92, 0.97)), (1.0, (1.0, 1.0, 1.0))])
+    lcol = lm.mix(lm.remap(lz, 0.05, 0.035), lcol, cobalt)
+    lcol = lm.mix(lm.remap(lz, 0.19, 0.20), lcol, cobalt)
+    lcol = lm.mix(lm.math("MULTIPLY", lm.remap(lz, 0.095, 0.10), lm.remap(lz, 0.12, 0.115)), lcol, cobalt)
+    lm.color(lcol)
+    assign(lid, lm.mat)
+    lid.rotation_euler = (0, math.radians(-68), math.radians(20))
+    lid.location = (-1.05, 0.12, 0.6)
+    bpy.context.view_layer.update()
+    MX.ground([lid], 0.0)
+    MX.nudge([lid], [bowl], (-1, 0, 0), 0.01)
+    parts.append(lid)
+    return rotate_all(parts, (0, 0, math.radians(8)))
+
+
+# MARK: - Взбитые сливки
+
+def whip_obj(name, R, H, z0, seed=0.0):
+    ob = polar_disc(name, 56, 240, R, R)
+
+    def shape(co):
+        r = min(1.0, math.hypot(co.x, co.y) / R)
+        a = math.atan2(co.y, co.x)
+        h = H * max(0.0, 1 - r * r) ** 0.65
+        sw = math.sin(5 * a + 13 * r + seed + 1.5 * fbm(co * 1.5))
+        h += 0.09 * sw * (1 - r) ** 0.6 * ss(0.05, 0.25, r)
+        pk = math.exp(-(r / 0.24) ** 2)
+        h += 0.50 * pk ** 1.3
+        dx = 0.16 * pk ** 4
+        dy = -0.08 * pk ** 4
+        return Vector((co.x + dx, co.y + dy, z0 + h))
+    deform(ob, shape)
+    solidify(ob, 0.16, -1.0)
+    subdivide(ob, 1)
+    smooth(ob)
+    return ob
+
+
+def cream():
+    """Миска взбитых сливок: пышная шапка со спиральными складками и загнутым пиком, венчик со сливками."""
+    bowl = lathe("CreamBowl", [(0.0, 0.0), (0.36, 0.0), (0.39, 0.02), (0.40, 0.07), (0.38, 0.09), (0.52, 0.16),
+                               (0.74, 0.36), (0.86, 0.56), (0.90, 0.64), (0.885, 0.665), (0.855, 0.66), (0.82, 0.58),
+                               (0.70, 0.38), (0.48, 0.20), (0.0, 0.16)], 128)
+    subdivide(bowl, 1)
+    smooth(bowl, 50)
+    out = Sh("CreamBowlOut", rough=0.14, coat=0.85, coat_rough=0.05)
+    _, _, z = out.xyz()
+    col = out.ramp(out.remap(z, 0.0, 0.66, smooth=False), [(0.0, (0.40, 0.62, 0.90)), (0.7, (0.56, 0.76, 0.98)),
+                                                          (1.0, (0.70, 0.86, 1.0))])
+    col = out.mix(out.math("MULTIPLY", out.remap(out.voronoi(None, 40, "F1"), 0.06, 0.02), 0.6), col, (0.28, 0.46, 0.78))
+    col = out.mix(out.remap(z, 0.62, 0.645), col, (0.98, 0.98, 1.0))
+    out.color(col)
+    inn = ceramic_sh("CreamBowlIn", [(0.0, (0.92, 0.94, 0.98)), (1.0, (1.0, 1.0, 1.0))], 0.1, 0.66)
+    BK.inner_faces(bowl, out.mat, inn.mat, 0.12)
+    wm = Sh("WhipMat", rough=0.38, sss=0.75, sss_radius=(1.0, 0.95, 0.85), sss_scale=0.12, coat=0.25, coat_rough=0.15,
+            sheen=0.3)
+    _, _, nz = wm.xyz("Normal")
+    wm.color(wm.ramp(wm.remap(nz, -0.3, 1.0, smooth=False), [(0.0, (0.94, 0.90, 0.82)), (0.5, (0.99, 0.97, 0.92)),
+                                                             (1.0, (1.0, 1.0, 0.98))]))
+    wm.bump(wm.noise(None, 30, 3), 0.05, 0.004)
+    mound = whip_obj("Whip", 0.86, 0.36, 0.58, 2.0)
+    assign(mound, wm.mat)
+    parts = [bowl, mound]
+    wk = BK.whisk("Whisk")
+    blobs = []
+    for i, (x, y, z_, r) in enumerate(((0.0, 0.0, -0.62, 0.09), (0.08, 0.06, -0.52, 0.06), (-0.07, -0.03, -0.55, 0.07),
+                                       (0.03, -0.09, -0.45, 0.05))):
+        b = sphere(f"WhiskCream{i}", r, 32, 20)
+        b.location = (x, y, z_)
+        apply_transform(b)
+        push_normals(b, lambda co, n: 0.012 * fbm(co * 14))
+        smooth(b)
+        blobs.append(b)
+    wk.append(join_one(blobs, "WhiskCream", wm.mat))
+    rotate_all(wk, (math.radians(-24), math.radians(36), 0))
+    for o in wk:
+        o.location += Vector((0.44, 0.22, 1.36))
+    parts += wk
+    return rotate_all(parts, (0, 0, math.radians(-10)))
+
+
+# MARK: - Масло
+
+def butter():
+    """Брусок сливочного масла на масленке: срез, следы ножа сверху, завиток, нож с мазком масла."""
+    dish = BK.rr_lathe("ButterDish", [(0.0, 0.0), (0.80, 0.0), (0.85, 0.02), (0.87, 0.06), (0.96, 0.15), (1.0, 0.19),
+                                      (0.975, 0.205), (0.90, 0.12), (0.86, 0.095), (0.0, 0.09)], 1.05, 0.74, 5.0, 160)
+    subdivide(dish, 1)
+    smooth(dish, 50)
+    dm = Sh("ButterDishMat", rough=0.12, coat=0.85, coat_rough=0.04)
+    _, _, z = dm.xyz()
+    dcol = dm.ramp(dm.remap(z, 0.0, 0.21, smooth=False), [(0.0, (0.36, 0.66, 0.70)), (0.6, (0.56, 0.84, 0.86)),
+                                                         (1.0, (0.76, 0.94, 0.94))])
+    dcol = dm.mix(dm.math("MULTIPLY", dm.remap(dm.voronoi(None, 35, "F1"), 0.05, 0.02), 0.5), dcol, (0.30, 0.56, 0.60))
+    dm.color(dcol)
+    assign(dish, dm.mat)
+    bm_ = Sh("ButterMat", rough=0.3, sss=0.6, sss_radius=(1.0, 0.8, 0.4), sss_scale=0.1, coat=0.35, coat_rough=0.14)
+    x, y, z = bm_.xyz()
+    _, _, nz = bm_.xyz("Normal")
+    bcol = bm_.ramp(bm_.remap(z, 0.09, 0.51, smooth=False), [(0.0, (1.0, 0.80, 0.34)), (1.0, (1.0, 0.91, 0.56))])
+    scrape = bm_.math("PINGPONG", bm_.math("ADD", bm_.math("MULTIPLY", x, 9.0),
+                                           bm_.math("MULTIPLY", bm_.noise(None, 3, 2), 1.2)), 0.5)
+    top = bm_.remap(nz, 0.6, 0.9)
+    bcol = bm_.mix(bm_.math("MULTIPLY", bm_.remap(scrape, 0.1, 0.0, 0.0, 0.25), top), bcol, (1.0, 0.96, 0.74))
+    bm_.color(bcol)
+    bm_.bump(bm_.math("MULTIPLY", scrape, top), 0.15, 0.01)
+    bm_.bump(bm_.noise(None, 20, 3), 0.05, 0.004)
+    block = box_mesh("Butter", 1.10, 0.58, 0.42, 0.09, cuts=8)
+    bevel(block, 0.06, 5, 30)
+    subdivide(block, 1)
+    push_normals(block, lambda co, n: 0.006 * fbm(co * 3.0) + (0.01 * math.sin(co.x * 28) * ss(0.4, 0.5, co.z)
+                                                              if n.z > 0.8 else 0.0))
+    smooth(block)
+    assign(block, bm_.mat)
+    # отрезанный ломтик чуть отодвинут
+    sl = box_mesh("ButterSlice", 0.16, 0.58, 0.42, 0.09, cuts=4)
+    bevel(sl, 0.05, 4, 30)
+    subdivide(sl, 1)
+    smooth(sl)
+    assign(sl, bm_.mat)
+    sl.rotation_euler = (0, math.radians(8), 0)
+    sl.location = (0.70, 0.0, 0.0)
+    curl = BK.butter_curl("ButterCurl", 0.42, 0.16, 1.35)
+    curl.rotation_euler = (0, 0, math.radians(-48))
+    curl.location = (0.0, -0.02, 0.51 + 0.16 + 0.012)
+    apply_transform(curl)
+    cm = Sh("ButterCurlMat", rough=0.25, sss=0.6, sss_radius=(1.0, 0.8, 0.4), sss_scale=0.1, coat=0.4)
+    _, _, cz = cm.xyz()
+    cm.color(cm.ramp(cm.remap(cz, 0.5, 0.85, smooth=False), [(0.0, (1.0, 0.82, 0.36)), (1.0, (1.0, 0.95, 0.70))]))
+    assign(curl, cm.mat)
+    parts = [dish, block, sl, curl]
+    steel = Sh("ButterKnife", rough=0.14, metal=1.0)
+    steel.color((0.86, 0.87, 0.90))
+    blade = MX.outline_slab("KnifeBlade", [(0.36 * math.cos(t) * (1 if math.cos(t) > 0 else 1.0), 0.06 * math.sin(t))
+                                           for t in [2 * math.pi * k / 64 for k in range(64)]], 0.016, p=2.5, cuts=16)
+    smooth(blade)
+    assign(blade, steel.mat)
+    handle = lathe_fn("KnifeHandle", lambda t: 0.045 * (1 - 0.2 * t) * (1 - ss(0.94, 1.0, t) * 0.4), 0.0, 0.5, 30, 24)
+    to_axis_x(handle)
+    handle.location.x = 0.34
+    apply_transform(handle)
+    smooth(handle)
+    wood = Sh("KnifeWood", rough=0.4, coat=0.4)
+    wood.color(wood.ramp(wood.noise(wood.mapping(None, scale=(0.5, 8, 8)), 3, 3),
+                         [(0.3, (0.70, 0.44, 0.24)), (0.7, (0.56, 0.32, 0.16))]))
+    assign(handle, wood.mat)
+    smear = sphere("KnifeSmear", 1.0, 32, 16)
+    smear.scale = (0.16, 0.045, 0.018)
+    smear.location = (-0.12, 0.0, 0.012)
+    apply_transform(smear)
+    push_normals(smear, lambda co, n: 0.006 * fbm(co * 20))
+    smooth(smear)
+    assign(smear, bm_.mat)
+    kn = [blade, handle, smear]
+    rotate_all(kn, (math.radians(-6), math.radians(-4), math.radians(-24)))
+    for o in kn:
+        o.location += Vector((-0.38, -0.56, 0.17))
+    parts += kn
+    return rotate_all(parts, (0, 0, math.radians(18)))
+
+
+# MARK: - Маршмеллоу
+
+def mallow_sh(name, lo, hi, twist=None):
+    sh = Sh(name, rough=0.6, sss=0.8, sss_radius=(1.0, 0.9, 0.85), sss_scale=0.12, sheen=0.7, sheen_rough=0.4,
+            coat=0.08, coat_rough=0.3)
+    x, y, z = sh.xyz()
+    col = sh.ramp(sh.remap(z, -0.25, 0.25, smooth=False), [(0.0, lo), (1.0, hi)])
+    if twist:
+        ang = sh.math("ARCTAN2", y, x)
+        st = sh.math("SINE", sh.math("ADD", sh.math("MULTIPLY", ang, 2.0), sh.math("MULTIPLY", z, 14.0)))
+        col = sh.mix(sh.remap(st, -0.15, 0.15), col, twist)
+    dust = sh.math("MAXIMUM", sh.remap(sh.noise(None, 7, 5, 0.6), 0.58, 0.72, 0.0, 0.6),
+                   sh.remap(sh.voronoi(None, 60, "F1"), 0.1, 0.04, 0.0, 0.5))
+    col = sh.mix(dust, col, (1.0, 1.0, 1.0))
+    sh.color(col)
+    sh.set("Roughness", sh.remap(dust, 0.0, 1.0, 0.5, 0.9, smooth=False))
+    sh.bump(sh.noise(None, 50, 3), 0.08, 0.003)
+    sh.bump(dust, 0.08, 0.003)
+    return sh.mat
+
+
+def marshmallow():
+    """Горстка маршмеллоу: мягкие розовые и белые цилиндрики в крахмальной пудре."""
+    white = mallow_sh("MallowWhite", (0.90, 0.89, 0.93), (1.0, 0.99, 0.97))
+    pink = mallow_sh("MallowPink", (0.97, 0.60, 0.72), (1.0, 0.78, 0.85))
+    specs = [(white, (-0.30, 0.12), (0, 0, 0.3)), (pink, (0.28, 0.18), (0, 0, 1.1)),
+             (white, (0.0, -0.40), (0, math.radians(90), math.radians(-8))),
+             (pink, (0.0, 0.15), (0, math.radians(90), math.radians(18))),
+             (white, (0.66, -0.44), (0, math.radians(90), math.radians(-40)))]
+    pieces = []
+    for i, (mt, (x, y), rot) in enumerate(specs):
+        m = rounded_disc(f"Mallow{i}", 0.26, 0.44, 4.2, 22)
+        off = Vector((i * 1.3, 0, 0))
+        push_normals(m, lambda co, n: 0.012 * fbm(co * 4 + off))
+        subdivide(m, 1)
+        smooth(m)
+        assign(m, mt)
+        m.rotation_euler = rot
+        m.location = (x, y, 2.5)
+        bpy.context.view_layer.update()
+        if pieces:
+            MX.drop([m], pieces, floor=0.0, step=0.008, top=2.0)
+        else:
+            MX.ground([m], 0.0)
+        pieces.append(m)
+    return rotate_all(pieces, (0, 0, math.radians(-10)))
+
+
+# MARK: - Мадлен
+
+def madeleine2(name, ridged, L=0.68, W=0.54, H=0.2, seed=0.0):
+    """Мадлен: ракушка с бороздками-лучами или горбик сверху и румяный край."""
+    ob = quad_sphere(name, 52)
+    hy = -0.95 * L
+    N = 40
+
+    def shape(co):
+        x, y, z = co.x, co.y, co.z
+        w = W * (0.50 + 0.50 * (y + 1) / 2)
+        X, Y = x * w, y * L
+        dy = Y - hy
+        phi = math.atan2(X, dy)
+        lobe = 1 + 0.025 * math.cos(N * phi) * ss(0.4, 0.8, (y + 1) / 2)
+        X, Y = X * lobe, hy + dy * lobe
+        if z > 0:
+            Z = z * H
+            if ridged:
+                rib = 0.5 + 0.5 * math.cos(N * phi)
+                Z += 0.04 * rib * ss(0.08, 0.35, math.hypot(X, dy)) * min(1.0, z * 3) ** 0.6
+            else:
+                Z = z * H * 0.8 + 0.16 * math.exp(-((X / 0.20) ** 2 + ((Y + 0.05) / 0.26) ** 2)) * min(1.0, z * 2.5)
+        else:
+            Z = z * H * 0.35
+        return Vector((X, Y, Z + H * 0.35))
+    deform(ob, shape)
+    subdivide(ob, 1)
+    push_normals(ob, lambda co, n: 0.004 * fbm(co * 8 + Vector((seed, 0, 0))))
+    smooth(ob)
+
+    def valley(co):
+        dy = co.y - hy
+        phi = math.atan2(co.x, dy)
+        return (0.5 - 0.5 * math.cos(N * phi)) * ss(0.08, 0.35, math.hypot(co.x, dy)) if ridged else 0.0
+    EV.set_attr(ob, "valley", lambda co, n: valley(co))
+    sh = Sh(name + "Mat", rough=0.38, sss=0.3, sss_radius=(1.0, 0.6, 0.3), coat=0.45, coat_rough=0.12)
+    x, y, z = sh.xyz()
+    _, _, nz = sh.xyz("Normal")
+    if ridged:
+        col = sh.ramp(sh.remap(nz, -1, 1, smooth=False), [(0.0, (0.74, 0.40, 0.12)), (0.5, (0.90, 0.56, 0.20)),
+                                                          (0.8, (0.98, 0.72, 0.32)), (1.0, (1.0, 0.80, 0.42))])
+        col = sh.mix(sh.math("MULTIPLY", sh.attr("valley"), 0.8), col, (0.78, 0.42, 0.13))
+    else:
+        rr = sh.vmath("LENGTH", sh.combine(sh.math("DIVIDE", x, W), sh.math("DIVIDE", sh.math("ADD", y, 0.05), L), 0.0))
+        col = sh.ramp(sh.math("ADD", rr, sh.math("MULTIPLY", sh.math("SUBTRACT", sh.noise(None, 4, 3), 0.5), 0.25)),
+                      [(0.0, (1.0, 0.86, 0.54)), (0.45, (0.99, 0.78, 0.42)), (0.75, (0.88, 0.52, 0.18)),
+                       (0.95, (0.70, 0.36, 0.10))])
+        col = sh.mix(sh.remap(nz, 0.3, -0.2), col, (0.74, 0.40, 0.12))
+    sh.color(col)
+    sh.bump(sh.noise(None, 26, 4), 0.1, 0.004)
+    sh.bump(sh.voronoi(None, 60, "F1"), 0.08, 0.002, invert=True)
+    return assign(ob, sh.mat)
+
+
+def madeleine():
+    """Две мадлен: одна лежит горбиком вверх с румяным краем, вторая прислонена ракушкой с бороздками к камере."""
+    a = madeleine2("MadHump", False, seed=0.0)
+    a.rotation_euler = (math.radians(52), 0, math.radians(-22))
+    a.location = (-0.40, -0.36, 0.4)
+    b = madeleine2("MadShell", True, seed=1.0)
+    b.rotation_euler = (math.radians(64), 0, math.radians(16))
+    b.location = (0.30, 0.25, 0.40)
+    bpy.context.view_layer.update()
+    MX.ground([a], 0.0)
+    MX.ground([b], 0.0)
+    MX.nudge([b], [a], (0.5, 1, 0), 0.01)
+    return rotate_all([a, b], (math.radians(6), 0, math.radians(-6)))
+
+
+M.MODELS.update({
+    "sugar": sugar,
+    "cream": cream,
+    "butter": butter,
+    "marshmallow": marshmallow,
+    "madeleine": madeleine,
 })

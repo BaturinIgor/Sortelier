@@ -35,14 +35,19 @@ final class Audio {
         updateMusic()
     }
 
+    /// Запуск звука уходит с главного потока: при каскадах на "Рынке" звуков много, а play() может занимать миллисекунды.
+    private let queue = DispatchQueue(label: "sortelier.audio", qos: .userInitiated)
+
     func play(_ effect: Effect, volume: Float = 1) {
         guard PlayerProgress.shared.settings.sound, let pool = pools[effect], !pool.isEmpty else { return }
         let index = (cursor[effect] ?? 0) % pool.count
         cursor[effect] = index + 1
         let player = pool[index]
-        player.volume = volume
-        player.currentTime = 0
-        player.play()
+        queue.async {
+            player.volume = volume
+            player.currentTime = 0
+            player.play()
+        }
     }
 
     /// Включает или выключает музыку по настройке, с плавным переходом громкости.

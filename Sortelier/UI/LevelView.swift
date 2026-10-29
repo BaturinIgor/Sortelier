@@ -72,7 +72,7 @@ struct LevelContent: View {
         GeometryReader { geo in
             ZStack {
                 KitchenBackground(style: eventStyle ?? progress.background(forBiome: session.level.biome))
-                SpriteView(scene: scene, options: [.allowsTransparency])
+                SpriteView(scene: scene, preferredFramesPerSecond: 120, options: [.allowsTransparency])
                     .ignoresSafeArea()
                 VStack(spacing: 4) {
                     topBar
