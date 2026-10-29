@@ -107,18 +107,22 @@ jobs:
           shoot events_de   -uiLang de -uiScreen events
           shoot map_ar      -uiLang ar -uiScreen map
           shoot achievements_ja -uiLang ja -uiScreen achievements
-          shoot shop_bottom -uiLang ru -uiScreen shop -uiScroll bottom
-          shoot events_bottom -uiLang ru -uiScreen events -uiScroll bottom
+          shoot market      -uiLang ru -uiScreen market
+          shoot market_popup -uiLang ru -uiScreen market -uiMarketPopup 13
+          shoot m3_level    -uiLang ru -uiScreen marketlevel -uiMarketLevel 8 -uiNoIntro
+          shoot m3_mid      -uiLang ru -uiScreen marketlevel -uiMarketLevel 20 -uiNoIntro -uiAutoplay 5
+          shoot m3_shape    -uiLang ru -uiScreen marketlevel -uiMarketLevel 41 -uiNoIntro -uiAutoplay 3
+          shoot m3_intro    -uiLang ru -uiScreen marketlevel -uiMarketLevel 11
+          shoot m3_out      -uiLang ru -uiScreen marketlevel -uiMarketLevel 14 -uiNoIntro -uiM3Out
+          shoot m3_win      -uiLang ru -uiScreen marketlevel -uiMarketLevel 12 -uiNoIntro -uiM3Win
+          shoot recipe      -uiLang ru -uiScreen recipe
+          shoot garden      -uiLang ru -uiScreen garden -uiHappy
+          shoot jar         -uiLang ru -uiScreen jar
+          shoot events_m3   -uiLang ru -uiScreen events -uiScroll bottom -uiHappy
+          shoot shop_m3     -uiLang ru -uiScreen shop -uiScroll bottom
+          shoot map_rail    -uiLang ru -uiScreen map -uiHappy
+          shoot market_en   -uiLang en -uiScreen market
           shoot achievements_bottom -uiLang ru -uiScreen achievements -uiScroll bottom
-          shoot backgrounds_bottom -uiLang ru -uiScreen backgrounds -uiScroll bottom
-          shoot album_bottom -uiLang ru -uiScreen album -uiScroll bottom
-          shoot eventmap    -uiLang ru -uiScreen eventmap -uiStore
-          shoot book_events -uiLang ru -uiScreen book -uiStore
-          shoot level_key   -uiLang ru -uiLevel 96 -uiNoIntro -uiAutoplay 2
-          shoot level_chain -uiLang ru -uiLevel 126 -uiNoIntro -uiAutoplay 1
-          shoot level_event -uiLang ru -uiEvent halloween:2 -uiNoIntro -uiAutoplay 3
-          shoot intro_chain -uiLang ru -uiLevel 126
-          shoot map_mexico  -uiLang ru -uiScreen map -uiStore
           shoot events_late -uiLang ru -uiScreen events
           sleep 10
           xcrun simctl io "$UDID" screenshot "shots/events_late2.png" >/dev/null 2>&1 || true

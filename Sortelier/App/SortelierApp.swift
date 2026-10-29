@@ -72,7 +72,31 @@ struct RootView: View {
                     .environmentObject(PlayerProgress.shared)
                     .environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
             }
+            Color.clear
+                .fullScreenCover(isPresented: $router.market) {
+                    MarketMapView(close: { router.market = false })
+                        .statusBarHidden()
+                        .environmentObject(PlayerProgress.shared)
+                        .environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
+                }
+            Color.clear
+                .fullScreenCover(isPresented: $router.recipe) {
+                    BigRecipeView(close: { router.recipe = false })
+                        .statusBarHidden()
+                        .environmentObject(PlayerProgress.shared)
+                        .environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
+                }
+            Color.clear
+                .fullScreenCover(isPresented: $router.garden) {
+                    GardenView(close: { router.garden = false })
+                        .statusBarHidden()
+                        .environmentObject(PlayerProgress.shared)
+                        .environmentObject(Lang.shared).environment(\.layoutDirection, Lang.shared.direction)
+                }
             MainTabBar()
+            if router.jar {
+                JarPopup { router.jar = false }.zIndex(6)
+            }
             if router.settings {
                 SettingsScreen()
                     .transition(.move(edge: .trailing))

@@ -15,6 +15,8 @@ enum RewardItem: Identifiable, Hashable {
     case background(String)
     /// Гость ивента: покупатель в костюме, который потом заходит на уровни карты.
     case guest(String)
+    /// Бустер мини-игры "Рынок".
+    case market(M3Booster, Int)
 
     var id: String {
         switch self {
@@ -26,6 +28,7 @@ enum RewardItem: Identifiable, Hashable {
         case let .chest(k, _): return "chest." + k.rawValue
         case let .background(bg): return "bg." + bg
         case let .guest(g): return "guest." + g
+        case let .market(b, _): return "market." + b.rawValue
         }
     }
 }
@@ -41,9 +44,13 @@ struct Reward: Codable, Hashable {
     var chests: [String: Int] = [:]
     /// Гость ивента (Guests).
     var guest: String?
+    /// Бустеры "Рынка".
+    var market: [String: Int] = [:]
 
     init(coins: Int = 0, boosters: [Booster: Int] = [:], unlimitedMinutes: Int = 0, lives: Int = 0,
-         rareCard: Bool = false, background: String? = nil, energy: Int = 0, chests: [ChestKind: Int] = [:]) {
+         rareCard: Bool = false, background: String? = nil, energy: Int = 0, market: [M3Booster: Int] = [:],
+         chests: [ChestKind: Int] = [:]) {
+        self.market = Dictionary(uniqueKeysWithValues: market.map { ($0.key.rawValue, $0.value) })
         self.coins = coins
         self.boosters = Dictionary(uniqueKeysWithValues: boosters.map { ($0.key.rawValue, $0.value) })
         self.unlimitedMinutes = unlimitedMinutes
@@ -65,6 +72,14 @@ struct Reward: Codable, Hashable {
         energy = try c.decodeIfPresent(Int.self, forKey: .energy) ?? 0
         chests = try c.decodeIfPresent([String: Int].self, forKey: .chests) ?? [:]
         guest = try c.decodeIfPresent(String.self, forKey: .guest)
+        market = try c.decodeIfPresent([String: Int].self, forKey: .market) ?? [:]
+    }
+
+    var marketList: [(M3Booster, Int)] {
+        M3Booster.allCases.compactMap { b in
+            guard let n = market[b.rawValue], n > 0 else { return nil }
+            return (b, n)
+        }
     }
 
     var chestList: [(ChestKind, Int)] {
@@ -86,6 +101,7 @@ struct Reward: Codable, Hashable {
         var out: [RewardItem] = []
         if coins > 0 { out.append(.coins(coins)) }
         for (b, n) in boosterList { out.append(.booster(b, n)) }
+        for (b, n) in marketList { out.append(.market(b, n)) }
         if unlimitedMinutes > 0 { out.append(.unlimited(unlimitedMinutes)) }
         if lives > 0 { out.append(.lives(lives)) }
         if energy > 0 { out.append(.energy(energy)) }
@@ -105,7 +121,7 @@ struct Reward: Codable, Hashable {
 
     var isEmpty: Bool {
         coins == 0 && boosterList.isEmpty && unlimitedMinutes == 0 && lives == 0 && !rareCard && background == nil && energy == 0
-            && chestList.isEmpty && guest == nil
+            && chestList.isEmpty && guest == nil && marketList.isEmpty
     }
 
     static func + (a: Reward, b: Reward) -> Reward {
@@ -119,6 +135,7 @@ struct Reward: Codable, Hashable {
         r.guest = a.guest ?? b.guest
         r.energy += b.energy
         for (k, v) in b.chests { r.chests[k, default: 0] += v }
+        for (k, v) in b.market { r.market[k, default: 0] += v }
         return r
     }
 }
@@ -137,6 +154,7 @@ enum Stat: String, CaseIterable {
     case dailyDone, weeklyDone, weeklyLevels, streakBest, rareCards, cards, chests, chefBest
     case merges, mergeOrders
     case gourmets, eventRewards, medals, kitchens, coinsEarned, albumCards, booksDone, raceWins
+    case marketWins, recipeSteps, harvests, reviews
 }
 
 // MARK: - Сохранение меты
@@ -437,7 +455,12 @@ enum Achievements {
         Achievement(id: "merge", category: .pantry, stat: .mergeOrders, tiers: [5, 20, 60, 150, 400], symbol: "square.grid.3x3.fill"),
         Achievement(id: "merges", category: .pantry, stat: .merges, tiers: [20, 100, 400, 1200, 3000], symbol: "arrow.triangle.merge"),
         Achievement(id: "boosters", category: .pantry, stat: .boostersUsed, tiers: [5, 20, 50, 120, 300], symbol: "wand.and.stars"),
-        Achievement(id: "rich", category: .pantry, stat: .coinsEarned, tiers: [1000, 5000, 20000, 60000, 150000], symbol: "bitcoinsign.circle.fill")
+        Achievement(id: "rich", category: .pantry, stat: .coinsEarned, tiers: [1000, 5000, 20000, 60000, 150000], symbol: "bitcoinsign.circle.fill"),
+        // рынок и фоновые события
+        Achievement(id: "market", category: .pantry, stat: .marketWins, tiers: [5, 15, 30, 45, 60], symbol: "basket.fill"),
+        Achievement(id: "recipe", category: .pantry, stat: .recipeSteps, tiers: [5, 25, 60, 120, 250], symbol: "takeoutbag.and.cup.and.straw.fill"),
+        Achievement(id: "garden", category: .pantry, stat: .harvests, tiers: [3, 10, 30, 80, 200], symbol: "leaf.fill"),
+        Achievement(id: "critic", category: .habits, stat: .reviews, tiers: [1, 3, 8, 15, 30], symbol: "text.bubble.fill")
     ]
 
     static var maxStars: Int { all.reduce(0) { $0 + $1.tiers.count } }

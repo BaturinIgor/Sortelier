@@ -1,0 +1,40 @@
+name: Market engine check
+
+# Проверка движка "Рынка": уровни играются подсказкой, лента событий сверяется с доской.
+# Результат - в ветке ci-m3check (m3check.txt).
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "Sortelier/Game/Match3Board.swift"
+      - "Sortelier/Resources/Data/match3.json"
+      - "tools/match3/check/**"
+      - ".github/workflows/m3check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run
+        run: |
+          swiftc -O Sortelier/Game/Match3Board.swift tools/match3/check/main.swift -o m3check 2>&1 | tee build.txt
+          mkdir -p out
+          ./m3check Sortelier/Resources/Data/match3.json 12 > out/m3check.txt 2>&1 || echo "exit $?" >> out/m3check.txt
+          cat build.txt >> out/m3check.txt
+          tail -70 out/m3check.txt
+      - name: Publish
+        if: always()
+        run: |
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout --orphan ci-m3check
+          git rm -rf --cached . > /dev/null
+          git add -f out/
+          git commit -q -m "Market check ${{ github.run_number }} for ${{ github.sha }}"
+          git push -q -f origin ci-m3check

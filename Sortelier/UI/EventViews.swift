@@ -121,7 +121,56 @@ struct EventsContent: View {
     var body: some View {
         VStack(spacing: 14) {
             ForEach(progress.activeEvents) { event in card(event) }
+            if progress.marketUnlocked {
+                recipeCard
+                CriticPanel { granted = $0 }
+                happyCard
+            }
             upcoming
+        }
+    }
+
+    // MARK: Фоновые события
+
+    private var recipeCard: some View {
+        let s = progress.recipe
+        return MetaCard(highlight: s.unseen > 0) {
+            VStack(alignment: .leading, spacing: 10) {
+                CardTitle(icon: "icon_recipe", title: lang.t("recipe.title"), timer: Lang.time(Day.secondsToWeekEnd(progress.now)))
+                HStack(spacing: 12) {
+                    GiantPlate(theme: BigRecipe.theme(s.week), items: s.plate, visible: s.plate.count, landing: nil)
+                        .frame(width: 96, height: 96)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(lang.t("recipe.card")).font(Theme.rounded(14, .semibold)).foregroundColor(Theme.brown)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(lang.t("recipe.step", min(s.step + 1, BigRecipe.steps), BigRecipe.steps))
+                            .font(Theme.rounded(15, .black)).foregroundColor(Theme.brown)
+                    }
+                }
+                Button(lang.t("recipe.open")) { Router.shared.recipe = true }
+                    .buttonStyle(GameButtonStyle(palette: .orange, height: 44, fontSize: 18))
+            }
+        }
+    }
+
+    private var happyCard: some View {
+        MetaCard(highlight: HappyHour.active(progress.now)) {
+            HStack(spacing: 12) {
+                SpriteImage(name: "icon_happy", size: 56)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(lang.t("happy.title")).font(Theme.rounded(17, .black)).foregroundColor(Theme.brown)
+                    Text(lang.t("happy.text")).font(Theme.rounded(13, .semibold)).foregroundColor(Theme.brownSoft)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let now = HappyHour.current(progress.now) {
+                        Text(lang.t("happy.now", Lang.time(now.end.timeIntervalSince(progress.now))))
+                            .font(Theme.rounded(14, .black)).foregroundColor(Theme.red)
+                    } else if let next = HappyHour.next(progress.now) {
+                        Text(lang.t("happy.next", Lang.time(next.start.timeIntervalSince(progress.now))))
+                            .font(Theme.rounded(14, .black)).foregroundColor(Theme.brown)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
         }
     }
 

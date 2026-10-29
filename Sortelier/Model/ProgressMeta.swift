@@ -42,6 +42,7 @@ extension PlayerProgress {
         data.coins += reward.coins
         if reward.coins > 0 { data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += reward.coins }
         for (k, v) in reward.boosters { data.boosters[k, default: 0] += v }
+        for (k, v) in reward.market { data.market.boosters[k, default: 0] += v }
         if reward.lives > 0 { addLife(reward.lives) }
         if let bg = reward.background, !data.meta.backgrounds.contains(bg) {
             data.meta.backgrounds.append(bg)

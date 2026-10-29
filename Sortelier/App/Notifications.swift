@@ -35,6 +35,19 @@ enum Notifications {
         }
         addAt(hour: 12, dayOffset: 1, id: "daily", title: lang.t("push.daily.title"), body: lang.t("push.daily.body"))
         add(id: "comeback", title: lang.t("push.comeback.title"), body: lang.t("push.comeback.body"), after: 3 * 86400)
+        if progress.marketUnlocked {
+            // счастливый час: ближайшие окна сегодня и завтра
+            let now = Date()
+            var windows = HappyHour.windows(on: now)
+            if let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: now) { windows += HappyHour.windows(on: tomorrow) }
+            for (i, w) in windows.filter({ $0.start > now }).prefix(3).enumerated() {
+                add(id: "happy\(i)", title: lang.t("push.happy.title"), body: lang.t("push.happy.body"), after: w.start.timeIntervalSince(now))
+            }
+            if progress.gardenReady < Garden.bedCount {
+                let soonest = (0..<Garden.bedCount).map { progress.gardenLeft($0) }.filter { $0 > 0 }.min() ?? 0
+                add(id: "garden", title: lang.t("push.garden.title"), body: lang.t("push.garden.body"), after: soonest)
+            }
+        }
     }
 
     static func clearDelivered() {

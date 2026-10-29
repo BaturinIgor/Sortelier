@@ -108,7 +108,7 @@ def main():
         elif name.startswith("counter"):
             w, h = Image.open(f).size
             finish(f, os.path.join(DST, name), (780, round(780 * h / w)), boost=True)
-        elif name.startswith("customer_"):
+        elif name.startswith("customer_") or name == "critic.png":
             finish(f, os.path.join(DST, name), (200, 200), boost=False)
         elif name.startswith("shelf"):
             w, h = Image.open(f).size
@@ -117,6 +117,9 @@ def main():
             finish(f, os.path.join(DST, name), (400, 400))
         elif name.startswith("icon_"):
             finish(f, os.path.join(DST, name), (192, 192), centered=True)
+        elif name.startswith("m3_"):
+            # фишки "Рынка" стоят по центру клетки
+            finish(f, os.path.join(DST, name), (288, 288), centered=True)
         elif name == "coin_icon.png":
             finish(f, os.path.join(DST, name), (128, 128), centered=True)
         elif name.startswith("coins_"):

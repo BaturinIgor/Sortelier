@@ -20,7 +20,10 @@ struct MapView: View {
             path
             VStack(spacing: 0) {
                 topBar
-                HStack {
+                HStack(alignment: .top) {
+                    if progress.marketUnlocked && HappyHour.active(progress.now) {
+                        HappyHourChip()
+                    }
                     Spacer()
                     sideRail
                 }
@@ -54,6 +57,19 @@ struct MapView: View {
         VStack(spacing: 14) {
             railButton("gen_crate", title: lang.t("rail.pantry"), badge: progress.energy >= MergeBalance.maxEnergy) {
                 router.merge = true
+            }
+            if progress.marketUnlocked {
+                railButton("icon_market", title: lang.t("rail.market"), badge: progress.marketClaimable || !progress.data.market.welcomed) {
+                    router.market = true
+                }
+                railButton("icon_garden", title: lang.t("rail.garden"), badge: progress.gardenReady > 0) {
+                    router.garden = true
+                }
+                if progress.jarCanBreak {
+                    railButton("icon_jar", title: lang.t("rail.jar"), badge: progress.jarFull) {
+                        router.jar = true
+                    }
+                }
             }
             if progress.welcomeActive {
                 railButton("icon_gift", title: lang.t("rail.quests"), badge: progress.questsClaimable) {

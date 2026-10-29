@@ -2382,5 +2382,629 @@
  "album.book.bakery": {
   "en": "French bakery",
   "ru": "Французская пекарня"
+ },
+ "rail.market": {
+  "en": "Market",
+  "ru": "Рынок"
+ },
+ "rail.garden": {
+  "en": "Garden",
+  "ru": "Огород"
+ },
+ "rail.jar": {
+  "en": "Tip jar",
+  "ru": "Чаевые"
+ },
+ "m3.title": {
+  "en": "Market",
+  "ru": "Рынок"
+ },
+ "m3.level": {
+  "en": "Level {0}",
+  "ru": "Уровень {0}"
+ },
+ "m3.moves": {
+  "en": "Moves",
+  "ru": "Ходы"
+ },
+ "m3.goals": {
+  "en": "Goals",
+  "ru": "Цели"
+ },
+ "m3.play": {
+  "en": "Play",
+  "ru": "Играть"
+ },
+ "m3.pre": {
+  "en": "Boosters on the board from the start",
+  "ru": "Бустеры на поле со старта"
+ },
+ "m3.hard.text": {
+  "en": "Hard level",
+  "ru": "Сложный уровень"
+ },
+ "m3.retry": {
+  "en": "Try again",
+  "ru": "Еще раз"
+ },
+ "m3.welcome": {
+  "en": "Welcome to the Market!",
+  "ru": "Добро пожаловать на рынок!"
+ },
+ "m3.map.done": {
+  "en": "All levels done!",
+  "ru": "Все уровни пройдены!"
+ },
+ "m3.map.locked": {
+  "en": "Beat the previous levels first",
+  "ru": "Сначала пройди предыдущие уровни"
+ },
+ "m3.chapter.1": {
+  "en": "Chapter 1: Vegetable Row",
+  "ru": "Глава 1: Овощной ряд"
+ },
+ "m3.chapter.2": {
+  "en": "Chapter 2: Cheese Stall",
+  "ru": "Глава 2: Сырная лавка"
+ },
+ "m3.chest.title": {
+  "en": "Chapter chest",
+  "ru": "Сундук главы"
+ },
+ "m3.streak.title": {
+  "en": "Win streak: {0}",
+  "ru": "Победы подряд: {0}"
+ },
+ "m3.streak.popup": {
+  "en": "Win in a row - specials appear on the board at the start. A loss breaks the streak.",
+  "ru": "Побеждай подряд - на поле со старта появятся спецфишки. Проигрыш обрывает серию."
+ },
+ "m3.pause.streak": {
+  "en": "If you leave now, you'll lose a life and your win streak.",
+  "ru": "Если выйти сейчас, потеряешь жизнь и серию побед."
+ },
+ "m3.out.title": {
+  "en": "Out of moves",
+  "ru": "Ходы закончились"
+ },
+ "m3.out.text": {
+  "en": "Just a little left to collect. Take {0} more moves and finish the level!",
+  "ru": "Осталось собрать совсем немного. Возьми еще {0} ходов и пройди уровень!"
+ },
+ "m3.out.buy": {
+  "en": "+{0} moves",
+  "ru": "+{0} ходов"
+ },
+ "m3.out.ad": {
+  "en": "+{0} moves for an ad",
+  "ru": "+{0} ходов за рекламу"
+ },
+ "m3.out.giveup": {
+  "en": "Give up",
+  "ru": "Сдаться"
+ },
+ "m3.out.confirm": {
+  "en": "Yes, give up",
+  "ru": "Да, сдаться"
+ },
+ "m3.out.lose": {
+  "en": "You'll lose a life.",
+  "ru": "Ты потеряешь жизнь."
+ },
+ "m3.out.lose.streak": {
+  "en": "You'll lose a life and your win streak.",
+  "ru": "Ты потеряешь жизнь и серию побед."
+ },
+ "m3.lose.title": {
+  "en": "Level failed",
+  "ru": "Уровень не пройден"
+ },
+ "m3.lose.streak": {
+  "en": "The win streak is broken",
+  "ru": "Серия побед прервалась"
+ },
+ "m3.win.bonus": {
+  "en": "Market bonus",
+  "ru": "Бонус рынка"
+ },
+ "m3.target.mallet": {
+  "en": "Tap a tile to smash it",
+  "ru": "Нажми на клетку, чтобы разбить ее"
+ },
+ "m3.target.knife": {
+  "en": "Tap a row to cut it",
+  "ru": "Нажми на ряд, чтобы срезать его"
+ },
+ "m3.target.spatula": {
+  "en": "Tap a column to sweep it",
+  "ru": "Нажми на столбец, чтобы смахнуть его"
+ },
+ "m3.booster.pin": {
+  "en": "Rolling pin",
+  "ru": "Скалка"
+ },
+ "m3.booster.pin.text": {
+  "en": "Starts on the board. Clears a whole row or column.",
+  "ru": "Стоит на поле со старта. Сносит целый ряд или столбец."
+ },
+ "m3.booster.bomb": {
+  "en": "Cherry bomb",
+  "ru": "Вишневая бомба"
+ },
+ "m3.booster.bomb.text": {
+  "en": "Starts on the board. Blasts a 5x5 area.",
+  "ru": "Стоит на поле со старта. Взрывает квадрат 5 на 5."
+ },
+ "m3.booster.rainbow": {
+  "en": "Rainbow donut",
+  "ru": "Радужный пончик"
+ },
+ "m3.booster.rainbow.text": {
+  "en": "Starts on the board. Swap it with a product to clear all products of that kind.",
+  "ru": "Стоит на поле со старта. Поменяй его с продуктом - уберет все такие продукты."
+ },
+ "m3.booster.mallet": {
+  "en": "Mallet",
+  "ru": "Молоток"
+ },
+ "m3.booster.mallet.text": {
+  "en": "Smashes one tile, crate or ice. Doesn't use a move.",
+  "ru": "Разбивает одну фишку, ящик или лед. Ход не тратится."
+ },
+ "m3.booster.knife": {
+  "en": "Knife",
+  "ru": "Нож"
+ },
+ "m3.booster.knife.text": {
+  "en": "Cuts a whole row. Doesn't use a move.",
+  "ru": "Срезает целый ряд. Ход не тратится."
+ },
+ "m3.booster.spatula": {
+  "en": "Spatula",
+  "ru": "Лопатка"
+ },
+ "m3.booster.spatula.text": {
+  "en": "Sweeps a whole column. Doesn't use a move.",
+  "ru": "Смахивает целый столбец. Ход не тратится."
+ },
+ "m3.booster.mixer": {
+  "en": "Mixer",
+  "ru": "Миксер"
+ },
+ "m3.booster.mixer.text": {
+  "en": "Mixes all products on the board. Doesn't use a move.",
+  "ru": "Перемешивает все продукты на поле. Ход не тратится."
+ },
+ "m3.intro.basic.title": {
+  "en": "Match 3",
+  "ru": "Собери три в ряд"
+ },
+ "m3.intro.basic.text": {
+  "en": "Swap two neighbors so that 3 or more identical products line up. Collect the products from the goal panel before you run out of moves.",
+  "ru": "Меняй местами соседние продукты, чтобы 3 и больше одинаковых встали в ряд. Собери продукты из панели целей, пока не кончились ходы."
+ },
+ "m3.intro.pin.title": {
+  "en": "Rolling pin",
+  "ru": "Скалка"
+ },
+ "m3.intro.pin.text": {
+  "en": "Match 4 in a row to get a rolling pin. Tap it or swap it: it clears its whole row or column.",
+  "ru": "Собери 4 в ряд - получится скалка. Нажми на нее или сдвинь: она снесет весь свой ряд или столбец."
+ },
+ "m3.intro.whisk.title": {
+  "en": "Whisk",
+  "ru": "Венчик"
+ },
+ "m3.intro.whisk.text": {
+  "en": "Match a 2x2 square to get a whisk. It hits its neighbors and then flies to whatever you need for the goal.",
+  "ru": "Собери квадрат 2 на 2 - получится венчик. Он бьет соседей и сам летит к тому, что нужно для цели."
+ },
+ "m3.intro.bomb.title": {
+  "en": "Cherry bomb",
+  "ru": "Вишневая бомба"
+ },
+ "m3.intro.bomb.text": {
+  "en": "Match an L or T shape to get a bomb. It blasts everything around in a 5x5 area.",
+  "ru": "Собери уголок или букву Т - получится бомба. Она взрывает все вокруг в квадрате 5 на 5."
+ },
+ "m3.intro.rainbow.title": {
+  "en": "Rainbow donut",
+  "ru": "Радужный пончик"
+ },
+ "m3.intro.rainbow.text": {
+  "en": "Match 5 in a row to get a rainbow donut. Swap it with a product and every product of that kind disappears.",
+  "ru": "Собери 5 в ряд - получится радужный пончик. Поменяй его с продуктом, и все такие продукты исчезнут."
+ },
+ "m3.intro.combo.title": {
+  "en": "Combos",
+  "ru": "Комбо"
+ },
+ "m3.intro.combo.text": {
+  "en": "Swap two specials with each other for a super effect: pin + pin is a cross, pin + bomb clears 3 rows and 3 columns, two donuts clear the whole board!",
+  "ru": "Поменяй две спецфишки между собой - будет суперэффект: скалка + скалка дают крест, скалка + бомба сносят 3 ряда и 3 столбца, два пончика очищают все поле!"
+ },
+ "m3.intro.crate.title": {
+  "en": "Crates",
+  "ru": "Ящики"
+ },
+ "m3.intro.crate.text": {
+  "en": "Crates break when you match next to them or hit them with a special. Products fall around them.",
+  "ru": "Ящики ломаются, если собрать продукты рядом или задеть их спецфишкой. Продукты обтекают их сбоку."
+ },
+ "m3.intro.crate2.title": {
+  "en": "Strong crates",
+  "ru": "Крепкие ящики"
+ },
+ "m3.intro.crate2.text": {
+  "en": "Some crates need two hits: the first one knocks off the lid.",
+  "ru": "Некоторые ящики нужно ударить дважды: первый удар сбивает крышку."
+ },
+ "m3.intro.crate3.title": {
+  "en": "Iron-bound crates",
+  "ru": "Окованные ящики"
+ },
+ "m3.intro.crate3.text": {
+  "en": "These crates hold three hits. Specials are the fastest way to break them.",
+  "ru": "Такие ящики выдерживают три удара. Быстрее всего их ломают спецфишки."
+ },
+ "m3.intro.ice.title": {
+  "en": "Ice",
+  "ru": "Лед"
+ },
+ "m3.intro.ice.text": {
+  "en": "A frozen product can't move. Match it with its neighbors or hit it with a special to break the ice.",
+  "ru": "Замерзший продукт нельзя двигать. Собери его вместе с соседями или задень спецфишкой, чтобы разбить лед."
+ },
+ "m3.intro.ice2.title": {
+  "en": "Thick ice",
+  "ru": "Толстый лед"
+ },
+ "m3.intro.ice2.text": {
+  "en": "Frosty ice takes two hits to break.",
+  "ru": "Лед с инеем разбивается за два удара."
+ },
+ "m3.intro.jam.title": {
+  "en": "Jam stains",
+  "ru": "Пятна варенья"
+ },
+ "m3.intro.jam.text": {
+  "en": "Clean all the jam: make a match on a stain or hit it with a special.",
+  "ru": "Отмой все варенье: собери продукты прямо на пятне или задень его спецфишкой."
+ },
+ "m3.intro.carrot.title": {
+  "en": "New product",
+  "ru": "Новый продукт"
+ },
+ "m3.intro.carrot.text": {
+  "en": "Carrots come to the market: now there are six products on the board and matches are harder to find.",
+  "ru": "На рынок привезли морковь: теперь на поле шесть продуктов, и совпадения искать сложнее."
+ },
+ "shop.item.market": {
+  "en": "Market boosters pack",
+  "ru": "Набор бустеров рынка"
+ },
+ "shop.market.boosters": {
+  "en": "Market boosters",
+  "ru": "Бустеры рынка"
+ },
+ "recipe.title": {
+  "en": "Big Recipe",
+  "ru": "Большой рецепт"
+ },
+ "recipe.left": {
+  "en": "Ends in {0}",
+  "ru": "До конца {0}"
+ },
+ "recipe.step": {
+  "en": "Step {0} of {1}",
+  "ru": "Шаг {0} из {1}"
+ },
+ "recipe.choose": {
+  "en": "Choose the next ingredient",
+  "ru": "Выбери следующий ингредиент"
+ },
+ "recipe.easy": {
+  "en": "Easier",
+  "ru": "Попроще"
+ },
+ "recipe.hard": {
+  "en": "Better reward",
+  "ru": "Награда лучше"
+ },
+ "recipe.collect": {
+  "en": "Collect {0}",
+  "ru": "Собрать {0}"
+ },
+ "recipe.pick": {
+  "en": "Choose",
+  "ru": "Выбрать"
+ },
+ "recipe.hint": {
+  "en": "Products count everywhere: in the Market, in regular levels and from the garden.",
+  "ru": "Продукты засчитываются везде: на рынке, в обычных уровнях и с огорода."
+ },
+ "recipe.done": {
+  "en": "Your dish is ready! A new recipe starts next week.",
+  "ru": "Твое блюдо готово! Новый рецепт начнется на следующей неделе."
+ },
+ "recipe.win": {
+  "en": "A new ingredient is on the Big Recipe dish!",
+  "ru": "Новый ингредиент лег на блюдо Большого рецепта!"
+ },
+ "recipe.card": {
+  "en": "Collect products in both games and build your own giant dish.",
+  "ru": "Собирай продукты в обеих играх и собери свое гигантское блюдо."
+ },
+ "recipe.open": {
+  "en": "Open",
+  "ru": "Открыть"
+ },
+ "recipe.name1": {
+  "en": "{0} with {1}",
+  "ru": "{0} с {1}"
+ },
+ "recipe.name2": {
+  "en": "{0} with {1} and {2}",
+  "ru": "{0} с {1} и {2}"
+ },
+ "recipe.dish.pizza": {
+  "en": "Chef's pizza",
+  "ru": "Пицца шефа"
+ },
+ "recipe.dish.cake": {
+  "en": "Chef's cake",
+  "ru": "Торт шефа"
+ },
+ "recipe.dish.salad": {
+  "en": "Chef's salad",
+  "ru": "Салат шефа"
+ },
+ "recipe.dish.paella": {
+  "en": "Chef's paella",
+  "ru": "Паэлья шефа"
+ },
+ "recipe.with.tomato": {
+  "en": "tomatoes",
+  "ru": "томатами"
+ },
+ "recipe.with.lime": {
+  "en": "lime",
+  "ru": "лаймом"
+ },
+ "recipe.with.cheese": {
+  "en": "cheese",
+  "ru": "сыром"
+ },
+ "recipe.with.grapes": {
+  "en": "grapes",
+  "ru": "виноградом"
+ },
+ "recipe.with.milk": {
+  "en": "milk",
+  "ru": "молоком"
+ },
+ "recipe.with.carrot": {
+  "en": "carrots",
+  "ru": "морковью"
+ },
+ "garden.title": {
+  "en": "Supplier's garden",
+  "ru": "Огород поставщика"
+ },
+ "garden.text": {
+  "en": "Crops grow on their own. Every win waters the beds: -{0} min.",
+  "ru": "Урожай растет сам. Каждая победа поливает грядки: минус {0} мин."
+ },
+ "garden.harvest": {
+  "en": "Harvest",
+  "ru": "Собрать"
+ },
+ "garden.harvested": {
+  "en": "Harvest!",
+  "ru": "Урожай!"
+ },
+ "garden.yield": {
+  "en": "Harvest: {0} for the Big Recipe",
+  "ru": "Урожай: {0} в Большой рецепт"
+ },
+ "garden.crop.tomato": {
+  "en": "Tomatoes",
+  "ru": "Помидоры"
+ },
+ "garden.crop.carrot": {
+  "en": "Carrots",
+  "ru": "Морковь"
+ },
+ "garden.crop.lime": {
+  "en": "Limes",
+  "ru": "Лаймы"
+ },
+ "garden.crop.grapes": {
+  "en": "Grapes",
+  "ru": "Виноград"
+ },
+ "garden.crop.cheese": {
+  "en": "Cheese cellar",
+  "ru": "Сырный погреб"
+ },
+ "garden.crop.milk": {
+  "en": "Dairy",
+  "ru": "Молочная"
+ },
+ "jar.title": {
+  "en": "Tip jar",
+  "ru": "Банка чаевых"
+ },
+ "jar.text": {
+  "en": "Part of the coins from every win drops into the jar. Break it to take everything at once.",
+  "ru": "Часть монет с каждой победы падает в банку. Разбей ее, чтобы забрать все сразу."
+ },
+ "jar.full": {
+  "en": "The jar is full! Break it, otherwise new tips have nowhere to go.",
+  "ru": "Банка полная! Разбей ее, иначе новым чаевым некуда падать."
+ },
+ "jar.break": {
+  "en": "Break for {0}",
+  "ru": "Разбить за {0}"
+ },
+ "jar.min": {
+  "en": "Can be broken from {0} coins",
+  "ru": "Разбить можно от {0} монет"
+ },
+ "jar.broken": {
+  "en": "The jar is broken!",
+  "ru": "Банка разбита!"
+ },
+ "jar.empty": {
+  "en": "The jar is empty",
+  "ru": "Банка пустая"
+ },
+ "jar.win": {
+  "en": "+{0} coins in the tip jar",
+  "ru": "+{0} монет в банку чаевых"
+ },
+ "critic.title": {
+  "en": "Secret critic",
+  "ru": "Тайный критик"
+ },
+ "critic.arrived": {
+  "en": "The secret critic is here!",
+  "ru": "Тайный критик за столиком!"
+ },
+ "critic.arrived.text": {
+  "en": "Win this level to get a review and restaurant rating points.",
+  "ru": "Пройди этот уровень, чтобы получить рецензию и очки рейтинга ресторана."
+ },
+ "critic.points": {
+  "en": "+{0} rating points",
+  "ru": "+{0} очков рейтинга"
+ },
+ "critic.points.total": {
+  "en": "Rating this month: {0} points",
+  "ru": "Рейтинг за месяц: {0} очков"
+ },
+ "critic.next": {
+  "en": "Comes unannounced to one of your next levels in either game.",
+  "ru": "Приходит без предупреждения на один из следующих уровней в любой игре."
+ },
+ "critic.next.pending": {
+  "en": "The critic is already on the way: he'll be at your next level!",
+  "ru": "Критик уже в пути: он будет на следующем уровне!"
+ },
+ "critic.review.1.0": {
+  "en": "Edible. But I expected more.",
+  "ru": "Съедобно. Но я ждал большего."
+ },
+ "critic.review.1.1": {
+  "en": "Slow service, but the food is honest.",
+  "ru": "Обслуживание медленное, но еда честная."
+ },
+ "critic.review.1.2": {
+  "en": "Room to grow. I'll be back.",
+  "ru": "Есть куда расти. Я еще вернусь."
+ },
+ "critic.review.1.3": {
+  "en": "Decent, if a little chaotic.",
+  "ru": "Достойно, хоть и немного суматошно."
+ },
+ "critic.review.2.0": {
+  "en": "A pleasant surprise. The tomatoes were perfect.",
+  "ru": "Приятный сюрприз. Помидоры были безупречны."
+ },
+ "critic.review.2.1": {
+  "en": "Quick hands and a good eye. Recommended.",
+  "ru": "Быстрые руки и верный глаз. Рекомендую."
+ },
+ "critic.review.2.2": {
+  "en": "A cozy place with confident cooking.",
+  "ru": "Уютное место и уверенная кухня."
+ },
+ "critic.review.2.3": {
+  "en": "I'd come back for the cheese alone.",
+  "ru": "Вернусь сюда хотя бы ради сыра."
+ },
+ "critic.review.3.0": {
+  "en": "Brilliant! The best kitchen in town.",
+  "ru": "Блестяще! Лучшая кухня в городе."
+ },
+ "critic.review.3.1": {
+  "en": "Flawless from the first move to the last.",
+  "ru": "Безупречно от первого хода до последнего."
+ },
+ "critic.review.3.2": {
+  "en": "A star-worthy performance. Bravo, chef!",
+  "ru": "Работа на звезду. Браво, шеф!"
+ },
+ "critic.review.3.3": {
+  "en": "I've run out of superlatives.",
+  "ru": "У меня кончились хвалебные слова."
+ },
+ "happy.title": {
+  "en": "Happy hour",
+  "ru": "Счастливый час"
+ },
+ "happy.text": {
+  "en": "Twice a day for 30 minutes: the Big Recipe, the tip jar and the garden go twice as fast.",
+  "ru": "Два раза в день по 30 минут: Большой рецепт, банка чаевых и огород идут вдвое быстрее."
+ },
+ "happy.now": {
+  "en": "Happy hour! {0} left",
+  "ru": "Счастливый час! Осталось {0}"
+ },
+ "happy.next": {
+  "en": "Next one in {0}",
+  "ru": "Следующий через {0}"
+ },
+ "happy.win": {
+  "en": "Happy hour: x2 progress",
+  "ru": "Счастливый час: прогресс x2"
+ },
+ "push.happy.title": {
+  "en": "Happy hour in the kitchen!",
+  "ru": "На кухне счастливый час!"
+ },
+ "push.happy.body": {
+  "en": "For 30 minutes everything you collect counts double.",
+  "ru": "30 минут все собранное засчитывается вдвое."
+ },
+ "push.garden.title": {
+  "en": "The harvest is ripe",
+  "ru": "Урожай поспел"
+ },
+ "push.garden.body": {
+  "en": "Come pick it up in the supplier's garden.",
+  "ru": "Загляни в огород поставщика и собери его."
+ },
+ "ach.market": {
+  "en": "Market regular",
+  "ru": "Завсегдатай рынка"
+ },
+ "ach.recipe": {
+  "en": "Big cook",
+  "ru": "Большой повар"
+ },
+ "ach.garden": {
+  "en": "Gardener",
+  "ru": "Огородник"
+ },
+ "ach.critic": {
+  "en": "Critics' darling",
+  "ru": "Любимец критиков"
+ },
+ "task.marketWins": {
+  "en": "Win {0} Market levels",
+  "ru": "Пройди {0} уровней рынка"
+ },
+ "task.recipeSteps": {
+  "en": "Complete {0} Big Recipe steps",
+  "ru": "Закрой {0} шагов Большого рецепта"
+ },
+ "task.harvests": {
+  "en": "Harvest {0} times",
+  "ru": "Собери урожай {0} раз"
+ },
+ "task.reviews": {
+  "en": "Get {0} critic reviews",
+  "ru": "Получи {0} рецензий критика"
  }
 }

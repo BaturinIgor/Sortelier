@@ -33,6 +33,7 @@ final class RewardInfo: ObservableObject {
         case let .chest(k, _): return lang.t("chest.kind." + k.rawValue)
         case let .background(bg): return lang.t("bg." + bg)
         case let .guest(g): return lang.t("guest." + g)
+        case let .market(b, _): return lang.t("m3.booster." + b.rawValue)
         }
     }
 
@@ -44,6 +45,7 @@ final class RewardInfo: ObservableObject {
         case let .lives(n): return "+\(n)"
         case let .energy(n): return "+\(n)"
         case let .chest(_, n): return "×\(n)"
+        case let .market(_, n): return "×\(n)"
         case .background, .guest: return ""
         }
     }
@@ -58,6 +60,7 @@ final class RewardInfo: ObservableObject {
         case .chest: return lang.t("info.chest")
         case .background: return lang.t("info.bg")
         case .guest: return lang.t("info.guest")
+        case let .market(b, _): return lang.t("m3.booster." + b.rawValue + ".text")
         }
     }
 }
@@ -90,6 +93,8 @@ struct RewardItemIcon: View {
                 .overlay(RoundedRectangle(cornerRadius: size * 0.15).strokeBorder(Theme.paperBorder, lineWidth: 1.5))
         case let .guest(g):
             SpriteImage(name: Guests.sprite(g, mood: "joy"), size: size * 1.1)
+        case let .market(b, _):
+            SpriteImage(name: b.icon, size: size)
         }
     }
 }

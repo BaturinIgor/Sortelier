@@ -30,9 +30,19 @@ struct ShopScreen: View {
                 SectionTitle(title: lang.t("shop.packs"))
                 packCard(.boosters, icon: "icon_hint", title: lang.t("shop.item.boosters"))
                 packCard(.lives, icon: "icon_unlimited", title: lang.t("shop.item.lives"))
+                if progress.marketUnlocked {
+                    jarCard
+                    packCard(.market, icon: "icon_market", title: lang.t("shop.item.market"))
+                }
                 SectionTitle(title: lang.t("shop.boosters"))
                 LazyVGrid(columns: columns, spacing: 14) {
                     ForEach(Booster.allCases) { booster in boosterTile(booster) }
+                }
+                if progress.marketUnlocked {
+                    SectionTitle(title: lang.t("shop.market.boosters"))
+                    LazyVGrid(columns: columns, spacing: 14) {
+                        ForEach(M3Booster.allCases) { b in marketTile(b) }
+                    }
                 }
                 footer
             }
@@ -182,6 +192,64 @@ struct ShopScreen: View {
         .background(PaperBackground())
     }
 
+    /// Банка чаевых: копится сама, разбивается покупкой.
+    private var jarCard: some View {
+        Panel(padding: 14, highlight: progress.jarCanBreak) {
+            HStack(spacing: 12) {
+                SpriteImage(name: "icon_jar", size: 84)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(lang.t("jar.title")).font(Theme.rounded(18, .black)).foregroundColor(Theme.brown)
+                    HStack(spacing: 4) {
+                        CoinIcon(size: 22)
+                        Text("\(progress.jarCoins) / \(TipJar.capacity)").font(Theme.rounded(16, .black)).foregroundColor(Theme.brown)
+                            .monospacedDigit()
+                    }
+                    if progress.jarCanBreak {
+                        priceButton(.jar)
+                    } else {
+                        Text(lang.t("jar.min", TipJar.minimum)).font(Theme.rounded(12, .bold)).foregroundColor(Theme.brownSoft)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+        }
+    }
+
+    private func marketTile(_ b: M3Booster) -> some View {
+        VStack(spacing: 4) {
+            Button { RewardInfo.show(.market(b, 1)) } label: {
+                SpriteImage(name: b.icon, size: 62)
+            }
+            .buttonStyle(PressScaleStyle())
+            Text(lang.t("m3.booster." + b.rawValue))
+                .font(Theme.rounded(15, .black))
+                .foregroundColor(Theme.brown)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(lang.t("shop.have", progress.count(b)))
+                .font(Theme.rounded(13, .bold))
+                .foregroundColor(Theme.brownSoft)
+            Button {
+                if progress.buy(b) {
+                    Audio.shared.play(.coin)
+                    Toast.success(lang.t("shop.bought", lang.t("m3.booster." + b.rawValue)))
+                } else {
+                    Toast.error(lang.t("common.nocoins"))
+                }
+            } label: {
+                HStack(spacing: 4) { CoinIcon(size: 22); Text("\(MarketBalance.price(b))") }
+            }
+            .buttonStyle(GameButtonStyle(palette: .green, height: 40, fontSize: 18, radius: 13))
+            .padding(.top, 2)
+        }
+        .padding(.horizontal, 10)
+        .padding(.top, 10)
+        .padding(.bottom, 6)
+        .frame(maxWidth: .infinity)
+        .background(PaperBackground())
+    }
+
     private func priceButton(_ item: ShopItem) -> some View {
         Button { buy(item) } label: {
             ZStack {
@@ -240,6 +308,8 @@ struct ShopScreen: View {
                     vipActivated = true
                 } else if item == .eventPass {
                     Toast.success(lang.t("event.pass.active"))
+                } else if item == .jar, result == nil {
+                    Toast.error(lang.t("jar.empty"))
                 } else {
                     granted = result
                 }
