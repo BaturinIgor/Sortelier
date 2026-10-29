@@ -205,6 +205,7 @@ struct M3Board {
 
     private var out: [M3Timed] = []
     private var fires: [Pending] = []
+    private var bornAt: [Int: Double] = [:]
     private var lastHit: Double = 0
 
     // Тайминги (секунды).
@@ -513,7 +514,7 @@ struct M3Board {
             tiles[index(a)] = nil
             tiles[index(b)] = nil
             combo(ta, tb, sa, sb, at: b, t: Self.swapTime * 0.6)
-            let end = settle(from: Self.swapTime, prefer: [])
+            let end = settle(from: Self.swapTime, prefer: [], groupsFirst: false)
             return finish(end: end, counted: true)
         }
         if sa != nil || sb != nil {
@@ -524,7 +525,8 @@ struct M3Board {
             var fire = M3Fire(special: special.kind.special ?? .bomb)
             fire.color = other.kind.color
             schedule(Self.swapTime, id: special.id, cell: pos, fire)
-            let end = settle(from: Self.swapTime, prefer: [])
+            // как в rules.py: сначала срабатывает спецфишка, совпадения ищутся после падения
+            let end = settle(from: Self.swapTime, prefer: [], groupsFirst: false)
             return finish(end: end, counted: true)
         }
         guard swapMakesMatch(a, b) else {
@@ -543,7 +545,7 @@ struct M3Board {
         begin()
         tiles[index(p)] = nil
         schedule(0.02, id: t.id, cell: p, M3Fire(special: special))
-        let end = settle(from: 0.02, prefer: [])
+        let end = settle(from: 0.02, prefer: [], groupsFirst: false)
         return finish(end: end, counted: true)
     }
 
@@ -572,7 +574,7 @@ struct M3Board {
             return nil
         }
         runFires()
-        let end = settle(from: t0, prefer: [])
+        let end = settle(from: t0, prefer: [], groupsFirst: false)
         return finish(end: end, counted: false)
     }
 
@@ -600,7 +602,7 @@ struct M3Board {
                 schedule(t + Double(i) * 0.14, id: tile.id, cell: p, M3Fire(special: s))
                 fired += 1
             }
-            t = settle(from: t, prefer: []) + 0.1
+            t = settle(from: t, prefer: [], groupsFirst: false) + 0.1
         }
         var line = finish(end: t, counted: false)
         line.finaleFires = fired
@@ -612,6 +614,7 @@ struct M3Board {
     private mutating func begin() {
         out = []
         fires = []
+        bornAt = [:]
         lastHit = 0
     }
 
@@ -660,7 +663,8 @@ struct M3Board {
             gotColors[k] += 1
             emit(t, .pop(id: tile.id, cell: p, color: k, toward: toward))
         case let .special(s):
-            schedule(t + 0.07, id: tile.id, cell: p, M3Fire(special: s))
+            // спецфишка срабатывает не раньше, чем появилась на поле
+            schedule(max(t, bornAt[tile.id] ?? 0) + 0.07, id: tile.id, cell: p, M3Fire(special: s))
         }
     }
 
@@ -681,6 +685,7 @@ struct M3Board {
                 let tile = newTile(.special(kind))
                 tiles[index(a)] = tile
                 emit(t + Self.popTime, .create(tile, a))
+                bornAt[tile.id] = t + Self.popTime
                 // падение начинается, когда спецфишка уже на поле
                 lastHit = max(lastHit, t + Self.popTime)
             }
@@ -944,11 +949,11 @@ struct M3Board {
     // MARK: - Разбор хода
 
     /// Совпадения, взрывы и падения до покоя. Возвращает время конца.
-    private mutating func settle(from t: Double, prefer: [M3Cell]) -> Double {
+    private mutating func settle(from t: Double, prefer: [M3Cell], groupsFirst: Bool = true) -> Double {
         var t = t
         var prefer = prefer
-        for _ in 0..<60 {
-            let groups = findGroups()
+        for step in 0..<60 {
+            let groups = step == 0 && !groupsFirst ? [] : findGroups()
             if !groups.isEmpty {
                 clear(groups, at: t, prefer: prefer)
                 prefer = []
