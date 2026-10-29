@@ -3377,14 +3377,16 @@ def main():
     ap.add_argument("--size", type=int, default=0)
     ap.add_argument("--samples", type=int, default=96)
     ap.add_argument("--spin-samples", type=int, default=40)
+    ap.add_argument("--spin-only", action="store_true", help="только кадры вращения блюд, без основного кадра")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     ids = [s for s in args.only.split(",") if s] or list(MODELS)
     for sid in ids:
         dish = sid.startswith("dish_")
         size = args.size or (512 if dish else 360)
-        render(sid, args.out, size, samples=args.samples)
-        if dish and args.spin:
+        if not args.spin_only:
+            render(sid, args.out, size, samples=args.samples)
+        if dish and (args.spin or args.spin_only):
             render(sid, args.out, 320, spin_frames=24, samples=args.spin_samples)
         print("rendered", sid, flush=True)
 

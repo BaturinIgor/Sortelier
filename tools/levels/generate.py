@@ -13,7 +13,7 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(__file__))
-from rules import Catalog, Order, solve, replay_score, normalize, settle, SLOTS, GOURMET_MULT  # noqa: E402
+from rules import Catalog, Order, solve, replay_score, normalize, settle, base, SLOTS, GOURMET_MULT  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 DATA = os.path.join(ROOT, "Sortelier", "Resources", "Data")
@@ -499,9 +499,14 @@ def pick_keys(rng, shelves, count, orders, locks):
     # ключ - заказ, который можно собрать без запертых полок; лучше блюдо или тройка из первой половины очереди
     pool = list(orders[: max(3, len(orders) // 2)])
     for s in candidates[:count]:
-        if not pool:
-            break
-        keys[s] = sprite(pool.pop(rng.randrange(len(pool))))
+        # ключ нельзя собрать из продуктов, запертых на этой же полке
+        on_shelf = {base(c) for layer in shelves[s] for c in layer if c}
+        fits = [o for o in pool if not (set(items_for([o])) & on_shelf)]
+        if not fits:
+            continue
+        o = fits[rng.randrange(len(fits))]
+        pool.remove(o)
+        keys[s] = sprite(o)
     return keys
 
 
@@ -525,11 +530,19 @@ def pick_chains(rng, shelves, count, locks, keys):
     return chains
 
 
+# Уровни ивентов включают проверку длины решения сами (events.py)
+STRICT_LENGTH = False
+
+
 def generate_level(level_no, params, seed, biome=1):
     shelves_n, depth, n_orders, n_dishes, free, hidden, ing_triples, hard, intro = params[:9]
     n_ice, n_locks, n_gourmet = params[9:12] if len(params) > 9 else (0, 0, 0)
     n_keys, n_chains = params[12:14] if len(params) > 12 else (0, 0)
     rng = random.Random(seed)
+    # слишком длинное решение (решатель петлял) дает нечестные пороги звезд и терпение: ищем короче,
+    # но после нескольких длинных берем самое короткое из них (для кухонь 4-5 и ивентов)
+    strict = STRICT_LENGTH or biome >= 4
+    long_ones = []
     for attempt in range(600):
         orders = pick_orders(rng, level_no, n_orders, n_dishes, ing_triples, biome)
         items = items_for(orders)
@@ -545,15 +558,21 @@ def generate_level(level_no, params, seed, biome=1):
         chains = pick_chains(rng, shelves, n_chains, locks, keys) if n_chains else None
         if n_chains and len(chains or []) < n_chains:
             continue
-        path = solve(CAT, shelves, orders, beam=120 if n_orders > 12 else 200, locks=locks, keys=keys, chains=chains)
+        # глубину поиска ограничиваем: слишком длинное решение все равно не возьмем, а тупиковые раскладки
+        # иначе ищутся очень долго (замки и цепи)
+        depth_cap = int(len(items) * 2.4) + 12 if strict else 400
+        path = solve(CAT, shelves, orders, beam=120 if n_orders > 12 else 200, max_depth=depth_cap,
+                     locks=locks, keys=keys, chains=chains)
         if path is None:
             continue
         # слишком простой уровень для своей позиции пропускаем
         if level_no > 3 and len(path) < len(items) * 0.45:
             continue
-        # слишком длинное решение: решатель петлял, пороги звезд и терпение выйдут нечестными
-        if len(path) > len(items) * 1.8 and attempt < 400:
-            continue
+        if strict and len(path) > len(items) * 1.8:
+            long_ones.append((len(path) / len(items), attempt, orders, shelves, path, locks, keys, chains))
+            if len(long_ones) < 4:
+                continue
+            _, attempt, orders, shelves, path, locks, keys, chains = min(long_ones, key=lambda c: c[0])
         # Гурман: не больше одного за уровень, приходит посреди уровня (не в первой тройке очереди),
         # обычно ждет блюдо
         gourmet = []

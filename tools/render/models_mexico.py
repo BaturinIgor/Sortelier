@@ -2,6 +2,7 @@
 import math
 import random
 
+import bmesh
 import bpy
 from mathutils import Matrix, Vector
 from mathutils.bvhtree import BVHTree
@@ -37,6 +38,14 @@ def vmat(name, attr="Col", **kw):
     at = nodes.new("ShaderNodeAttribute")
     at.attribute_name = attr
     links.new(at.outputs["Color"], nodes["Principled BSDF"].inputs["Base Color"])
+    return mat
+
+
+def glow(mat, color, strength=0.2):
+    """Легкое свечение: белые жидкости не уходят в серый."""
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    bsdf.inputs["Emission Color"].default_value = (*lin(color), 1)
+    bsdf.inputs["Emission Strength"].default_value = strength
     return mat
 
 
@@ -153,14 +162,15 @@ def polar_outline(fn, n=96):
 def ground(objs, z=0.0):
     """Ставит группу на высоту z нижней точкой."""
     bpy.context.view_layer.update()
-    lo, _, _ = R_bounds(objs)
+    lo, _, _ = z_range(objs)
     for o in objs:
         o.location.z += z - lo
     bpy.context.view_layer.update()
     return objs
 
 
-def R_bounds(objs):
+def z_range(objs):
+    """Нижняя и верхняя точка группы по Z."""
     zs = []
     for o in objs:
         mw = o.matrix_world
@@ -210,17 +220,17 @@ def husk_mat(name):
                 bump=0.12, bump_scale=30)
 
 
-def husk_colors(ob, across, along):
-    """Сухой лист: светлая солома с тонкими продольными прожилками. across(co) - поперек, along(co) - вдоль 0..1."""
-    base, dark, light = (0.93, 0.84, 0.60), (0.80, 0.66, 0.40), (0.99, 0.95, 0.80)
+def husk_colors(ob, across, along, palette=None, lines=5.5):
+    """Сухой лист: солома с тонкими продольными прожилками. across(co) - поперек, along(co) - вдоль 0..1."""
+    base, dark, light, end = palette or ((0.92, 0.80, 0.52), (0.74, 0.58, 0.32), (0.99, 0.93, 0.74), (0.86, 0.74, 0.46))
 
     def col(co, n):
         v = across(co)
-        f = (v * 9.0 + 0.15 * fbm(co * 3)) % 1.0
-        line = smoothstep(0.16, 0.0, min(f, 1 - f))
-        c = mix(light, base, 0.35 + 0.5 * abs(v))
-        c = mix(c, (0.86, 0.74, 0.46), 0.5 * along(co))
-        return mix(c, dark, 0.75 * line)
+        f = (v * lines + 0.03 * fbm(co * 2)) % 1.0
+        line = smoothstep(0.2, 0.0, min(f, 1 - f))
+        c = mix(light, base, 0.35 + 0.5 * min(1.0, abs(v)))
+        c = mix(c, end, 0.6 * along(co))
+        return mix(c, dark, 0.7 * line)
     return vcol(ob, col)
 
 
@@ -384,8 +394,8 @@ def chip(name, s=0.42, curve=0.35, seed=0):
 
 
 def chip_mat(name):
-    mat = material(name, [(0.0, (0.94, 0.62, 0.16)), (0.5, (1.0, 0.78, 0.26)), (1.0, (1.0, 0.86, 0.40))],
-                   coord="r", lo=0.45, hi=0.0, rough=0.38, sss=0.3, sss_radius=(1, 0.7, 0.2), coat=0.3, bump=0.25,
+    mat = material(name, [(0.0, (0.90, 0.52, 0.10)), (0.4, (0.99, 0.72, 0.20)), (1.0, (1.0, 0.84, 0.36))],
+                   coord="r", lo=0.4, hi=0.0, rough=0.38, sss=0.3, sss_radius=(1, 0.7, 0.2), coat=0.3, bump=0.25,
                    bump_scale=22, vary=0.12, vary_scale=6)
     add_speckles(mat, (0.86, 0.52, 0.14), scale=24, threshold=0.66, strength=0.6)
     return mat
@@ -443,8 +453,8 @@ def masa():
                    bump=0.15, bump_scale=30, vary=0.08)
     add_speckles(mat, (0.90, 0.62, 0.20), scale=50, threshold=0.68, strength=0.6)
     assign(dough_, mat)
-    husk = husk_leaf("MasaHusk", 1.5, 0.46, cup=0.18)
-    base, tip = Vector((1.0, -0.2, 0.05)), Vector((0.62, 0.05, 1.12))
+    husk = husk_leaf("MasaHusk", 1.7, 0.4, cup=0.16)
+    base, tip = Vector((1.2, -0.25, 0.02)), Vector((0.35, 0.1, 1.05))
     d = (tip - base).normalized()
     cam = Vector((0.22, -0.87, 0.44))
     zax = (cam - d * cam.dot(d)).normalized()
@@ -467,7 +477,7 @@ def husk_leaf(name, length=1.4, width=0.5, cup=0.22):
     def fn(co):
         xn = co.x / rx
         y = co.y * ky(xn)
-        z = cup * (y / ry) ** 2 + 0.08 * xn * xn + 0.012 * math.sin(co.x * 9 + co.y * 4)
+        z = cup * (y / ry) ** 2 * (1 - 0.5 * max(0.0, xn)) + 0.18 * max(0.0, xn) ** 2.5 + 0.012 * math.sin(co.x * 9)
         return Vector((co.x, y, z))
     deform(ob, fn)
     solidify(ob, 0.022)
@@ -549,9 +559,9 @@ def tortilla():
 
 
 def beef_mat(name, grill=True):
-    mat = material(name, [(0.0, (0.24, 0.09, 0.05)), (0.35, (0.38, 0.15, 0.07)), (0.75, (0.56, 0.23, 0.11)),
-                          (1.0, (0.62, 0.28, 0.14))],
-                   coord="nz", lo=-1, hi=1, rough=0.3, sss=0.25, sss_radius=(1, 0.3, 0.2), coat=0.5, coat_rough=0.18,
+    mat = material(name, [(0.0, (0.20, 0.08, 0.04)), (0.35, (0.32, 0.12, 0.05)), (0.75, (0.48, 0.20, 0.09)),
+                          (1.0, (0.55, 0.25, 0.11))],
+                   coord="nz", lo=-1, hi=1, rough=0.32, sss=0.1, sss_radius=(1, 0.3, 0.2), coat=0.45, coat_rough=0.2,
                    bump=0.3, bump_scale=10, bump_detail=8, vary=0.18, vary_scale=2.5)
     if grill:
         add_stripes(mat, (0.16, 0.06, 0.03), scale=0.75, angle=35, width=0.15, nz_min=0.55, strength=0.85)
@@ -563,9 +573,9 @@ def beef_mat(name, grill=True):
 def steak_cut_mat(name, lo, hi, coord="z"):
     """Срез стейка: розовая середина, темная корочка по краям."""
     crust = (0.30, 0.12, 0.06)
-    return material(name, [(0.0, crust), (0.12, (0.48, 0.18, 0.10)), (0.28, (0.78, 0.32, 0.28)), (0.5, (0.88, 0.42, 0.38)),
-                           (0.72, (0.78, 0.32, 0.28)), (0.88, (0.48, 0.18, 0.10)), (1.0, crust)],
-                    coord=coord, lo=lo, hi=hi, rough=0.25, sss=0.4, sss_radius=(1, 0.3, 0.25), coat=0.55,
+    return material(name, [(0.0, crust), (0.13, (0.40, 0.15, 0.07)), (0.3, (0.70, 0.24, 0.18)), (0.5, (0.82, 0.32, 0.27)),
+                           (0.7, (0.70, 0.24, 0.18)), (0.87, (0.40, 0.15, 0.07)), (1.0, crust)],
+                    coord=coord, lo=lo, hi=hi, rough=0.28, sss=0.2, sss_radius=(1, 0.3, 0.25), coat=0.5,
                     coat_rough=0.12, bump=0.2, bump_scale=24, vary=0.08, vary_scale=8)
 
 
@@ -939,7 +949,7 @@ def nachos():
     tray = box_mesh("NachoTray", 1.6, 1.15, 0.34, 0.0, cuts=8)
 
     def taper(co):
-        t = co.z / 0.36
+        t = co.z / 0.34
         k = 0.8 + 0.2 * t
         return Vector((co.x * k, co.y * k, co.z))
     deform(tray, taper)
@@ -950,7 +960,7 @@ def nachos():
     cmat = chip_mat("ChipMat")
     rnd = random.Random(11)
     chips = []
-    # внешний круг чипсов лепестками наружу, потом середина
+    # внешний круг чипсов чуть наружу, потом середина
     spots = [(2 * math.pi * k / 7 + rnd.uniform(-0.12, 0.12), 0.55, True) for k in range(7)]
     spots += [(2 * math.pi * k / 4 + 0.6, 0.22, False) for k in range(4)] + [(0.0, 0.0, False)]
     peak = 0.4
@@ -973,22 +983,22 @@ def nachos():
     pts = []
     for k in range(70):
         t = k / 69
-        x = -0.5 + 1.0 * t
-        y = 0.24 * math.sin(t * 2 * math.pi * 2.2) * (1 - 0.3 * abs(x))
+        x = -0.45 + 0.9 * t
+        y = 0.22 * math.sin(t * 2 * math.pi * 1.6 + 0.4) * (1 - 0.3 * abs(x))
         loc, nor = ray_down(x, y)
         if loc is not None and loc.z > 0.4:
             pts.append((x, y, loc.z + 0.035))
     sm = [pts[0]] + [tuple((a + b + c) / 3 for a, b, c in zip(pts[i - 1], pts[i], pts[i + 1])) for i in range(1, len(pts) - 1)] + [pts[-1]]
     sm = [(x, y, max(z, pts[i][2])) for i, (x, y, z) in enumerate(sm)]
-    dr = tube("CheeseDrizzle", sm, 0.042, taper=(0.7, 0.9))
+    dr = tube("CheeseDrizzle", sm, 0.055, taper=(0.8, 1.0))
     assign(smooth(dr), cheese)
     parts.append(dr)
     for i, (x, y) in enumerate(((-0.2, 0.05), (0.18, -0.1), (0.35, 0.2), (-0.4, -0.18))):
         loc, nor = ray_down(x, y)
         if loc is None:
             continue
-        b = sphere(f"CheeseBlob{i}", 0.1, 24, 16)
-        b.scale = (1.2, 1.0, 0.45)
+        b = sphere(f"CheeseBlob{i}", 0.12, 24, 16)
+        b.scale = (1.25, 1.0, 0.5)
         apply_transform(b)
         assign(smooth(b), cheese)
         place_on([b], loc, nor, i)
@@ -1103,15 +1113,18 @@ def horchata():
     assign(glass, glass_mat("HorGlassMat"))
     milk_ = lathe("HorMilk", [(0.0, 0.10), (0.37, 0.10), (0.424, 1.28), (0.0, 1.28)], 72)
     smooth(milk_, 50)
-    assign(milk_, material("HorMilkMat", [(0.0, (0.95, 0.86, 0.70)), (0.6, (1.0, 0.95, 0.84)), (1.0, (1.0, 0.98, 0.92))],
-                           coord="z", lo=0.1, hi=1.28, rough=0.2, sss=0.3, sss_radius=(1, 0.85, 0.6), coat=0.5))
+    assign(milk_, material("HorMilkMat", [(0.0, (0.96, 0.84, 0.64)), (0.55, (1.0, 0.92, 0.78)), (1.0, (1.0, 0.96, 0.88))],
+                           coord="z", lo=0.1, hi=1.28, rough=0.25, sss=0.2, sss_radius=(1, 0.85, 0.6), coat=0.4))
+    glow(milk_.data.materials[0], (1.0, 0.92, 0.80), 0.42)
     top = polar_disc("HorTop", 20, 72, 0.423, 0.423)
     deform(top, lambda co: Vector((co.x, co.y, 1.282 + 0.006 * fbm(co * 8))))
     smooth(top)
-    tmat = material("HorTopMat", [(0.0, (1.0, 0.96, 0.88)), (1.0, (0.96, 0.90, 0.78))], coord="r", lo=0.0, hi=0.42,
-                    rough=0.4, sss=0.4, sheen=0.4)
-    add_speckles(tmat, (0.62, 0.34, 0.16), scale=26, threshold=0.6, strength=0.75)
-    add_speckles(tmat, (0.50, 0.26, 0.12), scale=70, threshold=0.64, strength=0.8)
+    tmat = material("HorTopMat", [(0.0, (0.98, 0.88, 0.72)), (1.0, (1.0, 0.95, 0.86))], coord="r", lo=0.0, hi=0.42,
+                    rough=0.4, sss=0.3, sheen=0.4)
+    glow(tmat, (1.0, 0.92, 0.80), 0.3)
+    add_speckles(tmat, (0.66, 0.36, 0.16), scale=14, threshold=0.56, strength=0.65)
+    add_speckles(tmat, (0.52, 0.26, 0.10), scale=40, threshold=0.6, strength=0.85)
+    add_speckles(tmat, (0.46, 0.22, 0.08), scale=90, threshold=0.62, strength=0.9)
     assign(top, tmat)
     parts = [glass, milk_, top]
     for i, (x, y, rot) in enumerate(((-0.16, -0.08, (0.3, 0.2, 0.5)), (0.12, -0.14, (-0.2, 0.4, 1.2)),
@@ -1124,7 +1137,8 @@ def horchata():
 
 
 def tamale():
-    nu, nv = 72, 40
+    # кукурузный лист лодочкой: широкий открытый конец, узкий перевязанный хвост
+    nu, nv = 90, 48
     verts, faces = [], []
     for i in range(nu + 1):
         u = -1 + 2 * i / nu
@@ -1135,50 +1149,68 @@ def tamale():
             a = i * (nv + 1) + j
             faces.append((a, a + nv + 1, a + nv + 2, a + 1))
     husk = from_data("TamaleHusk", verts, faces)
-    husk_colors(husk, lambda co: co.y, lambda co: max(0.0, abs(co.x) - 0.5) * 2)
-    L, R0, zc = 1.2, 0.36, 0.38
+    L, tie_u = 1.25, 0.64
 
-    def rw(u):
-        if u > 0:
-            return R0 * (1 - 0.8 * smoothstep(0.3, 0.76, u)) + 0.16 * smoothstep(0.8, 1.0, u)
-        return R0 * (1 - 0.72 * smoothstep(0.45, 1.0, -u))
+    def half_w(u):
+        w = 0.96 + 0.06 * smoothstep(-0.6, -1.0, u)
+        w -= 0.86 * smoothstep(0.22, tie_u, u)
+        w += 0.17 * smoothstep(tie_u + 0.04, 1.0, u)
+        return w
+
+    def theta(u):
+        t = 2.5 - 0.9 * smoothstep(-0.55, -1.0, u)
+        t += 0.6 * smoothstep(0.22, tie_u, u)
+        t -= 1.9 * smoothstep(tie_u + 0.04, 1.0, u)
+        return t
+    palette = ((0.86, 0.80, 0.50), (0.62, 0.56, 0.30), (0.95, 0.92, 0.70), (0.76, 0.78, 0.44))
+    husk_colors(husk, lambda co: co.y * half_w(co.x) / 0.96, lambda co: 0.5 * smoothstep(0.4, 1.0, abs(co.x)),
+                palette, lines=7.0)
 
     def wrap(co):
         u, v = co.x, co.y
-        th_max = 2.35 + 0.75 * smoothstep(0.35, 0.8, abs(u)) - 0.5 * smoothstep(0.85, 1.0, u)
-        th = v * th_max
-        r = rw(u) * (1 + 0.02 * math.sin(v * 13 + u * 5))
-        return Vector((u * L, r * math.sin(th), zc - r * math.cos(th)))
+        w, th = half_w(u), theta(u)
+        r = w / th
+        zc = r + (0.4 - r) * smoothstep(0.22, tie_u, u) + 0.02
+        s_ = v * w
+        phi = s_ / r
+        rib = 0.008 * math.cos(s_ * 80) + 0.01 * fbm(Vector((u * 3, v * 2, 0)))
+        # края листа отогнуты наружу
+        lip = 0.14 * smoothstep(0.78, 1.0, abs(v)) * (1 - smoothstep(0.1, tie_u, u))
+        rr = r + rib
+        y, z = rr * math.sin(phi), zc - rr * math.cos(phi)
+        return Vector((u * L, y + math.copysign(lip, v), z + 0.15 * lip))
     deform(husk, wrap)
-    solidify(husk, 0.025)
+    solidify(husk, 0.022)
     subdivide(husk, 1)
     smooth(husk)
-    hmat = husk_mat("TamaleHuskMat")
-    assign(husk, hmat)
-    fill = capsule("TamaleFill", 1.42, 0.29, 64, 48)
-    fill.location = (-0.1, 0, zc)
+    assign(husk, husk_mat("TamaleHuskMat"))
+    zc = 0.42
+    fill = capsule("TamaleFill", 1.62, 0.33, 64, 48)
+    fill.location = (-0.36, 0, zc - 0.02)
     apply_transform(fill)
-    push_normals(fill, lambda co, n: 0.012 * fbm(co * 5))
+    deform(fill, lambda co: Vector((co.x, co.y, zc - 0.02 + (co.z - zc + 0.02) * (0.9 if co.z > zc else 1.0))))
+    push_normals(fill, lambda co, n: 0.014 * fbm(co * 5) + 0.004 * fbm(co * 18))
     smooth(fill)
-    assign(fill, material("TamaleFillMat", [(0.0, (0.94, 0.66, 0.22)), (0.6, (1.0, 0.82, 0.38)), (1.0, (1.0, 0.90, 0.56))],
-                          coord="z", lo=0.2, hi=0.68, rough=0.45, sss=0.5, sss_radius=(1, 0.8, 0.4), sheen=0.3,
-                          bump=0.15, bump_scale=30))
-    sauce = tube("TamaleSauce", [(-0.55 + 0.9 * t, 0.02 * math.sin(t * 9), zc + 0.27) for t in [k / 20 for k in range(21)]],
-                 0.07, taper=(0.7, 0.7))
-    deform(sauce, lambda co: Vector((co.x, co.y * 1.4, zc + 0.27 + (co.z - zc - 0.27) * 0.6)))
-    push_normals(sauce, lambda co, n: 0.01 * fbm(co * 9))
-    assign(smooth(sauce), material("TamaleSauceMat", [(0.0, (0.66, 0.10, 0.04)), (1.0, (0.90, 0.26, 0.08))], coord="z",
-                                   lo=zc + 0.22, hi=zc + 0.34, rough=0.15, sss=0.4, coat=0.8))
-    ux = 0.79
-    tie = torus("TamaleTie", rw(ux) + 0.035, 0.035, 48, 12)
-    tie.scale = (1, 1, 1.8)
+    fmat = material("TamaleFillMat", [(0.0, (0.92, 0.58, 0.14)), (0.6, (1.0, 0.76, 0.28)), (1.0, (1.0, 0.86, 0.44))],
+                    coord="z", lo=0.15, hi=0.72, rough=0.5, sss=0.5, sss_radius=(1, 0.8, 0.4), sheen=0.35, coat=0.1,
+                    bump=0.3, bump_scale=34, bump_detail=6)
+    add_speckles(fmat, (0.90, 0.56, 0.16), scale=40, threshold=0.64, strength=0.55)
+    assign(fill, fmat)
+    tie = torus("TamaleTie", 0.075, 0.034, 48, 12)
+    tie.scale = (1, 1, 1.7)
     tie.rotation_euler = (0, math.radians(90), 0)
-    tie.location = (ux * L, 0, zc)
+    tie.location = (tie_u * L, 0, 0.42)
     apply_transform(tie)
-    tmat = material("TamaleTieMat", [(0.0, (0.72, 0.56, 0.30)), (1.0, (0.88, 0.74, 0.46))], coord="z", lo=0.2, hi=0.6,
+    tmat = material("TamaleTieMat", [(0.0, (0.66, 0.62, 0.34)), (1.0, (0.84, 0.82, 0.54))], coord="z", lo=0.3, hi=0.55,
                     rough=0.5, sheen=0.3, coat=0.2)
     assign(smooth(tie), tmat)
-    return rotate_all([husk, fill, sauce, tie], (math.radians(12), 0, math.radians(-24)))
+    parts = [husk, fill, tie]
+    for k, (dy, dz) in enumerate(((0.12, -0.16), (-0.1, -0.2))):
+        end = tube(f"TamaleTieEnd{k}", [(tie_u * L, 0.0, 0.36), (tie_u * L + 0.05, dy * 0.6, 0.36 + dz * 0.5),
+                                         (tie_u * L + 0.08, dy, 0.36 + dz)], 0.03, taper=(1.0, 0.7))
+        assign(smooth(end), tmat)
+        parts.append(end)
+    return rotate_all(parts, (math.radians(10), 0, math.radians(-22)))
 
 
 def flan():
@@ -1261,9 +1293,7 @@ def concha():
 
 
 def paleta():
-    def outline(t):
-        # прямоугольник с полукруглым верхом
-        return t
+    # прямоугольник с полукруглым верхом
     pts = []
     w, h = 0.48, 1.3
     for k in range(17):
@@ -1275,7 +1305,6 @@ def paleta():
     for k in range(9):
         a = 1.5 * math.pi + math.pi / 2 * k / 8
         pts.append((w - 0.12 + 0.12 * math.cos(a), 0.12 + 0.12 * math.sin(a)))
-    pts = pts[:17] + pts[17:]
     body = outline_slab("Paleta", pts, 0.34, p=2.6, cuts=36, center=(0.0, h * 0.5))
     cutters = []
     for i, (x, y) in enumerate(((0.44, 1.12), (0.30, 1.30), (0.52, 0.90))):
@@ -1354,9 +1383,9 @@ def taco_shell(name, R=0.62, th_max=88, mat=None):
 
 
 def taco(prefix, mats):
-    shell, rf = taco_shell(f"{prefix}Shell", 0.62, 88, mats["tortilla"])
-    meat = capsule(f"{prefix}Meat", 1.0, 0.3, 48, 32)
-    deform(meat, lambda co: Vector((co.x, co.y * 1.18, co.z * 0.86 + 0.33)))
+    shell, rf = taco_shell(f"{prefix}Shell", 0.66, 96, mats["tortilla"])
+    meat = capsule(f"{prefix}Meat", 1.02, 0.27, 48, 32)
+    deform(meat, lambda co: Vector((co.x, co.y * 1.2, co.z * 0.8 + 0.3)))
     push_normals(meat, lambda co, n: 0.03 * fbm(co * 5 + Vector((len(prefix), 0, 0))))
     smooth(meat)
     assign(meat, mats["meat"])
@@ -1365,23 +1394,25 @@ def taco(prefix, mats):
     def chunk(i, rnd):
         c = rcube(f"{prefix}Beef{i}", *(rnd.uniform(0.07, 0.1) for _ in range(2)), rnd.uniform(0.05, 0.07))
         c.rotation_euler = (rnd.uniform(-0.5, 0.5), rnd.uniform(-0.5, 0.5), 0)
-        return assign(c, mats["beef"])
-    scatter_on(meat, 18, chunk, seed=len(prefix), area=0.5, spacing=0.1, zmin=0.45)
-    salsa_bits(meat, f"{prefix}S", n_tomato=10, n_onion=6, n_herb=9, s=0.85, area=0.45, seed=len(prefix) + 2,
-               zmin=0.5)
+        return assign(c, mats["beef"][i % 2])
+    scatter_on(meat, 26, chunk, seed=len(prefix), area=0.52, spacing=0.085, zmin=0.38)
+    salsa_bits(meat, f"{prefix}S", n_tomato=14, n_onion=10, n_herb=14, s=0.85, area=0.48, seed=len(prefix) + 2,
+               zmin=0.42)
     return [o for o in bpy.data.objects if o.name.startswith(prefix) and o.type == "MESH"]
 
 
 def dish_taco():
     parts = [talavera_plate("TacoPlate", 1.3)]
     mats = {
-        "tortilla": tortilla_mat("TacoTortilla", 0.62),
-        "meat": material("TacoMeat", [(0.0, (0.36, 0.15, 0.07)), (1.0, (0.56, 0.26, 0.12))], coord="z", lo=0.2,
+        "tortilla": tortilla_mat("TacoTortilla", 0.66),
+        "meat": material("TacoMeat", [(0.0, (0.40, 0.17, 0.08)), (1.0, (0.62, 0.30, 0.14))], coord="z", lo=0.2,
                          hi=0.6, rough=0.3, sss=0.2, coat=0.5, bump=0.4, bump_scale=16, vary=0.15),
-        "beef": material("TacoBeef", [(0.0, (0.30, 0.12, 0.05)), (1.0, (0.58, 0.28, 0.13))], coord="z", lo=-0.05,
-                         hi=0.06, rough=0.3, sss=0.2, coat=0.6, vary=0.15, vary_scale=8),
+        "beef": [material(f"TacoBeef{i}", [(0.0, c0), (1.0, c1)], coord="z", lo=-0.05, hi=0.06, rough=0.3, sss=0.2,
+                          sss_radius=(1, 0.4, 0.3), coat=0.6, vary=0.15, vary_scale=8)
+                 for i, (c0, c1) in enumerate((((0.36, 0.14, 0.06), (0.66, 0.32, 0.15)),
+                                               ((0.46, 0.20, 0.09), (0.76, 0.42, 0.22))))],
     }
-    for i, (y, rz) in enumerate(((-0.46, 6), (0.46, -6))):
+    for i, (y, rz) in enumerate(((-0.45, 6), (0.45, -6))):
         t = taco(f"Taco{i}", mats)
         rotate_all(t, (0, 0, math.radians(rz)))
         for o in t:
@@ -1396,7 +1427,7 @@ def dish_taco():
     return rotate_all(parts, (0, 0, math.radians(-20)))
 
 
-def burrito_half(prefix, mats, L=0.95, R=0.38, seed=0):
+def burrito_half(prefix, mats, L=1.15, R=0.52, seed=0, wrap=True):
     body = capsule(prefix, 2 * L, R, 72, 56)
     deform(body, lambda co: Vector((co.x, co.y, co.z * 0.9)))
     push_normals(body, lambda co, n: 0.01 * fbm(co * 3 + Vector((seed, 0, 0))))
@@ -1426,7 +1457,7 @@ def burrito_half(prefix, mats, L=0.95, R=0.38, seed=0):
     for i in range(14):
         a, rr = rnd.uniform(0, 6.28), 0.72 * R * math.sqrt(rnd.random())
         b = sphere(f"{prefix}Bean{i}", 1.0, 20, 12)
-        b.scale = (0.075, 0.05, 0.04)
+        b.scale = (0.088, 0.058, 0.045)
         b.rotation_euler = (0, 0, rnd.uniform(0, 3.14))
         b.location = (rr * math.cos(a), rr * math.sin(a) * 0.9, 0.05 * (1 - (rr / R) ** 2) + 0.01)
         apply_transform(b)
@@ -1451,23 +1482,27 @@ def burrito_half(prefix, mats, L=0.95, R=0.38, seed=0):
         o.rotation_euler = (0, math.radians(90), 0)
         o.location.x += 0.004
         apply_transform(o)
-    foil = capsule(f"{prefix}Foil", 2 * L, R + 0.035, 72, 56)
-    deform(foil, lambda co: Vector((co.x, co.y, co.z * 0.9)))
-    bisect(foil, (-0.42 * L, 0, 0), (1, 0, 0), fill=False)
+    if not wrap:
+        return [body] + bits
+    # бумажная обертка на дальней части
+    paper = capsule(f"{prefix}Paper", 2 * L, R + 0.03, 72, 56)
+    deform(paper, lambda co: Vector((co.x, co.y, co.z * 0.9)))
+    bisect(paper, (-0.38 * L, 0, 0), (1, 0, 0), fill=False)
 
     def ragged(co):
-        e = max(0.0, co.x + 0.62 * L) / (0.2 * L)
-        return Vector((co.x + 0.06 * e * fbm(co * 9 + Vector((seed, 0, 0))), co.y, co.z))
-    deform(foil, ragged)
-    push_normals(foil, lambda co, n: 0.012 * fbm(co * 8 + Vector((seed, 2, 0))))
-    solidify(foil, 0.012)
-    smooth(foil, 60)
-    assign(foil, mats["foil"])
-    return [body, foil] + bits
+        e = max(0.0, co.x + 0.6 * L) / (0.22 * L)
+        a = math.atan2(co.z, co.y)
+        return Vector((co.x + 0.05 * e * math.sin(a * 7 + seed) + 0.03 * e * fbm(co * 6), co.y, co.z))
+    deform(paper, ragged)
+    push_normals(paper, lambda co, n: 0.014 * fbm(co * 6 + Vector((seed, 2, 0))))
+    solidify(paper, 0.012)
+    smooth(paper, 60)
+    assign(paper, mats["paper"])
+    return [body, paper] + bits
 
 
 def dish_burrito():
-    parts = [clay_plate("BurritoPlate", 1.35)]
+    parts = [clay_plate("BurritoPlate", 1.3)]
     mats = {
         "tortilla": tortilla_mat("BurritoTortilla", 0.9),
         "bean": material("BurritoBean", [(0.0, (0.06, 0.03, 0.05)), (1.0, (0.24, 0.14, 0.18))], coord="x", lo=-0.05,
@@ -1476,23 +1511,30 @@ def dish_burrito():
         "tom": flat("BurritoTom", (0.90, 0.16, 0.08), rough=0.15, sss=0.3, coat=0.8),
         "herb": flat("BurritoHerb", (0.30, 0.66, 0.16), rough=0.3, coat=0.5),
         "cheese": flat("BurritoCheese", (1.0, 0.74, 0.16), rough=0.25, sss=0.4, coat=0.5),
-        "foil": material("BurritoFoil", [(0.0, (0.70, 0.72, 0.76)), (1.0, (0.96, 0.97, 0.99))], coord="nz", lo=-1, hi=1,
-                         rough=0.22, metal=1.0, bump=0.35, bump_scale=9, bump_detail=6),
+        "paper": material("BurritoPaper", [(0.0, (0.88, 0.84, 0.76)), (1.0, (1.0, 0.98, 0.94))], coord="nz", lo=-1,
+                          hi=1, rough=0.55, sheen=0.3, bump=0.3, bump_scale=8, bump_detail=4),
     }
-    a = burrito_half("BurA", mats, seed=1)
-    rotate_all(a, (0, math.radians(-12), 0))
-    rotate_all(a, (0, 0, math.radians(-55)))
-    for o in a:
-        o.location += Vector((0.28, 0.05, 0))
-    b = burrito_half("BurB", mats, seed=2)
-    rotate_all(b, (0, math.radians(-12), 0))
-    rotate_all(b, (0, 0, math.radians(-128)))
-    for o in b:
-        o.location += Vector((-0.3, 0.12, 0))
-    ground(a, 0.1)
-    ground(b, 0.1)
-    parts += a + b
-    return parts
+    # две половинки рядом наискосок, срезы к камере
+    axis = Vector((-0.87, 0.5, 0))
+    perp = Vector((0.5, 0.87, 0))
+    for k, (shift, seed) in enumerate(((0.0, 1), (1.18, 2))):
+        h = burrito_half(f"Bur{k}", mats, seed=seed, wrap=(k == 1))
+        rotate_all(h, (0, math.radians(-10), 0))
+        rotate_all(h, (0, 0, math.atan2(-axis.y, -axis.x)))
+        off = perp * shift + axis * (-0.25 * shift)
+        for o in h:
+            o.location += off
+        ground(h, 0.1)
+        parts += h
+    # блюдо по центру еды
+    food = parts[1:]
+    bpy.context.view_layer.update()
+    xs = [(o.matrix_world @ v.co) for o in food for v in list(o.data.vertices)[::7]]
+    cx = (min(p.x for p in xs) + max(p.x for p in xs)) / 2
+    cy = (min(p.y for p in xs) + max(p.y for p in xs)) / 2
+    for o in food:
+        o.location -= Vector((cx, cy, 0))
+    return rotate_all(parts, (0, 0, math.radians(-6)))
 
 
 def round_board(name="RoundBoard", r=1.3):
@@ -1524,11 +1566,15 @@ def red_chili_ring(name, r=0.08):
 
 
 def dish_quesadilla():
-    parts = [round_board("QBoard", 1.32)]
-    tort = tortilla_mat("QTortilla", 1.0)
-    cheese = material("QCheese", [(0.0, (1.0, 0.62, 0.08)), (1.0, (1.0, 0.82, 0.30))], coord="z", lo=0.1, hi=0.35,
-                      rough=0.12, sss=0.6, sss_radius=(1, 0.7, 0.2), coat=0.8, coat_rough=0.05)
-    Rq, H, z0 = 1.0, 0.2, 0.14
+    parts = [round_board("QBoard", 1.4)]
+    tort = material("QTortilla", [(0.0, (0.98, 0.76, 0.38)), (0.7, (0.95, 0.68, 0.30)), (1.0, (0.86, 0.56, 0.22))],
+                    coord="r", lo=0.0, hi=1.0, rough=0.42, sss=0.25, sss_radius=(1, 0.8, 0.5), coat=0.3, sheen=0.2,
+                    bump=0.1, bump_scale=18, vary=0.12, vary_scale=4)
+    add_speckles(tort, (0.78, 0.44, 0.12), scale=6.0, threshold=0.58, strength=0.75)
+    add_speckles(tort, (0.48, 0.24, 0.07), scale=15.0, threshold=0.65, strength=0.9)
+    cheese = material("QCheese", [(0.0, (1.0, 0.60, 0.06)), (1.0, (1.0, 0.80, 0.26))], coord="z", lo=0.1, hi=0.4,
+                      rough=0.1, sss=0.6, sss_radius=(1, 0.7, 0.2), coat=0.9, coat_rough=0.04)
+    Rq, H, z0, off, yshift = 1.1, 0.34, 0.14, 0.26, 0.0
     wedges = []
     for k in range(3):
         a0, a1 = math.radians(60 * k), math.radians(60 * (k + 1))
@@ -1536,60 +1582,75 @@ def dish_quesadilla():
         pts = [(0.0, 0.0)] + [(Rq * math.cos(a0 + (a1 - a0) * i / 16), Rq * math.sin(a0 + (a1 - a0) * i / 16))
                               for i in range(17)]
         c = (0.55 * Rq * math.cos(bis), 0.55 * Rq * math.sin(bis))
-        w = outline_slab(f"QWedge{k}", pts, H, p=3.2, cuts=36, center=c)
-        push_normals(w, lambda co, n: (0.03 * max(0.0, n.z) + 0.004 * fbm(co * 6)))
+        w = outline_slab(f"QWedge{k}", pts, H, p=3.0, cuts=36, center=c)
+        push_normals(w, lambda co, n: (0.035 * max(0.0, n.z) + 0.005 * fbm(co * 6)))
         deform(w, lambda co: Vector((co.x, co.y, co.z + H / 2 + z0)))
         smooth(w)
-        assign_faces(w, tort, [(lambda n, cc: abs(n.z) < 0.7 and z0 + 0.06 < cc.z < z0 + 0.15, cheese)])
-        off = 0.13
-        w.location = (off * math.cos(bis), off * math.sin(bis) - 0.45, 0)
-        wedges.append((w, a0, a1, bis))
+        assign_faces(w, tort, [(lambda n, cc: abs(n.z) < 0.8 and z0 + 0.09 < cc.z < z0 + 0.24, cheese)])
+        base = Vector((off * math.cos(bis), off * math.sin(bis) + yshift, 0))
+        w.location = base
+        wedges.append((w, a0, a1, bis, base))
         parts.append(w)
     bpy.context.view_layer.update()
     rnd = random.Random(4)
-    # тянущийся сыр между дольками
+
+    def side_point(base, a, t, dz=0.0):
+        return base + Vector((t * Rq * math.cos(a), t * Rq * math.sin(a), z0 + H * 0.52 + dz))
+    # тянущийся сыр между дольками: провисает к середине
     for k in range(2):
-        _, _, a1, b0 = wedges[k]
-        _, a0n, _, b1 = wedges[k + 1]
-        for j, t in enumerate((0.3, 0.55, 0.8)):
-            p0 = Vector((t * Rq * math.cos(a1) + 0.13 * math.cos(b0), t * Rq * math.sin(a1) + 0.13 * math.sin(b0) - 0.45,
-                         z0 + 0.1))
-            p1 = Vector((t * Rq * math.cos(a0n) + 0.13 * math.cos(b1), t * Rq * math.sin(a0n) + 0.13 * math.sin(b1) - 0.45,
-                         z0 + 0.1))
-            d = (p1 - p0)
-            nrm = Vector((-d.y, d.x, 0)).normalized() * 0.0
-            pts = [tuple(p0 + d * (u / 12) + Vector((0, 0, -0.06 * math.sin(math.pi * u / 12) - 0.01 * j)) + nrm)
-                   for u in range(13)]
-            st = tube(f"QStrand{k}{j}", pts, 0.032, taper=(1.0, 1.0))
-            deform(st, lambda co: co)
+        _, _, a1, _, b0 = wedges[k]
+        _, a0n, _, _, b1 = wedges[k + 1]
+        for j, t in enumerate((0.32, 0.58, 0.84)):
+            p0, p1 = side_point(b0, a1, t), side_point(b1, a0n, t)
+            pts = [tuple(p0 + (p1 - p0) * (u / 14) + Vector((0, 0, -0.07 * math.sin(math.pi * u / 14))))
+                   for u in range(15)]
+            st = tube(f"QStrand{k}{j}", pts, 0.05, taper=(1.0, 1.0))
             assign(smooth(st), cheese)
             parts.append(st)
-    # капли сыра по краю и кольца перца сверху
-    for k, (w, a0, a1, bis) in enumerate(wedges):
+    # сыр вытекает по срезам и по краю
+    for k, (w, a0, a1, bis, base) in enumerate(wedges):
+        for side_a, sgn in ((a0, -1), (a1, 1)):
+            if (k == 0 and sgn < 0) or (k == 2 and sgn > 0):
+                pts = [tuple(side_point(base, side_a, 0.12 + 0.8 * u / 10)
+                             + Vector((-sgn * math.sin(side_a) * 0.035, sgn * math.cos(side_a) * 0.035, -0.02)))
+                       for u in range(11)]
+                ooze = tube(f"QOozeS{k}{sgn}", pts, 0.065, taper=(0.8, 1.15))
+                assign(smooth(ooze), cheese)
+                parts.append(ooze)
         for j in range(2):
-            a = a0 + (a1 - a0) * (0.3 + 0.4 * j) + rnd.uniform(-0.1, 0.1)
-            base = Vector((0.13 * math.cos(bis), 0.13 * math.sin(bis) - 0.45, 0))
-            pos = base + Vector(((Rq + 0.0) * math.cos(a), (Rq + 0.0) * math.sin(a), z0 + 0.06))
-            blob = sphere(f"QOoze{k}{j}", 0.09, 24, 16)
-            blob.scale = (1.3, 0.8, 0.55)
+            a = a0 + (a1 - a0) * (0.28 + 0.44 * j) + rnd.uniform(-0.08, 0.08)
+            d = Vector((math.cos(a), math.sin(a), 0))
+            # сыр выдавливается из шва по краю
+            blob = sphere(f"QOoze{k}{j}", 0.12, 32, 16)
+            blob.scale = (1.7, 0.75, 0.42)
             blob.rotation_euler = (0, 0, a + math.pi / 2)
-            blob.location = pos
+            blob.location = base + d * (Rq - 0.02) + Vector((0, 0, z0 + H * 0.47))
+            apply_transform(blob)
+            push_normals(blob, lambda co, n: 0.01 * fbm(co * 9))
             assign(smooth(blob), cheese)
             parts.append(blob)
-        for j in range(2):
-            rr = Rq * rnd.uniform(0.35, 0.7)
+        for j in range(3):
+            rr = Rq * (0.3 + 0.2 * j) + rnd.uniform(-0.05, 0.05)
             a = a0 + (a1 - a0) * rnd.uniform(0.3, 0.7)
-            x = rr * math.cos(a) + 0.13 * math.cos(bis)
-            y = rr * math.sin(a) + 0.13 * math.sin(bis) - 0.45
+            x, y = base.x + rr * math.cos(a), base.y + rr * math.sin(a)
             loc, nor = ray_down(x, y)
             if loc is None:
                 continue
-            ring = red_chili_ring(f"QChili{k}{j}", 0.085)
+            ring = red_chili_ring(f"QChili{k}{j}", 0.11)
             for o in ring:
-                o.location.z += 0.012
+                o.location.z += 0.014
             place_on(ring, loc, nor, rnd.uniform(0, 6))
             parts += ring
-    return rotate_all(parts, (0, 0, math.radians(-15)))
+    # дольки по центру доски, дугой к камере: видно сыр между ними
+    food = parts[1:]
+    bpy.context.view_layer.update()
+    pts_ = [(o.matrix_world @ v.co) for o in food for v in list(o.data.vertices)[::5]]
+    cx = (min(p_.x for p_ in pts_) + max(p_.x for p_ in pts_)) / 2
+    cy = (min(p_.y for p_ in pts_) + max(p_.y for p_ in pts_)) / 2
+    for o in food:
+        o.location -= Vector((cx, cy, 0))
+    bpy.context.view_layer.update()
+    return rotate_all(parts, (0, 0, math.radians(180 - 12)))
 
 
 def dish_guacamole():
@@ -1673,6 +1734,29 @@ def lime_wheel(name, R=0.3, th=0.05, wrap=0.0):
     return parts
 
 
+def mint_leaf(name, size=0.3):
+    """Лист мяты: яйцевидный, с зубчиками и прожилкой посередине."""
+    ob = polar_disc(name, 18, 120, 1.0, 1.0)
+
+    def fn(co):
+        a = math.atan2(co.y, co.x)
+        rr = math.hypot(co.x, co.y)
+        x, y = co.x, co.y * 0.62
+        # к кончику (+x) уже, у основания шире
+        y *= 1.0 - 0.45 * max(0.0, x) ** 1.3 + 0.1 * max(0.0, -x)
+        k = 1.0 + 0.05 * math.sin(22 * a) * rr ** 4
+        x, y = x * k, y * k
+        z = 0.22 * (y / 0.62) ** 2 - 0.05 * math.exp(-(y / 0.06) ** 2) * (1 - abs(x)) + 0.1 * x * x
+        return Vector((x * size, y * size, z * size))
+    deform(ob, fn)
+    solidify(ob, 0.05 * size)
+    subdivide(ob, 1)
+    smooth(ob)
+    return assign(ob, material(f"{name}Mat", [(0.0, (0.46, 0.80, 0.30)), (0.6, (0.26, 0.64, 0.18)), (1.0, (0.14, 0.46, 0.12))],
+                               coord="r", lo=0.0, hi=size, rough=0.3, sss=0.35, sss_radius=(0.5, 1, 0.3), coat=0.5,
+                               bump=0.15, bump_scale=30))
+
+
 def dish_limeade():
     glass = lathe("LimeadeJar", [(0.0, 0.0), (0.46, 0.0), (0.50, 0.03), (0.52, 0.1), (0.52, 1.15), (0.50, 1.25),
                                  (0.47, 1.31), (0.47, 1.35), (0.49, 1.37), (0.47, 1.39), (0.49, 1.41), (0.47, 1.43),
@@ -1682,12 +1766,14 @@ def dish_limeade():
     assign(glass, glass_mat("LimeadeGlass"))
     liquid = lathe("Limeade", [(0.0, 0.11), (0.44, 0.11), (0.475, 0.15), (0.475, 1.14), (0.464, 1.2), (0.0, 1.2)], 96)
     smooth(liquid, 50)
-    assign(liquid, material("LimeadeMat", [(0.0, (0.62, 0.84, 0.30)), (0.7, (0.78, 0.93, 0.46)), (1.0, (0.86, 0.97, 0.60))],
-                            coord="z", lo=0.1, hi=1.2, rough=0.1, sss=0.5, sss_radius=(0.7, 1, 0.4), coat=0.6))
+    lmat = material("LimeadeMat", [(0.0, (0.62, 0.88, 0.24)), (0.7, (0.78, 0.95, 0.40)), (1.0, (0.88, 0.98, 0.56))],
+                    coord="z", lo=0.1, hi=1.2, rough=0.1, sss=0.5, sss_radius=(0.7, 1, 0.4), coat=0.6)
+    glow(lmat, (0.78, 0.95, 0.42), 0.3)
+    assign(liquid, lmat)
     parts = [glass, liquid]
     # кружки лайма прижаты к стеклу изнутри
     for i, (ang, z, rz) in enumerate(((-100, 0.62, 10), (-48, 0.38, -20), (160, 0.7, 0), (40, 0.45, 30))):
-        w = lime_wheel(f"LWheel{i}", 0.26, 0.04, wrap=0.452)
+        w = lime_wheel(f"LWheel{i}", 0.26, 0.03, wrap=0.47)
         rotate_all(w, (math.radians(-90), 0, 0))
         rotate_all(w, (0, math.radians(rz), 0))
         for o in w:
@@ -1696,41 +1782,40 @@ def dish_limeade():
         for o in w:
             o.location.z += z
         parts += w
-    # кружок на краю банки с прорезью
+    # кружок на краю банки: прорезь насаживается на стекло
     rim = lime_wheel("LRim", 0.3, 0.05)
+    for o in rim:
+        bm = bmesh.new()
+        bm.from_mesh(o.data)
+        bmesh.ops.delete(bm, geom=[v for v in bm.verts if abs(v.co.x) < 0.035 and v.co.y < 0.01], context="VERTS")
+        bm.to_mesh(o.data)
+        bm.free()
+        o.data.update()
     rotate_all(rim, (math.radians(90), 0, 0))
-    slot = box_mesh("LSlot", 0.07, 0.4, 0.34, -0.02)
-    bpy.context.view_layer.update()
+    rotate_all(rim, (0, 0, math.radians(90)))
+    rotate_all(rim, (0, 0, math.radians(40)))
     for o in rim:
-        o.location = (0, 0, 0)
-    cut = []
-    for o in rim:
-        c = slot.copy()
-        c.data = slot.data.copy()
-        bpy.context.scene.collection.objects.link(c)
-        boolean_cut(o, [c])
-    bpy.data.objects.remove(slot, do_unlink=True)
-    rotate_all(rim, (0, 0, math.radians(-90 + 35)))
-    for o in rim:
-        o.location += Vector((0.455 * math.cos(math.radians(35)), 0.455 * math.sin(math.radians(35)), 1.5 - 0.02))
+        o.location += Vector((0.455 * math.cos(math.radians(40)), 0.455 * math.sin(math.radians(40)), 1.47))
     parts += rim
+    # кружок плавает сверху
+    fl = lime_wheel("LFloat", 0.24, 0.04)
+    rotate_all(fl, (math.radians(-28), math.radians(10), 0))
+    for o in fl:
+        o.location += Vector((0.12, -0.2, 1.2))
+    parts += fl
     for i, (x, y, rot) in enumerate(((-0.18, -0.1, (0.3, 0.2, 0.5)), (0.14, -0.2, (-0.2, 0.4, 1.2)),
                                      (-0.05, 0.2, (0.5, -0.3, 0.2)))):
         c = ice_cube(f"LIce{i}", 0.14, rot)
         c.location = (x, y, 1.21)
         parts.append(c)
-    mint = material("MintMat", [(0.0, (0.40, 0.76, 0.26)), (1.0, (0.14, 0.48, 0.12))], coord="r", lo=0.0, hi=0.22,
-                    rough=0.3, sss=0.35, coat=0.5)
-    for i, (x, y, rz, rx) in enumerate(((0.05, 0.02, 30, -35), (-0.12, 0.08, 150, -40), (0.0, -0.08, 260, -30))):
-        lf = basil_leaf(f"Mint{i}", 0.5)
-        assign(lf[0], mint)
-        for o in lf:
-            o.location = (0.12, 0, 0)
-        rotate_all(lf, (math.radians(rx), 0, 0))
-        rotate_all(lf, (0, 0, math.radians(rz)))
-        for o in lf:
-            o.location += Vector((x, y, 1.36))
-        parts += lf
+    for i, (x, y, rz, rx) in enumerate(((-0.05, 0.05, 40, -38), (-0.2, 0.12, 160, -42), (-0.08, -0.06, 250, -32))):
+        lf = mint_leaf(f"Mint{i}", 0.32)
+        lf.location = (0.18, 0, 0)
+        apply_transform(lf)
+        rotate_all([lf], (math.radians(rx), 0, 0))
+        rotate_all([lf], (0, 0, math.radians(rz)))
+        lf.location += Vector((x, y, 1.3))
+        parts.append(lf)
     straw_mat = material("StrawMat", [(0.0, (1.0, 1.0, 1.0)), (1.0, (1.0, 1.0, 1.0))], rough=0.25, coat=0.6)
     add_turns(straw_mat, (0.22, 0.66, 0.24), count=3, width=0.45, twist=4.0)
     straw = tube("LStraw", [(0.0, 0.0, 0.0), (0.0, 0.0, 1.9)], 0.055)

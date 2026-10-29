@@ -66,6 +66,7 @@ def main():
     out = {}
     t = time.time()
     original = G.pick_orders
+    G.STRICT_LENGTH = True
     only = [a for a in sys.argv[1:] if a in THEMES]
     path = os.path.join(G.DATA, "events.json")
     if only and os.path.exists(path):

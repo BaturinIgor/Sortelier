@@ -585,20 +585,17 @@ def sugar():
     dots = []
     for i in range(10):
         a = 2 * math.pi * i / 10
-        for k, dz in enumerate((0.0,)):
-            d = sphere(f"SugarDot{i}{k}", 1.0, 20, 12)
-            d.scale = (0.05, 0.05, 0.012)
-            apply_transform(d)
-            rr = 0.62
-            d.matrix_world = Matrix.Translation((rr * math.cos(a), rr * math.sin(a), 0.4)) @ orient(
-                (math.cos(a), math.sin(a), 0.12))
-            assign(d, blue)
-            dots.append(d)
+        d = sphere(f"SugarDot{i}", 1.0, 20, 12)
+        d.scale = (0.05, 0.05, 0.012)
+        apply_transform(d)
+        d.matrix_world = Matrix.Translation((0.62 * math.cos(a), 0.62 * math.sin(a), 0.4)) @ orient(
+            (math.cos(a), math.sin(a), 0.12))
+        assign(d, blue)
+        dots.append(d)
     parts.append(join(dots, "SugarDots"))
     for i, sx in enumerate((-1, 1)):
         h = torus(f"SugarHandle{i}", 0.11, 0.032, 48, 16)
         h.rotation_euler = (math.radians(90), 0, 0)
-        h.scale = (1.0, 1.0, 1.0)
         h.location = (sx * 0.64, 0, 0.5)
         apply_transform(h)
         assign(smooth(h), white)
@@ -892,25 +889,6 @@ def heart_outline(w=0.5, n=72):
     return pts
 
 
-def teaspoon(name, length=0.8):
-    metal = material(f"{name}Metal", [(0.0, (0.66, 0.68, 0.74)), (1.0, (0.95, 0.96, 0.99))], coord="z", lo=-0.05,
-                     hi=0.08, rough=0.16, metal=1.0)
-    bowl = sphere(f"{name}Bowl", 1.0, 48, 24)
-    bowl.scale = (0.13, 0.085, 0.03)
-    apply_transform(bowl)
-    bisect(bowl, (0, 0, 0.012), (0, 0, 1))
-    smooth(bowl)
-    bowl.location = (-length / 2 + 0.1, 0, 0.0)
-    apply_transform(bowl)
-    hd = capsule(f"{name}Handle", length - 0.2, 0.028, 24, 16)
-    deform(hd, lambda co: Vector((co.x, co.y * (1 + 0.6 * max(0.0, co.x) / length), co.z * 0.5 + 0.02 * (co.x / length) ** 2)))
-    hd.location = (0.1, 0, 0.012)
-    apply_transform(hd)
-    assign(smooth(bowl), metal)
-    assign(smooth(hd), metal)
-    return [bowl, hd]
-
-
 def cafe_creme():
     teal = ceramic("CCTeal", (0.04, 0.42, 0.50), (0.20, 0.68, 0.72), 0.0, 0.75)
     white = ceramic("CCWhite", (0.92, 0.93, 0.95), (1.0, 1.0, 1.0), 0.0, 0.75)
@@ -940,7 +918,6 @@ def cafe_creme():
     assign(heart, material("CCHeartMat", [(0.0, (0.98, 0.94, 0.88)), (1.0, (1.0, 0.99, 0.96))], coord="z", lo=0.69,
                            hi=0.71, rough=0.4, sss=0.4, coat=0.2))
     handle = torus("CCHandle", 0.15, 0.045, 64, 20)
-    handle.scale = (1.0, 1.0, 1.0)
     handle.rotation_euler = (math.radians(90), 0, 0)
     handle.location = (0.74, 0, 0.47)
     apply_transform(handle)
@@ -1045,7 +1022,7 @@ def pastry_mat(name, top=(0.76, 0.40, 0.10), mid=(0.96, 0.64, 0.24), low=(1.0, 0
     return mat
 
 
-def croissant_obj(name, L=1.72, R0=0.36, bend_r=1.1, segs=5, seed=0):
+def croissant_obj(name, L=1.75, R0=0.37, bend_r=0.9, segs=5, seed=0, puff=0.8):
     Nt, Nf = 140, 56
     th_max = (L / 2) / bend_r
     verts, rolls = [], []
@@ -1054,15 +1031,15 @@ def croissant_obj(name, L=1.72, R0=0.36, bend_r=1.1, segs=5, seed=0):
         th = t * th_max
         c = Vector((bend_r * math.sin(th), bend_r * math.cos(th) - bend_r, 0.0))
         nn = Vector((math.sin(th), math.cos(th), 0.0))
-        base = R0 * max(0.0, 1 - abs(t) ** 2.2) ** 0.8 + 0.035
-        lift = base * 0.86 * 0.8 * 0.5
+        base = R0 * max(0.0, 1 - abs(t) ** 1.8) ** 0.9 + 0.03
+        lift = base * 0.86 * puff * 0.5
         for j in range(Nf):
             f = 2 * math.pi * j / Nf
             u = (t + 1) / 2 * segs + 0.22 * math.cos(f) * math.tanh(t * 5)
             roll = abs(math.sin(math.pi * u)) ** 0.55
             rr = base * (0.84 + 0.16 * roll)
             sf = math.sin(f)
-            zr = rr * 0.8 * (1.0 if sf > 0 else 0.5)
+            zr = rr * puff * (1.0 if sf > 0 else 0.5)
             p = c + nn * (rr * math.cos(f) * (1 + 0.05 * M.fbm(Vector((t * 3, f, seed))))) + Vector((0, 0, zr * sf + lift))
             verts.append(p)
             rolls.append(1 - roll)
@@ -1092,16 +1069,69 @@ def croissant_obj(name, L=1.72, R0=0.36, bend_r=1.1, segs=5, seed=0):
     return ob
 
 
+def drape_onto(ob, below, step=0.03, slope=0.7, rings=(0.06, 0.13, 0.22)):
+    """Предмет ложится на тарелку и соседей: каждый столбик вершин поднимается ровно настолько,
+    чтобы низ не уходил под опору, а подъем мягко сходит на нет."""
+    bpy.context.view_layer.update()
+    lo, hi, _ = M.R.bounds([ob])
+    nx = int((hi.x - lo.x) / step) + 3
+    ny = int((hi.y - lo.y) / step) + 3
+    x0, y0 = lo.x - step, lo.y - step
+    need = [[0.0] * ny for _ in range(nx)]
+    for i in range(nx):
+        for j in range(ny):
+            x, y = x0 + i * step, y0 + j * step
+            ok, loc, _, _ = ob.ray_cast(Vector((x, y, lo.z - 5)), Vector((0, 0, 1)))
+            if not ok:
+                continue
+            top = None
+            for b in below:
+                hit, bl, _, _ = b.ray_cast(Vector((x, y, hi.z + 10)), Vector((0, 0, -1)))
+                if hit and (top is None or bl.z > top):
+                    top = bl.z
+            if top is not None:
+                need[i][j] = max(0.0, top - loc.z + 0.004)
+    offs = [(0, 0, 0.0)]
+    for rr in rings:
+        for k in range(12):
+            a = 2 * math.pi * k / 12
+            offs.append((round(rr * math.cos(a) / step), round(rr * math.sin(a) / step), rr))
+    lift = [[0.0] * ny for _ in range(nx)]
+    for i in range(nx):
+        for j in range(ny):
+            best = 0.0
+            for di, dj, d in offs:
+                ii, jj = i + di, j + dj
+                if 0 <= ii < nx and 0 <= jj < ny and need[ii][jj] > 0:
+                    best = max(best, need[ii][jj] - slope * d)
+            lift[i][j] = best
+
+    def sample(x, y):
+        fx, fy = (x - x0) / step, (y - y0) / step
+        i, j = max(0, min(nx - 2, int(fx))), max(0, min(ny - 2, int(fy)))
+        u, v = min(1.0, max(0.0, fx - i)), min(1.0, max(0.0, fy - j))
+        return (lift[i][j] * (1 - u) * (1 - v) + lift[i + 1][j] * u * (1 - v) + lift[i][j + 1] * (1 - u) * v +
+                lift[i + 1][j + 1] * u * v)
+    deform(ob, lambda co: Vector((co.x, co.y, co.z + sample(co.x, co.y))))
+    return ob
+
+
 def dish_croissant():
-    parts = [bistro_plate("CrPlate", 1.36)]
-    a = croissant_obj("CroissantA", seed=0)
-    a.rotation_euler = (0, 0, math.radians(6))
-    a.location = (0.0, 0.34, 0.1)
-    b = croissant_obj("CroissantB", seed=2)
-    b.rotation_euler = (0, 0, math.radians(-8))
-    b.location = (0.02, -0.44, 0.1)
+    plate_ = bistro_plate("CrPlate", 1.2)
+    parts = [plate_]
+    # два больших пышных круассана: задний чуть заходит на передний
+    b = croissant_obj("CroissantB", 1.9, 0.5, 1.0, 5, 2, puff=0.9)
+    b.rotation_euler = (0, 0, math.radians(180 - 6))
+    b.location = (0.02, -0.38, 0.1)
+    apply_transform(b)
+    drape_onto(b, [plate_])
+    a = croissant_obj("CroissantA", 1.9, 0.48, 1.0, 5, 0, puff=0.9)
+    a.rotation_euler = (0, 0, math.radians(180 + 8))
+    a.location = (-0.02, 0.44, 0.1)
+    apply_transform(a)
+    drape_onto(a, [plate_, b])
     parts += [a, b]
-    return rotate_all(parts, (0, 0, math.radians(-12)))
+    return rotate_all(parts, (0, 0, math.radians(-14)))
 
 
 def choc_stick(name, length, w=0.11, h=0.065):
@@ -1113,7 +1143,7 @@ def choc_stick(name, length, w=0.11, h=0.065):
     return st
 
 
-def pain_choc_obj(name, Lx=1.24, Ly=0.76, H=0.45, seed=0):
+def pain_choc_obj(name, Lx=1.4, Ly=0.84, H=0.5, seed=0):
     body = box_mesh(name, Lx, Ly, H, 0.0, cuts=16)
     bevel(body, 0.17, 6, 30)
     subdivide(body, 1)
@@ -1153,8 +1183,8 @@ def pain_choc_obj(name, Lx=1.24, Ly=0.76, H=0.45, seed=0):
 
 
 def dish_pain_chocolat():
-    parts = [bistro_plate("PcPlate", 1.36)]
-    for i, (y, rz, dx) in enumerate(((0.44, 4, 0.03), (-0.44, -5, -0.04))):
+    parts = [bistro_plate("PcPlate", 1.3)]
+    for i, (y, rz, dx) in enumerate(((0.47, 4, 0.03), (-0.47, -5, -0.04))):
         pc = pain_choc_obj(f"PainChoc{i}", seed=i)
         rotate_all(pc, (0, 0, math.radians(rz)))
         for o in pc:
@@ -1288,7 +1318,7 @@ def dish_tart():
     return parts
 
 
-def crepe_obj(name, R, rot, base_z, below=(), th=0.085, seed=0):
+def crepe_obj(name, R, rot, base_z, below=(), th=0.085, seed=0, apex=(0.0, 0.0)):
     """Блинчик, сложенный вчетверо: лист ложится на тарелку и на уже лежащие блинчики."""
     nr, na = 34, 56
     verts = [(0.0, 0.0, 0.0)]
@@ -1296,7 +1326,8 @@ def crepe_obj(name, R, rot, base_z, below=(), th=0.085, seed=0):
         rho = R * i / nr
         for j in range(na + 1):
             a = rot + (math.pi / 2) * j / na
-            verts.append((rho * math.cos(a), rho * math.sin(a), 0.0))
+            verts.append((apex[0] + rho * math.cos(a), apex[1] + rho * math.sin(a), 0.0))
+    verts[0] = (apex[0], apex[1], 0.0)
     faces = [(0, 1 + j, 2 + j) for j in range(na)]
     for i in range(nr - 1):
         b0, b1 = 1 + i * (na + 1), 1 + (i + 1) * (na + 1)
@@ -1317,8 +1348,8 @@ def crepe_obj(name, R, rot, base_z, below=(), th=0.085, seed=0):
         return best
 
     def drape(co):
-        rho = math.hypot(co.x, co.y)
-        a = math.atan2(co.y, co.x) - rot
+        rho = math.hypot(co.x - apex[0], co.y - apex[1])
+        a = math.atan2(co.y - apex[1], co.x - apex[0]) - rot
         wave = 0.018 * (1 + math.sin(6 * a + 5 * rho + seed)) * (rho / R) ** 2
         puff = 0.03 * math.sin(math.pi * min(1.0, rho / R)) * max(0.0, math.sin(2 * a)) ** 0.7
         return Vector((co.x, co.y, support(co.x, co.y) + 0.004 + wave + puff))
@@ -1333,9 +1364,10 @@ def crepe_mat(name):
     mat = material(name, [(0.0, (0.88, 0.54, 0.22)), (0.5, (0.97, 0.70, 0.36)), (1.0, (1.0, 0.79, 0.46))], coord="nz",
                    lo=-1, hi=1, rough=0.42, sss=0.35, sss_radius=(1, 0.6, 0.3), coat=0.25, bump=0.15, bump_scale=18,
                    vary=0.12, vary_scale=4)
-    add_speckles(mat, (0.88, 0.58, 0.26), scale=3.5, threshold=0.58, strength=0.6)
-    add_speckles(mat, (0.80, 0.48, 0.18), scale=20.0, threshold=0.67, strength=0.5)
-    dusting(mat, (1.0, 1.0, 1.0), scale=12.0, threshold=0.62, nz_min=0.75)
+    add_bands(mat, (1.0, 0.88, 0.62), scale=10.0, axis="Z", width=0.3, distortion=1.0, strength=0.8)
+    add_speckles(mat, (0.80, 0.46, 0.16), scale=7.0, threshold=0.6, strength=0.85)
+    add_speckles(mat, (0.70, 0.36, 0.11), scale=22.0, threshold=0.68, strength=0.6)
+    dusting(mat, (1.0, 1.0, 1.0), scale=12.0, threshold=0.56, nz_min=0.7)
     return mat
 
 
@@ -1349,12 +1381,13 @@ def blueberry(name, r=0.075):
 
 
 def dish_crepes():
-    parts = [bistro_plate("CrepePlate", 1.3)]
+    plate_ = bistro_plate("CrepePlate", 1.18)
+    parts = [plate_]
     mat = crepe_mat("CrepeMat")
     crepes = []
-    # веер из трех треугольников, каждый следующий лежит на предыдущих; свободный сектор - под сливки
-    for i in range(3):
-        c = crepe_obj(f"Crepe{i}", 1.0, math.radians(-170 + 72 * i), 0.1, list(crepes), 0.085, i * 1.7)
+    # три больших треугольника внахлест, сгибом к зрителю: левый, правый, сверху средний
+    for i, (ax, ay, rot, rr) in enumerate(((-0.46, -0.4, 28, 1.1), (0.46, -0.42, 62, 1.1), (0.0, -0.68, 45, 1.28))):
+        c = crepe_obj(f"Crepe{i}", rr, math.radians(rot), 0.1, [plate_] + crepes, 0.13, i * 1.7, (ax, ay))
         assign(c, mat)
         crepes.append(c)
     parts += crepes
@@ -1367,41 +1400,47 @@ def dish_crepes():
             if ok and (best is None or loc.z > best):
                 best = loc.z
         return best
-    choc = material("CrepeChoc", [(0.0, CHOC_DARK), (1.0, CHOC)], coord="z", lo=0.1, hi=0.3, rough=0.1, coat=0.8)
+    choc = material("CrepeChoc", [(0.0, CHOC_DARK), (1.0, CHOC)], coord="z", lo=0.1, hi=0.5, rough=0.1, coat=0.85)
     segs, cur = [], []
-    for k in range(400):
-        t = k / 399
-        x = -0.95 + 1.9 * t
-        y = 0.62 * math.sin(t * math.pi * 7.5) + 0.06 * math.sin(t * 31)
+    for k in range(500):
+        t = k / 499
+        x = -1.05 + 2.1 * t
+        y = 0.1 + 0.5 * math.sin(t * math.pi * 7.5) + 0.05 * math.sin(t * 31)
         h = height(x, y)
         if h is None:
             if len(cur) > 3:
                 segs.append(cur)
             cur = []
             continue
-        cur.append((x, y, h + 0.014))
+        cur.append((x, y, h + 0.02))
     if len(cur) > 3:
         segs.append(cur)
-    lines = [tube(f"CrepeDrizzle{i}", sg, 0.026) for i, sg in enumerate(segs)]
+    lines = [tube(f"CrepeDrizzle{i}", sg, 0.032) for i, sg in enumerate(segs)]
     if lines:
         dr = join(lines, "CrepeDrizzle")
         assign(dr, choc)
         parts.append(dr)
-    # шапка сливок в центре и черника вокруг
-    ca = math.radians(110)
-    cm = cream_mound("CrepeCream", 0.26, 0.13, 0.1, 5, peaks=[(0.0, 0.0, 0.17, 0.11, 0.03, -0.02)], folds=6)
-    cm.location = (0.55 * math.cos(ca), 0.55 * math.sin(ca), 0.0)
+    # шапка сливок на вершине веера и половинки клубники вокруг
+    cy = 0.16
+    hc = height(0.0, cy) or 0.4
+    cm = cream_mound("CrepeCream", 0.3, 0.16, hc - 0.03, 5, peaks=[(0.0, 0.0, 0.2, 0.13, 0.04, -0.03)], folds=6)
+    cm.location = (0.0, cy, 0.0)
     assign(cm, material("CrepeCreamMat", [(0.0, CREAM_LO), (1.0, CREAM_HI)], coord="nz", lo=-0.2, hi=1, rough=0.35,
-                        sss=0.5, sss_radius=(1, 0.9, 0.75)))
+                        sss=0.5, sss_radius=(1, 0.9, 0.75), coat=0.2))
     parts.append(cm)
-    for i, (rr, da) in enumerate(((0.62, -38), (0.84, -16), (0.86, 18), (0.64, 40), (0.3, 4))):
-        a = ca + math.radians(da)
-        x, y = rr * math.cos(a), rr * math.sin(a)
-        h = height(x, y) or 0.1
-        bb = blueberry(f"CrepeBerry{i}")
-        bb.location = (x, y, h + 0.066)
-        parts.append(bb)
-    return parts
+    s_ = 0.26
+    for i, (rr, deg, spin) in enumerate(((0.44, -165, 30), (0.45, -15, -40), (0.42, -100, 80), (0.48, 80, 10))):
+        a = math.radians(deg)
+        x, y = rr * math.cos(a), cy + rr * math.sin(a)
+        h = height(x, y)
+        if h is None:
+            hit, loc, _, _ = plate_.ray_cast(Vector((x, y, 5)), Vector((0, 0, -1)))
+            h = loc.z if hit else 0.1
+        sh = strawberry_half(f"CrepeBerry{i}", s_, i)
+        sh.rotation_euler = (0, -math.pi / 2, math.radians(spin))
+        sh.location = (x, y, h + 0.66 * s_)
+        parts.append(sh)
+    return rotate_all(parts, (0, 0, math.radians(-6)))
 
 
 def truffle_cup(name, mat):
