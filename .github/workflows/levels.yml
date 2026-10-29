@@ -1,7 +1,7 @@
 name: Generate levels
 
 # Генерация уровней на раннерах GitHub: решатель долгий, поэтому уровни делятся на части и считаются параллельно.
-# Запуск вручную; готовые JSON лежат в артефактах прогона, их собирает tools/levels/merge_ci.py.
+# Запуск вручную; готовые JSON собираются в ветку ci-levels, в игру их сливает tools/levels/merge_ci.py.
 on:
   workflow_dispatch:
     inputs:
@@ -11,7 +11,7 @@ on:
         default: "b4:91-98 b4:99-105 b4:106-113 b4:114-120 b5:121-128 b5:129-135 b5:136-143 b5:144-150 ev:halloween ev:winter ev:sweets ev:bbq ev:autumn"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   plan:
@@ -52,3 +52,24 @@ jobs:
         with:
           name: levels-${{ strategy.job-index }}
           path: out/
+
+  collect:
+    needs: generate
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: levels
+          merge-multiple: true
+      - name: Publish to ci-levels
+        run: |
+          ls levels
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout --orphan ci-levels
+          git rm -rf --cached . > /dev/null
+          git add -f levels/
+          git commit -q -m "Levels run ${{ github.run_number }} for ${{ github.sha }}"
+          git push -q -f origin ci-levels
