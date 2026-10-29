@@ -2,7 +2,7 @@
 
 Запуск: python3 tools/appstore/build.py <папка снимков симулятора> [--only en,ru] [--fonts art/fonts]
 Снимки берутся из ветки ci-store (workflow "Store screenshots"): <язык>_<экран>.png.
-Пишет appstore/metadata/<локаль>/*.txt (формат fastlane deliver) и appstore/screenshots/<локаль>/NN_<экран>.png
+Пишет appstore/metadata/<локаль>/*.txt (формат fastlane deliver) и appstore/screenshots/<локаль>/NN_<экран>.jpg
 размером 1290x2796 (iPhone 6.9"). Подписи - из appstore/source.json (en, ru) и appstore/translations/<код>.json.
 """
 import argparse
@@ -171,7 +171,10 @@ def compose(lang, key, shot_path, fonts, index):
     d = ImageDraw.Draw(im)
     tf, tl = fit_lines(d, t[0], lang, fonts, 128, W - 220, 2)
     y = draw_centered(im, tl, tf, 150, (255, 255, 255, 255), (60, 30, 20, 255), 9, lang)
-    sf, sl = fit_lines(d, t[1], lang, fonts, 66, W - 200, 2)
+    # подзаголовок лучше в одну строку: сначала уменьшаем шрифт, и только потом переносим
+    sf, sl = fit_lines(d, t[1], lang, fonts, 64, W - 160, 1)
+    if sf.size < 48:
+        sf, sl = fit_lines(d, t[1], lang, fonts, 60, W - 200, 2)
     y = draw_centered(im, sl, sf, y + 26, (255, 246, 228, 255), (60, 30, 20, 200), 5, lang)
     shot = Image.open(shot_path)
     frame = phone(shot)
@@ -214,7 +217,8 @@ def main():
             for loc in LOCALES[lang]:
                 out = os.path.join(STORE, "screenshots", loc)
                 os.makedirs(out, exist_ok=True)
-                im.save(os.path.join(out, f"{i + 1:02d}_{key}.png"), optimize=True)
+                # JPEG высокого качества: App Store принимает, а весит в разы меньше PNG
+                im.save(os.path.join(out, f"{i + 1:02d}_{key}.jpg"), quality=90, optimize=True, progressive=True)
         print("done", lang, flush=True)
 
 

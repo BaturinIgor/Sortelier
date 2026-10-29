@@ -161,6 +161,9 @@ struct MapView: View {
                 }
             }
             .background(trail(levels: levels, width: width))
+            // тропинка рисуется в координатах слева направо: при арабском языке не зеркалим, иначе она
+            // расходится с кружками уровней
+            .environment(\.layoutDirection, .leftToRight)
             title(biome)
                 .padding(.top, 10)
                 .padding(.bottom, 26)

@@ -38,6 +38,7 @@ struct EventMapScreen: View {
                                 }
                             }
                             .background(trail(width: geo.size.width))
+                            .environment(\.layoutDirection, .leftToRight)
                             .padding(.top, 20)
                             themeCard
                                 .padding(.horizontal, 14)
