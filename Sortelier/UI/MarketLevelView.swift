@@ -100,23 +100,24 @@ struct MarketLevelContent: View {
                 guard model.phase == .playing || model.phase == .starting else { return }
                 paused = true
             }
-            StrokeText(text: lang.t("m3.level", model.level.id), size: 19, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
-                       stroke: Theme.woodDark, width: 1.5, drop: 2)
-                .lineLimit(1)
-                .fixedSize()
-                .padding(.horizontal, 14)
-                .frame(minHeight: 44)
-                .background(WoodTray(radius: 18))
-                .layoutPriority(2)
-            if model.level.hard == true {
-                Text(lang.t("map.hard"))
-                    .font(Theme.rounded(13, .black))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Capsule().fill(Theme.red))
-                    .overlay(Capsule().strokeBorder(Color.white, lineWidth: 2))
+            VStack(spacing: -2) {
+                StrokeText(text: lang.t("m3.level", model.level.id), size: 19, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
+                           stroke: Theme.woodDark, width: 1.5, drop: 2)
+                    .lineLimit(1)
+                    .fixedSize()
+                if model.level.hard == true {
+                    Text(lang.t("map.hard"))
+                        .font(Theme.rounded(12, .black))
+                        .foregroundColor(Color(red: 1.0, green: 0.55, blue: 0.45))
+                        .outlined(Theme.woodDark, width: 1)
+                        .lineLimit(1)
+                        .fixedSize()
+                }
             }
+            .padding(.horizontal, 14)
+            .frame(minHeight: 44)
+            .background(WoodTray(radius: 18))
+            .layoutPriority(2)
             Spacer()
             if model.streakAtStart > 0 {
                 StreakChip(stage: model.streakAtStart)
