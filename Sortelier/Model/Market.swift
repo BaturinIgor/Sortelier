@@ -50,7 +50,7 @@ enum MarketBalance {
     static func price(_ b: M3Booster) -> Int {
         let fallback: Int
         switch b {
-        case .pin: fallback = 90
+        case .pin: fallback = 60
         case .bomb: fallback = 130
         case .rainbow: fallback = 200
         case .mallet: fallback = 90
