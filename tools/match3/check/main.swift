@@ -125,8 +125,9 @@ func score(_ before: M3Board, _ after: M3Board) -> Double {
 func greedy(_ board: M3Board) -> (M3Cell, M3Cell?)? {
     var best: (M3Cell, M3Cell?)?
     var bestScore = -1.0
-    for m in board.moves() {
+    for (i, m) in board.moves().enumerated() {
         var copy = board
+        copy.reseed(UInt64(i * 31 + 5))
         let line = m.1 == nil ? copy.tap(m.0) : copy.swap(m.0, m.1!)
         guard let l = line, l.counted else { continue }
         let v = score(board, copy)

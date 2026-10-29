@@ -257,6 +257,9 @@ struct M3Board {
         return 0
     }
 
+    /// Другой поток случайных чисел: для пробных ходов, чтобы проба не "подсматривала" будущие фишки.
+    mutating func reseed(_ seed: UInt64) { rng = M3RNG(seed: seed) }
+
     private mutating func newTile(_ kind: M3Kind) -> M3Tile {
         nextId += 1
         return M3Tile(id: nextId, kind: kind)
