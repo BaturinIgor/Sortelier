@@ -37,6 +37,8 @@ struct SaveData: Codable {
     var settings = GameSettings()
     var meta = MetaData()
     var merge = MergeData()
+    var market = MarketData()
+    var extras = ExtrasData()
 
     init() {}
 
@@ -62,6 +64,8 @@ struct SaveData: Codable {
         settings = try c.decodeIfPresent(GameSettings.self, forKey: .settings) ?? GameSettings()
         meta = try c.decodeIfPresent(MetaData.self, forKey: .meta) ?? MetaData()
         merge = try c.decodeIfPresent(MergeData.self, forKey: .merge) ?? MergeData()
+        market = try c.decodeIfPresent(MarketData.self, forKey: .market) ?? MarketData()
+        extras = try c.decodeIfPresent(ExtrasData.self, forKey: .extras) ?? ExtrasData()
     }
 }
 

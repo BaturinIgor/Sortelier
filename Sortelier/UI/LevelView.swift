@@ -62,9 +62,10 @@ struct LevelContent: View {
     @State private var showIntro = false
     @State private var buyBooster: Booster?
     @State private var ruleIntro: String?
+    @State private var criticBanner = false
 
     private var overlayVisible: Bool {
-        paused || showIntro || ruleIntro != nil || session.newDish != nil || session.phase != .playing || buyBooster != nil
+        paused || showIntro || ruleIntro != nil || session.newDish != nil || session.phase != .playing || buyBooster != nil || criticBanner
     }
 
     var body: some View {
@@ -99,6 +100,10 @@ struct LevelContent: View {
                 scene.bottomReserved = geo.safeAreaInsets.bottom + 96
                 if let intro = session.level.intro, !progress.seenIntro(intro) {
                     showIntro = true
+                } else if progress.criticHere {
+                    criticBanner = true
+                    Audio.shared.play(.customer, volume: 0.7)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.4) { withAnimation { criticBanner = false } }
                 }
                 if let rule = session.level.rule, case let .weekly(_, index) = session.mode, index == 0 {
                     ruleIntro = rule
@@ -216,7 +221,9 @@ struct LevelContent: View {
 
     @ViewBuilder
     private var overlays: some View {
-        if let dish = session.newDish {
+        if criticBanner {
+            CriticArrivalView().transition(.opacity)
+        } else if let dish = session.newDish {
             DishUnlockView(dish: dish) { session.newDish = nil }
                 .transition(.opacity)
         } else if session.phase == .won {
@@ -434,6 +441,15 @@ struct WinView: View {
             if let gift = result.gourmetGift {
                 RewardLine(symbol: "icon_crown", color: Theme.gold,
                            title: lang.t(gift.reward.background != nil ? "win.gourmet.bg" : "win.gourmet"), granted: gift)
+            }
+            if result.recipeSteps > 0 {
+                RewardLine(symbol: "icon_recipe", color: Theme.orange, title: lang.t("recipe.win"), granted: nil)
+            }
+            if result.jar > 0 {
+                RewardLine(symbol: "icon_jar", color: Theme.gold, title: lang.t("jar.win", result.jar), granted: nil)
+            }
+            if let review = result.critic {
+                CriticReviewCard(review: review)
             }
         }
     }

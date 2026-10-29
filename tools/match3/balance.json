@@ -1,0 +1,47 @@
+[
+ {
+  "id": 1,
+  "moves": 14,
+  "used_p50": 5.5,
+  "stars": [
+   8,
+   11
+  ],
+  "hard": false,
+  "free": 1.0,
+  "plus5": 1.0,
+  "pre": 1.0,
+  "pre_plus5": 1.0,
+  "streak5": 1.0
+ },
+ {
+  "id": 2,
+  "moves": 25,
+  "used_p50": 10.5,
+  "stars": [
+   14,
+   16
+  ],
+  "hard": false,
+  "free": 1.0,
+  "plus5": 1.0,
+  "pre": 1.0,
+  "pre_plus5": 1.0,
+  "streak5": 1.0
+ },
+ {
+  "id": 3,
+  "moves": 20,
+  "used_p50": 10.0,
+  "stars": [
+   9,
+   11
+  ],
+  "hard": false,
+  "free": 1.0,
+  "plus5": 1.0,
+  "pre": 1.0,
+  "pre_plus5": 1.0,
+  "streak5": 1.0
+ }
+]

@@ -40,6 +40,10 @@ final class Router: ObservableObject {
     @Published var lives = false
     @Published var streak = false
     @Published var merge = false
+    @Published var market = false
+    @Published var recipe = false
+    @Published var garden = false
+    @Published var jar = false
     @Published var language = false
     /// Сколько окон открыто поверх экрана: нижняя панель затемняется.
     @Published var modalCount = 0

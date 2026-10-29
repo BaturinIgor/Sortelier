@@ -26,6 +26,10 @@ final class GameSession: ObservableObject {
         let gourmetGift: Granted?
         /// Монеты VIP сверх награды (x1.5).
         let vipBonus: Int
+        /// Фоновые события: шаги "Большого рецепта", монеты в банку, рецензия критика.
+        var recipeSteps = 0
+        var jar = 0
+        var critic: CriticReview?
     }
 
     let level: LevelData
@@ -250,6 +254,10 @@ final class GameSession: ObservableObject {
                         chefSeries: progress.chefSeries, challenge: challenge,
                         events: events.gains, doubleBonus: events.bonus, gourmetGift: gourmetGift,
                         vipBonus: vipBonus)
+        result?.recipeSteps = progress.recipeAdd(recipeItems)
+        progress.gardenWater()
+        result?.jar = progress.jarAdd(win: true, coins: reward.coinsAdded + tips)
+        result?.critic = progress.criticFinish(won: true, stars: stars)
         Notifications.afterWin(level: level.id, mode: mode)
         phase = .won
         Haptics.success()
@@ -334,9 +342,23 @@ final class GameSession: ObservableObject {
         }
     }
 
+    /// Продукты уровня для "Большого рецепта": все, что стояло на полках.
+    private var recipeItems: [String: Int] {
+        var out: [String: Int] = [:]
+        for shelf in level.shelves {
+            for slot in shelf {
+                for item in slot {
+                    if let item = item, BigRecipe.items.contains(item) { out[item, default: 0] += 1 }
+                }
+            }
+        }
+        return out
+    }
+
     /// Выход без победы. Жизнь списывается только за новый уровень, где уже были ходы.
     func abandon() {
         guard phase != .won else { return }
+        if hasMoves { _ = PlayerProgress.shared.criticFinish(won: false, stars: 0) }
         if costsLife && hasMoves {
             PlayerProgress.shared.loseLife()
             PlayerProgress.shared.chefFail(level: level.id)

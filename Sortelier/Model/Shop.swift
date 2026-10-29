@@ -4,7 +4,7 @@ import StoreKit
 /// Товары магазина. Цены и содержимое - из раздела "Экономика" документа требований.
 /// В версии из App Store цена приходит из StoreKit, здесь только запасная подпись.
 enum ShopItem: String, CaseIterable, Identifiable {
-    case starter, coinsS, coinsM, coinsL, coinsXL, coinsXXL, boosters, lives, vipWeek, vipMonth, eventPass
+    case starter, coinsS, coinsM, coinsL, coinsXL, coinsXXL, boosters, lives, vipWeek, vipMonth, eventPass, jar, market
 
     var id: String { rawValue }
 
@@ -15,11 +15,11 @@ enum ShopItem: String, CaseIterable, Identifiable {
     var fallbackPrice: String {
         switch self {
         case .starter, .coinsS, .lives: return "$0.99"
-        case .coinsM, .eventPass: return "$2.99"
+        case .coinsM, .eventPass, .jar: return "$2.99"
         case .coinsL, .vipMonth: return "$4.99"
         case .coinsXL: return "$9.99"
         case .coinsXXL: return "$19.99"
-        case .boosters, .vipWeek: return "$1.99"
+        case .boosters, .vipWeek, .market: return "$1.99"
         }
     }
 
@@ -40,7 +40,8 @@ enum ShopItem: String, CaseIterable, Identifiable {
         case .coinsXXL: return Reward(coins: 18000, chests: [.gold: 2, .star: 1])
         case .boosters: return Reward(boosters: [.hint: 3, .undo: 3, .shuffle: 3, .shelf: 3], chests: [.bronze: 1])
         case .lives: return Reward(unlimitedMinutes: 120)
-        case .vipWeek, .vipMonth, .eventPass: return Reward()
+        case .market: return Reward(market: [.pin: 3, .bomb: 2, .rainbow: 1, .mallet: 2, .knife: 1, .spatula: 1, .mixer: 1])
+        case .vipWeek, .vipMonth, .eventPass, .jar: return Reward()
         }
     }
 
@@ -245,6 +246,8 @@ extension PlayerProgress {
             return nil
         case .starter:
             data.meta.starterBought = true
+        case .jar:
+            return breakJar()
         default:
             break
         }

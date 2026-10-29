@@ -13,6 +13,8 @@ enum UIDebug {
 
     static var demo: Bool { args.contains("-uiDemo") }
 
+    static func flag(_ key: String) -> Bool { args.contains("-" + key) }
+
     /// До первого кадра: язык и тестовый прогресс.
     static func prepare() {
         if let code = value("uiLang") { Lang.shared.set(code) }
@@ -55,6 +57,10 @@ enum UIDebug {
         case "lives": router.lives = true
         case "streak": router.streak = true
         case "merge": router.merge = true
+        case "market", "marketlevel": router.market = true
+        case "recipe": router.recipe = true
+        case "garden": router.garden = true
+        case "jar": router.jar = true
         case "eventmap": router.tab = .events; router.eventsSection = .events
         default: router.tab = .map
         }
@@ -109,6 +115,23 @@ extension PlayerProgress {
             st.claimed = UIDebug.args.contains("-uiStore") ? [0, 1, 2, 3, 4] : [0]
             d.meta.events[event.id] = st
         }
+        // "Рынок" и фоновые события
+        for id in 1...12 { d.market.stars["\(id)"] = [3, 2, 3, 1][id % 4] }
+        d.market.boosters = ["pin": 2, "bomb": 1, "rainbow": 1, "mallet": 3, "knife": 1, "spatula": 2, "mixer": 1]
+        d.market.streak = 3
+        d.market.wins = 12
+        d.market.welcomed = true
+        let week = Day.weekKey()
+        d.extras.recipe = RecipeState(week: week, step: 9, choice: 0, progress: 14,
+                                      plate: ["tomato", "cheese", "lime", "tomato", "carrot", "grapes", "milk", "cheese", "tomato"], unseen: 0)
+        d.extras.garden.beds = [GardenBed(item: "tomato", planted: Date().addingTimeInterval(-4 * 3600)),
+                                GardenBed(item: "lime", planted: Date().addingTimeInterval(-3600)),
+                                GardenBed(item: "cheese", planted: Date().addingTimeInterval(-1800))]
+        d.extras.jar.coins = 1850
+        d.extras.critic.month = Day.monthKey()
+        d.extras.critic.points = 9
+        d.extras.critic.claimed = [0]
+        d.extras.critic.pending = UIDebug.flag("uiCritic")
         d.meta.race.day = Day.key()
         d.meta.race.started = 1
         d.meta.race.joined = Date().addingTimeInterval(-15 * 60)

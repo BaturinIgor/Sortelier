@@ -55,6 +55,19 @@ struct MapView: View {
             railButton("gen_crate", title: lang.t("rail.pantry"), badge: progress.energy >= MergeBalance.maxEnergy) {
                 router.merge = true
             }
+            if progress.marketUnlocked {
+                railButton("icon_market", title: lang.t("rail.market"), badge: progress.marketClaimable || !progress.data.market.welcomed) {
+                    router.market = true
+                }
+                railButton("icon_garden", title: lang.t("rail.garden"), badge: progress.gardenReady > 0) {
+                    router.garden = true
+                }
+                if progress.jarCanBreak {
+                    railButton("icon_jar", title: lang.t("rail.jar"), badge: progress.jarFull) {
+                        router.jar = true
+                    }
+                }
+            }
             if progress.welcomeActive {
                 railButton("icon_gift", title: lang.t("rail.quests"), badge: progress.questsClaimable) {
                     router.open(.quests)
@@ -93,6 +106,9 @@ struct MapView: View {
             Button { router.lives = true } label: { LivesPill() }.buttonStyle(PressScaleStyle())
             Button { router.open(.shop) } label: { CoinsPill() }.buttonStyle(PressScaleStyle())
             StreakButton { router.streak = true }
+            if progress.marketUnlocked && HappyHour.active(progress.now) {
+                HappyHourChip()
+            }
             Spacer(minLength: 0)
             VIPBadge { router.open(.shop) }
             CircleIconButton(symbol: "gearshape.fill", size: 42) { withAnimation(.easeInOut(duration: 0.22)) { router.settings = true } }
