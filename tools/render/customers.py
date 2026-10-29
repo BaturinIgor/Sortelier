@@ -99,6 +99,8 @@ FRAMES = {
 # MARK: - Поверхности
 
 def smoothstep(e0, e1, x):
+    if e1 == e0:
+        return 1.0 if x >= e1 else 0.0
     t = min(1.0, max(0.0, (x - e0) / (e1 - e0)))
     return t * t * (3 - 2 * t)
 
@@ -134,11 +136,6 @@ def hp(th, ph, r=1.0):
     t, p = math.radians(th), math.radians(ph)
     return HEAD_C + Vector((r * HEAD_AX.x * math.sin(t) * math.sin(p), -r * HEAD_AX.y * math.sin(t) * math.cos(p),
                             r * HEAD_AX.z * math.cos(t)))
-
-
-def head_r(p):
-    d = p - HEAD_C
-    return Vector((d.x / HEAD_AX.x, d.y / HEAD_AX.y, d.z / HEAD_AX.z)).length
 
 
 def push_out(p, r):
@@ -411,11 +408,15 @@ def _scale_color(mat, fac):
     links.new(out, bsdf.inputs["Base Color"])
 
 
-def hair_mat(name, col, lo=HEAD_Z - 0.9, hi=HEAD_Z + 1.15, k=1.0, lines=7.0, aniso=0.55):
-    """Волосы: градиент снизу вверх, тонкие бороздки вдоль пряди (по UV) и вытянутый вдоль пряди блик."""
+def hair_mat(name, col, lo=HEAD_Z - 0.9, hi=HEAD_Z + 1.15, k=1.0, lines=7.0, aniso=0.55, uv=True):
+    """Волосы: градиент снизу вверх, тонкие бороздки вдоль пряди (по UV) и вытянутый вдоль пряди блик.
+    uv=False - для мешей без развертки (дольки косы): только градиент и легкий шум."""
     col = shade(col, k)
     mat = M.material(name, [(0.0, shade(col, 0.5)), (0.55, col), (1.0, tuple(min(1, c * 1.25 + 0.03) for c in col))],
                      coord="z", lo=lo, hi=hi, rough=0.36, coat=0.25, coat_rough=0.2)
+    if not uv:
+        _bump(mat, _felt_noise(mat, 60.0), strength=0.1)
+        return mat
     nt = mat.node_tree
     nodes, links = nt.nodes, nt.links
     bsdf = nodes["Principled BSDF"]
@@ -626,10 +627,10 @@ MOUTH_Z = HEAD_Z - 0.38
 def mouth(mood, mats, mz=MOUTH_Z, cx=0.0):
     parts = []
     if mood == "happy":
-        W = 0.19
+        W = 0.22
         parts.append(pillow("Mouth", mats["mouth"], head_surf, cx - W, cx + W,
-                            lambda u: mz + 0.085 * ((u - cx) / W) ** 2 + 0.012 * (1 - ((u - cx) / W) ** 2),
-                            lambda u: mz + 0.085 * ((u - cx) / W) ** 2 - 0.05 * (1 - ((u - cx) / W) ** 2) ** 0.8,
+                            lambda u: mz + 0.1 * ((u - cx) / W) ** 2 + 0.014 * (1 - ((u - cx) / W) ** 2),
+                            lambda u: mz + 0.1 * ((u - cx) / W) ** 2 - 0.062 * (1 - ((u - cx) / W) ** 2) ** 0.8,
                             lift=0.014, end=0.4, nu=32, nv=8))
     elif mood == "joy":
         W = 0.23
@@ -659,24 +660,23 @@ def mouth(mood, mats, mz=MOUTH_Z, cx=0.0):
             t = -math.cos(a)
             u = cx + W * 1.02 * t
             z = top(u) + 0.006 if math.sin(a) > 0 else bot(u) - 0.008
-            p, n = head_surf(u, z, 0.006)
-            rim.append(p)
+            rim.append(head_surf(u, z, 0.006)[0])
         rim.append(rim[0])
         parts.append(tube("MouthRim", rim, 0.013, mats["lip"]))
     elif mood == "upset":
-        W = 0.16
+        W = 0.18
         parts.append(stroke("Mouth", mats["mouth"], head_surf, cx - W, cx + W,
-                            lambda u: mz + 0.035 - 0.075 * ((u - cx) / W) ** 2,
-                            lambda u: 0.024 * (1 - 0.5 * ((u - cx) / W) ** 2), lift=0.016, end=0.45, nu=28, nv=8))
+                            lambda u: mz + 0.04 - 0.085 * ((u - cx) / W) ** 2,
+                            lambda u: 0.029 * (1 - 0.5 * ((u - cx) / W) ** 2), lift=0.016, end=0.45, nu=28, nv=8))
     else:  # wait: короткая ровная черточка, один уголок чуть ниже
-        W = 0.1
-        parts.append(stroke("Mouth", mats["mouth"], head_surf, cx - W + 0.01, cx + W + 0.01,
-                            lambda u: mz + 0.012 - 0.022 * (u - cx) / W,
-                            lambda u: 0.019, lift=0.014, end=0.5, nu=24, nv=8))
+        W = 0.12
+        parts.append(stroke("Mouth", mats["mouth"], head_surf, cx - W + 0.02, cx + W + 0.02,
+                            lambda u: mz + 0.012 - 0.025 * (u - cx) / W,
+                            lambda u: 0.022, lift=0.014, end=0.5, nu=24, nv=8))
     return parts
 
 
-def face(mood, spec_eyes, skin_m, hair_col, brow_col=None, glasses=False):
+def face(mood, spec_eyes, skin_m, hair_col, brow_col=None, glasses=False, mouth_dz=0.0):
     lash = glossy("Lash", (0.10, 0.06, 0.06), rough=0.3, coat=0.4)
     mats = {
         "eye_dark": glossy("EyeDark", (0.07, 0.05, 0.06), rough=0.12, coat=1.0),
@@ -704,35 +704,25 @@ def face(mood, spec_eyes, skin_m, hair_col, brow_col=None, glasses=False):
         if glasses:
             bz += 0.035
         parts.append(brow(side, brow_m, bz, arch, tilt, th))
-    parts += mouth(mood, mats)
-    nose = ellipsoid("Nose", (0.068, 0.05, 0.056), skin_m, 24, 16)
-    p, n = head_surf(0.0, HEAD_Z - 0.12, 0.0)
-    placed(nose, p - n * 0.012)
-    parts.append(nose)
+    parts += mouth(mood, mats, mz=MOUTH_Z + mouth_dz)
     return parts
 
 
 # MARK: - Волосы
 
 def scalp(name, mat, hairline, r=1.025):
-    """Темная основа под прядями: сфера чуть больше головы, срезанная по линии роста hairline(ph) -> th."""
-    ob = M.sphere(name, 1.0, 96, 64)
-    bm = bmesh.new()
-    bm.from_mesh(ob.data)
-    kill = []
-    for f in bm.faces:
-        c = f.calc_center_median()
-        th = math.degrees(math.acos(max(-1.0, min(1.0, c.z))))
-        ph = math.degrees(math.atan2(c.x, -c.y))
-        if th > hairline(ph):
-            kill.append(f)
-    bmesh.ops.delete(bm, geom=kill, context="FACES")
-    bm.to_mesh(ob.data)
-    bm.free()
-    ob.data.transform(Matrix.Diagonal((r * HEAD_AX.x, r * HEAD_AX.y, r * HEAD_AX.z, 1.0)))
+    """Темная основа под прядями: сфера чуть больше головы. За линией роста hairline(ph) -> th она плавно
+    уходит под кожу, поэтому край основы - ровная линия, а не лесенка из граней."""
+    ob = M.sphere(name, 1.0, 128, 96)
+
+    def tuck(co):
+        th = math.degrees(math.acos(max(-1.0, min(1.0, co.z))))
+        ph = math.degrees(math.atan2(co.x, -co.y))
+        k = r - (r - 0.94) * smoothstep(-1.5, 2.5, th - hairline(ph))
+        return Vector((co.x * k * HEAD_AX.x, co.y * k * HEAD_AX.y, co.z * k * HEAD_AX.z))
+    M.deform(ob, tuck)
     ob.location = HEAD_C
     M.apply_transform(ob)
-    M.solidify(ob, 0.02, -1.0)
     M.smooth(ob)
     return M.assign(ob, mat)
 
@@ -756,14 +746,6 @@ def hairline_default(front=60.0, side=86.0, back=116.0):
             return front + (side - front) * smoothstep(0, 90, a)
         return side + (back - side) * smoothstep(90, 180, a)
     return f
-
-
-def fringe_lock_pts(ph_end, th_end, sweep, r0=1.035, origin=(14, None), flick=0.03):
-    """Прядь челки: от макушки вперед к линии роста, с заносом кончика вбок."""
-    th0, ph0 = origin
-    ph0 = ph_end - sweep * 2.2 if ph0 is None else ph0
-    return [(th0, ph0, r0 - 0.005), ((th0 + th_end) * 0.5, ph_end - sweep * 0.8, r0 + 0.02),
-            (th_end - 8, ph_end - sweep * 0.1, r0 + 0.012), (th_end, ph_end + sweep * 0.5, r0 + flick)]
 
 
 def hair_short(hm, rnd, part=1, top_r=1.04):
@@ -799,11 +781,11 @@ def hair_bob(hm, rnd, long=False, wavy=0.0, fringe=True, start_th=None):
     end_th = 150 if long else 138
     n = 18
     for layer in range(2):
-        r0 = 1.06 + layer * 0.02
+        r0 = 1.09 + layer * 0.02
         for k in range(n):
             ph = -180 + 360 * (k + 0.5 * layer + 0.5) / n + rnd.uniform(-3, 3)
             a = abs(((ph + 180) % 360) - 180)
-            if a < 62 and fringe:
+            if a < 54 and fringe:
                 continue
             th_e = end_th + rnd.uniform(-4, 3) - (4 if layer else 0)
             wv = wavy * (1 if k % 2 else -1)
@@ -817,9 +799,9 @@ def hair_bob(hm, rnd, long=False, wavy=0.0, fringe=True, start_th=None):
             w = (0.17 if layer == 0 else 0.14) * rnd.uniform(0.9, 1.1)
             parts.append(lock(f"Lock{layer}_{k}", hm, rnd, pts, w, 0.07 * rnd.uniform(0.9, 1.1), tip=0.28, n=36))
     if fringe:
-        for k, ph_e in enumerate((-44, -26, -8, 10, 28, 46)):
-            th_e = 60 + 6 * abs(ph_e) / 46 + rnd.uniform(-2, 2)
-            pts = [(P[0], P[1] + 8, 1.06), (36, ph_e - 22, 1.085), (th_e - 8, ph_e - 4, 1.07), (th_e, ph_e + 9, 1.085)]
+        for k, ph_e in enumerate((-50, -34, -18, -2, 14, 30, 46, 60)):
+            th_e = 60 + 8 * abs(ph_e) / 60 + rnd.uniform(-2, 2)
+            pts = [(P[0], P[1] + 8, 1.09), (36, ph_e - 22, 1.11), (th_e - 8, ph_e - 4, 1.075), (th_e, ph_e + 9, 1.085)]
             parts.append(lock(f"Fringe{k}", hm, rnd, pts, 0.13 * rnd.uniform(0.92, 1.08), 0.065, tip=0.4))
     return parts
 
@@ -845,17 +827,17 @@ def hair_bangs(hm, rnd):
     return parts
 
 
-def hair_curly(hm, rnd, base_r=1.07):
+def hair_curly(hm, rnd, base_r=1.13):
     """Пышные кудри: розетки-завитки (спираль из пряди) по всей шапке волос."""
     parts = []
     hl = hairline_default(56, 84, 110)
     pts = []
-    N = 160
+    N = 170
     for i in range(N):
         z = 1 - 2 * (i + 0.5) / N
         th = math.degrees(math.acos(z))
         ph = math.degrees((i * 137.508) % 360) - 180
-        if th < hl(ph) - 4:
+        if th < hl(ph) + 1:
             pts.append((th, ph))
     for k, (th, ph) in enumerate(pts):
         th += rnd.uniform(-2, 2)
@@ -865,17 +847,17 @@ def hair_curly(hm, rnd, base_r=1.07):
         nrm = Vector((nrm.x / HEAD_AX.x ** 2, nrm.y / HEAD_AX.y ** 2, nrm.z / HEAD_AX.z ** 2)).normalized()
         u = nrm.orthogonal().normalized()
         v = nrm.cross(u)
-        size = rnd.uniform(0.15, 0.19) * (0.85 if th > 70 else 1.0)
-        turns = 1.7
+        size = rnd.uniform(0.18, 0.23) * (0.8 if th > 75 else 1.0)
+        turns = rnd.uniform(1.5, 2.1)
         ph0 = rnd.uniform(0, 2 * math.pi)
         spiral = []
         for s in [i / 20 for i in range(21)]:
             ang = ph0 + 2 * math.pi * turns * s
             rad = size * (1 - 0.82 * s)
-            h = size * 0.7 * (0.25 + 0.75 * math.sin(min(1.0, s * 1.4) * math.pi / 2))
+            h = size * 0.8 * (0.2 + 0.8 * math.sin(min(1.0, s * 1.3) * math.pi / 2))
             spiral.append(c + (u * math.cos(ang) + v * math.sin(ang)) * rad + nrm * h)
-        parts.append(strand(f"Curl{k}", rnd.choice(hm), spiral, size * 0.36, size * 0.3, n=34, tip=0.25,
-                            root_w=0.6, groove=0.15, up=nrm, flat=0.7))
+        parts.append(strand(f"Curl{k}", rnd.choice(hm), spiral, size * 0.42, size * 0.34, n=34, tip=0.25,
+                            root=0.25, root_w=0.3, groove=0.15, up=nrm, flat=0.7))
     return parts
 
 
@@ -884,16 +866,20 @@ def hair_bun(hm, rnd):
     parts = []
     hl = hairline_default(60, 86, 114)
     Bth, Bph = 30, 180
-    n = 22
+    n = 30
     for k in range(n):
         ph = -180 + 360 * (k + 0.5) / n + rnd.uniform(-3, 3)
         th_e = hl(ph)
         pts = [(th_e + 2, ph, 1.03), (th_e * 0.6 + Bth * 0.4, ph * 0.85 + (Bph if ph > 0 else -Bph) * 0.15, 1.05),
                (Bth + 12, ph * 0.3 + (Bph if ph > 0 else -Bph) * 0.7, 1.045), (Bth + 2, Bph, 1.03)]
-        parts.append(lock(f"Lock{k}", hm, rnd, pts, 0.15, 0.05, root=0.0, root_w=0.9, tip=0.2, groove=0.15))
+        parts.append(lock(f"Lock{k}", hm, rnd, pts, 0.16, 0.05, root=0.0, root_w=0.9, tip=0.2, groove=0.15))
+    for k, ph in enumerate((-5, 5)):
+        th_e = hl(ph)
+        pts = [(th_e + 1, ph, 1.035), (th_e * 0.6 + Bth * 0.4, ph * 3, 1.055), (Bth + 14, ph * 10, 1.05), (Bth + 2, Bph, 1.03)]
+        parts.append(lock(f"PartLock{k}", hm, rnd, pts, 0.13, 0.05, root=0.0, root_w=0.9, tip=0.2, groove=0.15))
     # пучок: толстая прядь закручена спиралью вокруг оси
     axis = Vector((0, 0.25, 1.05)).normalized()
-    c0 = HEAD_C + Vector((0, 0.25, 1.05)) * 0.86
+    c0 = HEAD_C + Vector((0, 0.25, 1.05)) * 0.9
     u = axis.orthogonal().normalized()
     v = axis.cross(u)
     coil = []
@@ -901,7 +887,7 @@ def hair_bun(hm, rnd):
         s = i / 60
         ang = 2 * math.pi * 2.3 * s
         rad = 0.3 * (1 - 0.72 * s)
-        coil.append(c0 + (u * math.cos(ang) + v * math.sin(ang)) * rad + axis * (0.02 + 0.3 * s ** 0.8))
+        coil.append(c0 + (u * math.cos(ang) + v * math.sin(ang)) * rad + axis * (0.02 + 0.32 * s ** 0.8))
     parts.append(strand("Bun", hm[0], coil, 0.14, 0.12, n=90, tip=0.15, root=0.05, groove=0.18,
                         up=lambda p: (p - (c0 + axis * 0.1)), flat=0.8))
     tie = M.torus("BunTie", 0.27, 0.045, 48, 12)
@@ -918,7 +904,6 @@ def hair_bun(hm, rnd):
 def hair_pony(hm, rnd):
     """Челка на пробор и два хвостика за ушами с резинками-бусинами, кончики подкручены."""
     parts = []
-    hl = hairline_default(62, 88, 112)
     n = 16
     for k in range(n):
         ph = -180 + 360 * (k + 0.5) / n + rnd.uniform(-3, 3)
@@ -927,12 +912,12 @@ def hair_pony(hm, rnd):
             continue
         side = 1 if ph > 0 else -1
         T = (98, side * 108)
-        pts = [(8, ph * 0.2, 1.035), (45, ph, 1.05), (75, ph * 0.6 + T[1] * 0.4, 1.06), (T[0] - 4, T[1], 1.06)]
+        pts = [(8, ph * 0.2, 1.085), (45, ph, 1.08), (75, ph * 0.6 + T[1] * 0.4, 1.065), (T[0] - 4, T[1], 1.06)]
         parts.append(lock(f"Lock{k}", hm, rnd, pts, 0.16, 0.06, tip=0.15, root_w=0.8))
     for k, ph_e in enumerate((-50, -32, -14, 4, 22, 40, 56)):
         side = -1 if ph_e < -5 else 1
         th_e = 61 + 5 * abs(ph_e) / 56 + rnd.uniform(-2, 2)
-        pts = [(10, ph_e * 0.4 - side * 10, 1.04), (34, ph_e - side * 6, 1.07), (th_e - 8, ph_e + side * 2, 1.06),
+        pts = [(10, ph_e * 0.4 - side * 10, 1.085), (34, ph_e - side * 6, 1.09), (th_e - 8, ph_e + side * 2, 1.06),
                (th_e, ph_e + side * 12, 1.075)]
         parts.append(lock(f"Fringe{k}", hm, rnd, pts, 0.12, 0.06, tip=0.4))
     bead = glossy("Bead", (0.30, 0.78, 0.55), rough=0.2, coat=0.9)
@@ -977,13 +962,13 @@ def hair_horseshoe(hm, rnd):
     for k in range(n):
         ph = -180 + 360 * (k + 0.5) / n
         a = abs(((ph + 180) % 360) - 180)
-        if a < 72:
+        if a < 100:
             continue
-        th0 = 78 - 6 * smoothstep(90, 180, a)
-        th_e = 98 + 10 * smoothstep(90, 180, a)
+        th0 = 76 - 6 * smoothstep(100, 180, a)
+        th_e = 100 + 8 * smoothstep(100, 180, a)
         sw = 6 * (1 if ph > 0 else -1)
-        pts = [(th0, ph - sw, 1.012), ((th0 + th_e) / 2, ph, 1.03), (th_e, ph + sw, 1.035)]
-        parts.append(lock(f"Lock{k}", hm, rnd, pts, 0.13, 0.04, tip=0.45, n=18, groove=0.1))
+        pts = [(th0, ph - sw, 1.008), ((th0 + th_e) / 2, ph, 1.02), (th_e, ph + sw, 1.022)]
+        parts.append(lock(f"Lock{k}", hm, rnd, pts, 0.14, 0.03, tip=0.45, n=18, groove=0.1))
     return parts
 
 
@@ -1023,14 +1008,6 @@ def stitch_line(name, pts_fn, count, mat, size=(0.022, 0.007, 0.006)):
 
 def thread_mat(col):
     return M.flat("Thread", col, rough=0.5, sheen=0.5)
-
-
-def hat_brim_stitches(name, r, z_of, mat, count=48, lift=0.035):
-    def f(t):
-        a = 2 * math.pi * t
-        p = Vector((r * math.cos(a), r * math.sin(a), 0))
-        return Vector((p.x, p.y, z_of(p))), Vector((0, 0, 1))
-    return f
 
 
 def tilt_matrix(rx_deg, rz_deg=0.0, loc=(0, 0, 0)):
@@ -1122,16 +1099,16 @@ def hat_cap(parts, col):
                                       0.06 * co.x * co.x)))
     M.smooth(brim)
     M.assign(brim, brim_m)
-    btn = ellipsoid("CapButton", (0.11, 0.11, 0.06), cap_mat)
-    placed(btn, (0, 0.02, HEAD_Z + 1.19))
+    btn = ellipsoid("CapButton", (0.1, 0.1, 0.04), cap_mat)
+    placed(btn, (0, 0.02, HEAD_Z + 1.175))
     th = thread_mat(shade(col, 1.25))
     # строчка по козырьку: две дуги параллельно краю
     def brim_pt(k):
         def f(t):
             a = math.pi * (0.12 + 0.76 * t)
-            x, y = math.cos(a) * 0.78 * k, -math.sin(a) * 0.5 * k
-            z = 0.05 + HEAD_Z + 0.36 + 0.35 * y - 0.06 * (x / 0.78) ** 2
-            return Vector((x, y - 0.92, z + 0.012 + 0.35 * 0.0)), Vector((0, -0.35, 1)).normalized()
+            ca, sa = math.cos(a) * k, -math.sin(a) * k
+            z = HEAD_Z + 0.36 + 0.05 * math.sqrt(max(0.0, 1 - k * k)) + 0.175 * sa - 0.06 * ca * ca
+            return Vector((ca * 0.78, sa * 0.5 - 0.92, z + 0.006)), Vector((0, -0.35, 1)).normalized()
         return f
     st = [stitch_line("BrimStitch0", brim_pt(0.82), 30, th), stitch_line("BrimStitch1", brim_pt(0.68), 24, th)]
     # строчка вдоль швов клиньев спереди
@@ -1250,15 +1227,15 @@ def hat_witch(parts):
     patch_m = fabric_mat("PatchMat", (0.38, 0.62, 0.30), weave=120.0, bump=0.2, lo=HEAD_Z + 1.0, hi=HEAD_Z + 1.4)
     M.assign(M.smooth(patch, 40), patch_m)
     th = thread_mat((1.0, 0.85, 0.4))
+    # крупная строчка по краю заплатки
     mats = []
+    world = Matrix.Translation(pc) @ q @ Matrix.Rotation(math.radians(12), 4, "Y")
+    corners = [(-0.1, 0.085), (0.1, 0.085), (0.1, -0.085), (-0.1, -0.085), (-0.1, 0.085)]
     for k in range(12):
         t = (k + 0.5) / 12 * 4
         e, f = int(t), t - int(t)
-        corners = [(-0.1, 0.085), (0.1, 0.085), (0.1, -0.085), (-0.1, -0.085), (-0.1, 0.085)]
         a, b = Vector((*corners[e], 0)), Vector((*corners[e + 1], 0))
         lp = a.lerp(b, f)
-        p = patch.matrix_world @ Vector((0, 0, 0))
-        world = Matrix.Translation(pc) @ q @ Matrix.Rotation(math.radians(12), 4, "Y")
         pw = world @ Vector((lp.x, -0.03, lp.y))
         dirv = world.to_3x3() @ Vector((b.x - a.x, 0, b.y - a.y))
         mats.append(blob_matrix(pw, dirv, (0.02, 0.008, 0.008), -(world.to_3x3() @ Vector((0, 1, 0)))))
@@ -1306,7 +1283,7 @@ def hat_snowmaiden(parts):
     g = ellipsoid("SnowGemC", (0.1, 0.05, 0.12), gem, 32, 16)
     placed(g, on_plate(0.0, 0.2, 0.11))
     setting = M.torus("GemSetting", 0.11, 0.022, 48, 10)
-    setting.matrix_world = Matrix.Translation(on_plate(0.0, 0.2, 0.1)) @ Matrix.Rotation(math.radians(80 + 90), 4, "X")
+    setting.matrix_world = Matrix.Translation(on_plate(0.0, 0.2, 0.1)) @ Matrix.Rotation(math.radians(80), 4, "X")
     M.apply_transform(setting)
     M.assign(M.smooth(setting), silver)
     snow = []
@@ -1358,23 +1335,22 @@ def hat_tiara(parts):
         M.apply_transform(g2)
         parts += [spike, g, g2]
     parts.append(band)
-    disc = M.cylinder("ClipCandy", 0.24, 0.07, 64)
-    disc.rotation_euler = (math.radians(90), 0, 0)
-    disc.location = (-0.86, -0.42, HEAD_Z + 0.42)
-    M.apply_transform(disc)
+    # леденец-заколка у виска поверх волос: голубой диск с белой спиралью
+    c = Vector((-0.96, -0.5, HEAD_Z + 0.5))
+    nrm = Vector((-0.78, -0.55, 0.3)).normalized()
+    mx = Matrix.Translation(c) @ nrm.to_track_quat("Z", "Y").to_matrix().to_4x4()
+    disc = M.cylinder("ClipCandy", 0.22, 0.07, 64)
     M.bevel(disc, 0.025, 3, 30)
+    disc.data.transform(mx)
     M.smooth(disc, 40)
-    swirl = M.material("Swirl", [(0.0, (1.0, 1.0, 1.0)), (0.5, (0.35, 0.75, 1.0)), (1.0, (1.0, 1.0, 1.0))],
-                       coord="x", lo=-1.06, hi=-0.66, rough=0.1, coat=1.0)
-    # спираль леденца поверх диска
+    M.assign(disc, glossy("CandyBlue", (0.40, 0.75, 1.0), rough=0.1, coat=1.0))
     sw_pts = []
     for i in range(60):
-        s = i / 59
-        a = 2 * math.pi * 2.2 * s
-        rr = 0.2 * (1 - s) + 0.01
-        sw_pts.append(Vector((-0.86 + rr * math.cos(a), -0.42 - 0.04, HEAD_Z + 0.42 + rr * math.sin(a))))
-    swirl_line = tube("CandySwirl", sw_pts, 0.022, glossy("SwirlPink", (1.0, 0.35, 0.6), rough=0.1, coat=1.0))
-    M.assign(disc, swirl)
+        s_ = i / 59
+        a = 2 * math.pi * 2.2 * s_
+        rr = 0.18 * (1 - s_) + 0.01
+        sw_pts.append(mx @ Vector((rr * math.cos(a), rr * math.sin(a), 0.036)))
+    swirl_line = tube("CandySwirl", sw_pts, 0.02, glossy("SwirlWhite", (1.0, 1.0, 1.0), rough=0.1, coat=1.0))
     parts += [disc, swirl_line]
 
 
@@ -1444,13 +1420,14 @@ def hat_brimmed(parts, style):
         rnd = random.Random(5)
         for k in range(120):
             a = 2 * math.pi * k / 120 + rnd.uniform(-0.02, 0.02)
-            rr = r_brim + rnd.uniform(-0.01, 0.035)
+            rr = r_brim - 0.03 + rnd.uniform(-0.01, 0.02)
             x, y = rr * math.cos(a), rr * math.sin(a)
-            z = curl * (x / r_brim) ** 2 - 0.05 * (y / r_brim)
+            z = curl * (x / r_brim) ** 2 - 0.05 * (y / r_brim) + rnd.uniform(-0.02, 0.02)
             p = mxb @ Vector((x, y, z))
-            d = mxb.to_3x3() @ Vector((math.cos(a + rnd.uniform(-0.3, 0.3)), math.sin(a + rnd.uniform(-0.3, 0.3)),
-                                       rnd.uniform(-0.2, 0.2)))
-            straws.append(blob_matrix(p, d, (rnd.uniform(0.03, 0.06), 0.012, 0.008), mxb.to_3x3() @ Vector((0, 0, 1))))
+            tw = rnd.uniform(-0.6, 0.6)
+            d = mxb.to_3x3() @ Vector((-math.sin(a) + 0.5 * tw * math.cos(a), math.cos(a) + 0.5 * tw * math.sin(a),
+                                       rnd.uniform(-0.25, 0.25)))
+            straws.append(blob_matrix(p, d, (rnd.uniform(0.04, 0.07), 0.012, 0.008), mxb.to_3x3() @ Vector((0, 0, 1))))
         extra.append(blobs("Fringe", hat, straws, 8, 6))
         # цветок на ленте
         petal = M.flat("Petal", (1.0, 0.96, 0.9), rough=0.5, sheen=0.4)
@@ -1512,24 +1489,43 @@ def button(name, p, n, r, mat, holes=None):
 
 
 def body_folds(co, n):
-    """Мягкие складки: от подмышек по бокам и пара поперечных у пояса."""
+    """Мягкие складки: несколько пологих диагональных заломов от подмышек к груди."""
     d = 0.0
     for s in (-1, 1):
-        dx = co.x - s * 1.0
-        w = math.exp(-((dx / 0.38) ** 2) - ((co.z - 0.05) / 0.35) ** 2)
-        d += 0.014 * w * math.sin(16 * (co.z * 0.8 - s * co.x * 0.55))
-    w2 = smoothstep(0.55, 0.95, abs(co.x)) * (1 - smoothstep(-0.2, 0.25, co.z))
-    d += 0.01 * w2 * math.sin(co.z * 22 + co.x * 4)
+        # расстояние вдоль диагонали от подмышки (s*1.05, -0.25) к ключице (s*0.45, 0.3)
+        ax, az = co.x - s * 1.05, co.z + 0.25
+        along = (-s * ax * 0.74 + az * 0.67)
+        across = (s * ax * 0.67 + az * 0.74)
+        w = math.exp(-((along - 0.35) / 0.32) ** 2) * smoothstep(-0.05, 0.1, across + 0.2) * (1 - smoothstep(0.25, 0.45, across))
+        d += 0.009 * w * math.sin(across * 26)
     return d
 
 
 def collar_rib(name, mat, r=0.36, minor=0.07, z=0.52, ribs=56, y=0.05):
     ob = M.torus(name, r, minor, 96, 16)
-    M.push_normals(ob, lambda co, n: 0.008 * abs(math.sin(math.atan2(co.y, co.x) * ribs / 2)))
+    if ribs:
+        M.push_normals(ob, lambda co, n: 0.008 * abs(math.sin(math.atan2(co.y, co.x) * ribs / 2)))
     ob.location = (0, y, z)
     M.apply_transform(ob)
     M.smooth(ob)
     return M.assign(ob, mat)
+
+
+def neck_band(name, mat, z_low=0.17, z_side=0.5, half=0.5, band=0.07, lift=0.03):
+    """Вырез горловины под подбородком: U-образная трикотажная бейка по груди."""
+    def c(u):
+        return z_low + (z_side - z_low) * (abs(u) / half) ** 1.8
+    return pillow(name, mat, body_surf, -half, half, lambda u: c(u) + band / 2, lambda u: c(u) - band / 2, lift=lift,
+                  base=-0.006, nu=40, nv=8, power=0.35, end=0.1)
+
+
+def raglan(name, th, s, lift=0.012, count=20, off=0.0):
+    """Строчка рукава-реглан: от горловины к подмышке."""
+    def f(t):
+        x = s * (0.48 + 0.58 * t) + s * off
+        z = 0.42 - 0.62 * t ** 1.1 - off * 0.6
+        return body_surf(x, z, lift)
+    return stitch_line(name, f, count, th, size=(0.02, 0.006, 0.005))
 
 
 def flap(name, mat, origin, angle, length, w0, w1, lift=0.045, round_tip=True, surf=None):
@@ -1538,10 +1534,10 @@ def flap(name, mat, origin, angle, length, w0, w1, lift=0.045, round_tip=True, s
         t = u / length
         w = w0 + (w1 - w0) * t
         if round_tip:
-            w *= math.sqrt(max(0.0, 1 - max(0.0, (t - 0.8) / 0.2) ** 2))
+            w *= math.sqrt(max(0.0, 1 - max(0.0, (t - 0.75) / 0.25) ** 2)) * 0.8 + 0.2
         return w / 2
     return pillow(name, mat, surf or body_surf, 0.0, length, half, lambda u: -half(u), lift=lift, base=-0.006,
-                  nu=24, nv=10, power=0.35, end=0.15, origin=origin, angle=angle)
+                  nu=24, nv=10, power=0.3, end=0.15, origin=origin, angle=angle)
 
 
 def placket(name, mat, x0=0.0, z0=0.48, z1=-0.35, w=0.075, lift=0.016):
@@ -1549,7 +1545,15 @@ def placket(name, mat, x0=0.0, z0=0.48, z1=-0.35, w=0.075, lift=0.016):
                   power=0.3, end=0.08, origin=(x0, 0.0), angle=math.pi / 2)
 
 
-def pocket(name, mat, th, cx, cz, w=0.26, h=0.26, r=0.06):
+def placket_stitches(name, th, x0, z0, z1, w):
+    out = []
+    for e, dx in enumerate((-w + 0.018, w - 0.018)):
+        out.append(stitch_line(f"{name}{e}", lambda t, dx=dx: body_surf(x0 + dx, z1 + (z0 - z1) * t, 0.02), 16, th,
+                               size=(0.016, 0.005, 0.004)))
+    return out
+
+
+def pocket(name, mat, th, cx, cz, w=0.26, h=0.26, r=0.06, flap_col=None):
     def top(u):
         return cz + h / 2
 
@@ -1559,20 +1563,47 @@ def pocket(name, mat, th, cx, cz, w=0.26, h=0.26, r=0.06):
         if a > k:
             return cz - h / 2 + r - math.sqrt(max(0.0, r * r - (a - k) ** 2))
         return cz - h / 2
-    pk = pillow(name, mat, body_surf, cx - w / 2, cx + w / 2, top, bot, lift=0.018, base=-0.004, nu=24, nv=12,
-                power=0.25, end=0.06)
-    hem = stitch_line(name + "Stitch", lambda t: body_surf(cx - w / 2 + 0.03 + (w - 0.06) * t, cz + h / 2 - 0.035, 0.02),
-                      9, th, size=(0.012, 0.005, 0.004))
-    return [pk, hem]
+    pk = pillow(name, mat, body_surf, cx - w / 2, cx + w / 2, top, bot, lift=0.02, base=-0.004, nu=24, nv=12,
+                power=0.22, end=0.05)
+    out = [pk]
+    # строчка по краю кармана: П-образно по бокам и низу
+    def edge(t):
+        ins = 0.022
+        x0, x1 = cx - w / 2 + ins, cx + w / 2 - ins
+        zt, zb = cz + h / 2 - 0.02, cz - h / 2 + ins
+        rr = max(0.01, r - ins)
+        L1 = zt - (zb + rr)
+        L2 = (x1 - rr) - (x0 + rr)
+        arc = math.pi * rr / 2
+        s = t * (2 * L1 + L2 + 2 * arc)
+        if s < L1:
+            return body_surf(x0, zt - s, 0.024)
+        s -= L1
+        if s < arc:
+            a = s / rr
+            return body_surf(x0 + rr - rr * math.cos(a), zb + rr - rr * math.sin(a), 0.024)
+        s -= arc
+        if s < L2:
+            return body_surf(x0 + rr + s, zb, 0.024)
+        s -= L2
+        if s < arc:
+            a = s / rr
+            return body_surf(x1 - rr + rr * math.sin(a), zb + rr - rr * math.cos(a), 0.024)
+        s -= arc
+        return body_surf(x1, zb + rr + s, 0.024)
+    out.append(stitch_line(name + "Edge", edge, 30, th, size=(0.013, 0.005, 0.004)))
+    out.append(stitch_line(name + "Hem", lambda t: body_surf(cx - w / 2 + 0.03 + (w - 0.06) * t, cz + h / 2 - 0.04, 0.024),
+                           9, th, size=(0.013, 0.005, 0.004)))
+    if flap_col is not None:
+        out.append(pillow(name + "Flap", flap_col, body_surf, cx - w / 2 - 0.01, cx + w / 2 + 0.01,
+                          lambda u: cz + h / 2 + 0.01, lambda u: cz + h / 2 - 0.08 - 0.03 * (1 - abs(u - cx) / (w / 2)),
+                          lift=0.03, base=0.0, nu=24, nv=8, power=0.3, end=0.05))
+    return out
 
 
-def neck_hole_mask(m_in, w=0.13, k=0.36):
-    return lambda n, c: c.y < 0 and -0.5 < c.z < 0.62 and abs(c.x) < w + k * (c.z + 0.4) / 0.9
-
-
-def garment(kind, col, parts, acc_bandana=False):
-    """Тело-туловище (как прежде, эллипсоид) в одежде kind с воротником, пуговицами и складками."""
-    rnd = random.Random(7)
+def garment(kind, col, parts):
+    """Туловище (как прежде, эллипсоид) в одежде kind. Подбородок закрывает грудь выше z ~ 0.3 по центру,
+    поэтому воротники и отделка опущены в видимую полосу под подбородком и на плечи."""
     knit = kind in ("turtle", "sweater")
     shirt = fabric_mat("Shirt", col, knit=knit, weave=70.0 if knit else 130.0, bump=0.2 if knit else 0.16,
                        rough=0.7 if knit else 0.58)
@@ -1582,128 +1613,165 @@ def garment(kind, col, parts, acc_bandana=False):
         add_bands(shirt, shade(col, 0.55), axis="Z", freq=3.2, width=0.22)
         add_bands(shirt, shade(col, 0.6), axis="X", freq=3.2, width=0.22)
         add_bands(shirt, (0.98, 0.86, 0.35), axis="X", freq=3.2, width=0.05, offset=0.15)
+    if kind == "sweater":
+        # полоса узора поперек груди: светлая кайма и ряд "снежинок"-ромбиков
+        add_bands(shirt, (0.98, 0.96, 0.9), axis="Z", freq=1.0, width=0.035, offset=0.13)
+        add_bands(shirt, (0.98, 0.96, 0.9), axis="Z", freq=1.0, width=0.035, offset=0.37)
     body = M.sphere("Body", 1.0, 128, 80)
     M.deform(body, lambda co: Vector((co.x * 1.38, co.y * 0.82, co.z * 0.78)))
     body.location = (0, 0.1, -0.2)
     M.apply_transform(body)
-    M.push_normals(body, body_folds)
+    if kind not in ("plain", "tailcoat"):
+        M.push_normals(body, body_folds)
     M.smooth(body)
     M.assign(body, shirt)
     parts.append(body)
-    trim = fabric_mat("Trim", shade(col, 1.1), knit=True, weave=90.0, bump=0.2, rough=0.6)
+    if kind in ("plain", "trench"):
+        return shirt
+    trim = fabric_mat("Trim", shade(col, 1.12), knit=True, weave=110.0, bump=0.22, rough=0.6)
     white = fabric_mat("WhiteCloth", (0.98, 0.97, 0.94), weave=140.0, bump=0.12, rough=0.55, lo=-0.4, hi=0.6)
-    th = thread_mat(shade(col, 1.35) if sum(col) < 2.2 else shade(col, 0.6))
-    btn_m = glossy("ButtonMat", shade(col, 0.55) if kind not in ("cardigan",) else (0.95, 0.9, 0.8), rough=0.2, coat=0.9)
-    holes = M.flat("ButtonHole", (0.1, 0.08, 0.08), rough=0.5)
-    if kind in ("crew", "stripes"):
-        parts.append(collar_rib("Collar", trim if kind == "crew" else fabric_mat("TrimS", (0.98, 0.96, 0.9), knit=True, weave=90.0)))
+    light = sum(col) > 2.0
+    th = thread_mat(shade(col, 0.55) if light else tuple(min(1.0, c * 1.25 + 0.2) for c in col))
+    btn_m = glossy("ButtonMat", tuple(min(1.0, c * 1.2 + 0.25) for c in col) if not light else shade(col, 0.6),
+                   rough=0.2, coat=0.9)
+    holes = M.flat("ButtonHole", (0.12, 0.09, 0.09), rough=0.5)
+    parts.append(collar_rib("Collar", shirt, r=0.35, minor=0.06, ribs=0))
+    if kind in ("crew", "stripes", "sweater"):
+        band_m = trim if kind != "stripes" else fabric_mat("TrimS", (0.98, 0.96, 0.9), knit=True, weave=110.0)
+        parts.append(neck_band("NeckBand", band_m, z_low=0.17, band=0.075 if kind != "sweater" else 0.1))
+        for s in (-1, 1):
+            parts.append(raglan(f"Raglan{s}", th, s))
         if kind == "crew":
-            parts += pocket("Pocket", shirt, th, -0.5, 0.06)
-    elif kind == "sweater":
-        parts.append(collar_rib("Collar", trim, minor=0.085, ribs=64))
-        # полоса узора-"косички" поперек груди светлым цветом
-        add_bands(shirt, (0.98, 0.96, 0.9), axis="Z", freq=1.0, width=0.05, offset=0.3)
+            parts += pocket("Pocket", shirt, th, -0.52, 0.0, w=0.24, h=0.24)
+        if kind == "sweater":
+            # ряд ромбиков между светлыми полосками
+            dm = []
+            for k in range(-6, 7):
+                x = k * 0.16
+                p, n = body_surf(x, 0.05, 0.004)
+                if p.y > -0.05:
+                    continue
+                dm.append(blob_matrix(p, (1, 0, 1), (0.045, 0.045, 0.006), n))
+            parts.append(blobs("Diamonds", M.flat("DiamondM", (0.98, 0.96, 0.9), rough=0.7, sheen=0.5), dm, 4, 4))
     elif kind == "turtle":
-        roll = M.torus("Turtleneck", 0.42, 0.13, 96, 24)
-        M.push_normals(roll, lambda co, n: 0.012 * abs(math.sin(math.atan2(co.y, co.x) * 26)))
-        roll.location = (0, 0.04, 0.52)
+        roll = M.torus("Turtleneck", 0.44, 0.17, 128, 24)
+        M.push_normals(roll, lambda co, n: 0.014 * abs(math.sin(math.atan2(co.y, co.x) * 28)))
+        roll.location = (0, 0.0, 0.4)
         M.apply_transform(roll)
         parts.append(M.assign(M.smooth(roll), trim))
-    elif kind in ("shirt", "polo", "western"):
-        parts.append(collar_rib("Collar", shirt, r=0.35, minor=0.06, ribs=0))
-        if kind == "western":
-            # платок закрывает ворот: видны планка с жемчужными кнопками и строчка кокетки
-            parts.append(placket("Placket", shirt, 0.0, 0.1, -0.4, 0.07))
-            pearl = M.material("Pearl", [(0.0, (0.9, 0.88, 0.95)), (1.0, (1.0, 1.0, 1.0))], coord="nz", lo=-1, hi=1,
-                               rough=0.1, coat=1.0)
-            for k, z in enumerate((-0.02, -0.2)):
-                p, n = body_surf(0.0, z, 0.016)
-                parts += button(f"Button{k}", p, n, 0.036, pearl)
-            parts.append(stitch_line("YokeStitch", lambda t: body_surf(-1.05 + 2.1 * t, 0.16 - 0.1 * (1 - abs(-1 + 2 * t)) ** 1.5,
-                                                                       0.012), 40, thread_mat((0.98, 0.9, 0.75)),
-                                     size=(0.02, 0.006, 0.005)))
-            for s in (-1, 1):
-                parts += pocket(f"Pocket{s}", shirt, thread_mat((0.98, 0.9, 0.75)), s * 0.55, -0.12, w=0.26, h=0.2)
-        else:
-            pl_len = -0.35 if kind != "polo" else 0.12
-            parts.append(placket("Placket", shirt, 0.0, 0.47, pl_len, 0.07))
-            for s in (-1, 1):
-                # уголки воротника: от шеи вниз-наружу к острию
-                ang = math.radians(-90 + s * 32)
-                origin = (s * 0.17, 0.5)
-                parts.append(flap(f"CollarFlap{s}", shirt, origin, ang, 0.34, 0.2, 0.04 if kind != "polo" else 0.12,
-                                  lift=0.05, round_tip=(kind == "polo")))
-            zs = (0.32, 0.12, -0.08) if kind != "polo" else (0.36, 0.22)
-            for k, z in enumerate(zs):
-                p, n = body_surf(0.0, z, 0.016)
-                parts += button(f"Button{k}", p, n, 0.034, btn_m, holes)
+        # две косы-"араны" по груди
+        for s in (-1, 1):
+            cm = []
+            for k in range(9):
+                z = 0.18 - k * 0.07
+                for e in (-1, 1):
+                    p, n = body_surf(s * 0.55 + e * 0.035, z, 0.0)
+                    cm.append(blob_matrix(p, (e * 0.6, 0, 1), (0.05, 0.03, 0.018), n))
+            parts.append(blobs(f"Cable{s}", shirt, cm, 12, 8))
+    elif kind in ("shirt", "polo"):
+        polo = kind == "polo"
+        for s in (-1, 1):
+            # уголки воротника выходят из-под подбородка
+            ang = math.radians(-90 + s * (40 if not polo else 46))
+            parts.append(flap(f"CollarFlap{s}", shirt, (s * 0.05, 0.42), ang, 0.4 if not polo else 0.36, 0.24,
+                              0.05 if not polo else 0.16, lift=0.055, round_tip=polo))
+        z0, z1 = 0.3, (-0.4 if not polo else 0.0)
+        parts.append(placket("Placket", shirt, 0.0, z0, z1, 0.065))
+        parts += placket_stitches("PlacketStitch", th, 0.0, z0, z1, 0.065)
+        zs = (0.17, -0.04, -0.24) if not polo else (0.2, 0.06)
+        for k, z in enumerate(zs):
+            p, n = body_surf(0.0, z, 0.016)
+            parts += button(f"Button{k}", p, n, 0.036, btn_m, holes)
+        if polo:
+            parts.append(neck_band("NeckBand", trim, z_low=0.24, half=0.42, band=0.05, lift=0.025))
+    elif kind == "western":
+        # платок закрывает ворот: видны планка с жемчужными кнопками, карманы с клапанами и строчка кокетки
+        pearl = M.material("Pearl", [(0.0, (0.9, 0.88, 0.95)), (1.0, (1.0, 1.0, 1.0))], coord="nz", lo=-1, hi=1,
+                           rough=0.1, coat=1.0)
+        cream = thread_mat((0.98, 0.9, 0.75))
+        parts.append(placket("Placket", shirt, 0.0, 0.1, -0.4, 0.065))
+        parts += placket_stitches("PlacketStitch", cream, 0.0, 0.1, -0.4, 0.065)
+        for k, z in enumerate((-0.04, -0.22)):
+            p, n = body_surf(0.0, z, 0.016)
+            parts += button(f"Button{k}", p, n, 0.036, pearl)
+        parts.append(stitch_line("YokeStitch", lambda t: body_surf(-1.1 + 2.2 * t, 0.12 - 0.1 * (1 - abs(-1 + 2 * t)) ** 1.5 +
+                                                                   0.12 * abs(-1 + 2 * t) ** 3, 0.012), 44, cream,
+                                 size=(0.02, 0.006, 0.005)))
+        for s in (-1, 1):
+            parts += pocket(f"Pocket{s}", shirt, cream, s * 0.52, -0.16, w=0.26, h=0.2, flap_col=shirt)
+            p, n = body_surf(s * 0.52, -0.1, 0.034)
+            parts += button(f"FlapSnap{s}", p, n, 0.028, pearl)
     elif kind == "peter":
-        parts.append(collar_rib("Collar", white, r=0.35, minor=0.05, ribs=0))
+        pink = thread_mat((0.95, 0.5, 0.6))
 
         def ptop(a):
-            return 0.53 + 0.03 * (a / 0.42) ** 2
+            return 0.4 + 0.08 * (a / 0.44) ** 2
 
         def pbot(a):
-            t = (a - 0.215) / 0.215
-            return ptop(a) - 0.24 * math.sqrt(max(0.0, 1 - t * t)) ** 0.9
-        pink = thread_mat((0.95, 0.5, 0.6))
+            t = (a - 0.22) / 0.22
+            return ptop(a) - 0.3 * math.sqrt(max(0.0, 1 - t * t)) ** 0.8
         for s in (-1, 1):
-            u0, u1 = (0.0, 0.43) if s > 0 else (-0.43, 0.0)
+            u0, u1 = (0.0, 0.44) if s > 0 else (-0.44, 0.0)
             parts.append(pillow(f"PeterCollar{s}", white, body_surf, u0, u1, lambda u: ptop(abs(u)),
-                                lambda u: pbot(abs(u)), lift=0.04, base=-0.006, nu=28, nv=10, power=0.35, end=0.15))
+                                lambda u: pbot(abs(u)), lift=0.045, base=-0.006, nu=28, nv=12, power=0.3, end=0.15))
             parts.append(stitch_line(f"PeterStitch{s}", lambda t, s=s: body_surf(
-                s * (0.06 + 0.32 * t), pbot(0.06 + 0.32 * t) + 0.03, 0.04), 13, pink, size=(0.016, 0.006, 0.005)))
-        for k, z in enumerate((0.16, -0.08)):
+                s * (0.05 + 0.34 * t), pbot(0.05 + 0.34 * t) + 0.03, 0.045), 14, pink, size=(0.016, 0.006, 0.005)))
+        bow_m = glossy("PeterBow", (0.95, 0.3, 0.45), rough=0.25, coat=0.6)
+        p, n = body_surf(0.0, 0.17, 0.05)
+        for s in (-1, 1):
+            parts.append(blobs(f"PeterBow{s}", bow_m, [blob_matrix(p + Vector((s * 0.07, -0.01, 0)), (1, 0, s * 0.35),
+                                                                   (0.08, 0.05, 0.03), n)], 20, 12))
+        parts.append(placed(ellipsoid("PeterKnot", (0.03, 0.025, 0.035), bow_m), p + Vector((0, -0.035, 0))))
+        for k, z in enumerate((-0.02, -0.2)):
             p, n = body_surf(0.0, z, 0.01)
             parts += button(f"Button{k}", p, n, 0.04, glossy("BtnWhite", (1.0, 0.97, 0.9), rough=0.2), holes)
     elif kind == "hoodie":
-        # капюшон лежит валиком вокруг шеи: сзади толстый и высокий, к груди сходит на нет
-        hood = M.torus("Hood", 0.48, 0.17, 96, 24)
+        # капюшон валиком за шеей выглядывает по бокам, шнурки с наконечниками, люверсы
+        hood = M.torus("Hood", 0.6, 0.2, 96, 24)
 
         def hood_shape(co):
             a = math.atan2(co.y, co.x)
-            c = Vector((0.48 * math.cos(a), 0.48 * math.sin(a), 0.0))
+            c = Vector((0.6 * math.cos(a), 0.6 * math.sin(a), 0.0))
             back = (1 + math.sin(a)) / 2
-            f = 0.35 + 0.65 * back
+            f = 0.3 + 0.7 * back
             o = (co - c) * f
-            o.z *= 1.0 + 0.7 * back
-            return c * (1.0 + 0.12 * back) + o + Vector((0, 0, 0.08 * back))
+            o.z *= 1.0 + 0.6 * back
+            return c * (0.85 + 0.25 * back) + o + Vector((0, 0, 0.06 * back))
         M.deform(hood, hood_shape)
-        hood.location = (0, 0.1, 0.52)
+        hood.location = (0, 0.12, 0.5)
         M.apply_transform(hood)
-        M.push_normals(hood, lambda co, n: 0.01 * math.sin(math.atan2(co.y - 0.1, co.x) * 9))
+        M.push_normals(hood, lambda co, n: 0.012 * math.sin(math.atan2(co.y - 0.12, co.x) * 9))
         parts.append(M.assign(M.smooth(hood), shirt))
-        parts.append(collar_rib("Collar", trim, r=0.37, minor=0.06))
+        parts.append(neck_band("NeckBand", trim, z_low=0.2, half=0.52, band=0.08))
+        string = M.flat("String", (1.0, 0.98, 0.94), rough=0.5, sheen=0.5)
+        metal = glossy("Aglet", (0.85, 0.85, 0.9), rough=0.2, metal=1.0)
         for s in (-1, 1):
-            a0, _ = body_surf(s * 0.13, 0.46, 0.03)
-            pts = [a0, a0 + Vector((s * 0.01, -0.04, -0.12)), a0 + Vector((s * 0.03, -0.06, -0.3)),
-                   a0 + Vector((s * 0.02, -0.07, -0.44))]
-            parts.append(tube(f"Drawstring{s}", pts, 0.017, M.flat("String", (1.0, 0.98, 0.94), rough=0.5, sheen=0.5)))
-            ag = ellipsoid(f"Aglet{s}", (0.025, 0.025, 0.05), glossy("Aglet", (0.85, 0.85, 0.9), rough=0.2, metal=1.0))
-            parts.append(placed(ag, pts[-1] + Vector((0, 0, -0.04))))
-            p, n = body_surf(s * 0.13, 0.42, 0.012)
-            eyelet = M.torus(f"Eyelet{s}", 0.03, 0.009, 24, 8)
+            p, n = body_surf(s * 0.16, 0.2, 0.03)
+            eyelet = M.torus(f"Eyelet{s}", 0.032, 0.01, 24, 8)
             eyelet.matrix_world = Matrix.Translation(p) @ (-n).to_track_quat("Z", "Y").to_matrix().to_4x4()
             M.apply_transform(eyelet)
-            parts.append(M.assign(M.smooth(eyelet), glossy("Aglet", (0.85, 0.85, 0.9), rough=0.2, metal=1.0)))
+            parts.append(M.assign(M.smooth(eyelet), metal))
+            pts = [p + n * 0.01, body_surf(s * 0.17, 0.08, 0.035)[0], body_surf(s * 0.19 - s * 0.01, -0.06, 0.035)[0],
+                   body_surf(s * 0.18, -0.16, 0.035)[0]]
+            parts.append(tube(f"Drawstring{s}", pts, 0.018, string))
+            ag = ellipsoid(f"Aglet{s}", (0.026, 0.026, 0.05), metal)
+            parts.append(placed(ag, pts[-1] + Vector((0, 0, -0.045))))
+        for s in (-1, 1):
+            parts.append(raglan(f"Raglan{s}", th, s))
     elif kind == "cardigan":
         # кардиган распахнут: в вырезе белая футболка
-        M.assign_faces(body, shirt, [(lambda n, c: c.y < 0 and -0.5 < c.z < 0.62 and abs(c.x) < 0.05 + 0.3 * (c.z + 0.5) / 1.1,
-                                      white)])
-        parts.append(collar_rib("Collar", white, r=0.35, minor=0.05))
+        def edge_x(z):
+            return 0.06 + 0.24 * (z + 0.5) / 1.0
+        M.assign_faces(body, shirt, [(lambda n, c: c.y < 0 and -0.6 < c.z < 0.62 and abs(c.x) < edge_x(c.z), white)])
         for s in (-1, 1):
-            pts = []
-            for i in range(14):
-                t = i / 13
-                z = 0.5 - 0.95 * t
-                x = s * (0.05 + 0.3 * (z + 0.5) / 1.1 + 0.02)
-                pts.append(body_surf(x, z, 0.015)[0])
-            parts.append(strand(f"Edge{s}", trim, pts, 0.05, 0.025, n=28, tip=0.02, root=0.02, root_w=1.0, groove=0.0,
+            pts = [body_surf(s * (edge_x(z) + 0.02), z, 0.016)[0] for z in [0.5 - 0.95 * i / 13 for i in range(14)]]
+            parts.append(strand(f"Edge{s}", trim, pts, 0.055, 0.025, n=28, tip=0.02, root=0.02, root_w=1.0, groove=0.0,
                                 up=Vector((0, -1, 0)), blunt=True))
-        for k, z in enumerate((0.02, -0.2)):
-            x = -(0.05 + 0.3 * (z + 0.5) / 1.1 + 0.02)
-            p, n = body_surf(x, z, 0.03)
+        for k, z in enumerate((0.12, -0.08, -0.28)):
+            x = -(edge_x(z) + 0.02)
+            p, n = body_surf(x, z, 0.04)
             parts += button(f"Button{k}", p, n, 0.036, glossy("BtnCream", (0.98, 0.92, 0.78), rough=0.2), holes)
+        parts += pocket("Pocket", shirt, th, 0.62, -0.18, w=0.24, h=0.2)
     elif kind == "tailcoat":
         M.assign_faces(body, shirt, [(lambda n, c: c.y < 0 and -0.5 < c.z < 0.6 and abs(c.x) < 0.12 + 0.3 * (c.z + 0.4) / 0.9,
                                       white)])
@@ -1712,10 +1780,8 @@ def garment(kind, col, parts, acc_bandana=False):
         for s in (-1, 1):
             parts.append(flap(f"Lapel{s}", satin, (s * 0.36, 0.42), math.radians(-90 - s * 22), 0.62, 0.2, 0.06, lift=0.04,
                               round_tip=False))
-            # стоячий воротничок-"бабочка" рубашки
             parts.append(flap(f"Wing{s}", white, (s * 0.08, 0.53), math.radians(-90 + s * 55), 0.13, 0.12, 0.05,
                               lift=0.05))
-        parts.append(collar_rib("Collar", white, r=0.35, minor=0.06, ribs=0))
         stud = glossy("Stud", (0.08, 0.08, 0.1), rough=0.15, coat=1.0)
         for k, z in enumerate((0.1, -0.1)):
             p, n = body_surf(0.0, z, 0.01)
@@ -1736,19 +1802,22 @@ def garment(kind, col, parts, acc_bandana=False):
         knot = ellipsoid("BowKnot", (0.07, 0.07, 0.085), bow_mat)
         parts.append(placed(knot, (0, -0.83, 0.24)))
     elif kind == "cape":
-        # высокий стоячий воротник-пелерина и брошь
         # большой острый воротник накидки на розовой подкладке, брошь и вышитые звездочки
-        lining = M.material("CapeLining", [(0.0, (0.62, 0.16, 0.36)), (1.0, (0.92, 0.36, 0.52))], coord="z", lo=0.0,
-                            hi=0.6, rough=0.3, sheen=0.7, coat=0.3)
-        parts.append(collar_rib("Collar", shirt, r=0.36, minor=0.07, ribs=0))
+        lining = M.material("CapeLining", [(0.0, (0.62, 0.16, 0.36)), (1.0, (0.92, 0.36, 0.52))], coord="z", lo=-0.2,
+                            hi=0.5, rough=0.3, sheen=0.7, coat=0.3)
+        gold_th = thread_mat((1.0, 0.8, 0.35))
         for s in (-1, 1):
-            parts.append(flap(f"CapeCollar{s}", lining, (s * 0.12, 0.5), math.radians(-90 + s * 52), 0.6, 0.34, 0.02,
-                              lift=0.05, round_tip=False))
-            parts.append(stitch_line(f"CapeStitch{s}", lambda t, s=s: body_surf(
-                s * 0.12 + math.cos(math.radians(-90 + s * 52)) * 0.55 * t + s * 0.02,
-                0.5 + math.sin(math.radians(-90 + s * 52)) * 0.55 * t + 0.11 * (1 - t), 0.055), 14,
-                thread_mat((1.0, 0.8, 0.35)), size=(0.016, 0.006, 0.005)))
-        p, n = body_surf(0.0, 0.38, 0.03)
+            ang = math.radians(-90 + s * 50)
+            parts.append(flap(f"CapeCollar{s}", lining, (s * 0.04, 0.44), ang, 0.62, 0.4, 0.02, lift=0.055,
+                              round_tip=False))
+            for e in (-1, 1):
+                def cs(t, ang=ang, s=s, e=e):
+                    u = 0.04 + 0.5 * t
+                    w = e * ((0.4 + (0.02 - 0.4) * u / 0.62) / 2 - 0.04)
+                    return body_surf(s * 0.04 + u * math.cos(ang) - w * math.sin(ang),
+                                     0.44 + u * math.sin(ang) + w * math.cos(ang), 0.06)
+                parts.append(stitch_line(f"CapeStitch{s}{e}", cs, 13, gold_th, size=(0.016, 0.006, 0.005)))
+        p, n = body_surf(0.0, 0.2, 0.04)
         br = ellipsoid("Brooch", (0.075, 0.04, 0.09), glossy("BroochGem", (0.35, 0.85, 0.45), rough=0.06, coat=1.0))
         parts.append(placed(br, p + n * 0.02))
         rim = M.torus("BroochRim", 0.08, 0.018, 32, 8)
@@ -1757,50 +1826,49 @@ def garment(kind, col, parts, acc_bandana=False):
         M.apply_transform(rim)
         parts.append(M.assign(M.smooth(rim), gold_mat("BroochGold")))
         stars = []
-        for x, z, r in ((-0.6, 0.0, 0.05), (0.55, -0.12, 0.04), (0.8, 0.12, 0.035), (-0.85, 0.2, 0.035)):
+        for x, z, r in ((-0.68, -0.05, 0.05), (0.6, -0.15, 0.045), (0.85, 0.12, 0.035), (-0.9, 0.2, 0.035), (0.35, -0.3, 0.03)):
             p, n = body_surf(x, z, 0.012)
             for j in range(4):
                 a = math.pi * j / 2 + 0.3
                 stars.append(blob_matrix(p, (math.cos(a), 0, math.sin(a)), (r, r * 0.25, 0.008), n))
         parts.append(blobs("CapeStars", M.flat("StarGold", (1.0, 0.82, 0.3), rough=0.3, metal=0.6), stars))
     elif kind == "furcoat":
-        fur = M.torus("FurCollar", 0.42, 0.13, 128, 20)
-        fur.location = (0, 0.05, 0.5)
-        M.apply_transform(fur)
-        M.push_normals(fur, lambda co, n: 0.03 * M.fbm(co * 9) + 0.012 * M.fbm(co * 30))
-        fm = M.material("CollarFur", [(0.0, (0.86, 0.9, 1.0)), (1.0, (1.0, 1.0, 1.0))], coord="z", lo=0.3, hi=0.65,
+        fm = M.material("CollarFur", [(0.0, (0.86, 0.9, 1.0)), (1.0, (1.0, 1.0, 1.0))], coord="z", lo=-0.3, hi=0.65,
                         rough=0.85, sheen=1.0)
         _bump(fm, _felt_noise(fm, 120.0), strength=0.45)
+        fur = M.torus("FurCollar", 0.5, 0.17, 128, 20)
+        fur.location = (0, 0.02, 0.42)
+        M.apply_transform(fur)
+        M.push_normals(fur, lambda co, n: 0.03 * M.fbm(co * 9) + 0.012 * M.fbm(co * 30))
         parts.append(M.assign(M.smooth(fur), fm))
-        # полоса меха по борту и серебряный узор-снежинки
-        parts.append(pillow("FurTrim", fm, body_surf, -0.4, 0.4, lambda u: 0.07, lambda u: -0.07, lift=0.06, base=-0.01,
-                            nu=24, nv=8, power=0.4, end=0.05, origin=(0.0, 0.0), angle=math.pi / 2))
-        silver = M.material("SilverThread", [(0.0, (0.75, 0.82, 0.95)), (1.0, (1.0, 1.0, 1.0))], coord="nz", lo=-1, hi=1,
-                            rough=0.3, metal=0.7)
+        trim_fur = pillow("FurTrim", fm, body_surf, -0.5, 0.3, lambda u: 0.075, lambda u: -0.075, lift=0.06, base=-0.01,
+                          nu=24, nv=8, power=0.4, end=0.05, origin=(0.0, 0.0), angle=math.pi / 2)
+        M.push_normals(trim_fur, lambda co, n: 0.012 * M.fbm(co * 20))
+        parts.append(trim_fur)
+        silver = M.material("SilverThread", [(0.0, (0.75, 0.82, 0.95)), (1.0, (1.0, 1.0, 1.0))],
+                            coord="nz", lo=-1, hi=1, rough=0.3, metal=0.7)
         flakes = []
-        for x, z in ((-0.55, 0.05), (0.55, 0.05), (-0.85, -0.15), (0.85, -0.15), (-0.3, -0.2), (0.3, -0.2)):
+        for x, z in ((-0.42, -0.1), (0.42, -0.1), (-0.75, 0.1), (0.75, 0.1)):
             p, n = body_surf(x, z, 0.01)
             for j in range(6):
                 a = math.pi * j / 3
                 d = Vector((math.cos(a), 0, math.sin(a)))
-                flakes.append(blob_matrix(p + d * 0.035, d, (0.04, 0.01, 0.008), n))
+                flakes.append(blob_matrix(p + d * 0.04, d, (0.045, 0.011, 0.008), n))
+                flakes.append(blob_matrix(p + d * 0.075, d.cross(Vector((0, 1, 0))), (0.018, 0.008, 0.007), n))
         parts.append(blobs("CoatFlakes", silver, flakes))
     elif kind == "ruffle":
-        # волнистый воротник-оборка в карамельную полоску
+        # волнистый воротник-оборка в карамельную полоску и бантик
         frill = M.material("Frill", [(0.0, (1.0, 0.98, 0.98)), (1.0, (1.0, 1.0, 1.0))], coord="z", lo=0.2, hi=0.6, rough=0.4,
                            sheen=0.6, coat=0.3)
         add_bands(frill, (1.0, 0.45, 0.65), axis="X", freq=7.0, width=0.3)
-        parts.append(collar_drape("Ruffle", frill, 0.0, 0.3, lift=0.03, scallops=18, amp=0.035, wave=0.05))
-        parts.append(collar_rib("Collar", frill, r=0.35, minor=0.055, ribs=0))
-        p, n = body_surf(0.0, 0.33, 0.03)
+        parts.append(collar_drape("Ruffle", frill, 0.0, 0.34, lift=0.03, scallops=18, amp=0.04, wave=0.05))
+        p, n = body_surf(0.0, 0.2, 0.05)
         bow_m = glossy("RuffleBow", (0.45, 0.78, 1.0), rough=0.2, coat=0.8)
         for s in (-1, 1):
-            w = ellipsoid(f"RBow{s}", (0.09, 0.03, 0.06), bow_m)
-            w.rotation_euler = (0, math.radians(s * 20), 0)
-            parts.append(placed(w, p + Vector((s * 0.08, -0.02, 0))))
+            parts.append(blobs(f"RBow{s}", bow_m, [blob_matrix(p + Vector((s * 0.08, -0.01, 0)), (1, 0, s * 0.35),
+                                                               (0.09, 0.055, 0.03), n)], 20, 12))
         parts.append(placed(ellipsoid("RBowKnot", (0.035, 0.03, 0.04), bow_m), p + Vector((0, -0.04, 0))))
     elif kind == "plaid":
-        parts.append(collar_rib("Collar", shirt, r=0.35, minor=0.06, ribs=0))
         denim = fabric_mat("Denim", (0.26, 0.40, 0.62), weave=160.0, bump=0.25, rough=0.7, lo=-0.6, hi=0.6)
         brass = gold_mat("Brass")
         gold_thread = thread_mat((0.95, 0.75, 0.3))
@@ -1851,8 +1919,6 @@ def collar_drape(name, mat, d0, d1, lift=0.03, scallops=0, amp=0.0, wave=0.0, nu
 
 def glasses(parts):
     frame = glossy("Frame", (0.15, 0.12, 0.12), rough=0.2, coat=0.8)
-    glass = M.material("Glass", [(0.0, (0.85, 0.92, 1.0)), (1.0, (1.0, 1.0, 1.0))], coord="z", lo=0, hi=1, rough=0.02,
-                       transmission=1.0, alpha=0.25, coat=1.0, coat_rough=0.0)
     for side in (-1, 1):
         x = side * EYE_X
         p, n = head_surf(x, HEAD_Z + EYE_DZ, 0.085)
@@ -1861,12 +1927,8 @@ def glasses(parts):
         ring.matrix_world = Matrix.Translation(p) @ rot
         M.apply_transform(ring)
         parts.append(M.assign(M.smooth(ring), frame))
-        sh = ellipsoid(f"LensShine{side}", (0.055, 0.008, 0.022), M.flat("LensShineM", (1, 1, 1), rough=0.1), 16, 8)
-        sh.matrix_world = Matrix.Translation(p + Vector((-0.08, -0.01, 0.1))) @ rot @ Matrix.Rotation(math.radians(90), 4, "X") @ \
-            Matrix.Rotation(math.radians(35), 4, "Y")
-        M.apply_transform(sh)
-        sh.data.materials[0].node_tree.nodes["Principled BSDF"].inputs["Alpha"].default_value = 0.7
-        parts.append(sh)
+        parts.append(blobs(f"LensShine{side}", M.flat("LensShineM", (1, 1, 1), rough=0.1, alpha=0.75),
+                           [blob_matrix(p + Vector((-0.085, -0.01, 0.1)), (1, 0, -0.7), (0.06, 0.018, 0.006), n)], 16, 8))
         temple = M.tube(f"Temple{side}", [p + Vector((side * 0.19, 0.03, 0.02)), Vector((side * 0.82, -0.45, HEAD_Z + 0.06)),
                                           Vector((side * 0.99, -0.05, HEAD_Z + 0.05))], 0.02)
         parts.append(M.assign(M.smooth(temple), frame))
@@ -1888,11 +1950,8 @@ def monocle(parts):
     ring.matrix_world = Matrix.Translation(p) @ rot
     M.apply_transform(ring)
     parts.append(M.assign(M.smooth(ring), gold))
-    sh = ellipsoid("MonocleShine", (0.07, 0.008, 0.025), M.flat("MonoShine", (1, 1, 1), rough=0.1), 16, 8)
-    sh.matrix_world = Matrix.Translation(p + Vector((-0.06, -0.012, 0.11))) @ rot @ Matrix.Rotation(math.radians(90), 4, "X") @ \
-        Matrix.Rotation(math.radians(30), 4, "Y")
-    M.apply_transform(sh)
-    parts.append(sh)
+    parts.append(blobs("MonocleShine", M.flat("MonoShine", (1, 1, 1), rough=0.1, alpha=0.8),
+                       [blob_matrix(p + Vector((-0.08, -0.012, 0.1)), (1, 0, -0.7), (0.065, 0.018, 0.006), n)], 16, 8))
     chain_pts = [p + Vector((0.16, -0.02, -0.1)), Vector((0.62, -0.7, HEAD_Z - 0.45)), Vector((0.6, -0.62, HEAD_Z - 0.8))]
     links_m = []
     path, L = resample(catmull(chain_pts, 12), 40)
@@ -1974,7 +2033,9 @@ def build(spec, mood, face_on=True):
         blush *= 0.75
     skin_m = skin_mat(skin, blush)
     hm = [hair_mat(f"Hair{k}" if k else "Hair", hair_col, k=kk) for k, kk in enumerate((1.0, 0.9, 1.1))]
-    base_m = M.flat("HairBase", shade(hair_col, 0.45), rough=0.6)
+    # основа под прядями того же цвета, только темнее: просветы читаются как глубина, а не как дырки
+    base_m = M.material("HairBase", [(0.0, shade(hair_col, 0.42)), (1.0, shade(hair_col, 0.78))], coord="z",
+                        lo=HEAD_Z - 0.4, hi=HEAD_Z + 1.0, rough=0.5, coat=0.2)
     parts = []
 
     head = M.sphere("Head", 1.0, 96, 64)
@@ -1994,12 +2055,18 @@ def build(spec, mood, face_on=True):
     M.assign(neck, skin_m)
     parts.append(neck)
     garment(extra.get("garment", "plain"), shirt_col, parts)
+    nose = ellipsoid("Nose", (0.068, 0.05, 0.056), skin_m, 24, 16)
+    p, n = head_surf(0.0, HEAD_Z - 0.12, 0.0)
+    parts.append(placed(nose, p - n * 0.012))
 
     if face_on:
         brow_col = (0.16, 0.1, 0.07) if style == "bald" else None
         if style == "tophat":
             brow_col = (0.62, 0.60, 0.60)
-        parts += face(mood, extra.get("eyes", "brown"), skin_m, hair_col, brow_col, glasses=(acc == "glasses"))
+        # под усами рот чуть ниже, чтобы открытый рот не прятался под ними
+        mdz = -0.045 if acc in ("moustache", "bandana", "gourmet") else 0.0
+        parts += face(mood, extra.get("eyes", "brown"), skin_m, hair_col, brow_col, glasses=(acc == "glasses"),
+                      mouth_dz=mdz)
 
     # прическа
     hl = None
@@ -2016,7 +2083,7 @@ def build(spec, mood, face_on=True):
         hl = hairline_default(56, 90, 112)
         parts += hair_bangs(hm, rnd)
     elif style == "curly":
-        hl = hairline_default(56, 84, 110)
+        hl = hairline_default(50, 78, 104)
         parts += hair_curly(hm, rnd)
     elif style == "bun":
         hl = hairline_default(60, 86, 114)
@@ -2059,7 +2126,7 @@ def build(spec, mood, face_on=True):
     elif style == "snowmaiden":
         hat_snowmaiden(parts)
         for side in (-1, 1):
-            parts += braid(side, hm, rnd)
+            parts += braid(side, hm, rnd, hair_col)
     elif style == "fairy":
         hat_tiara(parts)
     elif style in ("cowboy", "straw"):
@@ -2081,7 +2148,7 @@ def build(spec, mood, face_on=True):
     return parts
 
 
-def braid(side, hm, rnd):
+def braid(side, hm, rnd, hair_col):
     """Коса через плечо: чередующиеся дольки-пряди, резинка и кисточка."""
     parts = []
     ctrl = [Vector((side * 0.86, 0.1, HEAD_Z - 0.1)), Vector((side * 0.98, -0.25, HEAD_Z - 0.75)),
@@ -2101,7 +2168,7 @@ def braid(side, hm, rnd):
         s = 1 if k % 2 else -1
         axis = (T + sideways * s * 0.9).normalized()
         mats.append(blob_matrix(p + sideways * s * r * 0.45 + out * 0.01, axis, (r * 1.15, r * 0.62, r * 0.75), out))
-    bm = blobs(f"Braid{side}", hm[0], mats, 24, 14)
+    bm = blobs(f"Braid{side}", hair_mat("BraidMat", hair_col, lo=-0.4, hi=HEAD_Z, uv=False), mats, 24, 14)
     parts.append(bm)
     core = strand(f"BraidCore{side}", hm[1], ctrl[:3] + [ctrl[3] * 0.98 + path[-1] * 0.02], 0.1, 0.1, n=40, tip=0.05,
                   root_w=1.0, up=Vector((side, -0.6, 0)), blunt=True, groove=0.0, flat=1.0)
