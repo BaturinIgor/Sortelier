@@ -270,6 +270,250 @@
    "id": "panna_cotta",
    "kind": "snack",
    "biome": 3
+  },
+  {
+   "id": "masa",
+   "kind": "raw",
+   "biome": 4,
+   "chain": "tortilla"
+  },
+  {
+   "id": "tortilla",
+   "kind": "chain",
+   "biome": 4
+  },
+  {
+   "id": "beef",
+   "kind": "ingredient",
+   "biome": 4
+  },
+  {
+   "id": "salsa",
+   "kind": "ingredient",
+   "biome": 4
+  },
+  {
+   "id": "beans",
+   "kind": "ingredient",
+   "biome": 4
+  },
+  {
+   "id": "chili",
+   "kind": "ingredient",
+   "biome": 4
+  },
+  {
+   "id": "lime",
+   "kind": "ingredient",
+   "biome": 4
+  },
+  {
+   "id": "onion",
+   "kind": "ingredient",
+   "biome": 4
+  },
+  {
+   "id": "nachos",
+   "kind": "snack",
+   "biome": 4
+  },
+  {
+   "id": "churros",
+   "kind": "snack",
+   "biome": 4
+  },
+  {
+   "id": "horchata",
+   "kind": "snack",
+   "biome": 4
+  },
+  {
+   "id": "tamale",
+   "kind": "snack",
+   "biome": 4
+  },
+  {
+   "id": "flan",
+   "kind": "snack",
+   "biome": 4
+  },
+  {
+   "id": "concha",
+   "kind": "snack",
+   "biome": 4
+  },
+  {
+   "id": "paleta",
+   "kind": "snack",
+   "biome": 4
+  },
+  {
+   "id": "butter",
+   "kind": "ingredient",
+   "biome": 5
+  },
+  {
+   "id": "chocolate",
+   "kind": "ingredient",
+   "biome": 5
+  },
+  {
+   "id": "strawberry",
+   "kind": "ingredient",
+   "biome": 5
+  },
+  {
+   "id": "cream",
+   "kind": "ingredient",
+   "biome": 5
+  },
+  {
+   "id": "sugar",
+   "kind": "ingredient",
+   "biome": 5
+  },
+  {
+   "id": "macaron",
+   "kind": "snack",
+   "biome": 5
+  },
+  {
+   "id": "madeleine",
+   "kind": "snack",
+   "biome": 5
+  },
+  {
+   "id": "brioche",
+   "kind": "snack",
+   "biome": 5
+  },
+  {
+   "id": "canele",
+   "kind": "snack",
+   "biome": 5
+  },
+  {
+   "id": "meringue",
+   "kind": "snack",
+   "biome": 5
+  },
+  {
+   "id": "cafe_creme",
+   "kind": "snack",
+   "biome": 5
+  },
+  {
+   "id": "millefeuille",
+   "kind": "snack",
+   "biome": 5
+  },
+  {
+   "id": "pumpkin",
+   "kind": "ingredient",
+   "biome": 0,
+   "event": "halloween"
+  },
+  {
+   "id": "caramel_apple",
+   "kind": "snack",
+   "biome": 0,
+   "event": "halloween"
+  },
+  {
+   "id": "ghost_cookie",
+   "kind": "snack",
+   "biome": 0,
+   "event": "halloween"
+  },
+  {
+   "id": "candy_corn",
+   "kind": "snack",
+   "biome": 0,
+   "event": "halloween"
+  },
+  {
+   "id": "marshmallow",
+   "kind": "ingredient",
+   "biome": 0,
+   "event": "winter"
+  },
+  {
+   "id": "gingerbread",
+   "kind": "snack",
+   "biome": 0,
+   "event": "winter"
+  },
+  {
+   "id": "candy_cane",
+   "kind": "snack",
+   "biome": 0,
+   "event": "winter"
+  },
+  {
+   "id": "mandarin",
+   "kind": "snack",
+   "biome": 0,
+   "event": "winter"
+  },
+  {
+   "id": "lollipop",
+   "kind": "snack",
+   "biome": 0,
+   "event": "sweets"
+  },
+  {
+   "id": "cotton_candy",
+   "kind": "snack",
+   "biome": 0,
+   "event": "sweets"
+  },
+  {
+   "id": "cake_slice",
+   "kind": "snack",
+   "biome": 0,
+   "event": "sweets"
+  },
+  {
+   "id": "watermelon",
+   "kind": "snack",
+   "biome": 0,
+   "event": "bbq"
+  },
+  {
+   "id": "lemonade",
+   "kind": "snack",
+   "biome": 0,
+   "event": "bbq"
+  },
+  {
+   "id": "smores",
+   "kind": "snack",
+   "biome": 0,
+   "event": "bbq"
+  },
+  {
+   "id": "apple",
+   "kind": "ingredient",
+   "biome": 0,
+   "event": "autumn"
+  },
+  {
+   "id": "chestnuts",
+   "kind": "snack",
+   "biome": 0,
+   "event": "autumn"
+  },
+  {
+   "id": "cider",
+   "kind": "snack",
+   "biome": 0,
+   "event": "autumn"
+  },
+  {
+   "id": "cinnamon_bun",
+   "kind": "snack",
+   "biome": 0,
+   "event": "autumn"
   }
  ],
  "dishes": [
@@ -416,6 +660,155 @@
     "olive_oil"
    ],
    "biome": 3
+  },
+  {
+   "id": "taco",
+   "ingredients": [
+    "tortilla",
+    "beef",
+    "salsa"
+   ],
+   "biome": 4
+  },
+  {
+   "id": "limeade",
+   "ingredients": [
+    "lime",
+    "lime",
+    "lime"
+   ],
+   "biome": 4
+  },
+  {
+   "id": "guacamole",
+   "ingredients": [
+    "avocado",
+    "lime",
+    "onion"
+   ],
+   "biome": 4
+  },
+  {
+   "id": "quesadilla",
+   "ingredients": [
+    "tortilla",
+    "cheese",
+    "chili"
+   ],
+   "biome": 4
+  },
+  {
+   "id": "burrito",
+   "ingredients": [
+    "tortilla",
+    "beans",
+    "rice"
+   ],
+   "biome": 4
+  },
+  {
+   "id": "croissant",
+   "ingredients": [
+    "dough",
+    "butter",
+    "egg"
+   ],
+   "biome": 5
+  },
+  {
+   "id": "crepes",
+   "ingredients": [
+    "egg",
+    "milk",
+    "sugar"
+   ],
+   "biome": 5
+  },
+  {
+   "id": "truffles",
+   "ingredients": [
+    "chocolate",
+    "chocolate",
+    "chocolate"
+   ],
+   "biome": 5
+  },
+  {
+   "id": "pain_chocolat",
+   "ingredients": [
+    "dough",
+    "butter",
+    "chocolate"
+   ],
+   "biome": 5
+  },
+  {
+   "id": "eclair",
+   "ingredients": [
+    "dough",
+    "cream",
+    "chocolate"
+   ],
+   "biome": 5
+  },
+  {
+   "id": "tart",
+   "ingredients": [
+    "dough",
+    "strawberry",
+    "cream"
+   ],
+   "biome": 5
+  },
+  {
+   "id": "pumpkin_soup",
+   "ingredients": [
+    "pumpkin",
+    "milk",
+    "bread"
+   ],
+   "biome": 0,
+   "event": "halloween"
+  },
+  {
+   "id": "hot_cocoa",
+   "ingredients": [
+    "milk",
+    "chocolate",
+    "marshmallow"
+   ],
+   "biome": 0,
+   "event": "winter"
+  },
+  {
+   "id": "sundae",
+   "ingredients": [
+    "icecream",
+    "strawberry",
+    "chocolate"
+   ],
+   "biome": 0,
+   "event": "sweets"
+  },
+  {
+   "id": "kebab",
+   "ingredients": [
+    "beef",
+    "onion",
+    "tomato"
+   ],
+   "biome": 0,
+   "event": "bbq"
+  },
+  {
+   "id": "charlotte",
+   "ingredients": [
+    "apple",
+    "egg",
+    "sugar"
+   ],
+   "biome": 0,
+   "event": "autumn"
   }
  ]
 }

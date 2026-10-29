@@ -12,7 +12,7 @@ func rewardAmount(_ item: RewardItem, short: Bool = true) -> String {
     case let .lives(n): return "+\(n)"
     case let .energy(n): return "+\(n)"
     case let .chest(_, n): return "×\(n)"
-    case .background: return ""
+    case .background, .guest: return ""
     }
 }
 

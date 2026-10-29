@@ -13,6 +13,8 @@ enum RewardItem: Identifiable, Hashable {
     case energy(Int)
     case chest(ChestKind, Int)
     case background(String)
+    /// Гость ивента: покупатель в костюме, который потом заходит на уровни карты.
+    case guest(String)
 
     var id: String {
         switch self {
@@ -23,6 +25,7 @@ enum RewardItem: Identifiable, Hashable {
         case .energy: return "energy"
         case let .chest(k, _): return "chest." + k.rawValue
         case let .background(bg): return "bg." + bg
+        case let .guest(g): return "guest." + g
         }
     }
 }
@@ -36,6 +39,8 @@ struct Reward: Codable, Hashable {
     var background: String?
     var energy = 0
     var chests: [String: Int] = [:]
+    /// Гость ивента (Guests).
+    var guest: String?
 
     init(coins: Int = 0, boosters: [Booster: Int] = [:], unlimitedMinutes: Int = 0, lives: Int = 0,
          rareCard: Bool = false, background: String? = nil, energy: Int = 0, chests: [ChestKind: Int] = [:]) {
@@ -59,6 +64,7 @@ struct Reward: Codable, Hashable {
         background = try c.decodeIfPresent(String.self, forKey: .background)
         energy = try c.decodeIfPresent(Int.self, forKey: .energy) ?? 0
         chests = try c.decodeIfPresent([String: Int].self, forKey: .chests) ?? [:]
+        guest = try c.decodeIfPresent(String.self, forKey: .guest)
     }
 
     var chestList: [(ChestKind, Int)] {
@@ -93,12 +99,13 @@ struct Reward: Codable, Hashable {
         }
         for (k, n) in chestsAll { out.append(.chest(k, n)) }
         if let bg = background { out.append(.background(bg)) }
+        if let g = guest { out.append(.guest(g)) }
         return out
     }
 
     var isEmpty: Bool {
         coins == 0 && boosterList.isEmpty && unlimitedMinutes == 0 && lives == 0 && !rareCard && background == nil && energy == 0
-            && chestList.isEmpty
+            && chestList.isEmpty && guest == nil
     }
 
     static func + (a: Reward, b: Reward) -> Reward {
@@ -109,6 +116,7 @@ struct Reward: Codable, Hashable {
         r.lives += b.lives
         r.rareCard = a.rareCard || b.rareCard
         r.background = a.background ?? b.background
+        r.guest = a.guest ?? b.guest
         r.energy += b.energy
         for (k, v) in b.chests { r.chests[k, default: 0] += v }
         return r
@@ -184,6 +192,8 @@ struct MetaData: Codable {
     var chestInventory: [String: Int] = [:]
     var race = RaceState()
     var achievementTrack: [Int] = []
+    /// Гости ивентов, которые заходят на уровни карты.
+    var guests: [String] = []
 
     init() {}
 
@@ -217,6 +227,7 @@ struct MetaData: Codable {
         chestInventory = try c.decodeIfPresent([String: Int].self, forKey: .chestInventory) ?? [:]
         race = try c.decodeIfPresent(RaceState.self, forKey: .race) ?? RaceState()
         achievementTrack = try c.decodeIfPresent([Int].self, forKey: .achievementTrack) ?? []
+        guests = try c.decodeIfPresent([String].self, forKey: .guests) ?? []
     }
 }
 
@@ -489,6 +500,9 @@ struct KitchenStyle: Identifiable {
         KitchenStyle(id: "bbq", price: 0, source: .event),
         KitchenStyle(id: "japan", price: 0, source: .biome),
         KitchenStyle(id: "italy", price: 0, source: .biome),
+        KitchenStyle(id: "mexico", price: 0, source: .biome),
+        KitchenStyle(id: "bakery", price: 0, source: .biome),
+        KitchenStyle(id: "halloween", price: 0, source: .event),
         KitchenStyle(id: "gourmet", price: 0, source: .gourmet)
     ]
 
@@ -501,9 +515,12 @@ struct KitchenStyle: Identifiable {
 // MARK: - Стрик и серия шефа
 
 enum StreakRewards {
-    static let coins = [20, 30, 40, 60, 80, 100, 200]
-    static let freezePrice = 150
-    static let maxFreezes = 2
+    static var coins: [Int] {
+        let list = RemoteConfig.shared.ints("balance.streakCoins", [20, 30, 40, 60, 80, 100, 200])
+        return list.count == 7 ? list : [20, 30, 40, 60, 80, 100, 200]
+    }
+    static var freezePrice: Int { RemoteConfig.shared.int("balance.streakFreezePrice", 150) }
+    static var maxFreezes: Int { RemoteConfig.shared.int("balance.streakMaxFreezes", 2) }
 
     static func reward(day: Int) -> Reward {
         let i = max(1, min(7, day)) - 1

@@ -19,6 +19,26 @@ enum UIDebug {
         if demo { PlayerProgress.shared.debugFillDemo() }
     }
 
+    /// Уровень сразу после запуска: -uiLevel 96 (карта) или -uiEvent halloween:4 (уровень ивента).
+    static func levelLaunch() -> LevelLaunch? {
+        if let id = value("uiLevel").flatMap(Int.init), let level = LevelStore.shared.level(id) {
+            return LevelLaunch(level: level, mode: .main)
+        }
+        if let spec = value("uiEvent") {
+            let parts = spec.split(separator: ":").map(String.init)
+            let theme = parts[0]
+            let index = parts.count > 1 ? Int(parts[1]) ?? 0 : 0
+            let levels = EventLevelStore.shared.levels(theme: theme)
+            guard levels.indices.contains(index) else { return nil }
+            let id = EventCalendar.active().first { $0.kind == .season }?.id ?? "season-debug"
+            return LevelLaunch(level: levels[index], mode: .event(id, theme, index))
+        }
+        return nil
+    }
+
+    /// Сколько ходов подсказки сделать сразу: снимок уровня в середине игры (-uiAutoplay 6).
+    static var autoplay: Int { value("uiAutoplay").flatMap(Int.init) ?? 0 }
+
     static func apply(_ router: Router) {
         guard let screen = value("uiScreen") else { return }
         switch screen {
@@ -35,6 +55,7 @@ enum UIDebug {
         case "lives": router.lives = true
         case "streak": router.streak = true
         case "merge": router.merge = true
+        case "eventmap": router.tab = .events; router.eventsSection = .events
         default: router.tab = .map
         }
         if let kind = value("uiInfo") {
@@ -54,6 +75,12 @@ extension PlayerProgress {
         d.livesUpdatedAt = Date()
         for id in 1...34 { d.stars["\(id)"] = [3, 2, 3, 3, 1][id % 5] }
         d.meta.biomes = [1, 2]
+        // все интро уровней уже показаны: снимки сразу с полем
+        if UIDebug.args.contains("-uiNoIntro") {
+            d.seenIntros = ["basics", "patience", "recipes", "hidden", "conflict", "onigiri", "ice", "gourmet", "juice", "dough",
+                            "lock", "masa", "limeade", "key", "bakery", "truffles", "chain"]
+            d.meta.biomes = [1, 2, 3, 4, 5]
+        }
         let stats: [Stat: Int] = [.levelsWon: 34, .served: 260, .tips: 120, .dishes: 40, .triples: 150, .threeStars: 20,
                                   .maxCombo: 6, .boostersUsed: 12, .chests: 3, .merges: 40, .albumCards: 20,
                                   .coinsEarned: 9000, .dailyDone: 4, .streakBest: 3, .gourmets: 3]

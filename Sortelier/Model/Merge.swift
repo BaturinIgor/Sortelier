@@ -67,11 +67,11 @@ struct MergeData: Codable {
 enum MergeBalance {
     static let cols = 7
     static let rows = 8
-    static let maxEnergy = 30
-    static let energyRegen: TimeInterval = 3 * 60
-    static let adEnergy = 10
-    static let buyEnergy = 10
-    static let buyEnergyPrice = 60
+    static var maxEnergy: Int { RemoteConfig.shared.int("balance.energyMax", 30) }
+    static var energyRegen: TimeInterval { TimeInterval(RemoteConfig.shared.int("balance.energyRegenSeconds", 180)) }
+    static var adEnergy: Int { RemoteConfig.shared.int("balance.energyAd", 10) }
+    static var buyEnergy: Int { RemoteConfig.shared.int("balance.energyBuy", 10) }
+    static var buyEnergyPrice: Int { RemoteConfig.shared.int("balance.energyBuyPrice", 60) }
     static let orderSlots = 3
     /// Ящик с припасами за рекламу: столько предметов первых ступеней.
     static let supplyItems = 3

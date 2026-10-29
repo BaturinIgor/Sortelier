@@ -3353,7 +3353,23 @@ def render(sprite_id, out_dir, size=360, spin_frames=0, samples=96):
         bpy.ops.render.render(write_still=True)
 
 
+# Модели новых кухонь и ивентов лежат в отдельных модулях: каждый добавляет свои функции в MODELS.
+EXTENSIONS = ("models_mexico", "models_bakery", "models_events")
+
+
+def load_extensions():
+    # модули пишут "import models as M": при запуске скриптом это должен быть этот же модуль
+    sys.modules.setdefault("models", sys.modules[__name__])
+    for name in EXTENSIONS:
+        try:
+            __import__(name)
+        except ModuleNotFoundError as e:
+            if e.name != name:
+                raise
+
+
 def main():
+    load_extensions()
     ap = argparse.ArgumentParser()
     ap.add_argument("out")
     ap.add_argument("--only", default="")

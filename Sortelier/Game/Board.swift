@@ -61,6 +61,39 @@ struct MoveOutcome {
     }
 }
 
+/// Цепь между двумя полками: положил продукт на одну - вторая заблокирована, пока первая не сработает.
+/// Когда обе полки хоть раз сработали, цепь снимается.
+struct ChainLink: Hashable {
+    let a: Int
+    let b: Int
+    /// Полка пары, на которую положили продукт и которая еще не сработала.
+    var last: Int?
+    var firedA = false
+    var firedB = false
+
+    init(a: Int, b: Int) {
+        self.a = a
+        self.b = b
+    }
+
+    var broken: Bool { firedA && firedB }
+
+    func contains(_ s: Int) -> Bool { s == a || s == b }
+
+    func other(_ s: Int) -> Int { s == a ? b : a }
+
+    func blocks(_ s: Int) -> Bool { contains(s) && last == other(s) }
+
+    func hasFired(_ s: Int) -> Bool { s == a ? firedA : firedB }
+
+    mutating func fired(_ s: Int) {
+        if last == s { last = nil }
+        if s == a { firedA = true }
+        if s == b { firedB = true }
+        if broken { last = nil }
+    }
+}
+
 /// Правила поля. Должны совпадать с tools/levels/rules.py, по которому проверены уровни.
 struct Board {
     static let slots = 3
@@ -78,6 +111,10 @@ struct Board {
     let tipMax: Int
     /// Замки полок: сколько покупателей надо обслужить, чтобы открыть полку.
     private(set) var locks: [Int]
+    /// Замки с ключом: полка закрыта, пока не обслужен заказ с этим спрайтом (продукт или "dish_<блюдо>").
+    private(set) var keys: [String?]
+    /// Цепи между полками. Совпадают с Obstacles в rules.py.
+    private(set) var chains: [ChainLink]
     /// Сколько покупателей уже обслужено: по этому числу тает лед и открываются замки.
     private(set) var served = 0
     /// Сколько ходов терпение еще стоит на паузе (бустер).
@@ -129,6 +166,13 @@ struct Board {
         var locks = level.locks ?? []
         while locks.count < built.count { locks.append(0) }
         self.locks = locks
+        var keys: [String?] = (level.keys ?? []).map { ($0?.isEmpty ?? true) ? nil : $0 }
+        while keys.count < built.count { keys.append(nil) }
+        self.keys = keys
+        self.chains = (level.chains ?? []).compactMap { pair in
+            guard pair.count == 2, pair[0] != pair[1], built.indices.contains(pair[0]), built.indices.contains(pair[1]) else { return nil }
+            return ChainLink(a: pair[0], b: pair[1])
+        }
         self.nextUid = uid + 1000
         self.catalog = catalog
         for s in shelves.indices { normalize(s) }
@@ -147,21 +191,35 @@ struct Board {
     }
 
     var hasFreeSlot: Bool {
-        shelves.indices.contains { !isLocked($0) && freeSlot(in: $0) != nil }
+        shelves.indices.contains { !isClosed($0) && freeSlot(in: $0) != nil }
     }
 
     /// Нет ни одного хода: все продукты во льду или нет свободного места на другой полке.
     var isStuck: Bool { !isWon && !hasMove }
 
     var hasMove: Bool {
-        for s in shelves.indices where !isLocked(s) {
+        for s in shelves.indices where !isClosed(s) {
             guard shelves[s][0].contains(where: { $0 != nil && !isFrozen($0!) }) else { continue }
-            if shelves.indices.contains(where: { $0 != s && !isLocked($0) && freeSlot(in: $0) != nil }) { return true }
+            if shelves.indices.contains(where: { $0 != s && !isClosed($0) && freeSlot(in: $0) != nil }) { return true }
         }
         return false
     }
 
-    func isLocked(_ shelf: Int) -> Bool { locks.indices.contains(shelf) && locks[shelf] > served }
+    /// Полка заперта: замок по числу обслуженных или замок с ключом.
+    func isLocked(_ shelf: Int) -> Bool {
+        (locks.indices.contains(shelf) && locks[shelf] > served) || key(shelf) != nil
+    }
+
+    /// Продукт-ключ на замке полки (спрайт), если замок еще висит.
+    func key(_ shelf: Int) -> String? { keys.indices.contains(shelf) ? keys[shelf] : nil }
+
+    /// Полка заблокирована цепью: на парную полку положили продукт, и она еще не сработала.
+    func isChained(_ shelf: Int) -> Bool {
+        chains.contains { !$0.broken && $0.blocks(shelf) }
+    }
+
+    /// С полки нельзя брать и на нее нельзя класть.
+    func isClosed(_ shelf: Int) -> Bool { isLocked(shelf) || isChained(shelf) }
 
     /// Сколько еще покупателей до открытия полки.
     func lockLeft(_ shelf: Int) -> Int { locks.indices.contains(shelf) ? max(0, locks[shelf] - served) : 0 }
@@ -172,7 +230,7 @@ struct Board {
     func iceLeft(_ piece: Piece) -> Int { max(0, piece.ice - served) }
 
     /// Можно ли положить продукт на полку.
-    func canPlace(on shelf: Int) -> Bool { !isLocked(shelf) && freeSlot(in: shelf) != nil }
+    func canPlace(on shelf: Int) -> Bool { !isClosed(shelf) && freeSlot(in: shelf) != nil }
 
     func front(_ shelf: Int) -> [Piece?] { shelves[shelf][0] }
 
@@ -186,11 +244,12 @@ struct Board {
 
     mutating func move(from src: Int, slot: Int, to dst: Int) -> MoveOutcome? {
         guard src != dst, shelves.indices.contains(src), shelves.indices.contains(dst),
-              slot >= 0, slot < Board.slots, !isLocked(src), !isLocked(dst),
+              slot >= 0, slot < Board.slots, !isClosed(src), !isClosed(dst),
               let piece = shelves[src][0][slot], !isFrozen(piece),
               let target = freeSlot(in: dst) else { return nil }
         shelves[src][0][slot] = nil
         shelves[dst][0][target] = piece
+        for i in chains.indices where !chains[i].broken && chains[i].contains(dst) { chains[i].last = dst }
         var changed: [Int] = []
         if shelves[src][0].allSatisfy({ $0 == nil }) && shelves[src].count > 1 {
             shelves[src].removeFirst()
@@ -213,6 +272,7 @@ struct Board {
     mutating func addShelf() {
         shelves.append([[nil, nil, nil]])
         locks.append(0)
+        keys.append(nil)
     }
 
     /// Бустер "Пауза терпения".
@@ -225,7 +285,7 @@ struct Board {
     mutating func shuffleFront() -> Bool {
         var slots: [(Int, Int)] = []
         var pieces: [Piece] = []
-        for s in shelves.indices where !isLocked(s) {
+        for s in shelves.indices where !isClosed(s) {
             for k in 0..<Board.slots {
                 if let piece = shelves[s][0][k], !isFrozen(piece) {
                     slots.append((s, k))
@@ -288,6 +348,10 @@ struct Board {
                   let index = queue.firstIndex(where: { $0.order == result }) else { continue }
             let customer = queue.remove(at: index)
             served += 1
+            // ключ: заказ с этим продуктом обслужен - замки с ним открываются
+            let sprite = Art.sprite(for: result)
+            for k in keys.indices where keys[k] == sprite { keys[k] = nil }
+            for i in chains.indices where !chains[i].broken && chains[i].contains(s) { chains[i].fired(s) }
             events.append(.fire(Fire(shelf: s, pieces: front.compactMap { $0 }, order: result, queueIndex: index,
                                      customer: customer, tip: tip(for: customer))))
             shelves[s][0] = [nil, nil, nil]
@@ -305,7 +369,7 @@ struct Board {
     /// Лучший ход на один шаг вперед: срабатывание, потом заготовка тройки или рецепта.
     func hint() -> (from: Int, slot: Int, to: Int)? {
         var best: (score: Double, move: (Int, Int, Int))?
-        for s in shelves.indices where !isLocked(s) {
+        for s in shelves.indices where !isClosed(s) {
             var seen = Set<String>()
             for k in 0..<Board.slots {
                 guard let piece = shelves[s][0][k], !isFrozen(piece), !seen.contains(piece.item) else { continue }

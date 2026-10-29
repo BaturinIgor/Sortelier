@@ -20,15 +20,28 @@ struct GameEvent: Identifiable, Equatable {
 }
 
 enum EventCalendar {
-    /// Темы сезонного ивента по месяцам: первая и вторая половина.
-    static let seasonThemes: [Int: [String]] = [
+    /// Темы сезонного ивента по месяцам: первая и вторая половина. Конфиг может заменить ("events.seasonThemes").
+    static let defaultThemes: [Int: [String]] = [
         1: ["winter", "sweets"], 2: ["sweets", "winter"], 3: ["sweets", "bbq"], 4: ["bbq", "sweets"],
         5: ["bbq", "sweets"], 6: ["bbq", "sweets"], 7: ["bbq", "sweets"], 8: ["bbq", "autumn"],
-        9: ["autumn", "sweets"], 10: ["autumn", "sweets"], 11: ["autumn", "winter"], 12: ["winter", "sweets"]
+        9: ["autumn", "sweets"], 10: ["autumn", "halloween"], 11: ["autumn", "winter"], 12: ["sweets", "winter"]
     ]
-    static let huntItems = ["egg", "tomato", "honey", "corn"]
+    static let defaultHuntItems = ["egg", "tomato", "honey", "corn"]
+
+    /// Темы, для которых в игре есть уровни, продукты и фон.
+    static let themes = ["halloween", "winter", "sweets", "bbq", "autumn"]
 
     private static var calendar: Calendar { Calendar.current }
+    private static var config: RemoteConfig { .shared }
+
+    static var huntItems: [String] { config.strings("events.huntItems", defaultHuntItems) }
+
+    static func seasonTheme(month: Int, firstHalf: Bool) -> String {
+        let fromConfig = (config.dict("events.seasonThemes")?[String(month)] as? [String]).flatMap { $0.count == 2 ? $0 : nil }
+        let pair = fromConfig ?? defaultThemes[month] ?? ["sweets", "sweets"]
+        let theme = pair[firstHalf ? 0 : 1]
+        return themes.contains(theme) ? theme : "sweets"
+    }
 
     static func active(_ now: Date = Date()) -> [GameEvent] {
         [season(now), hunt(now), race(now), double(now)].compactMap { $0 }
@@ -38,19 +51,44 @@ enum EventCalendar {
         active(now).first { $0.id == id }
     }
 
-    static func season(_ now: Date) -> GameEvent {
+    /// Ивенты, заданные в конфиге датами: [{"theme": "halloween", "start": "2026-10-24", "end": "2026-11-08"}].
+    private static func scheduled(_ path: String, _ now: Date) -> (start: Date, end: Date, entry: [String: Any])? {
+        for entry in config.list(path) {
+            guard let start = RemoteConfig.date(entry["start"]), let end = RemoteConfig.date(entry["end"]),
+                  start <= now, now < end else { continue }
+            return (start, end, entry)
+        }
+        return nil
+    }
+
+    static func season(_ now: Date) -> GameEvent? {
+        if let s = scheduled("events.season", now), let theme = s.entry["theme"] as? String, themes.contains(theme) {
+            return GameEvent(kind: .season, theme: theme, start: s.start, end: s.end)
+        }
+        guard config.bool("events.seasonAuto", true) else { return nil }
         let c = calendar.dateComponents([.year, .month, .day], from: now)
         let month = c.month ?? 1
         let firstHalf = (c.day ?? 1) <= 15
         let monthStart = calendar.date(from: DateComponents(year: c.year, month: month, day: 1)) ?? now
         let mid = calendar.date(byAdding: .day, value: 15, to: monthStart) ?? now
         let next = calendar.date(byAdding: .month, value: 1, to: monthStart) ?? now
-        let theme = seasonThemes[month]?[firstHalf ? 0 : 1] ?? "sweets"
+        let theme = seasonTheme(month: month, firstHalf: firstHalf)
+        // ивент из конфига, который только что закончился, не повторяем до конца половины месяца
+        if let last = config.list("events.season").compactMap({ e -> (Date, Date)? in
+            guard let a = RemoteConfig.date(e["start"]), let b = RemoteConfig.date(e["end"]) else { return nil }
+            return (a, b)
+        }).first(where: { $0.1 <= now && $0.1 > (firstHalf ? monthStart : mid) }) {
+            return GameEvent(kind: .season, theme: theme, start: last.1, end: firstHalf ? mid : next)
+        }
         return GameEvent(kind: .season, theme: theme, start: firstHalf ? monthStart : mid, end: firstHalf ? mid : next)
     }
 
     /// Охота: 3 дня из каждых 4.
     static func hunt(_ now: Date) -> GameEvent? {
+        if let s = scheduled("events.hunt", now), let item = s.entry["item"] as? String {
+            return GameEvent(kind: .hunt, theme: item, start: s.start, end: s.end)
+        }
+        guard config.bool("events.huntAuto", true) else { return nil }
         let index = Day.index(now)
         let phase = index % 4
         guard phase < 3 else { return nil }
@@ -63,6 +101,7 @@ enum EventCalendar {
 
     /// Гонка поваров: каждый день, заезды обновляются в полночь.
     static func race(_ now: Date) -> GameEvent? {
+        guard config.bool("events.race.enabled", true) else { return nil }
         let today = calendar.startOfDay(for: now)
         let end = calendar.date(byAdding: .day, value: 1, to: today) ?? today
         return GameEvent(kind: .race, theme: "", start: today, end: end)
@@ -70,6 +109,11 @@ enum EventCalendar {
 
     /// Двойные выходные: суббота и воскресенье.
     static func double(_ now: Date) -> GameEvent? {
+        // дополнительные двойные дни из конфига (праздники)
+        if let s = scheduled("events.double.extra", now) {
+            return GameEvent(kind: .double, theme: "", start: s.start, end: s.end)
+        }
+        guard config.bool("events.double.weekends", true) else { return nil }
         let weekday = calendar.component(.weekday, from: now)
         guard weekday == 7 || weekday == 1 else { return nil }
         let today = calendar.startOfDay(for: now)
@@ -151,8 +195,18 @@ struct EventTier {
 enum SeasonEvent {
     static let levelsCount = 20
 
+    /// Шкала наград. Конфиг может заменить ее целиком ("events.seasonTiers"): в награде "$theme" - тема ивента
+    /// (фон и гость темы).
     static func tiers(theme: String) -> [EventTier] {
-        [
+        let fromConfig = RemoteConfig.shared.list("events.seasonTiers").compactMap { t -> EventTier? in
+            guard let points = (t["points"] as? NSNumber)?.intValue,
+                  let free = RemoteConfig.reward(themed(t["free"], theme)) else { return nil }
+            return EventTier(points: points, free: free, pass: RemoteConfig.reward(themed(t["pass"], theme)) ?? Reward())
+        }
+        if fromConfig.count >= 3 { return fromConfig }
+        var guest = Reward(coins: 300)
+        guest.guest = theme
+        return [
             EventTier(points: 3, free: Reward(coins: 50), pass: Reward(coins: 150)),
             EventTier(points: 6, free: Reward(boosters: [.hint: 1]), pass: Reward(boosters: [.hint: 1, .undo: 1])),
             EventTier(points: 10, free: Reward(coins: 100), pass: Reward(unlimitedMinutes: 60)),
@@ -163,19 +217,26 @@ enum SeasonEvent {
             EventTier(points: 40, free: Reward(coins: 200, chests: [.bronze: 1]), pass: Reward(chests: [.gold: 1])),
             EventTier(points: 48, free: Reward(boosters: [.hint: 1, .undo: 1]), pass: Reward(unlimitedMinutes: 120)),
             EventTier(points: 56, free: Reward(chests: [.silver: 1]), pass: Reward(boosters: [.hint: 2, .undo: 2, .shelf: 2])),
-            EventTier(points: 65, free: Reward(coins: 300), pass: Reward(coins: 600)),
+            EventTier(points: 65, free: guest, pass: Reward(coins: 600)),
             EventTier(points: 75, free: Reward(background: theme), pass: Reward(coins: 800, chests: [.gold: 1]))
         ]
     }
 
+    private static func themed(_ any: Any?, _ theme: String) -> Any? {
+        guard var d = any as? [String: Any] else { return any }
+        for key in ["background", "guest"] where d[key] as? String == "$theme" { d[key] = theme }
+        return d
+    }
+
     /// Печати за победу: новый уровень карты - 2, переигровка - 1, испытание и уровень ивента - 3, за 3 звезды +1.
     static func stamps(mode: PlayMode, isNewLevel: Bool, stars: Int) -> Int {
+        let c = RemoteConfig.shared
         let base: Int
         switch mode {
-        case .main: base = isNewLevel ? 2 : 1
-        case .daily, .weekly, .event: base = 3
+        case .main: base = isNewLevel ? c.int("events.stamps.newLevel", 2) : c.int("events.stamps.replay", 1)
+        case .daily, .weekly, .event: base = c.int("events.stamps.challenge", 3)
         }
-        return base + (stars == 3 ? 1 : 0)
+        return base + (stars == 3 ? c.int("events.stamps.threeStars", 1) : 0)
     }
 }
 
@@ -233,9 +294,9 @@ struct RaceState: Codable {
 }
 
 enum RaceEvent {
-    static let goal = 5
+    static var goal: Int { RemoteConfig.shared.int("events.race.goal", 5) }
     /// Заезды без ограничений, но сундуки за места 1-3 дают только в первых трех заездах дня.
-    static let chestRaces = 3
+    static var chestRaces: Int { RemoteConfig.shared.int("events.race.chestRaces", 3) }
     static let names = ["Marco", "Yuki", "Ana", "Leo", "Priya", "Omar", "Sofia", "Chen", "Lena", "Diego"]
 
     static func rivals(seed: UInt64) -> [Rival] {
@@ -265,8 +326,8 @@ enum RaceEvent {
 }
 
 enum DoubleEvent {
-    static let multiplier = 2
-    static let bonusMinutes = 60
+    static var multiplier: Int { RemoteConfig.shared.int("events.double.multiplier", 2) }
+    static var bonusMinutes: Int { RemoteConfig.shared.int("events.double.bonusMinutes", 60) }
 }
 
 /// Хеш строки, одинаковый при каждом запуске (hashValue в Swift каждый раз разный).

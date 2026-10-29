@@ -48,6 +48,7 @@ extension PlayerProgress {
             data.meta.stats[Stat.kitchens.rawValue] = data.meta.backgrounds.count
         }
         if reward.energy > 0 { addEnergy(reward.energy) }
+        if let g = reward.guest, !data.meta.guests.contains(g) { data.meta.guests.append(g) }
         addChests(reward.chests)
         save()
         if reward.unlimitedMinutes > 0 { addUnlimitedLives(TimeInterval(reward.unlimitedMinutes * 60)) }

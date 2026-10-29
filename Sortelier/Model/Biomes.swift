@@ -3,23 +3,27 @@ import Foundation
 /// Биомы карты: по 30 уровней, открываются звездами предыдущего биома или монетами.
 enum Biomes {
     /// Сколько биомов уже есть в игре.
-    static let playable = 3
+    static let playable = 5
     /// Анонсы следующих кухонь на карте ("скоро").
-    static let upcoming = [4, 5, 6]
-    static let unlockPrice = 3000
+    static let upcoming = [6, 7]
+    static var unlockPrice: Int { RemoteConfig.shared.int("balance.biomeUnlockPrice", 3000) }
 
     static func first(_ biome: Int) -> Int { (biome - 1) * Balance.levelsPerBiome + 1 }
     static func last(_ biome: Int) -> Int { biome * Balance.levelsPerBiome }
     static func of(level: Int) -> Int { max(1, (level - 1) / Balance.levelsPerBiome + 1) }
 
     /// Звезды предыдущего биома, нужные для открытия (из 90).
-    static func starsNeeded(_ biome: Int) -> Int { biome == 2 ? 54 : 63 }
+    static func starsNeeded(_ biome: Int) -> Int {
+        RemoteConfig.shared.int("balance.biomeStars.\(biome)", RemoteConfig.shared.int("balance.biomeStars.default", biome == 2 ? 54 : 63))
+    }
 
     /// Фон уровней биома, если игрок не выбрал свой.
     static func style(_ biome: Int) -> String {
         switch biome {
         case 2: return "japan"
         case 3: return "italy"
+        case 4: return "mexico"
+        case 5: return "bakery"
         default: return KitchenStyle.defaultId
         }
     }
@@ -29,6 +33,8 @@ enum Biomes {
         switch biome {
         case 2: return "music_japan"
         case 3: return "music_italy"
+        case 4: return "music_mexico"
+        case 5: return "music_bakery"
         default: return "music_kitchen"
         }
     }
@@ -39,6 +45,10 @@ enum Biomes {
         case 1: return "dish_burger"
         case 2: return "dish_sushi"
         case 3: return "dish_pizza"
+        case 4: return "dish_taco"
+        case 5: return "dish_croissant"
+        // страница ивентов в книге
+        case 0: return "icon_ticket"
         default: return ""
         }
     }

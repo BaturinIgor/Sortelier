@@ -255,6 +255,16 @@ STYLES = {
                   metal="brass", world=((1.0, 0.95, 0.86), 0.55), light=((1.0, 0.90, 0.74), 280), checker=False),
     "gourmet": dict(tiles=((0.03, 0.22, 0.15), (0.02, 0.18, 0.12), (0.80, 0.62, 0.30)), cabinet=(0.06, 0.06, 0.07),
                     metal="brass", world=((1.0, 0.95, 0.88), 0.5), light=((1.0, 0.88, 0.70), 300), checker=False),
+    # мексиканская кухня: плитка талавера (кобальт и бархатцы), терракотовые шкафчики
+    "mexico": dict(tiles=((0.06, 0.20, 0.62), (0.92, 0.52, 0.06), (0.96, 0.92, 0.82)), cabinet=(0.60, 0.20, 0.08),
+                   metal="brass", world=((1.0, 0.95, 0.86), 0.55), light=((1.0, 0.90, 0.72), 290), checker=False),
+    # французская пекарня: мятная плитка, пудрово-розовые шкафчики
+    "bakery": dict(tiles=((0.50, 0.80, 0.70), (0.44, 0.74, 0.64), (0.97, 0.95, 0.90)), cabinet=(0.95, 0.74, 0.76),
+                   metal="brass", world=((1.0, 0.97, 0.94), 0.6), light=((1.0, 0.95, 0.88), 260), checker=False),
+    # хэллоуин: фиолетовая плитка с оранжевыми швами, темные шкафчики, теплые лампы
+    "halloween": dict(tiles=((0.16, 0.05, 0.26), (0.12, 0.04, 0.21), (0.85, 0.36, 0.04)), cabinet=(0.07, 0.05, 0.07),
+                      metal="brass", world=((0.45, 0.30, 0.70), 0.22), light=((1.0, 0.62, 0.30), 320), checker=False,
+                      lamps=True),
 }
 
 
@@ -382,7 +392,7 @@ def render_background(src, out_dir, preview=False, style="kitchen", samples=64):
     light.rotation_euler = (math.radians(58), 0, math.radians(-27))
     scene.collection.objects.link(light)
 
-    if style == "night":
+    if style == "night" or st.get("lamps"):
         # теплые лампы над полкой и столешницей
         for i, (x, z) in enumerate(((-1.2, 2.6), (1.2, 2.6), (0.0, -3.0))):
             lamp = bpy.data.lights.new(f"Lamp{i}", type="POINT")

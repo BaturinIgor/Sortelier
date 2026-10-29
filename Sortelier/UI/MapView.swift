@@ -618,7 +618,7 @@ struct SettingsScreen: View {
                     .background(PaperBackground(radius: 18))
                 }
                 .buttonStyle(PressScaleStyle())
-                Text(lang.t("settings.player", String(progress.playerId.prefix(8))))
+                Text(lang.t("settings.player", String(progress.playerId.prefix(8))) + " · v\(RemoteConfig.shared.version)")
                     .font(Theme.rounded(13, .heavy))
                     .foregroundColor(Color(red: 1.0, green: 0.93, blue: 0.8))
                     .outlined(Theme.woodDark, width: 1)
