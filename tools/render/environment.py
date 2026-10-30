@@ -230,6 +230,7 @@ STYLES = {
 def render_background(src, out_dir, preview=False, style="kitchen", samples=64, border=None):
     """Фон кухни (версия 2, сцена собирается в kitchen.py). border=(x0, x1, y0, y1) - рендер части кадра."""
     import kitchen as K
+    import kitchen_themes  # noqa: F401  раскладки остальных стилей
     st = dict(STYLES[style])
     st.update(K.STYLE_EXTRA.get(style, {}))
     scene = R.reset_scene()

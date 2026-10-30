@@ -176,16 +176,24 @@ def fill_mat(name, kind):
         "rice": ((0.98, 0.97, 0.92), (0.86, 0.84, 0.78), 90.0),
         "coffee": ((0.36, 0.20, 0.11), (0.18, 0.09, 0.05), 55.0),
         "candy": ((0.98, 0.40, 0.55), (0.36, 0.70, 0.98), 36.0),
+        "gumballs": ((0.98, 0.40, 0.55), (0.36, 0.70, 0.98), 14.0),
         "cookies": ((0.86, 0.60, 0.32), (0.60, 0.36, 0.16), 18.0),
         "sugar": ((1.0, 1.0, 0.98), (0.90, 0.90, 0.88), 140.0),
         "flour": ((1.0, 0.98, 0.94), (0.92, 0.89, 0.84), 160.0),
         "tea": ((0.42, 0.52, 0.22), (0.22, 0.30, 0.10), 80.0),
+        "jam": ((0.86, 0.12, 0.18), (0.56, 0.04, 0.10), 9.0),
+        "marmalade": ((1.0, 0.64, 0.14), (0.88, 0.40, 0.06), 11.0),
+        "plum": ((0.52, 0.12, 0.34), (0.30, 0.04, 0.18), 9.0),
+        "paprika": ((0.90, 0.26, 0.10), (0.62, 0.12, 0.05), 120.0),
+        "pepper": ((0.30, 0.24, 0.20), (0.12, 0.10, 0.08), 120.0),
+        "herbs": ((0.46, 0.60, 0.24), (0.24, 0.36, 0.12), 110.0),
+        "pickles": ((0.56, 0.70, 0.22), (0.34, 0.48, 0.12), 7.0),
     }[kind]
     hi, lo, sc = spec
     sh = Sh(name, rough=0.4, coat=0.3)
     cell = sh.voronoi(None, sc, out="Distance")
     rnd = sh.voronoi(None, sc, out="Color")
-    if kind == "candy":
+    if kind in ("candy", "gumballs"):
         col = sh.ramp(sh.math("MULTIPLY", sh.xyz(rnd)[0], 1.0),
                       [(0.0, (0.98, 0.36, 0.50)), (0.33, (1.0, 0.80, 0.20)), (0.66, (0.36, 0.72, 0.98)),
                        (1.0, (0.50, 0.85, 0.40))], "CONSTANT")
@@ -212,6 +220,7 @@ def tile_wall(st, x0=-2.75, x1=2.75, z0=-3.9, z1=5.6, y_face=0.57, seed=7):
     rnd = random.Random(seed)
     bm = bmesh.new()
     layer = bm.verts.layers.float_color.new("tile")
+    layer_c = bm.verts.layers.float_color.new("tc")
     rows = int((z1 - z0) / th) + 1
     cols = int((x1 - x0) / tw) + 2
     band = st.get("band")  # (z_lo, z_hi) полоса другого класса (шахматка закусочной)
@@ -248,6 +257,7 @@ def tile_wall(st, x0=-2.75, x1=2.75, z0=-3.9, z1=5.6, y_face=0.57, seed=7):
                     ly -= pillow / depth * (1 - (2 * lx) ** 2) * (1 - (2 * lz) ** 2)
                 v = bm.verts.new(m @ Vector((lx * sx, ly * depth, lz * sz)))
                 v[layer] = col
+                v[layer_c] = (xc, zc, sx, sz)
                 vs.append(v)
             for f in tf:
                 bm.faces.new([vs[i] for i in f])
@@ -288,6 +298,8 @@ def tile_mat(st):
         base = sh.mix(sh.math("GREATER_THAN", klass, 0.5), chk, fieldc)
         if st.get("stripe_col"):
             base = sh.mix(sh.math("GREATER_THAN", klass, 0.83), base, (*st["stripe_col"], 1))
+        if st.get("talavera"):
+            base = sh.mix(sh.math("LESS_THAN", klass, 0.5), base, talavera(sh, klass))
     else:
         base = sh.mix(r1, (*c1, 1), (*c2, 1))
         if st.get("accent"):
@@ -319,6 +331,38 @@ def tile_mat(st):
     # "апельсиновая корка" глазури
     sh.bump(sh.noise(geo.outputs["Position"], 70.0, 2.0), strength=0.03, distance=0.003)
     return sh.mat
+
+
+def talavera(sh, klass):
+    """Роспись талавера по локальным координатам плитки: кобальтовый цветок, кольцо, желтые уголки."""
+    at = sh.nodes.new("ShaderNodeAttribute")
+    at.attribute_type = "GEOMETRY"
+    at.attribute_name = "tc"
+    cx, cz, w = sh.xyz(at.outputs["Vector"])
+    hgt = at.outputs["Alpha"]
+    geo = sh.nodes.new("ShaderNodeNewGeometry")
+    px, py, pz = sh.xyz(geo.outputs["Position"])
+    u = sh.math("DIVIDE", sh.math("SUBTRACT", px, cx), sh.math("MULTIPLY", w, 0.5))
+    v = sh.math("DIVIDE", sh.math("SUBTRACT", pz, cz), sh.math("MULTIPLY", hgt, 0.5))
+    r = sh.vmath("LENGTH", sh.combine(u, v, 0.0))
+    a = sh.math("ARCTAN2", v, u)
+    lin_ = lambda c: tuple(((x + 0.055) / 1.055) ** 2.4 for x in c) + (1.0,)
+    white, cobalt, yellow, green = lin_((0.97, 0.94, 0.86)), lin_((0.10, 0.24, 0.66)), lin_((0.98, 0.72, 0.12)), lin_((0.20, 0.56, 0.36))
+    petal = sh.math("MULTIPLY", sh.math("ADD", sh.math("MULTIPLY", sh.math("ABSOLUTE", sh.math("COSINE", sh.math("MULTIPLY", a, 2.0))), 0.42), 0.12), 1.0)
+    flower = sh.remap(sh.math("SUBTRACT", r, petal), 0.03, -0.01)
+    eye = sh.remap(r, 0.16, 0.12)
+    ring = sh.math("MULTIPLY", sh.remap(r, 0.7, 0.74), sh.remap(r, 0.84, 0.8))
+    du = sh.math("SUBTRACT", 1.0, sh.math("ABSOLUTE", u))
+    dv = sh.math("SUBTRACT", 1.0, sh.math("ABSOLUTE", v))
+    dc = sh.vmath("LENGTH", sh.combine(du, dv, 0.0))
+    corner = sh.remap(dc, 0.42, 0.38)
+    corner_line = sh.math("MULTIPLY", sh.remap(dc, 0.46, 0.44), sh.remap(dc, 0.38, 0.4))
+    alt = sh.math("GREATER_THAN", klass, 0.17)
+    col = sh.mix(corner, white, sh.mix(alt, yellow, green))
+    col = sh.mix(sh.math("MAXIMUM", corner_line, ring), col, cobalt)
+    col = sh.mix(flower, col, sh.mix(alt, cobalt, yellow))
+    col = sh.mix(eye, col, sh.mix(alt, yellow, cobalt))
+    return col
 
 
 def grout_mat(st):
@@ -567,14 +611,16 @@ def lighting(scene, st):
     area("Fill", le * 0.35 * k, (5.5, -7.0, -0.5), (0.0, 0.5, 0.0), 9.0, mix_c(lc, fill, 0.5))
     if st.get("lamps"):
         # теплая подсветка под полкой и над столешницей: широкая полоса света, без пятен
-        no_spec(area("UnderShelf", st.get("strip_e", 60), (0.0, 0.12, LEDGE_Z - 0.09), (0.0, 0.5, LEDGE_Z - 2.0), 4.6,
-                     (1.0, 0.70, 0.40), size_y=0.08))
+        if st.get("strip_e", 60):
+            no_spec(area("UnderShelf", st.get("strip_e", 60), (0.0, 0.12, LEDGE_Z - 0.09), (0.0, 0.5, LEDGE_Z - 2.0), 4.6,
+                         st.get("strip_col", (1.0, 0.70, 0.40)), size_y=0.08))
         no_spec(area("CounterWash", st.get("wash_e", 70), (0.0, -0.6, -1.2), (0.0, 0.3, COUNTER_TOP), 6.0,
                      (1.0, 0.72, 0.42), size_y=1.2))
         # сама светодиодная планка под полкой
-        strip = rbox("LedStrip", 4.8, 0.03, 0.012, glow_mat("LedGlow", (1.0, 0.80, 0.55), 6.0), bev=0.004,
+        strip = None if not st.get("strip_e", 60) else rbox("LedStrip", 4.8, 0.03, 0.012, glow_mat("LedGlow", (1.0, 0.80, 0.55), 6.0), bev=0.004,
                      loc=(0.0, 0.12, LEDGE_Z - 0.075))
-        strip.visible_shadow = False
+        if strip:
+            strip.visible_shadow = False
 
 
 # MARK: - Предметы: посуда и банки
