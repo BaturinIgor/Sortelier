@@ -2,7 +2,9 @@
 
 Запуск:
   python environment.py shelf <папка вывода>
-  python environment.py background <папка с GLB> <папка вывода> [--preview]
+  python environment.py background <папка с GLB> <папка вывода> [--style=kitchen,japan] [--preview] [--samples=40]
+      [--border=x0,x1,y0,y1]
+Сцена фона (плитка, предметы, свет) собирается в kitchen.py; здесь палитры стилей, камера и запуск.
 """
 import math
 import os
@@ -67,49 +69,6 @@ def gold_material(name):
     if "Coat Weight" in bsdf.inputs:
         bsdf.inputs["Coat Weight"].default_value = 0.6
         bsdf.inputs["Coat Roughness"].default_value = 0.08
-    return mat
-
-
-def flat_material(name, color, rough=0.6, coat=0.0):
-    mat = bpy.data.materials.new(name)
-    mat.use_nodes = True
-    bsdf = mat.node_tree.nodes["Principled BSDF"]
-    bsdf.inputs["Base Color"].default_value = (*color, 1)
-    bsdf.inputs["Roughness"].default_value = rough
-    if "Coat Weight" in bsdf.inputs:
-        bsdf.inputs["Coat Weight"].default_value = coat
-    return mat
-
-
-def tile_material(name, c1, c2, mortar, scale=7.0):
-    mat = bpy.data.materials.new(name)
-    mat.use_nodes = True
-    nt = mat.node_tree
-    nodes, links = nt.nodes, nt.links
-    bsdf = nodes["Principled BSDF"]
-    coord = nodes.new("ShaderNodeNewGeometry")
-    mapping = nodes.new("ShaderNodeMapping")
-    # плитка "кабанчик" по мировым координатам стены: X вправо, Z вверх
-    mapping.inputs["Rotation"].default_value = (math.radians(-90), 0, 0)
-    brick = nodes.new("ShaderNodeTexBrick")
-    brick.inputs["Scale"].default_value = scale
-    brick.inputs["Color1"].default_value = (*c1, 1)
-    brick.inputs["Color2"].default_value = (*c2, 1)
-    brick.inputs["Mortar"].default_value = (*mortar, 1)
-    brick.inputs["Mortar Size"].default_value = 0.012
-    brick.inputs["Mortar Smooth"].default_value = 0.4
-    brick.inputs["Bias"].default_value = 0.0
-    brick.inputs["Brick Width"].default_value = 0.5
-    brick.inputs["Row Height"].default_value = 0.25
-    bump = nodes.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.35
-    bump.invert = True
-    links.new(coord.outputs["Position"], mapping.inputs["Vector"])
-    links.new(mapping.outputs["Vector"], brick.inputs["Vector"])
-    links.new(brick.outputs["Color"], bsdf.inputs["Base Color"])
-    links.new(brick.outputs["Fac"], bump.inputs["Height"])
-    links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
-    bsdf.inputs["Roughness"].default_value = 0.25
     return mat
 
 
@@ -268,102 +227,31 @@ STYLES = {
 }
 
 
-def checker_material(name, c1, c2, scale=1.4):
-    """Шахматная плитка закусочной."""
-    mat = bpy.data.materials.new(name)
-    mat.use_nodes = True
-    nt = mat.node_tree
-    nodes, links = nt.nodes, nt.links
-    bsdf = nodes["Principled BSDF"]
-    geo = nodes.new("ShaderNodeNewGeometry")
-    mapping = nodes.new("ShaderNodeMapping")
-    mapping.inputs["Rotation"].default_value = (math.radians(-90), 0, 0)
-    checker = nodes.new("ShaderNodeTexChecker")
-    checker.inputs["Scale"].default_value = scale
-    checker.inputs["Color1"].default_value = (*c1, 1)
-    checker.inputs["Color2"].default_value = (*c2, 1)
-    links.new(geo.outputs["Position"], mapping.inputs["Vector"])
-    links.new(mapping.outputs["Vector"], checker.inputs["Vector"])
-    links.new(checker.outputs["Color"], bsdf.inputs["Base Color"])
-    bsdf.inputs["Roughness"].default_value = 0.2
-    return mat
-
-
-def steel_material(name):
-    mat = bpy.data.materials.new(name)
-    mat.use_nodes = True
-    bsdf = mat.node_tree.nodes["Principled BSDF"]
-    bsdf.inputs["Base Color"].default_value = (0.75, 0.77, 0.80, 1)
-    bsdf.inputs["Metallic"].default_value = 0.9
-    bsdf.inputs["Roughness"].default_value = 0.22
-    return mat
-
-
-def render_background(src, out_dir, preview=False, style="kitchen", samples=64):
-    st = STYLES[style]
+def render_background(src, out_dir, preview=False, style="kitchen", samples=64, border=None):
+    """Фон кухни (версия 2, сцена собирается в kitchen.py). border=(x0, x1, y0, y1) - рендер части кадра."""
+    import kitchen as K
+    import kitchen_themes  # noqa: F401  раскладки остальных стилей
+    st = dict(STYLES[style])
+    st.update(K.STYLE_EXTRA.get(style, {}))
     scene = R.reset_scene()
     scene.cycles.samples = 24 if preview else samples
     scene.cycles.use_denoising = True
+    scene.cycles.film_transparent_glass = False
+    scene.cycles.max_bounces = 6
+    scene.cycles.diffuse_bounces = 3
+    scene.cycles.glossy_bounces = 3
+    scene.cycles.transparent_max_bounces = 12
+    scene.cycles.adaptive_threshold = 0.02
     width, height = (390, 844) if preview else (1170, 2532)
     scene.render.resolution_x = width
     scene.render.resolution_y = height
     world_h = 10.0
     world_w = world_h * width / height
 
-    # стена из плитки
-    if st["checker"]:
-        wall = checker_material("Tiles", st["tiles"][0], st["tiles"][1], scale=2.0)
-    else:
-        wall = tile_material("Tiles", *st["tiles"], scale=1.1)
-    bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0.6, 0), rotation=(math.radians(90), 0, 0))
-    plane = bpy.context.active_object
-    plane.scale = (world_w + 2, world_h + 2, 1)
-    plane.data.materials.append(wall)
+    def kenney(model, loc, scale=3.0, rot_z=0.0, rot=None):
+        return place(src, model, loc, scale, rot_z, rot=rot)
 
-    wood = wood_material("Counter", (0.40, 0.21, 0.10), (0.64, 0.37, 0.18), grain_scale=3.0)
-    paint = flat_material("Cabinet", st["cabinet"], rough=0.45, coat=0.2)
-    brass = gold_material("Brass") if st["metal"] == "brass" else steel_material("Steel")
-
-    # верхняя полка с посудой (за карточками заказов, видна по краям)
-    ledge_z = 3.05
-    box("Ledge", (world_w + 1, 0.7, 0.12), (0, 0.25, ledge_z), wood, bevel=0.03)
-    for x in (-world_w / 2 + 0.45, world_w / 2 - 0.45):
-        box("Bracket", (0.1, 0.45, 0.32), (x, 0.38, ledge_z - 0.22), wood, bevel=0.02)
-    top = ledge_z + 0.06
-    place(src, "pot", (-world_w / 2 + 0.55, 0.25, top), 1.5, 0.3)
-    place(src, "mug", (-world_w / 2 + 1.25, 0.2, top), 1.5, -0.6)
-    place(src, "bottle-oil", (world_w / 2 - 1.3, 0.25, top), 1.6)
-    place(src, "pepper-mill", (world_w / 2 - 0.9, 0.2, top), 1.5)
-    place(src, "can", (world_w / 2 - 0.45, 0.25, top), 1.5, 0.5)
-
-    # рейлинг с утварью под самым верхом
-    rail_z = 4.35
-    bpy.ops.mesh.primitive_cylinder_add(radius=0.025, depth=world_w + 1, location=(0, 0.45, rail_z),
-                                        rotation=(0, math.radians(90), 0))
-    bpy.context.active_object.data.materials.append(brass)
-    hang = rail_z - 0.04
-    for model, x, sc in (("cooking-spatula", -0.5, 1.35), ("whisk", -0.12, 1.3), ("cooking-spoon", 0.24, 1.35),
-                         ("cooking-fork", 0.58, 1.3)):
-        # ручкой вверх: длинная ось модели X уходит в +Z
-        place(src, model, (x, 0.38, hang - 0.34 * sc), sc, rot=(math.radians(90), math.radians(-90), 0))
-        bpy.ops.mesh.primitive_torus_add(major_radius=0.035, minor_radius=0.008, location=(x, 0.38, hang + 0.02),
-                                         rotation=(math.radians(90), 0, 0))
-        bpy.context.active_object.data.materials.append(brass)
-
-    # столешница и шкафчики внизу (за панелью бустеров)
-    counter_z = -3.55
-    box("Countertop", (world_w + 1, 1.2, 0.16), (0, -0.2, counter_z), wood, bevel=0.04)
-    box("Cabinets", (world_w + 1, 1.0, 1.9), (0, 0.0, counter_z - 1.03), paint, bevel=0.02)
-    for i, x in enumerate((-world_w / 4, world_w / 4)):
-        box(f"Door{i}", (world_w / 2 - 0.2, 0.05, 1.5), (x, -0.52, counter_z - 1.0), paint, bevel=0.035)
-        box(f"Handle{i}", (0.4, 0.05, 0.05), (x, -0.58, counter_z - 0.4), brass, bevel=0.015)
-    surf = counter_z + 0.08
-    place(src, "cutting-board", (-world_w / 2 + 0.7, -0.3, surf), 1.6, 0.2)
-    place(src, "loaf-round", (-world_w / 2 + 0.7, -0.3, surf + 0.05), 1.5)
-    place(src, "knife-block", (world_w / 2 - 0.5, -0.1, surf), 1.6, -0.5)
-    place(src, "bowl", (world_w / 2 - 1.35, -0.35, surf), 1.6)
-    place(src, "apple", (world_w / 2 - 1.45, -0.35, surf + 0.07), 1.3)
-    place(src, "orange", (world_w / 2 - 1.22, -0.4, surf + 0.07), 1.3)
+    K.build(style, st, src, kenney, world_w)
 
     # фронтальная ортокамера на всю высоту экрана
     cam_data = bpy.data.cameras.new("Cam")
@@ -376,35 +264,16 @@ def render_background(src, out_dir, preview=False, style="kitchen", samples=64):
     cam.rotation_euler = (math.radians(90) - tilt, 0, 0)
     scene.camera = cam
     scene.render.film_transparent = False
-
-    # мягкий свет кухни: солнца из сцены продуктов здесь пересвечивают
-    for o in [o for o in scene.objects if o.type == "LIGHT"]:
-        bpy.data.objects.remove(o, do_unlink=True)
-    bg = scene.world.node_tree.nodes["Background"]
-    bg.inputs[0].default_value = (*st["world"][0], 1)
-    bg.inputs[1].default_value = st["world"][1]
-    area = bpy.data.lights.new("Window", type="AREA")
-    area.energy = st["light"][1]
-    area.size = 7
-    area.color = st["light"][0]
-    light = bpy.data.objects.new("Window", area)
-    light.location = (-3.5, -7, 5)
-    light.rotation_euler = (math.radians(58), 0, math.radians(-27))
-    scene.collection.objects.link(light)
-
-    if style == "night" or st.get("lamps"):
-        # теплые лампы над полкой и столешницей
-        for i, (x, z) in enumerate(((-1.2, 2.6), (1.2, 2.6), (0.0, -3.0))):
-            lamp = bpy.data.lights.new(f"Lamp{i}", type="POINT")
-            lamp.energy = 60
-            lamp.color = (1.0, 0.72, 0.42)
-            lamp.shadow_soft_size = 0.6
-            obj = bpy.data.objects.new(f"Lamp{i}", lamp)
-            obj.location = (x, -0.6, z)
-            scene.collection.objects.link(obj)
-    name = f"bg_{style}" + ("_preview" if preview else "")
+    K.lighting(scene, st)
+    if border:
+        scene.render.use_border = True
+        scene.render.use_crop_to_border = True
+        scene.render.border_min_x, scene.render.border_max_x, scene.render.border_min_y, scene.render.border_max_y = border
+    name = f"bg_{style}" + ("_preview" if preview else "") + ("_crop" if border else "")
     scene.render.filepath = os.path.join(out_dir, name + ".png")
     bpy.ops.render.render(write_still=True)
+    if not border and st.get("bloom"):
+        K.bloom(scene.render.filepath)
 
 
 def main():
@@ -420,8 +289,11 @@ def main():
         os.makedirs(args[2], exist_ok=True)
         styles = [a.split("=", 1)[1] for a in args if a.startswith("--style=")] or ["kitchen"]
         samples = int(next((a.split("=", 1)[1] for a in args if a.startswith("--samples=")), "64"))
+        border = next((tuple(float(v) for v in a.split("=", 1)[1].split(",")) for a in args
+                       if a.startswith("--border=")), None)
         for style in styles[0].split(","):
-            render_background(args[1], args[2], preview="--preview" in args, style=style, samples=samples)
+            render_background(args[1], args[2], preview="--preview" in args, style=style, samples=samples,
+                              border=border)
 
 
 if __name__ == "__main__":

@@ -173,24 +173,6 @@ def disc(name, r, depth, mat, y=0.0, bev=None):
     return slab(name, pts, depth, bev if bev is not None else depth * 0.45, mat, y=y)
 
 
-def plus_badge(name, r=0.36, color=(0.36, 0.78, 0.30), loc=(0, 0, 0)):
-    parts = [disc(name + "Disc", r, 0.2, toy(name + "Mat", color))]
-    w = r * 0.28
-    for i, (sx, sz) in enumerate(((r * 1.25, w), (w, r * 1.25))):
-        b = M.box_mesh(f"{name}Bar{i}", sx, 0.08, sz, -sz / 2)
-        b.location = (0, -0.11, 0)
-        M.apply_transform(b)
-        M.bevel(b, w * 0.45, 4, 30)
-        M.bake(b)
-        M.smooth(b, 30)
-        M.assign(b, white(name + "W"))
-        parts.append(b)
-    for p in parts:
-        p.location = Vector(p.location) + Vector(loc)
-        M.apply_transform(p)
-    return parts
-
-
 def finish(parts, tilt=8):
     """Иконку чуть разворачиваем к камере, чтобы был виден объем."""
     return M.rotate_all(parts, (math.radians(tilt), 0, math.radians(-8)))
@@ -226,152 +208,47 @@ def icon_hint():
     return finish([b, g, shine], tilt=4)
 
 
-def icon_undo():
-    _prep()
-    mat = toy("Blue", (0.30, 0.62, 1.0))
-    path = arc(0.05, 0.0, 0.62, -35, 205, 60)
-    t = tube("Arc", path, 0.17, mat)
-    end = Vector(path[-1])
-    prev = Vector(path[-4])
-    d = (end - prev).normalized()
-    head = cone_head("Head", end + d * 0.42, d, 0.36, 0.5, mat)
-    return finish([t, head])
-
-
-def icon_shuffle():
-    _prep()
-    mat = toy("Green", (0.32, 0.80, 0.34))
-    mat2 = toy("Green2", (0.22, 0.66, 0.30))
-    parts = []
-    for i, (z0, z1, y, m) in enumerate(((0.42, -0.42, -0.12, mat), (-0.42, 0.42, 0.12, mat2))):
-        pts = []
-        for k in range(41):
-            t = k / 40
-            x = -0.85 + 1.45 * t
-            s = 0.5 - 0.5 * math.cos(math.pi * t)
-            pts.append((x, y, z0 + (z1 - z0) * s))
-        parts.append(tube(f"S{i}", pts, 0.13, m))
-        end = Vector(pts[-1])
-        parts.append(cone_head(f"H{i}", end + Vector((0.4, 0, 0)), (1, 0, 0), 0.3, 0.42, m))
-    return finish(parts)
-
-
-def icon_shelf():
-    _prep()
-    wood = M.material("Wood", [(0.0, (0.55, 0.32, 0.15)), (1.0, (0.82, 0.55, 0.30))], coord="z", lo=-0.3, hi=0.3,
-                      rough=0.5, coat=0.4, bump=0.15, bump_scale=10, vary=0.12, vary_scale=4)
-    plank = M.box_mesh("Plank", 1.7, 0.6, 0.22, -0.11)
-    M.bevel(plank, 0.06, 4, 30)
-    M.bake(plank)
-    M.smooth(plank, 30)
-    M.assign(plank, wood)
-    parts = [plank]
-    for i, x in enumerate((-0.55, 0.55)):
-        br = M.box_mesh(f"Br{i}", 0.14, 0.4, 0.5, -0.6)
-        br.location = (x, 0.08, 0)
-        M.apply_transform(br)
-        M.bevel(br, 0.04, 3, 30)
-        M.bake(br)
-        M.assign(M.smooth(br, 30), wood)
-        parts.append(br)
-    parts += plus_badge("Plus", 0.42, loc=(0.62, -0.25, 0.48))
-    return finish(parts)
-
-
 def icon_pause():
+    """Песочные часы: прозрачное стекло с бликами, золотистый песок горкой и струйкой, точеные деревянные стойки."""
     _prep()
-    wood = toy("Cap", (0.62, 0.38, 0.18), rough=0.45, coat=0.4)
+    import models_match3 as M3
+    wood = M3.wood("Cap", (0.74, 0.44, 0.20), axis="x", rough=0.35, coat=0.6, grain=0.3)
+    post_m = M3.wood("Post", (0.70, 0.40, 0.18), axis="z", rough=0.35, coat=0.6, grain=0.25)
     parts = []
     for i, z in enumerate((0.0, 1.5)):
-        c = M.cylinder(f"Cap{i}", 0.62, 0.16, 48)
-        c.location = (0, 0, z)
-        M.apply_transform(c)
-        M.bevel(c, 0.05, 3, 30)
-        M.bake(c)
-        M.assign(M.smooth(c, 30), wood)
-        parts.append(c)
-    prof = [(0.0, 0.08), (0.48, 0.08), (0.5, 0.25), (0.42, 0.5), (0.14, 0.72), (0.1, 0.75), (0.14, 0.78), (0.42, 1.0),
-            (0.5, 1.25), (0.48, 1.42), (0.0, 1.42)]
-    glass = M.lathe("Glass", prof, 64)
-    M.subdivide(glass, 1)
+        c = M3.lathe_smooth(f"Cap{i}", [(0.6, z - 0.08), (0.64, z - 0.05), (0.66, z + 0.0), (0.64, z + 0.05), (0.6, z + 0.08)],
+                            64, 4)
+        parts.append(M.assign(M.smooth(c), wood))
+    prof = [(0.48, 0.08), (0.5, 0.25), (0.42, 0.5), (0.14, 0.72), (0.1, 0.75), (0.14, 0.78), (0.42, 1.0), (0.5, 1.25),
+            (0.48, 1.42)]
+    glass = M3.lathe_smooth("Glass", prof, 96, 5)
     M.smooth(glass)
-    gm = M.material("GlassMat", [(0.0, (0.75, 0.88, 1.0)), (1.0, (0.92, 0.97, 1.0))], coord="nz", lo=-1, hi=1,
-                    rough=0.05, coat=1.0, transmission=0.85)
-    M.assign(glass, gm)
-    sand = toy("Sand", (1.0, 0.72, 0.25), rough=0.6, coat=0.1)
-    s1 = M.lathe("SandLow", [(0.0, 0.1), (0.44, 0.1), (0.42, 0.25), (0.0, 0.5)], 48)
-    s2 = M.lathe("SandTop", [(0.0, 1.05), (0.3, 1.12), (0.4, 1.2), (0.0, 1.22)], 48)
-    for s in (s1, s2):
-        M.assign(M.smooth(s), sand)
+    M.assign(glass, M3.glass("GlassMat", tint=(0.96, 0.98, 1.0), edge=(0.80, 0.90, 1.0), center=0.05, rim=0.75))
+    glass.visible_shadow = False
+    sand = candy("Sand", (1.0, 0.70, 0.22), rough=0.5, coat=0.2)
+    nz = sand.node_tree.nodes.new("ShaderNodeTexNoise")
+    nz.inputs["Scale"].default_value = 80.0
+    bp = sand.node_tree.nodes.new("ShaderNodeBump")
+    bp.inputs["Strength"].default_value = 0.3
+    sand.node_tree.links.new(nz.outputs["Fac"], bp.inputs["Height"])
+    sand.node_tree.links.new(bp.outputs["Normal"], sand.node_tree.nodes["Principled BSDF"].inputs["Normal"])
+    low = M3.lathe_smooth("SandLow", [(0.46, 0.1), (0.47, 0.2), (0.32, 0.32), (0.12, 0.4), (0.02, 0.43)], 64, 4)
+    top = M3.lathe_smooth("SandTop", [(0.12, 0.8), (0.3, 0.9), (0.42, 1.02), (0.36, 1.06), (0.16, 1.0), (0.02, 0.97)], 64, 4)
+    stream = M.cylinder("Stream", 0.018, 0.36, 12)
+    stream.location = (0, 0, 0.6)
+    M.apply_transform(stream)
+    for o in (low, top, stream):
+        M.assign(M.smooth(o), sand)
     posts = []
     for i, a in enumerate((45, 135, 225, 315)):
-        p = M.cylinder(f"Post{i}", 0.05, 1.5, 16)
-        p.location = (0.58 * math.cos(math.radians(a)), 0.58 * math.sin(math.radians(a)), 0.75)
+        p = M3.lathe_smooth(f"Post{i}", [(0.045, 0.06), (0.06, 0.18), (0.04, 0.4), (0.07, 0.75), (0.04, 1.1), (0.06, 1.32),
+                                         (0.045, 1.44)], 24, 4)
+        p.location = (0.6 * math.cos(math.radians(a)), 0.6 * math.sin(math.radians(a)), 0.0)
         M.apply_transform(p)
-        M.assign(M.smooth(p), wood)
-        posts.append(p)
-    return finish(parts + [glass, s1, s2] + posts, tilt=6)
-
-
-def icon_heart():
-    _prep()
-    h = slab("Heart", heart_pts(1.0), 0.5, 0.22, toy("Red", (0.95, 0.22, 0.32)), segs=8)
-    return finish([h])
-
-
-def icon_unlimited():
-    _prep()
-    h = slab("Heart", heart_pts(1.0), 0.5, 0.22, toy("Red", (0.95, 0.22, 0.32)), segs=8)
-    # знак бесконечности: лемниската Бернулли трубкой
-    pts = []
-    for i in range(121):
-        t = 2 * math.pi * i / 120
-        d = 1 + math.sin(t) ** 2
-        pts.append((0.42 * math.cos(t) / d, -0.3, 0.1 + 0.42 * math.sin(t) * math.cos(t) / d))
-    inf = tube("Inf", pts, 0.09, white())
-    return finish([h, inf])
-
-
-def icon_energy():
-    _prep()
-    pts = [(0.18, 1.0), (-0.52, -0.08), (-0.06, -0.08), (-0.26, -1.0), (0.52, 0.12), (0.06, 0.12), (0.38, 1.0)]
-    b = slab("Bolt", pts, 0.34, 0.1, toy("Yellow", (1.0, 0.78, 0.12)), segs=6)
-    return finish([b])
-
-
-def icon_star():
-    _prep()
-    s = slab("Star", star_pts(1.0, 0.5), 0.36, 0.13, gold(), segs=6)
-    return finish([s])
-
-
-def icon_check():
-    _prep()
-    parts = [disc("Badge", 0.8, 0.26, toy("Green", (0.32, 0.78, 0.36)))]
-    parts.append(tube("Tick", [(-0.38, -0.16, 0.0), (-0.1, -0.16, -0.27), (0.4, -0.16, 0.3)], 0.1, white()))
-    return finish(parts)
-
-
-def icon_plus():
-    _prep()
-    return finish(plus_badge("P", 0.8))
-
-
-def icon_lock():
-    _prep()
-    g = gold()
-    body = M.box_mesh("Body", 1.1, 0.5, 0.85, -0.55)
-    M.bevel(body, 0.12, 5, 30)
-    M.bake(body)
-    M.assign(M.smooth(body, 30), g)
-    shackle = tube("Shackle", [(-0.32, 0, 0.1), (-0.32, 0, 0.35)] + arc(0, 0.35, 0.32, 180, 0, 30)[1:] + [(0.32, 0, 0.1)],
-                   0.09, toy("Steel", (0.72, 0.76, 0.84), metal=0.6, rough=0.2))
-    hole = M.cylinder("Hole", 0.1, 0.1, 24)
-    hole.rotation_euler = (math.radians(90), 0, 0)
-    hole.location = (0, -0.27, -0.08)
-    M.apply_transform(hole)
-    M.assign(hole, M.flat("HoleMat", (0.25, 0.14, 0.05), rough=0.6))
-    return finish([body, shackle, hole])
+        posts.append(M.assign(M.smooth(p), post_m))
+    hl = shine("Shine", [(-0.3 + 0.005 * k, -0.36, 1.05 + 0.04 * k) for k in range(6)], 0.025)
+    hl2 = shine("Shine2", [(-0.34 + 0.01 * k, -0.37, 0.2 + 0.04 * k) for k in range(5)], 0.02)
+    return finish(parts + [glass, low, top, stream, hl, hl2] + posts, tilt=6)
 
 
 def icon_trophy():
@@ -498,43 +375,6 @@ def icon_book():
     return finish([back, pg, front, band, mark] + hat, tilt=6)
 
 
-def icon_map():
-    _prep()
-    land = toy("Land", (0.55, 0.82, 0.42), rough=0.5, coat=0.3)
-    sea = toy("Sea", (0.45, 0.72, 0.98), rough=0.5, coat=0.3)
-    parts = []
-    for i, (x, a, m) in enumerate(((-0.52, 18, land), (0.0, -18, sea), (0.52, 18, land))):
-        p = M.box_mesh(f"Panel{i}", 0.56, 0.05, 1.3, -0.65)
-        p.rotation_euler = (0, 0, math.radians(a))
-        p.location = (x, 0.0, 0)
-        M.apply_transform(p)
-        M.bevel(p, 0.02, 2, 30)
-        M.bake(p)
-        M.assign(p, m)
-        parts.append(p)
-    path = []
-    for k in range(9):
-        x = -0.6 + k * 0.15
-        path.append((x, -0.16, -0.35 + 0.25 * math.sin(k * 0.9)))
-    for k, co in enumerate(path[::2]):
-        d = M.sphere(f"Dot{k}", 0.045, 12, 8)
-        d.location = co
-        M.apply_transform(d)
-        M.assign(d, toy("DotMat", (0.95, 0.35, 0.3)))
-        parts.append(d)
-    pin = M.sphere("Pin", 0.24, 32, 16)
-    pin.location = (0.32, -0.35, 0.5)
-    M.apply_transform(pin)
-    red = toy("PinRed", (0.95, 0.25, 0.28))
-    M.assign(M.smooth(pin), red)
-    tip = cone_head("PinTip", (0.32, -0.35, 0.05), (0, 0, -1), 0.17, 0.38, red)
-    dot = M.sphere("PinDot", 0.09, 16, 8)
-    dot.location = (0.32, -0.57, 0.52)
-    M.apply_transform(dot)
-    M.assign(M.smooth(dot), white("PinW"))
-    return finish(parts + [pin, tip, dot], tilt=6)
-
-
 def icon_cards():
     _prep()
     star = gold()
@@ -553,30 +393,39 @@ def icon_cards():
 
 
 def icon_ticket():
+    """Билет ивента: золотой билет с красной граненой звездой и кремовой рамкой, красный корешок через перфорацию."""
     _prep()
-    tk = slab("Ticket", rounded_rect(1.7, 0.95, 0.14), 0.18, 0.05, toy("Gold", (1.0, 0.74, 0.18), coat=0.9))
-    for i, x in enumerate((-0.85, 0.85)):
-        cut = M.cylinder(f"Notch{i}", 0.17, 1.0, 40)
+    H, T = 0.98, 0.2
+    pieces = []
+    for name, cx, w, col in (("Main", -0.23, 1.3, (1.0, 0.76, 0.18)), ("Stub", 0.675, 0.41, (0.98, 0.38, 0.30))):
+        pc = slab(name, ccw(rounded_rect(w, H, 0.12, 8)), T, 0.06, candy(name + "M", col, rough=0.2), segs=5)
+        pc.location.x += cx
+        M.apply_transform(pc)
+        pieces.append(pc)
+    for i, x in enumerate((-0.88, 0.88)):
+        cut = M.cylinder(f"Notch{i}", 0.13, 1.0, 48)
         cut.rotation_euler = (math.radians(90), 0, 0)
         cut.location = (x, 0, 0)
         M.apply_transform(cut)
-        mod = tk.modifiers.new(f"notch{i}", "BOOLEAN")
-        mod.operation = "DIFFERENCE"
-        mod.object = cut
-        M.bake(tk)
-        bpy.data.objects.remove(cut)
-    M.smooth(tk, 35)
-    st = slab("Star", star_pts(0.3, 0.14), 0.1, 0.03, toy("RedStar", (0.95, 0.32, 0.25)), y=-0.12)
-    st.location = (-0.15, 0, 0)
+        M.boolean_cut(pieces[i], [cut])
+        M.smooth(pieces[i], 35)
+    st = faceted_star("Star", 0.3, 0.15, front=0.12, back=0.02, rim=0.06, tip=0.03)
+    st.location = (-0.17, -0.12, 0.0)
     M.apply_transform(st)
-    parts = [tk, st]
-    for k in range(5):
-        d = M.box_mesh(f"Perf{k}", 0.035, 0.04, 0.1, -0.05)
-        d.location = (0.48, -0.1, -0.32 + k * 0.16)
-        M.apply_transform(d)
-        M.assign(d, toy("PerfMat", (0.75, 0.45, 0.08)))
-        parts.append(d)
-    return finish(parts)
+    M.assign(st, C.world_mat("StarRed", [(0.0, (0.70, 0.08, 0.08)), (0.5, (0.95, 0.22, 0.20)), (1.0, (1.0, 0.55, 0.45))],
+                             rough=0.16, metal=0.0, coat=0.9))
+    cream = candy("Cream", (1.0, 0.95, 0.84), rough=0.3, coat=0.5)
+    rr = rounded_rect(0.88, 0.74, 0.08, 6)
+    frame = tube("Frame", [(x - 0.17, -0.105, z) for x, z in rr + rr[:1]], 0.017, cream, res=6)
+    parts = pieces + [st, frame]
+    for k, z in enumerate((0.2, 0.0, -0.2)):
+        bar = slab(f"Line{k}", rounded_rect(0.2 if k != 1 else 0.14, 0.06, 0.029, 6), 0.04, 0.015, cream, segs=3, y=-0.105)
+        bar.location = (0.675, bar.location.y, z)
+        M.apply_transform(bar)
+        parts.append(bar)
+    parts.append(shine("Shine", [(-0.56 + 0.07 * k, -0.115, 0.3) for k in range(4)], 0.02))
+    M.rotate_all(parts, (0, math.radians(-12), 0))
+    return finish(parts, tilt=8)
 
 
 def icon_flag():
@@ -612,27 +461,6 @@ def icon_flag():
     bsdf.inputs["Coat Weight"].default_value = 0.4
     M.assign(cloth, mat)
     return finish([pole, knob, cloth], tilt=6)
-
-
-def icon_gear():
-    _prep()
-    pts = []
-    teeth = 8
-    for i in range(teeth * 4):
-        a = 2 * math.pi * i / (teeth * 4)
-        r = 1.0 if (i % 4) in (1, 2) else 0.78
-        pts.append((r * math.cos(a), r * math.sin(a)))
-    g = slab("Gear", pts, 0.36, 0.06, toy("Steel", (0.62, 0.68, 0.80), metal=0.3, rough=0.3), segs=4)
-    hole = M.cylinder("Hole", 0.3, 1.0, 48)
-    hole.rotation_euler = (math.radians(90), 0, 0)
-    M.apply_transform(hole)
-    mod = g.modifiers.new("hole", "BOOLEAN")
-    mod.operation = "DIFFERENCE"
-    mod.object = hole
-    M.bake(g)
-    bpy.data.objects.remove(hole)
-    M.smooth(g, 35)
-    return finish([g])
 
 
 def icon_medal():
@@ -862,6 +690,495 @@ def icon_snowflake():
     M.assign(M.smooth(hub), ice)
     parts.append(hub)
     return finish(parts)
+
+
+# MARK: - Надутые формы (версия 2: звезда, сердце, значки, замок, шестеренка, стрелки)
+
+def round_corners(pts, r, n=6):
+    """Многоугольник со скругленными углами (квадратичная кривая у каждой вершины)."""
+    out = []
+    m = len(pts)
+    for i in range(m):
+        a, p, b = Vector(pts[i - 1]), Vector(pts[i]), Vector(pts[(i + 1) % m])
+        da, db = (a - p), (b - p)
+        ra, rb = min(r, da.length * 0.45), min(r, db.length * 0.45)
+        p0, p1 = p + da.normalized() * ra, p + db.normalized() * rb
+        for k in range(n + 1):
+            t = k / n
+            q = p0 * (1 - t) ** 2 + p * 2 * (1 - t) * t + p1 * t * t
+            out.append((q.x, q.y))
+    return out
+
+
+def ccw(pts):
+    area = sum(pts[i - 1][0] * pts[i][1] - pts[i][0] * pts[i - 1][1] for i in range(len(pts)))
+    return pts if area > 0 else list(reversed(pts))
+
+
+def radial(outline, center=(0.0, 0.0), samples=1440):
+    """Радиус контура по углу (луч из центра; контур звездный относительно центра)."""
+    cx, cy = center
+    segs = [((x0 - cx, y0 - cy), (x1 - cx, y1 - cy)) for (x0, y0), (x1, y1) in zip(outline, outline[1:] + outline[:1])]
+    table = []
+    for k in range(samples):
+        a = 2 * math.pi * k / samples
+        dx, dy = math.cos(a), math.sin(a)
+        best = 0.0
+        for (ax, ay), (bx, by) in segs:
+            ex, ey = bx - ax, by - ay
+            den = dx * ey - dy * ex
+            if abs(den) < 1e-12:
+                continue
+            t = (ax * ey - ay * ex) / den
+            u = (ax * dy - ay * dx) / den
+            if t > 0 and -1e-9 <= u <= 1 + 1e-9:
+                best = t if best == 0.0 else min(best, t)
+        table.append(best)
+
+    def R(a):
+        f = (a % (2 * math.pi)) / (2 * math.pi) * samples
+        i = int(f)
+        w = f - i
+        return table[i % samples] * (1 - w) + table[(i + 1) % samples] * w
+    return R
+
+
+def inflate(name, outline, front, back=None, center=(0.0, 0.0), ridge=0.0, ridge_n=5, ridge_phase=90.0, power=1.0,
+            segs=360, rings=72):
+    """Надутая игрушечная фигура по контуру: в сечении эллипс, фронт толще тыла.
+    Строится в XY (толщина по Z) и встает лицом к камере, как slab()."""
+    R = radial(outline, center)
+    back = front * 0.6 if back is None else back
+    ob = M.sphere(name, 1.0, segs, rings)
+
+    def f(co):
+        a = math.atan2(co.y, co.x)
+        rr = R(a)
+        z = co.z
+        t = math.sqrt(max(0.0, 1 - z * z))
+        if z > 0:
+            zz = front * z ** power
+            if ridge:
+                w = max(0.0, math.cos(ridge_n * (a - math.radians(ridge_phase))))
+                zz *= 1 + ridge * (w ** 6) * t
+        else:
+            zz = back * z
+        return Vector((center[0] + rr * co.x, center[1] + rr * co.y, zz))
+    M.deform(ob, f)
+    M.smooth(ob)
+    stand_up(ob)
+    ob["R"] = 0
+    return ob, R
+
+
+def surface_y(R, front, x, z, center=(0.0, 0.0), power=1.0):
+    """Глубина надутой поверхности (по -Y) в точке (x, z) лицевой стороны."""
+    dx, dz = x - center[0], z - center[1]
+    rr = R(math.atan2(dz, dx)) or 1.0
+    t = min(1.0, math.hypot(dx, dz) / rr)
+    return -front * math.sqrt(max(0.0, 1 - t * t)) ** power
+
+
+def shine(name, pts, radius, strength=1.0):
+    """Белый блик-полоска (как на лампочке и банке)."""
+    mat = M.flat(name + "M", (1.0, 1.0, 1.0), rough=0.3)
+    b = mat.node_tree.nodes["Principled BSDF"]
+    b.inputs["Emission Color"].default_value = (1.0, 1.0, 1.0, 1)
+    b.inputs["Emission Strength"].default_value = strength
+    return tube(name, pts, radius, mat, res=6)
+
+
+def shine_on(name, R, front, center, pts2d, radius, lift=0.012, power=1.0, strength=1.0):
+    pts = [(x, surface_y(R, front, x, z, center, power) - lift, z) for x, z in pts2d]
+    return shine(name, pts, radius, strength)
+
+
+def candy(name, color, rough=0.16, coat=1.0, sss=0.0):
+    mat = toy(name, color, rough=rough, coat=coat)
+    if sss:
+        b = mat.node_tree.nodes["Principled BSDF"]
+        b.inputs["Subsurface Weight"].default_value = sss
+        b.inputs["Subsurface Radius"].default_value = (1.0, 0.3, 0.25)
+        b.inputs["Subsurface Scale"].default_value = 0.05
+    return mat
+
+
+def bright_gold(name="StarGold"):
+    return C.world_mat(name, [(0.0, (0.90, 0.50, 0.04)), (0.45, (1.0, 0.74, 0.12)), (0.75, (1.0, 0.86, 0.30)),
+                              (1.0, (1.0, 0.97, 0.70))], rough=0.18, metal=0.45, coat=0.8)
+
+
+def band(path, w0, w1=None, head=None, tail_round=True):
+    """Полоса вдоль ломаной в плоскости XY шириной 2w; head=(длина, полуширина) - наконечник стрелки."""
+    w1 = w0 if w1 is None else w1
+    P = [Vector((x, y)) for x, y in path]
+    n = len(P)
+    left, right = [], []
+    for i, p in enumerate(P):
+        d = (P[min(i + 1, n - 1)] - P[max(i - 1, 0)]).normalized()
+        nrm = Vector((-d.y, d.x))
+        w = w0 + (w1 - w0) * i / (n - 1)
+        left.append(p + nrm * w)
+        right.append(p - nrm * w)
+    out = list(left)
+    if head:
+        L, hw = head
+        d = (P[-1] - P[-2]).normalized()
+        nrm = Vector((-d.y, d.x))
+        out += [P[-1] + nrm * hw, P[-1] + d * L, P[-1] - nrm * hw]
+    out += list(reversed(right))
+    if tail_round:
+        d = (P[1] - P[0]).normalized()
+        nrm = Vector((-d.y, d.x))
+        for k in range(1, 10):
+            a = math.pi * k / 10
+            out.append(P[0] - nrm * w0 * math.cos(a) - d * w0 * math.sin(a))
+    return [(v.x, v.y) for v in out]
+
+
+def layered(name, outline, depth, bev, color, rim_color, rim=0.07, y=0.0, segs=8, rim_depth=None):
+    """Фигура с темной окантовкой позади: на 30 точках силуэт остается четким."""
+    pts = ccw(outline)
+    front = slab(name, pts, depth, bev, candy(name + "M", color), segs=segs, y=y)
+    back_pts = EV_offset(pts, -rim)
+    rd = rim_depth if rim_depth is not None else depth * 0.8
+    back = slab(name + "Rim", back_pts, rd, min(bev, rd * 0.45), candy(name + "RimM", rim_color, rough=0.3, coat=0.5),
+                segs=segs, y=y + depth * 0.25)
+    return [front, back]
+
+
+def EV_offset(pts, d):
+    import models_events as EV
+    return EV.outline_offset(pts, d)
+
+
+def badge(name, color, ring):
+    """Круглый значок: темное кольцо-основание и надутый купол."""
+    base = disc(name + "Base", 1.0, 0.3, candy(name + "BaseM", ring, rough=0.25, coat=0.7), bev=0.12)
+    circle = [(0.84 * math.cos(2 * math.pi * k / 96), 0.84 * math.sin(2 * math.pi * k / 96)) for k in range(96)]
+    dome, R = inflate(name + "Dome", circle, 0.26, 0.05, segs=128, rings=48)
+    M.assign(dome, candy(name + "DomeM", color, rough=0.14))
+    dome.location.y -= 0.1
+    M.apply_transform(dome)
+    hl = shine(name + "Shine", arc(0, 0, 0.66, 112, 158, 20, y=-0.28), 0.045)
+    return [base, dome, hl]
+
+
+def symbol_slab(name, pts, depth=0.12, bev=0.05, y=-0.38, color=(0.99, 0.98, 0.95)):
+    return slab(name, ccw(pts), depth, bev, candy(name + "M", color, rough=0.25, coat=0.6), segs=6, y=y)
+
+
+# MARK: - Иконки (версия 2)
+
+def faceted_star(name, r_out=1.0, r_in=0.5, front=0.42, back=0.16, rim=0.14, tip=0.08):
+    """Граненая звезда: лучи с ребром посередине, светлые и темные грани; кончики и ребра чуть скруглены."""
+    outline = round_corners(star_pts(r_out, r_in), tip, 4)
+    n = len(outline)
+    verts = [(0.0, 0.0, front + rim / 2), (0.0, 0.0, -back - rim / 2)]
+    verts += [(x, y, rim / 2) for x, y in outline] + [(x, y, -rim / 2) for x, y in outline]
+    faces = []
+    for i in range(n):
+        j = (i + 1) % n
+        faces.append((0, 2 + i, 2 + j))
+        faces.append((1, 2 + n + j, 2 + n + i))
+        faces.append((2 + i, 2 + n + i, 2 + n + j, 2 + j))
+    ob = M.from_data(name, verts, faces)
+    bm = bmesh.new()
+    bm.from_mesh(ob.data)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    bm.to_mesh(ob.data)
+    bm.free()
+    mod = ob.modifiers.new("bevel", "BEVEL")
+    mod.width = 0.045
+    mod.segments = 4
+    mod.limit_method = "ANGLE"
+    mod.angle_limit = math.radians(20)
+    M.bake(ob)
+    M.smooth(ob, 28)
+    stand_up(ob)
+    return ob
+
+
+def icon_star():
+    """Звезда: граненая (светлые и темные грани читаются даже на 30 точках), яркое полированное золото."""
+    _prep()
+    s = faceted_star("Star")
+    M.assign(s, bright_gold())
+    return finish([s], tilt=10)
+
+
+def heart_outline():
+    return ccw(heart_pts(1.0, 200))
+
+
+def icon_heart():
+    """Сердце-жизнь: надутая карамель с глубоким цветом и бликом на левой половинке."""
+    _prep()
+    c = (0.0, -0.08)
+    h, R = inflate("Heart", heart_outline(), 0.44, 0.24, center=c, power=0.85)
+    M.assign(h, candy("Red", (0.96, 0.18, 0.30), rough=0.14, sss=0.15))
+    hl = shine_on("Shine", R, 0.44, c, [(-0.62 + 0.04 * k, 0.36 + 0.07 * k - 0.006 * k * k) for k in range(8)], 0.045,
+                  power=0.85)
+    dot = shine_on("Dot", R, 0.44, c, [(-0.3, 0.62), (-0.27, 0.63)], 0.035, power=0.85)
+    return finish([h, hl, dot], tilt=8)
+
+
+def icon_unlimited():
+    """Безлимит: то же сердце и золотая бесконечность, лежащая по его поверхности."""
+    _prep()
+    c = (0.0, -0.08)
+    h, R = inflate("Heart", heart_outline(), 0.44, 0.24, center=c, power=0.85)
+    M.assign(h, candy("Red", (0.96, 0.18, 0.30), rough=0.14, sss=0.15))
+    pts = []
+    for i in range(161):
+        t = 2 * math.pi * i / 160
+        d = 1 + math.sin(t) ** 2
+        x, z = 0.5 * math.cos(t) / d, 0.06 + 0.5 * math.sin(t) * math.cos(t) / d
+        pts.append((x, surface_y(R, 0.44, x, z, c, 0.85) - 0.07, z))
+    inf = tube("Inf", pts, 0.085, bright_gold("InfGold"), res=8)
+    hl = shine_on("Shine", R, 0.44, c, [(-0.66 + 0.04 * k, 0.4 + 0.06 * k - 0.005 * k * k) for k in range(7)], 0.04,
+                  power=0.85)
+    return finish([h, inf, hl], tilt=8)
+
+
+def icon_energy():
+    """Энергия: толстая молния, желтая с оранжевой окантовкой, блик по верхней грани."""
+    _prep()
+    pts = [(0.22, 1.0), (-0.56, -0.1), (-0.06, -0.1), (-0.3, -1.0), (0.58, 0.14), (0.08, 0.14), (0.42, 1.0)]
+    pts = round_corners(ccw(pts), 0.07, 5)
+    parts = layered("Bolt", pts, 0.38, 0.13, (1.0, 0.82, 0.16), (0.96, 0.46, 0.08), rim=0.08)
+    parts.append(shine("Shine", [(0.16 - 0.06 * k, -0.21, 0.82 - 0.11 * k) for k in range(6)], 0.03))
+    return finish(parts, tilt=8)
+
+
+def arrow_head(name, base, d, L, hw, depth, mat, y=0.0):
+    """Плоский наконечник стрелки со скругленными углами: основание в base (x, z), острие по направлению d."""
+    pts = round_corners([(0.0, -hw), (L, 0.0), (0.0, hw)], 0.07, 5)
+    h = slab(name, pts, depth, depth * 0.3, mat, segs=5)
+    th = math.atan2(d[1], d[0])
+    h.rotation_euler = (0, -th, 0)
+    M.apply_transform(h)
+    h.location = (base[0], y, base[1])
+    M.apply_transform(h)
+    return h
+
+
+def icon_undo():
+    """Отмена: глянцевая дуга-трубка против часовой и широкий плоский наконечник вниз-влево."""
+    _prep()
+    mat = candy("Blue", (0.28, 0.62, 1.0), rough=0.14)
+    rc, r = 0.52, 0.17
+    path = arc(0.05, 0.08, rc, -35, 176, 64)
+    body = tube("Arc", path, r, mat, res=10)
+    end, prev = Vector(path[-1]), Vector(path[-3])
+    d = (end - prev).normalized()
+    head = arrow_head("Head", (end.x - d.x * 0.04, end.z - d.z * 0.04), (d.x, d.z), 0.5, 0.42, 0.26, mat)
+    hl = shine("Shine", arc(0.05, 0.08, rc + 0.04, 62, 118, 16, y=-0.19), 0.03)
+    return finish([body, head, hl], tilt=8)
+
+
+def icon_shuffle():
+    """Перемешать: две глянцевые трубки крест-накрест с прямыми концами и плоскими наконечниками."""
+    _prep()
+    parts = []
+    for i, (z0, z1, col, y) in enumerate(((0.5, -0.5, (0.20, 0.68, 0.48), 0.18), (-0.5, 0.5, (0.42, 0.88, 0.36), -0.18))):
+        mat = candy(f"Green{i}", col, rough=0.14)
+        path = []
+        for k in range(49):
+            x = -0.92 + 1.3 * k / 48
+            t = min(1.0, max(0.0, (x + 0.62) / 0.9))
+            s_ = t * t * (3 - 2 * t)
+            path.append((x, y, z0 + (z1 - z0) * s_))
+        parts.append(tube(f"S{i}", path, 0.12, mat, res=10))
+        parts.append(arrow_head(f"H{i}", (0.34, z1), (1.0, 0.0), 0.42, 0.33, 0.2, mat, y=y))
+        parts.append(shine(f"Shine{i}", [(-0.86 + 0.06 * k, y - 0.13, z0 + 0.05) for k in range(5)], 0.022))
+    return finish(parts, tilt=8)
+
+
+def icon_check():
+    """Готово: зеленый значок с куполом и белой галочкой."""
+    _prep()
+    parts = badge("Badge", (0.36, 0.84, 0.36), (0.14, 0.52, 0.20))
+    tick = band([(-0.4, 0.02), (-0.12, -0.26), (0.42, 0.32)], 0.11, 0.11, tail_round=True)
+    parts.append(symbol_slab("Tick", round_corners(tick, 0.03, 3)))
+    return finish(parts, tilt=8)
+
+
+def icon_plus():
+    """Плюс: тот же значок, белый крест."""
+    _prep()
+    parts = badge("Badge", (0.36, 0.84, 0.36), (0.14, 0.52, 0.20))
+    parts += cross_bars("Cross", 0.13, 0.46)
+    return finish(parts, tilt=8)
+
+
+def cross_bars(name, w, L, y=-0.38):
+    """Белый крест из двух скругленных брусков (выпуклые контуры: без швов на вогнутых углах)."""
+    return [symbol_slab(name + "H", rounded_rect(2 * L, 2 * w, w * 0.9, 8), y=y),
+            symbol_slab(name + "V", rounded_rect(2 * w, 2 * L, w * 0.9, 8), y=y - 0.002)]
+
+
+def plus_badge2(name, r, loc):
+    parts = badge(name, (0.36, 0.84, 0.36), (0.14, 0.52, 0.20))
+    parts += cross_bars(name + "Cross", 0.14, 0.48)
+    for p in parts:
+        p.matrix_world = Matrix.Translation(loc) @ Matrix.Scale(r, 4) @ p.matrix_world
+        M.apply_transform(p)
+    return parts
+
+
+def icon_shelf():
+    """Дополнительная полка: деревянная полочка как в игре (рамка, задник) и зеленый плюс."""
+    _prep()
+    import models_match3 as M3
+    frame = M3.wood("Frame", (0.80, 0.48, 0.24), axis="x", rough=0.4, coat=0.5, grain=0.3)
+    side = M3.wood("Side", (0.74, 0.44, 0.22), axis="z", rough=0.4, coat=0.5, grain=0.3)
+    inside = M3.wood("Inside", (0.46, 0.26, 0.12), axis="x", rough=0.6, coat=0.1, grain=0.25)
+    W, H, D, T = 1.7, 0.95, 0.6, 0.13
+    parts = [M3.rbox("Bottom", -W / 2, W / 2, -D / 2, D / 2, 0.0, T, frame, 0.04),
+             M3.rbox("Top", -W / 2, W / 2, -D / 2, D / 2, H - T, H, frame, 0.04),
+             M3.rbox("SideL", -W / 2, -W / 2 + T, -D / 2, D / 2, 0.0, H, side, 0.04),
+             M3.rbox("SideR", W / 2 - T, W / 2, -D / 2, D / 2, 0.0, H, side, 0.04),
+             M3.rbox("Back", -W / 2 + T, W / 2 - T, D / 2 - 0.06, D / 2, T, H - T, inside, 0.0)]
+    # три фишки-продукта внутри, чтобы читалось как полка игры
+    for k, (x, col) in enumerate(((-0.42, (0.95, 0.24, 0.24)), (0.0, (1.0, 0.76, 0.18)), (0.42, (0.40, 0.78, 0.30)))):
+        b = M.sphere(f"Item{k}", 0.2, 32, 16)
+        b.scale = (1.0, 1.0, 1.05)
+        b.location = (x, 0.0, T + 0.2)
+        M.apply_transform(b)
+        parts.append(M.assign(M.smooth(b), candy(f"ItemM{k}", col, rough=0.16)))
+    parts = M.rotate_all(parts, (0, 0, math.radians(14)))
+    parts += plus_badge2("Plus", 0.44, (0.66, -0.45, 0.92))
+    return finish(parts, tilt=10)
+
+
+def icon_lock():
+    """Замок: золотой корпус-подушка, скважина с ободком, заклепки, толстая стальная дужка."""
+    _prep()
+    g = bright_gold("LockGold")
+    body = slab("Body", ccw(rounded_rect(1.36, 1.04, 0.3, 12)), 0.56, 0.18, g, segs=8)
+    steel = C.world_mat("Steel", [(0.0, (0.46, 0.50, 0.60)), (0.5, (0.78, 0.82, 0.90)), (1.0, (0.98, 0.99, 1.0))],
+                        rough=0.16, metal=0.8, coat=0.6)
+    sh = tube("Shackle", [(-0.36, 0.0, 0.3), (-0.36, 0.0, 0.62)] + arc(0, 0.62, 0.36, 180, 0, 32)[1:] + [(0.36, 0.0, 0.3)],
+              0.11, steel, res=10)
+    for p in (body,):
+        p.location.z -= 0.2
+        M.apply_transform(p)
+    dark = candy("Hole", (0.22, 0.12, 0.04), rough=0.5, coat=0.2)
+    key = [(0.14 * math.cos(math.radians(a)), 0.05 + 0.14 * math.sin(math.radians(a))) for a in range(-60, 241, 10)]
+    key += [(-0.07, -0.26), (0.07, -0.26)]
+    hole = slab("Key", ccw(round_corners(key, 0.03, 3)), 0.06, 0.02, dark, segs=3, y=-0.29)
+    hole.location.z -= 0.22
+    M.apply_transform(hole)
+    rim = M.torus("KeyRim", 0.21, 0.035, 64, 12)
+    rim.rotation_euler = (math.radians(90), 0, 0)
+    rim.location = (0, -0.29, -0.17)
+    M.apply_transform(rim)
+    M.assign(M.smooth(rim), g)
+    parts = [body, sh, hole, rim]
+    for k, (x, z) in enumerate(((-0.5, 0.18), (0.5, 0.18), (-0.5, -0.56), (0.5, -0.56))):
+        rv = M.sphere(f"Rivet{k}", 0.06, 24, 12)
+        rv.scale = (1, 0.6, 1)
+        rv.location = (x, -0.27, z)
+        M.apply_transform(rv)
+        parts.append(M.assign(M.smooth(rv), g))
+    parts.append(shine("Shine", [(-0.5 + 0.06 * k, -0.3, 0.12 + 0.01 * k) for k in range(6)], 0.03))
+    return finish(parts, tilt=8)
+
+
+def icon_gear():
+    """Настройки: стальная шестеренка со скругленными зубцами, канавка, ступица с золотой гайкой."""
+    _prep()
+    teeth = 9
+    pts = []
+    for i in range(540):
+        a = 2 * math.pi * i / 540
+        ph = (a * teeth / (2 * math.pi)) % 1.0
+        d = min(abs(ph - 0.5), 0.5)
+        k = 1.0 - min(1.0, max(0.0, (d - 0.16) / 0.12))
+        k = k * k * (3 - 2 * k)
+        r = 0.76 + 0.24 * k
+        pts.append((r * math.cos(a), r * math.sin(a)))
+    steel = C.world_mat("GearSteel", [(0.0, (0.36, 0.42, 0.56)), (0.5, (0.64, 0.72, 0.86)), (1.0, (0.92, 0.95, 1.0))],
+                        rough=0.22, metal=0.6, coat=0.6)
+    g = slab("Gear", ccw(pts), 0.36, 0.07, steel, segs=5)
+    groove = M.torus("Groove", 0.56, 0.045, 96, 12)
+    groove.rotation_euler = (math.radians(90), 0, 0)
+    groove.location = (0, -0.17, 0)
+    M.apply_transform(groove)
+    M.assign(M.smooth(groove), C.world_mat("GrooveM", [(0.0, (0.22, 0.26, 0.36)), (1.0, (0.46, 0.52, 0.66))], rough=0.3,
+                                          metal=0.5, coat=0.3))
+    hub = disc("Hub", 0.4, 0.22, steel, y=-0.16, bev=0.08)
+    nut = M.lathe("Nut", [(0.0, 0.0), (0.2, 0.0), (0.2, 0.12), (0.0, 0.12)], 6)
+    M.bevel(nut, 0.025, 3, 30)
+    M.smooth(nut, 30)
+    nut.rotation_euler = (math.radians(90), 0, 0)
+    nut.location = (0, -0.26, 0)
+    M.apply_transform(nut)
+    M.assign(nut, bright_gold("NutGold"))
+    hole = M.cylinder("NutHole", 0.08, 0.06, 32)
+    hole.rotation_euler = (math.radians(90), 0, 0)
+    hole.location = (0, -0.385, 0)
+    M.apply_transform(hole)
+    M.assign(M.smooth(hole), candy("NutHoleM", (0.30, 0.20, 0.08), rough=0.4))
+    hl = shine("Shine", arc(0, 0, 0.82, 110, 150, 14, y=-0.2), 0.03)
+    return finish([g, groove, hub, nut, hole, hl], tilt=8)
+
+
+def map_mat(name):
+    """Карта: зеленая суша с пятнами, извилистая река, пунктир маршрута; координаты мира (сгибы непрерывны)."""
+    import models_remodel as RM
+    sh = RM.Sh(name, rough=0.45, coat=0.3)
+    geo = sh.nodes.new("ShaderNodeNewGeometry")
+    x, y, z = sh.xyz(geo.outputs["Position"])
+    land = sh.mix(sh.remap(sh.noise(geo.outputs["Position"], 2.5, 3.0), 0.45, 0.6), (0.50, 0.82, 0.36), (0.66, 0.90, 0.44))
+    river_c = sh.math("ADD", sh.math("MULTIPLY", sh.math("SINE", sh.math("MULTIPLY", x, 3.2)), 0.22), 0.18)
+    dr = sh.math("ABSOLUTE", sh.math("SUBTRACT", z, river_c))
+    col = sh.mix(sh.remap(dr, 0.13, 0.11), land, (0.36, 0.66, 0.98))
+    col = sh.mix(sh.math("MULTIPLY", sh.remap(dr, 0.16, 0.13), sh.remap(dr, 0.11, 0.13)), col, (0.96, 0.90, 0.66))
+    # пунктир маршрута: синусоида, точки по x
+    path_c = sh.math("SUBTRACT", sh.math("MULTIPLY", sh.math("SINE", sh.math("ADD", sh.math("MULTIPLY", x, 2.4), 2.0)), 0.18), 0.32)
+    dp = sh.math("ABSOLUTE", sh.math("SUBTRACT", z, path_c))
+    dash = sh.math("GREATER_THAN", sh.math("PINGPONG", sh.math("MULTIPLY", x, 7.0), 0.5), 0.22)
+    col = sh.mix(sh.math("MULTIPLY", sh.remap(dp, 0.035, 0.025), dash), col, (0.92, 0.22, 0.20))
+    # деревья-точки
+    tr = sh.voronoi(geo.outputs["Position"], 4.0, out="Distance")
+    col = sh.mix(sh.math("MULTIPLY", sh.remap(tr, 0.09, 0.07), sh.remap(dr, 0.2, 0.25)), col, (0.24, 0.58, 0.24))
+    sh.color(col)
+    return sh.mat
+
+
+def icon_map():
+    """Карта: сложенная гармошкой бумага с рекой и пунктиром, красная булавка."""
+    _prep()
+    paper = candy("Paper", (0.98, 0.94, 0.82), rough=0.6, coat=0.1)
+    mm = map_mat("MapPrint")
+    parts = []
+    W = 0.6
+    for i, (x, a) in enumerate(((-W, 16), (0.0, -16), (W, 16))):
+        p = M.box_mesh(f"Panel{i}", W + 0.004, 0.05, 1.36, -0.68)
+        M.bevel(p, 0.012, 2, 30)
+        p.rotation_euler = (0, 0, math.radians(a))
+        p.location = (x, 0.0, 0)
+        M.apply_transform(p)
+        M.assign(p, paper)
+        p.data.materials.append(mm)
+        for poly in p.data.polygons:
+            if poly.normal.y < -0.8:
+                poly.material_index = 1
+        parts.append(p)
+    red = candy("PinRed", (0.95, 0.20, 0.24), rough=0.12)
+    pin = M.sphere("Pin", 0.26, 48, 24)
+    pin.location = (0.34, -0.42, 0.5)
+    M.apply_transform(pin)
+    M.assign(M.smooth(pin), red)
+    tip = cone_head("PinTip", (0.34, -0.36, 0.02), (0, 0.05, -1), 0.18, 0.42, red)
+    dot = M.sphere("PinDot", 0.1, 24, 12)
+    dot.location = (0.34, -0.66, 0.53)
+    M.apply_transform(dot)
+    M.assign(M.smooth(dot), white("PinW"))
+    hl = shine("Shine", arc(0.34, 0.5, 0.2, 110, 160, 10, y=-0.6), 0.025)
+    return finish(parts + [pin, tip, dot, hl], tilt=6)
 
 
 MODELS = {name: fn for name, fn in globals().items() if name.startswith("icon_") and callable(fn)}
