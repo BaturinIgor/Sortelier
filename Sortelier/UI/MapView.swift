@@ -52,14 +52,14 @@ struct MapView: View {
 
     // MARK: - Боковые кнопки
 
-    /// Сбоку остается то, что относится к карте: кладовая и задания новичка.
+    /// Сбоку остается то, что относится к карте: мини-игры (с подписью жанра), фоновые события и задания новичка.
     private var sideRail: some View {
         VStack(spacing: 14) {
-            railButton("gen_crate", title: lang.t("rail.pantry"), badge: progress.energy >= MergeBalance.maxEnergy) {
+            railButton("gen_crate", title: lang.t("rail.pantry"), tag: lang.t("rail.tag.merge"), badge: progress.energy >= MergeBalance.maxEnergy) {
                 router.merge = true
             }
             if progress.marketUnlocked {
-                railButton("icon_market", title: lang.t("rail.market"), badge: progress.marketClaimable || !progress.data.market.welcomed) {
+                railButton("icon_market", title: lang.t("rail.market"), tag: lang.t("rail.tag.match3"), badge: progress.marketClaimable || !progress.data.market.welcomed) {
                     router.market = true
                 }
                 railButton("icon_garden", title: lang.t("rail.garden"), badge: progress.gardenReady > 0) {
@@ -79,19 +79,36 @@ struct MapView: View {
         }
     }
 
-    private func railButton(_ icon: String, title: String, badge: Bool, action: @escaping () -> Void) -> some View {
+    /// Кнопка сбоку карты. У мини-игр снизу плашка с жанром ("3 в ряд", "Слияние"), чтобы было видно, что это отдельная игра.
+    private func railButton(_ icon: String, title: String, tag: String? = nil, badge: Bool, action: @escaping () -> Void) -> some View {
         Button {
             Audio.shared.play(.button, volume: 0.6)
             action()
         } label: {
-            VStack(spacing: -4) {
+            VStack(spacing: tag == nil ? -4 : 3) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.woodDark.opacity(0.55)).offset(y: 3)
                     RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.card)
-                    RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.paperBorder, lineWidth: 3)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(tag == nil ? Theme.paperBorder : ButtonPalette.orange.dark, lineWidth: 3)
                     SpriteImage(name: icon, size: 46)
                 }
                 .frame(width: 58, height: 58)
+                .overlay(alignment: .bottom) {
+                    if let tag = tag {
+                        Text(tag)
+                            .font(Theme.rounded(10, .black))
+                            .foregroundColor(.white)
+                            .outlined(ButtonPalette.orange.dark, width: 1)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(LinearGradient(colors: [ButtonPalette.orange.top, ButtonPalette.orange.bottom],
+                                                                      startPoint: .top, endPoint: .bottom)))
+                            .overlay(Capsule().strokeBorder(ButtonPalette.orange.dark, lineWidth: 1.5))
+                            .offset(y: 8)
+                    }
+                }
                 StrokeText(text: title, size: 11, weight: .black, color: .white, stroke: Theme.woodDark, width: 1.2, drop: 1)
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
@@ -107,10 +124,10 @@ struct MapView: View {
     private var topBar: some View {
         HStack(spacing: 6) {
             Button { router.lives = true } label: { LivesPill() }.buttonStyle(PressScaleStyle())
-            Button { router.open(.shop) } label: { CoinsPill() }.buttonStyle(PressScaleStyle())
+            Button { router.open(ShopSection.coins) } label: { CoinsPill() }.buttonStyle(PressScaleStyle())
             StreakButton { router.streak = true }
             Spacer(minLength: 0)
-            VIPBadge { router.open(.shop) }
+            VIPBadge { router.open(ShopSection.offers) }
             CircleIconButton(symbol: "gearshape.fill", size: 42) { withAnimation(.easeInOut(duration: 0.22)) { router.settings = true } }
         }
         .padding(.top, 6)
