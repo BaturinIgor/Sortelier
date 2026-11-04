@@ -831,6 +831,15 @@ S.update({
  "splash.tip.4": ("Kitchen stars open chests on the map", "Звезды кухни открывают сундуки на карте"),
 })
 
+S.update({
+ "task.go": ("Go", "Перейти"),
+ "task.go.locked": ("Opens after level {0}", "Откроется после уровня {0}"),
+ "quests.hint": ("Tasks stay here for {0} days from your first launch or until you claim the grand prize", "Задания доступны {0} дней с первого запуска или пока не заберешь главный приз"),
+ "book.collect": ("Collect", "Забрать"),
+ "book.coins.hint": ("New cards give coins: product +{0}, dish +{1}", "Новые карточки приносят монеты: продукт +{0}, блюдо +{1}"),
+ "map.replay.hint": ("Replay levels with fewer than 3 stars for free to get more stars and open the chests", "Переигрывай бесплатно уровни, где меньше 3 звезд, чтобы добрать звезды и открыть сундуки"),
+})
+
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 out = os.path.join(root, "Sortelier", "Resources", "Strings")
 os.makedirs(out, exist_ok=True)

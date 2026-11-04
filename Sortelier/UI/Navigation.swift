@@ -108,6 +108,57 @@ final class Router: ObservableObject {
         shopSection = section
         open(AppTab.shop)
     }
+
+    /// Ведет туда, где выполняется задание на этот счетчик: карта, испытания, кладовая, рынок и так далее.
+    func go(to stat: Stat) {
+        let route = TaskRoute.of(stat)
+        if route.needsMarket && !PlayerProgress.shared.marketUnlocked {
+            Toast.info(Lang.shared.t("task.go.locked", MarketBalance.unlockLevel), icon: "lock.fill")
+            open(AppTab.map)
+            return
+        }
+        settings = false
+        lives = false
+        streak = false
+        jar = false
+        switch route {
+        case .map: open(AppTab.map)
+        case .challenges: open(EventsSection.challenges)
+        case .events: open(EventsSection.events)
+        case .album: open(AppTab.album)
+        case .book: open(KitchenSection.book)
+        case .backgrounds: open(KitchenSection.backgrounds)
+        case .pantry: merge = true
+        case .market: market = true
+        case .recipe: recipe = true
+        case .garden: garden = true
+        }
+    }
+}
+
+/// Где выполняется задание или ачивка на счетчик.
+enum TaskRoute {
+    case map, challenges, events, album, book, backgrounds, pantry, market, recipe, garden
+
+    static func of(_ stat: Stat) -> TaskRoute {
+        switch stat {
+        case .levelsWon, .served, .tips, .dishes, .triples, .threeStars, .maxCombo, .boostersUsed,
+             .gourmets, .coinsEarned, .chefBest, .streakBest, .reviews:
+            return .map
+        case .dailyDone, .weeklyDone, .weeklyLevels, .medals: return .challenges
+        case .eventRewards, .raceWins: return .events
+        case .chests, .albumCards, .booksDone, .rareCards: return .album
+        case .cards: return .book
+        case .kitchens: return .backgrounds
+        case .merges, .mergeOrders: return .pantry
+        case .marketWins: return .market
+        case .recipeSteps: return .recipe
+        case .harvests: return .garden
+        }
+    }
+
+    /// Рынок, Большой рецепт и огород открываются вместе с рынком.
+    var needsMarket: Bool { self == .market || self == .recipe || self == .garden }
 }
 
 // MARK: - Нижняя панель
@@ -192,7 +243,7 @@ struct MainTabBar: View {
                 BadgeDot()
             }
         case .kitchen:
-            if progress.achievementsClaimable { BadgeDot() }
+            if progress.achievementsClaimable || progress.bookClaimable { BadgeDot() }
         }
     }
 }

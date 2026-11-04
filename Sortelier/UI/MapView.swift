@@ -11,6 +11,10 @@ struct MapView: View {
     @State private var chest: Int?
     @State private var openedBiome: Int?
     @State private var vipDaily: Granted?
+    /// Кухня, чьи звезды и сундуки показаны в карточке снизу (nil - текущая).
+    @State private var shownBiome: Int?
+    /// Куда прокрутить карту: уровень, который стоит переиграть.
+    @State private var scrollTarget: Int?
 
     private let rowHeight: CGFloat = 96
 
@@ -170,6 +174,11 @@ struct MapView: View {
                 }
                 .onAppear { scrollToCurrent(proxy) }
                 .onChange(of: openedBiome) { _ in scrollToCurrent(proxy) }
+                .onChange(of: scrollTarget) { target in
+                    guard let target = target else { return }
+                    withAnimation(.easeInOut(duration: 0.45)) { proxy.scrollTo(target, anchor: .center) }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { scrollTarget = nil }
+                }
             }
         }
         .ignoresSafeArea(edges: .bottom)
@@ -330,26 +339,87 @@ struct MapView: View {
 
     // MARK: - Звезды биома
 
+    /// Открытые кухни: в карточке звезд можно листать и пройденные, чтобы добрать звезды и забрать сундуки.
+    private var openBiomes: [Int] { (1...Biomes.playable).filter { progress.isBiomeOpen($0) } }
+
+    private var cardBiome: Int {
+        if let b = shownBiome, progress.isBiomeOpen(b) { return b }
+        return progress.mapBiome
+    }
+
+    private func hasReadyChest(_ biome: Int) -> Bool {
+        (0..<Biomes.chests(biome).count).contains { progress.chestReady((biome - 1) * 3 + $0) }
+    }
+
+    /// Первый уровень кухни, где меньше 3 звезд (его стоит переиграть), иначе первый уровень.
+    private func replayTarget(_ biome: Int) -> Int? {
+        let levels = LevelStore.shared.levels(biome: biome)
+        return (levels.first { progress.isUnlocked($0.id) && progress.stars($0.id) < 3 } ?? levels.first)?.id
+    }
+
+    private func showBiome(_ biome: Int) {
+        Audio.shared.play(.button, volume: 0.5)
+        withAnimation(.easeInOut(duration: 0.2)) { shownBiome = biome }
+        scrollTarget = replayTarget(biome)
+    }
+
+    private func biomeArrow(_ step: Int) -> some View {
+        let list = openBiomes
+        let i = list.firstIndex(of: cardBiome) ?? 0
+        let target = list.indices.contains(i + step) ? list[i + step] : nil
+        return Button {
+            if let t = target { showBiome(t) }
+        } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.woodDark.opacity(0.5)).offset(y: 2)
+                RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Theme.card)
+                RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.paperBorder, lineWidth: 2)
+                Image(systemName: step < 0 ? "chevron.left" : "chevron.right")
+                    .font(.system(size: 15, weight: .black))
+                    .foregroundColor(Theme.brown)
+                    .flipsForRightToLeftLayoutDirection(true)
+            }
+            .frame(width: 30, height: 30)
+            .overlay(alignment: .topTrailing) {
+                if let t = target, hasReadyChest(t) { BadgeDot().offset(x: 5, y: -5) }
+            }
+        }
+        .buttonStyle(PressScaleStyle())
+        .opacity(target == nil ? 0.3 : 1)
+        .disabled(target == nil)
+    }
+
     private var starsCard: some View {
-        let biome = progress.mapBiome
+        let biome = cardBiome
         let total = progress.totalStars(biome: biome)
         let maxStars = Balance.levelsPerBiome * 3
         let chests = Biomes.chests(biome)
+        let several = openBiomes.count > 1
         return Panel(padding: 12) {
             VStack(spacing: 8) {
-                HStack(spacing: 4) {
+                HStack(spacing: 6) {
+                    if several { biomeArrow(-1) }
                     SpriteImage(name: "icon_star", size: 24)
                     Text(lang.t("map.stars", total, maxStars))
                         .font(Theme.rounded(15, .heavy))
                         .foregroundColor(Theme.brown)
                         .lineLimit(1)
-                        .fixedSize()
-                    Spacer(minLength: 6)
-                    Text(lang.t("biome.\(biome).name"))
-                        .font(Theme.rounded(13, .bold))
-                        .foregroundColor(Theme.brownSoft)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
+                        .minimumScaleFactor(0.8)
+                    Spacer(minLength: 4)
+                    Button {
+                        if let t = replayTarget(biome) {
+                            Audio.shared.play(.button, volume: 0.5)
+                            scrollTarget = t
+                        }
+                    } label: {
+                        Text(lang.t("biome.\(biome).name"))
+                            .font(Theme.rounded(13, .bold))
+                            .foregroundColor(Theme.brownSoft)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                    }
+                    .buttonStyle(PressScaleStyle())
+                    if several { biomeArrow(1) }
                 }
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
@@ -361,7 +431,16 @@ struct MapView: View {
                     }
                 }
                 .frame(height: 30)
+                if biome != progress.mapBiome && total < maxStars {
+                    Text(lang.t("map.replay.hint"))
+                        .font(Theme.rounded(12, .semibold))
+                        .foregroundColor(Theme.brownSoft)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
+            .id(biome)
+            .transition(.opacity)
         }
     }
 

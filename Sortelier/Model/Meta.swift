@@ -212,6 +212,8 @@ struct MetaData: Codable {
     var achievementTrack: [Int] = []
     /// Гости ивентов, которые заходят на уровни карты.
     var guests: [String] = []
+    /// Карточки кулинарной книги, за которые уже забраны монеты.
+    var bookPaid: [String] = []
 
     init() {}
 
@@ -246,6 +248,7 @@ struct MetaData: Codable {
         race = try c.decodeIfPresent(RaceState.self, forKey: .race) ?? RaceState()
         achievementTrack = try c.decodeIfPresent([Int].self, forKey: .achievementTrack) ?? []
         guests = try c.decodeIfPresent([String].self, forKey: .guests) ?? []
+        bookPaid = try c.decodeIfPresent([String].self, forKey: .bookPaid) ?? []
     }
 }
 
@@ -382,28 +385,58 @@ struct Quest: Identifiable {
 }
 
 enum WelcomeQuests {
+    /// По 7 заданий на день. Счетчики общие за всю игру, поэтому цели растут от дня к дню.
+    /// Старые id (d1a-d7c) не меняются: забранные задания у игроков остаются забранными.
     static let all: [Quest] = [
         Quest(id: "d1a", day: 1, stat: .levelsWon, target: 2, reward: Reward(coins: 40)),
         Quest(id: "d1b", day: 1, stat: .served, target: 6, reward: Reward(coins: 40)),
         Quest(id: "d1c", day: 1, stat: .triples, target: 4, reward: Reward(boosters: [.hint: 1])),
-        Quest(id: "d2a", day: 2, stat: .levelsWon, target: 5, reward: Reward(coins: 60)),
-        Quest(id: "d2b", day: 2, stat: .dishes, target: 2, reward: Reward(boosters: [.undo: 1])),
+        Quest(id: "d1d", day: 1, stat: .dishes, target: 1, reward: Reward(coins: 30)),
+        Quest(id: "d1e", day: 1, stat: .merges, target: 3, reward: Reward(energy: 10)),
+        Quest(id: "d1f", day: 1, stat: .tips, target: 10, reward: Reward(coins: 30)),
+        Quest(id: "d1g", day: 1, stat: .levelsWon, target: 4, reward: Reward(boosters: [.undo: 1])),
+        Quest(id: "d2a", day: 2, stat: .levelsWon, target: 6, reward: Reward(coins: 60)),
+        Quest(id: "d2b", day: 2, stat: .dishes, target: 3, reward: Reward(boosters: [.undo: 1])),
         Quest(id: "d2c", day: 2, stat: .threeStars, target: 1, reward: Reward(coins: 60)),
-        Quest(id: "d3a", day: 3, stat: .levelsWon, target: 8, reward: Reward(coins: 80)),
+        Quest(id: "d2d", day: 2, stat: .served, target: 25, reward: Reward(coins: 50)),
+        Quest(id: "d2e", day: 2, stat: .mergeOrders, target: 1, reward: Reward(energy: 15)),
+        Quest(id: "d2f", day: 2, stat: .maxCombo, target: 3, reward: Reward(boosters: [.hint: 1])),
+        Quest(id: "d2g", day: 2, stat: .boostersUsed, target: 1, reward: Reward(coins: 50)),
+        Quest(id: "d3a", day: 3, stat: .levelsWon, target: 9, reward: Reward(coins: 80)),
         Quest(id: "d3b", day: 3, stat: .tips, target: 40, reward: Reward(coins: 60)),
-        Quest(id: "d3c", day: 3, stat: .boostersUsed, target: 1, reward: Reward(boosters: [.shelf: 1])),
-        Quest(id: "d4a", day: 4, stat: .dailyDone, target: 1, reward: Reward(coins: 100, chests: [.bronze: 1])),
-        Quest(id: "d4b", day: 4, stat: .levelsWon, target: 11, reward: Reward(coins: 80)),
+        Quest(id: "d3c", day: 3, stat: .boostersUsed, target: 3, reward: Reward(boosters: [.shelf: 1])),
+        Quest(id: "d3d", day: 3, stat: .triples, target: 30, reward: Reward(coins: 60)),
+        Quest(id: "d3e", day: 3, stat: .marketWins, target: 1, reward: Reward(market: [.mallet: 1])),
+        Quest(id: "d3f", day: 3, stat: .dailyDone, target: 1, reward: Reward(coins: 80)),
+        Quest(id: "d3g", day: 3, stat: .threeStars, target: 3, reward: Reward(chests: [.bronze: 1])),
+        Quest(id: "d4a", day: 4, stat: .dailyDone, target: 2, reward: Reward(coins: 100, chests: [.bronze: 1])),
+        Quest(id: "d4b", day: 4, stat: .levelsWon, target: 12, reward: Reward(coins: 80)),
         Quest(id: "d4c", day: 4, stat: .dishes, target: 8, reward: Reward(boosters: [.hint: 1, .undo: 1])),
-        Quest(id: "d5a", day: 5, stat: .levelsWon, target: 14, reward: Reward(coins: 100)),
-        Quest(id: "d5b", day: 5, stat: .served, target: 80, reward: Reward(coins: 100)),
-        Quest(id: "d5c", day: 5, stat: .threeStars, target: 5, reward: Reward(unlimitedMinutes: 30)),
+        Quest(id: "d4d", day: 4, stat: .marketWins, target: 3, reward: Reward(coins: 80)),
+        Quest(id: "d4e", day: 4, stat: .merges, target: 25, reward: Reward(energy: 20)),
+        Quest(id: "d4f", day: 4, stat: .eventRewards, target: 1, reward: Reward(coins: 80)),
+        Quest(id: "d4g", day: 4, stat: .served, target: 60, reward: Reward(boosters: [.shuffle: 1])),
+        Quest(id: "d5a", day: 5, stat: .levelsWon, target: 15, reward: Reward(coins: 100)),
+        Quest(id: "d5b", day: 5, stat: .served, target: 90, reward: Reward(coins: 100)),
+        Quest(id: "d5c", day: 5, stat: .threeStars, target: 6, reward: Reward(unlimitedMinutes: 30)),
+        Quest(id: "d5d", day: 5, stat: .recipeSteps, target: 2, reward: Reward(coins: 100)),
+        Quest(id: "d5e", day: 5, stat: .mergeOrders, target: 4, reward: Reward(chests: [.bronze: 1])),
+        Quest(id: "d5f", day: 5, stat: .harvests, target: 1, reward: Reward(coins: 80)),
+        Quest(id: "d5g", day: 5, stat: .eventRewards, target: 3, reward: Reward(boosters: [.shelf: 1])),
         Quest(id: "d6a", day: 6, stat: .weeklyLevels, target: 1, reward: Reward(coins: 150)),
-        Quest(id: "d6b", day: 6, stat: .levelsWon, target: 17, reward: Reward(coins: 120)),
+        Quest(id: "d6b", day: 6, stat: .levelsWon, target: 18, reward: Reward(coins: 120)),
         Quest(id: "d6c", day: 6, stat: .tips, target: 200, reward: Reward(boosters: [.shelf: 1])),
-        Quest(id: "d7a", day: 7, stat: .levelsWon, target: 20, reward: Reward(coins: 150)),
+        Quest(id: "d6d", day: 6, stat: .marketWins, target: 6, reward: Reward(market: [.knife: 1, .spatula: 1])),
+        Quest(id: "d6e", day: 6, stat: .dailyDone, target: 3, reward: Reward(coins: 120)),
+        Quest(id: "d6f", day: 6, stat: .triples, target: 90, reward: Reward(boosters: [.hint: 1, .undo: 1])),
+        Quest(id: "d6g", day: 6, stat: .chests, target: 3, reward: Reward(coins: 120)),
+        Quest(id: "d7a", day: 7, stat: .levelsWon, target: 21, reward: Reward(coins: 150)),
         Quest(id: "d7b", day: 7, stat: .dishes, target: 25, reward: Reward(coins: 150)),
-        Quest(id: "d7c", day: 7, stat: .threeStars, target: 10, reward: Reward(chests: [.silver: 1]))
+        Quest(id: "d7c", day: 7, stat: .threeStars, target: 10, reward: Reward(chests: [.silver: 1])),
+        Quest(id: "d7d", day: 7, stat: .marketWins, target: 10, reward: Reward(unlimitedMinutes: 30)),
+        Quest(id: "d7e", day: 7, stat: .mergeOrders, target: 8, reward: Reward(energy: 30)),
+        Quest(id: "d7f", day: 7, stat: .recipeSteps, target: 5, reward: Reward(coins: 150)),
+        Quest(id: "d7g", day: 7, stat: .maxCombo, target: 5, reward: Reward(boosters: [.shuffle: 1, .shelf: 1]))
     ]
 
     /// Главный приз за все задания: эксклюзивный фон закусочной.

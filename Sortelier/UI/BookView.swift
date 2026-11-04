@@ -9,7 +9,7 @@ struct KitchenHub: View {
     @State private var frozen: [String]?
 
     private var sections: [SegmentPicker<KitchenSection>.Item] {
-        [.init(id: .book, title: lang.t("kitchen.section.book"), icon: "icon_book"),
+        [.init(id: .book, title: lang.t("kitchen.section.book"), icon: "icon_book", badge: progress.bookClaimable),
          .init(id: .achievements, title: lang.t("kitchen.section.achievements"), icon: "icon_trophy", badge: progress.achievementsClaimable),
          .init(id: .backgrounds, title: lang.t("kitchen.section.backgrounds"), icon: "icon_palette")]
     }
@@ -44,6 +44,8 @@ struct BookContent: View {
     @EnvironmentObject private var lang: Lang
     @State private var tab = 0
     @State private var biome = PlayerProgress.shared.mapBiome
+    /// Карточки, с которых только что взлетели монеты.
+    @State private var popped: [String: Int] = [:]
 
     private var dishes: [CatalogDish] { Catalog.shared.dishes(inBiome: biome) }
     /// Продукты цепочки (тесто) показываем рядом с сырьем, служебных нет.
@@ -64,6 +66,7 @@ struct BookContent: View {
                     .font(Theme.rounded(14, .heavy))
                     .foregroundColor(Color(red: 1.0, green: 0.94, blue: 0.82))
                     .outlined(Theme.woodDark, width: 1)
+                collectAll
             }
             Group {
                 if tab == 2 {
@@ -99,6 +102,9 @@ struct BookContent: View {
                         SpriteImage(name: Biomes.icon(b), size: b == 0 ? 38 : 46, silhouette: !open)
                         if !open { SpriteImage(name: "icon_lock", size: 22).offset(x: 18, y: 12) }
                     }
+                    .overlay(alignment: .topTrailing) {
+                        if open && !unpaid(biome: b).isEmpty { BadgeDot().offset(x: 4, y: -4) }
+                    }
                     .frame(maxWidth: .infinity)
                     .frame(height: 54)
                     .background(
@@ -111,6 +117,85 @@ struct BookContent: View {
                     )
                 }
                 .buttonStyle(PressScaleStyle())
+            }
+        }
+    }
+
+    /// Открытые карточки страницы, за которые еще не забраны монеты.
+    private func unpaid(biome b: Int) -> [String] {
+        let ids = Catalog.shared.dishes(inBiome: b).map { "dish_" + $0.id } + Catalog.shared.items(inBiome: b).map(\.id)
+        return ids.filter { progress.bookUnpaid($0) }
+    }
+
+    /// Кнопка "забрать все" над сеткой: монеты за все новые карточки этой кухни.
+    @ViewBuilder
+    private var collectAll: some View {
+        let ids = unpaid(biome: biome)
+        if !ids.isEmpty {
+            let total = ids.reduce(0) { $0 + PlayerProgress.bookCoins($1) }
+            Button {
+                collect(ids)
+            } label: {
+                HStack(spacing: 6) {
+                    Text(lang.t("book.collect"))
+                    CoinIcon(size: 22)
+                    Text("+\(total)")
+                }
+            }
+            .buttonStyle(GameButtonStyle(palette: .green, height: 44, fontSize: 17))
+            .transition(.opacity.combined(with: .scale(scale: 0.9)))
+        } else {
+            Text(lang.t("book.coins.hint", PlayerProgress.bookCoins("tomato"), PlayerProgress.bookCoins("dish_x")))
+                .font(Theme.rounded(12, .bold))
+                .foregroundColor(Color(red: 1.0, green: 0.94, blue: 0.82))
+                .outlined(Theme.woodDark, width: 1)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func collect(_ ids: [String]) {
+        let shown = ids.filter { progress.bookUnpaid($0) }
+        let coins = progress.claimBook(shown)
+        guard coins > 0 else { return }
+        Audio.shared.play(.coin)
+        Haptics.success()
+        withAnimation(.easeOut(duration: 0.25)) {
+            for id in shown { popped[id] = PlayerProgress.bookCoins(id) }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            withAnimation(.easeIn(duration: 0.3)) { for id in shown { popped[id] = nil } }
+        }
+    }
+
+    /// Монетка на новой карточке и взлетающие "+5" после сбора. Тап по карточке забирает ее монеты.
+    private func coinBadge(_ id: String) -> some View {
+        ZStack(alignment: .topTrailing) {
+            if progress.bookUnpaid(id) {
+                Button { collect([id]) } label: {
+                    HStack(spacing: 2) {
+                        CoinIcon(size: 18)
+                        Text("+\(PlayerProgress.bookCoins(id))")
+                            .font(Theme.rounded(12, .black))
+                            .foregroundColor(.white)
+                            .outlined(ButtonPalette.green.dark, width: 1)
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(Theme.green))
+                    .overlay(Capsule().strokeBorder(Color.white, lineWidth: 2))
+                }
+                .buttonStyle(PressScaleStyle())
+                .offset(x: 6, y: -8)
+                .transition(.scale.combined(with: .opacity))
+            }
+            if let n = popped[id] {
+                HStack(spacing: 2) {
+                    CoinIcon(size: 20)
+                    StrokeText(text: "+\(n)", size: 18, color: Theme.gold, stroke: Theme.woodDark, width: 1.5, drop: 2)
+                }
+                .offset(x: -20, y: -34)
+                .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .opacity))
             }
         }
     }
@@ -140,6 +225,7 @@ struct BookContent: View {
         .padding(8)
         .frame(maxWidth: .infinity)
         .background(card(gold: open))
+        .overlay(alignment: .topTrailing) { coinBadge("dish_" + dish.id) }
     }
 
     private func itemCard(_ item: CatalogItem) -> some View {
@@ -160,6 +246,7 @@ struct BookContent: View {
         .padding(8)
         .frame(maxWidth: .infinity)
         .background(card(gold: false))
+        .overlay(alignment: .topTrailing) { coinBadge(item.id) }
     }
 
     private func kindKey(_ item: CatalogItem) -> String {
