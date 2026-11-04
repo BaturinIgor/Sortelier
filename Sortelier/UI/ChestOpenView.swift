@@ -113,7 +113,7 @@ struct ChestOpenView: View {
 
     var body: some View {
         ZStack {
-            Dim(opacity: 0.82)
+            Dim(opacity: 0.9)
             GeometryReader { geo in
                 let layout = ChestLayout(size: geo.size, count: count, summary: stage == .summary)
                 ZStack {
@@ -216,7 +216,7 @@ struct ChestOpenView: View {
             .rotationEffect(.degrees(spin ? 360 : 0))
             .scaleEffect(rare ? 1.15 : 1)
             .position(center)
-            .opacity(stage == .summary ? 0 : (stage == .closed ? 0.55 : 0.9))
+            .opacity(stage == .summary ? 0 : (stage == .closed ? 0.5 : 0.75))
             .allowsHitTesting(false)
     }
 

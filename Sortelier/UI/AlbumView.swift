@@ -342,7 +342,8 @@ struct AlbumScreen: View {
             }
             .clipShape(shape)
             Circle()
-                .fill(RadialGradient(colors: [Color.white, Theme.cream], center: .center, startRadius: 2, endRadius: height * 0.36))
+                .fill(RadialGradient(colors: progress.hasCard(card) ? [Color.white, Theme.cream] : [Theme.card, Theme.peach],
+                                     center: .center, startRadius: 2, endRadius: height * 0.36))
                 .frame(width: height * 0.68, height: height * 0.68)
                 .overlay(Circle().strokeBorder(Theme.paperBorder.opacity(0.55), lineWidth: 2))
                 .offset(x: height * 0.04)
