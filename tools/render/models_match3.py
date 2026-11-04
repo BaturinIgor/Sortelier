@@ -130,41 +130,47 @@ def m3_pin():
 
 
 def m3_bomb():
-    """Вишня-бомба: крупная глянцевая вишня, хвостик-фитиль и искра на кончике."""
-    R = 0.82
-    body = sphere("Cherry", R, 96, 64)
-
-    def shape(co):
-        x, y, z = co / R
-        r = math.hypot(x, y)
-        k = 1.03 + 0.05 * z
-        z = z * 0.93 - 0.22 * math.exp(-(r / 0.3) ** 2) * max(0.0, z) ** 2
-        return Vector((x * k, y * k, z)) * R
-    deform(body, shape)
-    # едва заметный шовчик сбоку, как у настоящей вишни
-    a0 = math.radians(-128)
-    push_normals(body, lambda co, n: -0.02 * math.exp(-((math.atan2(co.y, co.x) - a0) / 0.06) ** 2)
-                 * max(0.0, 1 - (co.z / R) ** 4))
+    """Классическая мультяшная бомба: глянцевый темно-синий шар, латунное горлышко, фитиль-веревка и искра.
+    Раньше была вишня-бомба, но на поле ее путали с помидором: теперь силуэт и цвет не похожи ни на один продукт."""
+    C.gold_world(0.55)
+    R = 0.8
+    body = sphere("Bomb", R, 96, 64)
     smooth(body)
-    # глубокий вишневый, темнее и холоднее помидора
-    cherry = C.world_mat("Cherry", [(0.0, (0.26, 0.0, 0.04)), (0.45, (0.60, 0.01, 0.08)), (0.8, (0.80, 0.04, 0.12)),
-                                    (1.0, (0.95, 0.22, 0.26))], rough=0.1, metal=0.0, coat=1.0)
-    b = cherry.node_tree.nodes["Principled BSDF"]
-    b.inputs["Subsurface Weight"].default_value = 0.15
-    b.inputs["Subsurface Radius"].default_value = (1.0, 0.2, 0.2)
-    b.inputs["Subsurface Scale"].default_value = 0.08
-    assign(body, cherry)
-    top = R * (0.93 - 0.22)
-    path = spline([(0.0, 0.0, top - 0.08), (0.02, 0.0, top + 0.2), (0.1, 0.0, top + 0.42), (0.26, 0.0, top + 0.56),
-                   (0.43, 0.0, top + 0.6)], 10)
-    stem = sweep("Fuse", path, lambda t: 0.072 - 0.022 * t, segs=24)
-    stem_m = material("Fuse", [(0.0, (0.22, 0.48, 0.10)), (0.55, (0.42, 0.72, 0.20)), (0.78, (0.50, 0.78, 0.24)),
-                               (0.9, (0.32, 0.22, 0.10)), (1.0, (0.16, 0.10, 0.06))], coord="x", lo=-0.02, hi=0.46,
-                      rough=0.3, coat=0.6)
-    assign(stem, stem_m)
-    parts = [body, stem]
-    tip = Vector(path[-1]) + Vector((0.07, 0.0, 0.02))
-    parts += spark(tip, 1.35)
+    # почти черный с синевой: светлый верх и холодный блик читаются на светлом поле
+    shell = C.world_mat("BombShell", [(0.0, (0.01, 0.012, 0.03)), (0.5, (0.04, 0.05, 0.11)), (0.8, (0.10, 0.13, 0.26)),
+                                      (1.0, (0.24, 0.32, 0.55))], rough=0.12, metal=0.0, coat=1.0)
+    assign(body, shell)
+    # горлышко наклонено вправо-вверх, как у бомбы из мультфильма
+    tilt = math.radians(32)
+    axis = Vector((math.sin(tilt), 0.0, math.cos(tilt)))
+    brass = C.world_mat("BombBrass", [(0.0, (0.55, 0.30, 0.05)), (0.5, (0.92, 0.62, 0.16)), (1.0, (1.0, 0.86, 0.42))],
+                        rough=0.26, metal=0.9)
+    neck = cylinder("BombNeck", 0.24, 0.36, 64)
+    bevel(neck, 0.03, 3, 30)
+    smooth(neck, 30)
+    neck.rotation_euler = (0.0, tilt, 0.0)
+    neck.location = axis * (R * 0.9)
+    apply_transform(neck)
+    assign(neck, brass)
+    rim = torus("BombRim", 0.25, 0.055, 64, 20)
+    rim.rotation_euler = (0.0, tilt, 0.0)
+    rim.location = axis * (R * 0.9 + 0.18)
+    apply_transform(rim)
+    smooth(rim)
+    assign(rim, brass)
+    # фитиль выходит из горлышка и загибается вверх
+    base = axis * (R * 0.9 + 0.14)
+    pts = [base, base + axis * 0.16, base + Vector((0.20, 0.0, 0.28)), base + Vector((0.36, 0.0, 0.36)),
+           base + Vector((0.50, 0.0, 0.32))]
+    path = spline([tuple(p) for p in pts], 10)
+    fuse = sweep("Fuse", path, lambda t: 0.06 - 0.012 * t, segs=24)
+    rope = material("Rope", [(0.0, (0.62, 0.44, 0.24)), (0.7, (0.86, 0.68, 0.42)), (0.88, (0.40, 0.26, 0.12)),
+                             (1.0, (0.18, 0.10, 0.05))], coord="x", lo=base.x, hi=base.x + 0.52, rough=0.6)
+    add_stripes(rope, (0.45, 0.30, 0.15), scale=14.0, angle=60, width=0.3, nz_min=-1.0, strength=0.6)
+    assign(fuse, rope)
+    parts = [body, neck, rim, fuse]
+    tip = Vector(path[-1]) + Vector((0.06, 0.0, 0.0))
+    parts += spark(tip, 1.25)
     return face_cam(parts)
 
 

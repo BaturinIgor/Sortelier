@@ -98,10 +98,34 @@ final class PlayerProgress: ObservableObject {
         }
     }
 
+    /// Сохранение идет в фоне: кодирование и запись файла не тормозят анимации (например, бустеры на поле).
+    /// Частые сохранения подряд схлопываются в одну запись последнего состояния.
     func save() {
-        if let raw = try? JSONEncoder().encode(data) {
-            try? raw.write(to: Self.fileURL, options: .atomic)
-        }
+        let snapshot = data
+        saveLock.lock()
+        let scheduled = pendingSave != nil
+        pendingSave = snapshot
+        saveLock.unlock()
+        guard !scheduled else { return }
+        Self.saveQueue.async { [weak self] in self?.writePending() }
+    }
+
+    /// Дождаться записи: при уходе приложения в фон.
+    func flushSave() {
+        Self.saveQueue.sync { writePending() }
+    }
+
+    private static let saveQueue = DispatchQueue(label: "sortelier.save", qos: .utility)
+    private let saveLock = NSLock()
+    private var pendingSave: SaveData?
+
+    private func writePending() {
+        saveLock.lock()
+        let snapshot = pendingSave
+        pendingSave = nil
+        saveLock.unlock()
+        guard let snapshot = snapshot, let raw = try? JSONEncoder().encode(snapshot) else { return }
+        try? raw.write(to: Self.fileURL, options: .atomic)
     }
 
     // MARK: - Настройки

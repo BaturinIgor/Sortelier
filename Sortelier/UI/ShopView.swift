@@ -6,7 +6,7 @@ enum Legal {
     static let privacy = URL(string: "https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md")!
 }
 
-/// Магазин: VIP, стартовый набор, монеты, наборы и бустеры за монеты.
+/// Магазин по разделам: выгодно (VIP, стартовый набор, жизни, банка), монеты, бустеры и бустеры "3 в ряд".
 struct ShopScreen: View {
     @EnvironmentObject private var progress: PlayerProgress
     @EnvironmentObject private var lang: Lang
@@ -17,33 +17,39 @@ struct ShopScreen: View {
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
+    private var sections: [SegmentPicker<ShopSection>.Item] {
+        var items: [SegmentPicker<ShopSection>.Item] = [
+            .init(id: .offers, title: lang.t("shop.section.offers"),
+                  badge: (!progress.starterBought && progress.isPassed(5)) || progress.jarFull),
+            .init(id: .coins, title: lang.t("shop.section.coins")),
+            .init(id: .boosters, title: lang.t("shop.section.boosters"))
+        ]
+        if progress.marketUnlocked {
+            items.append(.init(id: .market, title: lang.t("shop.section.market")))
+        }
+        return items
+    }
+
+    /// Раздел "3 в ряд" закрыт, пока мини-игра не открыта: тогда показываем первый.
+    private var section: ShopSection {
+        router.shopSection == .market && !progress.marketUnlocked ? .offers : router.shopSection
+    }
+
     var body: some View {
         ZStack {
             ScreenScaffold(title: lang.t("shop.title"), back: { router.open(.map) }) {
+                SegmentPicker(items: sections, selection: $router.shopSection)
                 notice
-                VIPCard(buy: buy)
-                if !progress.starterBought { starter }
-                SectionTitle(title: lang.t("shop.coins"))
-                LazyVGrid(columns: columns, spacing: 14) {
-                    ForEach(ShopItem.coinPacks) { item in coinTile(item) }
-                }
-                SectionTitle(title: lang.t("shop.packs"))
-                packCard(.boosters, icon: "icon_hint", title: lang.t("shop.item.boosters"))
-                packCard(.lives, icon: "icon_unlimited", title: lang.t("shop.item.lives"))
-                if progress.marketUnlocked {
-                    jarCard
-                    packCard(.market, icon: "icon_market", title: lang.t("shop.item.market"))
-                }
-                SectionTitle(title: lang.t("shop.boosters"))
-                LazyVGrid(columns: columns, spacing: 14) {
-                    ForEach(Booster.allCases) { booster in boosterTile(booster) }
-                }
-                if progress.marketUnlocked {
-                    SectionTitle(title: lang.t("shop.market.boosters"))
-                    LazyVGrid(columns: columns, spacing: 14) {
-                        ForEach(M3Booster.allCases) { b in marketTile(b) }
+                Group {
+                    switch section {
+                    case .offers: offersContent
+                    case .coins: coinsContent
+                    case .boosters: boostersContent
+                    case .market: marketContent
                     }
                 }
+                .id(section)
+                .transition(.opacity)
                 footer
             }
             if let granted = granted {
@@ -53,7 +59,60 @@ struct ShopScreen: View {
                 VIPActivatedPopup { vipActivated = false }
             }
         }
-        .onAppear { Analytics.log("shop_open") }
+        .onAppear { Analytics.log("shop_open", ["section": section.rawValue]) }
+    }
+
+    // MARK: - Разделы
+
+    private var offersContent: some View {
+        VStack(spacing: 14) {
+            if !progress.starterBought { starter }
+            VIPCard(buy: buy)
+            packCard(.lives, icon: "icon_unlimited", title: lang.t("shop.item.lives"))
+            if progress.marketUnlocked { jarCard }
+        }
+    }
+
+    private var coinsContent: some View {
+        VStack(spacing: 14) {
+            sectionNote(lang.t("shop.coins.note"))
+            LazyVGrid(columns: columns, spacing: 14) {
+                ForEach(ShopItem.coinPacks) { item in coinTile(item) }
+            }
+        }
+    }
+
+    private var boostersContent: some View {
+        VStack(spacing: 14) {
+            packCard(.boosters, icon: "icon_hint", title: lang.t("shop.item.boosters"))
+            SectionTitle(title: lang.t("shop.boosters"))
+            LazyVGrid(columns: columns, spacing: 14) {
+                ForEach(Booster.allCases) { booster in boosterTile(booster) }
+            }
+        }
+    }
+
+    private var marketContent: some View {
+        VStack(spacing: 14) {
+            sectionNote(lang.t("shop.market.note"))
+            packCard(.market, icon: "icon_market", title: lang.t("shop.item.market"))
+            SectionTitle(title: lang.t("shop.market.boosters"))
+            LazyVGrid(columns: columns, spacing: 14) {
+                ForEach(M3Booster.allCases) { b in marketTile(b) }
+            }
+        }
+    }
+
+    /// Строка-пояснение под переключателем: что в разделе и где это пригодится.
+    private func sectionNote(_ text: String) -> some View {
+        Text(text)
+            .font(Theme.rounded(13, .bold))
+            .foregroundColor(.white)
+            .outlined(Theme.woodDark, width: 1)
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 8)
     }
 
     @ViewBuilder

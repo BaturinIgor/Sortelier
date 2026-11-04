@@ -281,9 +281,11 @@ struct StreakPopup: View {
     private var days: some View {
         let current = progress.streakDay
         let next = progress.playedToday ? current : current % 7 + 1
+        // неделя закрыта, а сегодня еще не играли: начинается новый круг, старые галочки не показываем
+        let filled = !progress.playedToday && current == 7 ? 0 : current
         return HStack(spacing: 4) {
             ForEach(1...7, id: \.self) { d in
-                let done = d <= current && current > 0
+                let done = d <= filled
                 let isNext = d == next && !progress.playedToday
                 VStack(spacing: 3) {
                     Text(lang.t("streak.short", d))

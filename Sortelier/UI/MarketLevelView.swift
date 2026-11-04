@@ -40,10 +40,12 @@ struct MarketLevelContent: View {
                 VStack(spacing: 6) {
                     Color.clear.frame(height: 52)
                     GoalsPanel(model: model, hud: model.hud)
+                    M3StarBar(level: model.level, hud: model.hud)
                     Spacer()
                 }
                 .padding(.horizontal, 12)
-                SpriteView(scene: model.scene, preferredFramesPerSecond: 120, options: [.allowsTransparency])
+                StableSpriteView(scene: model.scene)
+                    .equatable()
                     .ignoresSafeArea()
                 VStack(spacing: 6) {
                     topBar
@@ -59,7 +61,7 @@ struct MarketLevelContent: View {
                 overlays
             }
             .onAppear {
-                model.scene.hudHeight = geo.safeAreaInsets.top + 58 + 96
+                model.scene.hudHeight = geo.safeAreaInsets.top + 58 + 96 + M3StarBar.height + 6
                 model.scene.bottomReserved = geo.safeAreaInsets.bottom + 92
                 Audio.shared.setTrack(model.level.chapter == 1 ? "music_italy" : "music_bakery")
                 var pending: String?
@@ -152,7 +154,7 @@ struct MarketLevelContent: View {
     }
 
     private func boosterButton(_ b: M3Booster) -> some View {
-        let count = progress.count(b)
+        let count = model.available(b)
         let active = model.targeting == b
         return Button {
             guard model.phase == .playing else { return }
@@ -209,7 +211,13 @@ struct MarketLevelContent: View {
                 close(nil)
             })
         } else if let b = buying {
-            BuyMarketBoosterView(booster: b) { buying = nil }
+            BuyMarketBoosterView(booster: b, close: { buying = nil }, bought: {
+                buying = nil
+                // купленный бустер сразу берется в руку: остается выбрать клетку (миксер срабатывает сам)
+                DispatchQueue.main.async {
+                    withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) { _ = model.pick(b) }
+                }
+            })
         }
     }
 }
@@ -278,6 +286,90 @@ struct GoalsPanel: View {
         .padding(.vertical, 8)
         .background(WoodTray(radius: 24))
         .frame(height: 92)
+    }
+}
+
+/// Игровое поле в SwiftUI, которое не перерисовывается вместе с экраном уровня. Прогресс игрока обновляется каждую
+/// секунду (таймер жизней), а панели - на каждом ходе: без этого SpriteView пересобирался и поле подтормаживало.
+struct StableSpriteView: View, Equatable {
+    let scene: SKScene
+
+    static func == (a: StableSpriteView, b: StableSpriteView) -> Bool { a.scene === b.scene }
+
+    var body: some View {
+        SpriteView(scene: scene, preferredFramesPerSecond: 120, options: [.allowsTransparency])
+    }
+}
+
+/// Звезды уровня по оставшимся ходам. Полоса - запас ходов: пока она правее отметки, звезды сохраняются.
+/// Подпись говорит, сколько ходов должно остаться к победе для лучшего еще возможного результата.
+struct M3StarBar: View {
+    static let height: CGFloat = 46
+    let level: M3Level
+    @ObservedObject var hud: M3Hud
+    @EnvironmentObject private var lang: Lang
+
+    var body: some View {
+        let s2 = level.stars.first ?? 0
+        let s3 = level.stars.count > 1 ? level.stars[1] : s2
+        let total = max(1, level.moves, s3 + 1)
+        let stars = hud.finalStars ?? level.starsFor(movesLeft: hud.moves)
+        VStack(spacing: 1) {
+            HStack(spacing: 8) {
+                HStack(spacing: 0) {
+                    ForEach(0..<3, id: \.self) { i in
+                        SpriteImage(name: "icon_star", size: 22, silhouette: i >= stars)
+                            .scaleEffect(i < stars ? 1 : 0.8)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.5), value: stars)
+                    }
+                }
+                GeometryReader { geo in
+                    let w = geo.size.width
+                    let fill = CGFloat(min(1, Double(hud.moves) / Double(total)))
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.black.opacity(0.28)).frame(height: 10)
+                        Capsule()
+                            .fill(LinearGradient(colors: [Theme.gold, Theme.orange], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: max(10, w * fill), height: 10)
+                            .animation(.easeOut(duration: 0.3), value: hud.moves)
+                        marker(3, x: w * CGFloat(Double(s3) / Double(total)), kept: stars >= 3)
+                        if s2 < s3 { marker(2, x: w * CGFloat(Double(s2) / Double(total)), kept: stars >= 2) }
+                    }
+                    .frame(height: geo.size.height)
+                }
+                .frame(height: 22)
+            }
+            Text(caption(stars: stars, s2: s2, s3: s3))
+                .font(Theme.rounded(11, .heavy))
+                .foregroundColor(Color(red: 1.0, green: 0.93, blue: 0.8))
+                .outlined(Theme.woodDark, width: 1)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 3)
+        .frame(height: Self.height)
+        .background(Capsule().fill(Theme.woodDark.opacity(0.72)))
+    }
+
+    private func caption(stars: Int, s2: Int, s3: Int) -> String {
+        if hud.finalStars != nil { return lang.t("m3.stars.won", stars) }
+        switch stars {
+        case 3: return lang.t("m3.stars.goal", 3, s3)
+        case 2: return lang.t("m3.stars.goal", 2, s2)
+        default: return lang.t("m3.stars.one")
+        }
+    }
+
+    private func marker(_ count: Int, x: CGFloat, kept: Bool) -> some View {
+        VStack(spacing: 0) {
+            Text(String(repeating: "★", count: count))
+                .font(.system(size: 8, weight: .black))
+                .foregroundColor(kept ? Theme.gold : Color.white.opacity(0.45))
+            Rectangle().fill(Color.white.opacity(kept ? 0.9 : 0.4)).frame(width: 2, height: 12)
+        }
+        .fixedSize()
+        .position(x: x, y: 8)
     }
 }
 
@@ -471,43 +563,8 @@ struct MarketWinView: View {
             Dim()
             PopupCard(title: lang.t("win.title"), maxWidth: 340) {
                 VStack(spacing: 12) {
-                    HStack(spacing: 4) {
-                        ForEach(0..<3, id: \.self) { i in
-                            SpriteImage(name: "icon_star", size: i == 1 ? 78 : 62, silhouette: i >= shown)
-                                .scaleEffect(i < shown ? 1 : 0.7)
-                                .offset(y: i == 1 ? -8 : 0)
-                        }
-                    }
-                    HStack(spacing: 8) {
-                        CoinIcon(size: 30)
-                        Text("+\(coins)").font(Theme.rounded(26, .black)).foregroundColor(Theme.brown).monospacedDigit()
-                    }
-                    .padding(.horizontal, 18)
-                    .padding(.vertical, 6)
-                    .background(InsetBackground())
-                    VStack(spacing: 8) {
-                        streakLine
-                        if !result.bonus.isEmpty {
-                            RewardLine(symbol: "icon_gift", color: Theme.green, title: lang.t("m3.win.bonus"),
-                                       granted: Granted(reward: result.bonus, card: nil))
-                        }
-                        ForEach(result.events) { gain in
-                            RewardLine(symbol: EventUI.icon(gain.kind), color: EventUI.color(gain.kind),
-                                       title: EventUI.gainText(gain, lang: lang), granted: nil)
-                        }
-                        if result.recipeSteps > 0 {
-                            RewardLine(symbol: "icon_recipe", color: Theme.orange, title: lang.t("recipe.win"), granted: nil)
-                        }
-                        if result.jar > 0 {
-                            RewardLine(symbol: "icon_jar", color: Theme.gold, title: lang.t("jar.win", result.jar), granted: nil)
-                        }
-                        if result.happyHour {
-                            RewardLine(symbol: "icon_happy", color: Theme.gold, title: lang.t("happy.win"), granted: nil)
-                        }
-                    }
-                    if let review = result.critic {
-                        CriticReviewCard(review: review)
-                    }
+                    // награды прокручиваются, кнопки всегда на экране
+                    FitScroll(reserved: 250) { rewards.padding(.top, 10) }
                     HStack(spacing: 10) {
                         Button(lang.t("win.map"), action: map).buttonStyle(GameButtonStyle(palette: .paper))
                         if MarketCatalog.shared.level(result.level + 1) != nil {
@@ -531,6 +588,48 @@ struct MarketWinView: View {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3 + Double(k) * 0.035) {
                     coins = result.coins * k / steps
                 }
+            }
+        }
+    }
+
+    private var rewards: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 4) {
+                ForEach(0..<3, id: \.self) { i in
+                    SpriteImage(name: "icon_star", size: i == 1 ? 78 : 62, silhouette: i >= shown)
+                        .scaleEffect(i < shown ? 1 : 0.7)
+                        .offset(y: i == 1 ? -8 : 0)
+                }
+            }
+            HStack(spacing: 8) {
+                CoinIcon(size: 30)
+                Text("+\(coins)").font(Theme.rounded(26, .black)).foregroundColor(Theme.brown).monospacedDigit()
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 6)
+            .background(InsetBackground())
+            VStack(spacing: 8) {
+                streakLine
+                if !result.bonus.isEmpty {
+                    RewardLine(symbol: "icon_gift", color: Theme.green, title: lang.t("m3.win.bonus"),
+                               granted: Granted(reward: result.bonus, card: nil))
+                }
+                ForEach(result.events) { gain in
+                    RewardLine(symbol: EventUI.icon(gain.kind), color: EventUI.color(gain.kind),
+                               title: EventUI.gainText(gain, lang: lang), granted: nil)
+                }
+                if result.recipeSteps > 0 {
+                    RewardLine(symbol: "icon_recipe", color: Theme.orange, title: lang.t("recipe.win"), granted: nil)
+                }
+                if result.jar > 0 {
+                    RewardLine(symbol: "icon_jar", color: Theme.gold, title: lang.t("jar.win", result.jar), granted: nil)
+                }
+                if result.happyHour {
+                    RewardLine(symbol: "icon_happy", color: Theme.gold, title: lang.t("happy.win"), granted: nil)
+                }
+            }
+            if let review = result.critic {
+                CriticReviewCard(review: review)
             }
         }
     }
@@ -634,6 +733,7 @@ struct MarketLoseView: View {
 struct BuyMarketBoosterView: View {
     let booster: M3Booster
     let close: () -> Void
+    var bought: (() -> Void)?
     @EnvironmentObject private var lang: Lang
     @EnvironmentObject private var progress: PlayerProgress
 
@@ -649,11 +749,21 @@ struct BuyMarketBoosterView: View {
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                     Button {
-                        if progress.buy(booster) { close() } else { Toast.error(lang.t("common.nocoins")) }
+                        if progress.buy(booster) {
+                            Audio.shared.play(.coin, volume: 0.6)
+                            (bought ?? close)()
+                        } else {
+                            Toast.error(lang.t("common.nocoins"))
+                        }
                     } label: {
                         HStack(spacing: 6) { Text(lang.t("booster.buy")); CoinIcon(size: 24); Text("\(MarketBalance.price(booster))") }
                     }
                     .buttonStyle(GameButtonStyle(palette: .green))
+                    HStack(spacing: 4) {
+                        Text(lang.t("m3.buy.have")).font(Theme.rounded(13, .bold)).foregroundColor(Theme.brownSoft)
+                        CoinIcon(size: 18)
+                        Text("\(progress.coins)").font(Theme.rounded(14, .heavy)).foregroundColor(Theme.brown).monospacedDigit()
+                    }
                 }
             }
         }

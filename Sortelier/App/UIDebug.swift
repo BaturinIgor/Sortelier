@@ -4,6 +4,7 @@ import SwiftUI
 /// Снимки экранов в CI (только отладочная сборка для симулятора).
 /// Параметры запуска: -uiScreen shop, -uiLang de, -uiDemo (тестовый прогресс), -uiInfo gold (карточка сундука),
 /// -uiChest gold (открытие сундука, с -uiChestTaps 3 и -uiChestAll).
+/// -uiSplash (заставка не уходит), -uiPush garden (как будто игру открыли нажатием на напоминание).
 enum UIDebug {
     static var args: [String] { ProcessInfo.processInfo.arguments }
 
@@ -45,7 +46,7 @@ enum UIDebug {
     static func apply(_ router: Router) {
         guard let screen = value("uiScreen") else { return }
         switch screen {
-        case "shop": router.tab = .shop
+        case "shop": router.tab = .shop; router.shopSection = ShopSection(rawValue: value("uiShop") ?? "") ?? .offers
         case "events": router.tab = .events; router.eventsSection = .events
         case "challenges": router.tab = .events; router.eventsSection = .challenges
         case "quests": router.tab = .events; router.eventsSection = .quests

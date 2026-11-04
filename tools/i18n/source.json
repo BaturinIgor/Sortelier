@@ -1028,8 +1028,8 @@
   "ru": "Кирпичное барбекю"
  },
  "merge.title": {
-  "en": "Pantry",
-  "ru": "Кладовая"
+  "en": "Chef's Workshop",
+  "ru": "Мастерская шефа"
  },
  "merge.hint": {
   "en": "Tap the oven, grill or crate to get food. Drag two identical items onto each other to make the next one.",
@@ -1068,16 +1068,16 @@
   "ru": "+{0} энергии за"
  },
  "ach.merge": {
-  "en": "Pantry keeper",
-  "ru": "Хозяин кладовой"
+  "en": "Workshop master",
+  "ru": "Хозяин мастерской"
  },
  "task.merges": {
   "en": "Merge {0} times",
   "ru": "Сделай {0} слияний"
  },
  "task.mergeOrders": {
-  "en": "Deliver {0} pantry orders",
-  "ru": "Выполни {0} заказов в кладовой"
+  "en": "Deliver {0} workshop orders",
+  "ru": "Выполни {0} заказов в мастерской"
  },
  "biome.2.subtitle": {
   "en": "Sushi, ramen and onigiri",
@@ -1652,12 +1652,12 @@
   "ru": "Жизнь тратится за поражение на новом уровне. Жизни восстанавливаются сами."
  },
  "info.energy.title": {
-  "en": "Pantry energy",
-  "ru": "Энергия кладовой"
+  "en": "Workshop energy",
+  "ru": "Энергия мастерской"
  },
  "info.energy": {
-  "en": "Every item from the oven, grill or crate in the pantry costs 1 energy.",
-  "ru": "Каждый предмет из духовки, гриля или ящика в кладовой стоит 1 энергию."
+  "en": "Every item from the oven, grill or crate in the workshop costs 1 energy.",
+  "ru": "Каждый предмет из духовки, гриля или ящика в мастерской стоит 1 энергию."
  },
  "info.chest": {
   "en": "Album cards go into the album: every full book gives a prize, the whole album gives the grand prize. Repeats turn into album stars for a star chest.",
@@ -1728,8 +1728,8 @@
   "ru": "Книги"
  },
  "rail.pantry": {
-  "en": "Pantry",
-  "ru": "Кладовая"
+  "en": "Workshop",
+  "ru": "Мастерская"
  },
  "rail.quests": {
   "en": "Tasks",
@@ -1768,8 +1768,8 @@
   "ru": "Коллекция"
  },
  "ach.cat.pantry": {
-  "en": "Pantry",
-  "ru": "Кладовая"
+  "en": "Chef's Workshop",
+  "ru": "Мастерская шефа"
  },
  "ach.trio": {
   "en": "Triple master",
@@ -1892,8 +1892,8 @@
   "ru": "Собрано карточек: {0} из {1}"
  },
  "album.text": {
-  "en": "Cards come from chests: races, challenges, events, the pantry and the shop. A full book gives a reward. Every month the album starts over.",
-  "ru": "Карточки выпадают из сундуков: за гонки, испытания, ивенты, кладовую и покупки. За собранную книгу - награда. Каждый месяц альбом начинается заново."
+  "en": "Cards come from chests: races, challenges, events, the workshop and the shop. A full book gives a reward. Every month the album starts over.",
+  "ru": "Карточки выпадают из сундуков: за гонки, испытания, ивенты, мастерскую и покупки. За собранную книгу - награда. Каждый месяц альбом начинается заново."
  },
  "album.chests": {
   "en": "Your chests",
@@ -2384,8 +2384,8 @@
   "ru": "Французская пекарня"
  },
  "rail.market": {
-  "en": "Market",
-  "ru": "Рынок"
+  "en": "Market Match",
+  "ru": "Продуктовый ряд"
  },
  "rail.garden": {
   "en": "Garden",
@@ -2396,8 +2396,8 @@
   "ru": "Чаевые"
  },
  "m3.title": {
-  "en": "Market",
-  "ru": "Рынок"
+  "en": "Market Match",
+  "ru": "Продуктовый ряд"
  },
  "m3.level": {
   "en": "Level {0}",
@@ -2428,8 +2428,8 @@
   "ru": "Еще раз"
  },
  "m3.welcome": {
-  "en": "Welcome to the Market!",
-  "ru": "Добро пожаловать на рынок!"
+  "en": "Welcome to Market Match!",
+  "ru": "Добро пожаловать в «Продуктовый ряд»!"
  },
  "m3.map.done": {
   "en": "All levels done!",
@@ -2680,12 +2680,12 @@
   "ru": "На рынок привезли морковь: теперь на поле шесть продуктов, и совпадения искать сложнее."
  },
  "shop.item.market": {
-  "en": "Market boosters pack",
-  "ru": "Набор бустеров рынка"
+  "en": "Market Match boosters pack",
+  "ru": "Набор бустеров для «3 в ряд»"
  },
  "shop.market.boosters": {
-  "en": "Market boosters",
-  "ru": "Бустеры рынка"
+  "en": "Match 3 boosters",
+  "ru": "Бустеры для «3 в ряд»"
  },
  "recipe.title": {
   "en": "Big Recipe",
@@ -2720,8 +2720,8 @@
   "ru": "Выбрать"
  },
  "recipe.hint": {
-  "en": "Products count everywhere: in the Market, in regular levels and from the garden.",
-  "ru": "Продукты засчитываются везде: на рынке, в обычных уровнях и с огорода."
+  "en": "Products count everywhere: in Market Match, in regular levels and from the garden.",
+  "ru": "Продукты засчитываются везде: в «3 в ряд», в обычных уровнях и с огорода."
  },
  "recipe.done": {
   "en": "Your dish is ready! A new recipe starts next week.",
@@ -2976,8 +2976,8 @@
   "ru": "Загляни в огород поставщика и собери его."
  },
  "ach.market": {
-  "en": "Market regular",
-  "ru": "Завсегдатай рынка"
+  "en": "Match master",
+  "ru": "Мастер трех в ряд"
  },
  "ach.recipe": {
   "en": "Big cook",
@@ -2992,8 +2992,8 @@
   "ru": "Любимец критиков"
  },
  "task.marketWins": {
-  "en": "Win {0} Market levels",
-  "ru": "Пройди {0} уровней рынка"
+  "en": "Win {0} Market Match levels",
+  "ru": "Пройди {0} уровней «Продуктового ряда»"
  },
  "task.recipeSteps": {
   "en": "Complete {0} Big Recipe steps",
@@ -3006,6 +3006,70 @@
  "task.reviews": {
   "en": "Get {0} critic reviews",
   "ru": "Получи {0} рецензий критика"
+ },
+ "splash.subtitle": {
+  "en": "Cozy kitchen puzzle",
+  "ru": "Уютная кухня-головоломка"
+ },
+ "splash.loading": {
+  "en": "Warming up the stove...",
+  "ru": "Разогреваем плиту..."
+ },
+ "splash.tip.0": {
+  "en": "Serve customers quickly and they'll leave a tip",
+  "ru": "Обслуживай покупателей быстро, и они оставят чаевые"
+ },
+ "splash.tip.1": {
+  "en": "The back row opens once the front row is clear",
+  "ru": "Задний ряд открывается, когда освободишь передний"
+ },
+ "splash.tip.2": {
+  "en": "Replaying levels you've passed never costs a life",
+  "ru": "Переигрывать пройденные уровни можно без жизней"
+ },
+ "splash.tip.3": {
+  "en": "Your first 3 stars on a level give a life back",
+  "ru": "Первые 3 звезды на уровне возвращают жизнь"
+ },
+ "splash.tip.4": {
+  "en": "Kitchen stars open chests on the map",
+  "ru": "Звезды кухни открывают сундуки на карте"
+ },
+ "rail.tag.match3": {
+  "en": "Match 3",
+  "ru": "3 в ряд"
+ },
+ "rail.tag.merge": {
+  "en": "Merge",
+  "ru": "Слияние"
+ },
+ "shop.section.offers": {
+  "en": "Deals",
+  "ru": "Выгодно"
+ },
+ "shop.section.coins": {
+  "en": "Coins",
+  "ru": "Монеты"
+ },
+ "shop.section.boosters": {
+  "en": "Boosters",
+  "ru": "Бустеры"
+ },
+ "shop.section.market": {
+  "en": "Match 3",
+  "ru": "3 в ряд"
+ },
+ "shop.coins.note": {
+  "en": "Every coin pack comes with a chest of album cards",
+  "ru": "К каждому набору монет - сундук с карточками для альбома"
+ },
+ "shop.market.note": {
+  "en": "Boosters for Market Match: before a level and right during it",
+  "ru": "Бустеры для мини-игры «Продуктовый ряд»: перед уровнем и прямо во время игры"
+ },
+ "recipe.composition": {
+  "en": "On the dish",
+  "ru": "Уже на блюде"
  },
  "chest.tap.open": {
   "en": "Tap the chest to open it",
