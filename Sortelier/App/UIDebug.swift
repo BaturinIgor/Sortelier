@@ -3,6 +3,7 @@ import SwiftUI
 
 /// Снимки экранов в CI (только отладочная сборка для симулятора).
 /// Параметры запуска: -uiScreen shop, -uiLang de, -uiDemo (тестовый прогресс), -uiInfo gold (карточка сундука).
+/// -uiSplash (заставка не уходит), -uiPush garden (как будто игру открыли нажатием на напоминание).
 enum UIDebug {
     static var args: [String] { ProcessInfo.processInfo.arguments }
 

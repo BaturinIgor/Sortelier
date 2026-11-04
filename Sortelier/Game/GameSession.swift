@@ -70,7 +70,7 @@ final class GameSession: ObservableObject {
     private var happyGourmets = 0
 
     private struct Snapshot {
-        let board: Board
+        var board: Board
         let orderCoins: Int
         let tips: Int
         let comboCoins: Int
@@ -78,6 +78,11 @@ final class GameSession: ObservableObject {
         let combo: Int
         let since: Int
         let happyGourmets: Int
+        // итоги для статистики тоже откатываются, иначе отмена и повтор хода накручивают ачивки и задания
+        let servedCount: Int
+        let dishCount: Int
+        let tripleCount: Int
+        let bestCombo: Int
     }
 
     init(level: LevelData, mode: PlayMode = .main) {
@@ -124,7 +129,8 @@ final class GameSession: ObservableObject {
         }
     }
 
-    var canUndo: Bool { !history.isEmpty && phase == .playing }
+    /// Отмена доступна и в тупике: это самый честный выход из него.
+    var canUndo: Bool { !history.isEmpty && (phase == .playing || phase == .stuck) }
 
     // MARK: - Ходы
 
@@ -133,7 +139,8 @@ final class GameSession: ObservableObject {
         var copy = board
         guard let outcome = copy.move(from: from, slot: slot, to: to) else { return nil }
         history.append(Snapshot(board: board, orderCoins: orderCoins, tips: tips, comboCoins: comboCoins, moves: moves,
-                                combo: combo, since: since, happyGourmets: happyGourmets))
+                                combo: combo, since: since, happyGourmets: happyGourmets, servedCount: servedCount,
+                                dishCount: dishCount, tripleCount: tripleCount, bestCombo: bestCombo))
         if history.count > 40 { history.removeFirst() }
         board = copy
         moves += 1
@@ -277,6 +284,11 @@ final class GameSession: ObservableObject {
         combo = snapshot.combo
         since = snapshot.since
         happyGourmets = snapshot.happyGourmets
+        servedCount = snapshot.servedCount
+        dishCount = snapshot.dishCount
+        tripleCount = snapshot.tripleCount
+        bestCombo = snapshot.bestCombo
+        if phase == .stuck { phase = .playing }
         onReset?()
         return true
     }
@@ -292,6 +304,8 @@ final class GameSession: ObservableObject {
         var copy = board
         guard copy.shuffleFront(), PlayerProgress.shared.use(.shuffle) else { return false }
         board = copy
+        // старые снимки не знают о перемешивании: отмена вернула бы поле назад и съела бустер
+        history.removeAll()
         onReset?()
         return true
     }
@@ -302,18 +316,23 @@ final class GameSession: ObservableObject {
     func pausePatience() -> Bool {
         guard boostersAllowed, phase == .playing, pauseAvailable, PlayerProgress.shared.use(.pause) else { return false }
         board.pausePatience(Balance.pauseMoves)
+        // пауза переживает отмену хода, иначе купленный бустер пропадает
+        for i in history.indices { history[i].board.pausePatience(Balance.pauseMoves) }
         onPause?()
         return true
     }
 
+    /// Бустер полки можно взять и в тупике: окно тупика предлагает его до покупки за монеты.
     func useExtraShelf() -> Bool {
-        guard boostersAllowed, phase == .playing, PlayerProgress.shared.use(.shelf) else { return false }
+        guard boostersAllowed, phase == .playing || phase == .stuck, PlayerProgress.shared.use(.shelf) else { return false }
         addShelf()
         return true
     }
 
     private func addShelf() {
         board.addShelf()
+        // полка остается и после отмены хода: за нее заплачено бустером, монетами или рекламой
+        for i in history.indices { history[i].board.addShelf() }
         if phase == .stuck { phase = .playing }
         onReset?()
     }

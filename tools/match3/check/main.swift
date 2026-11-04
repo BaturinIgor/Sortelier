@@ -93,7 +93,7 @@ struct Mirror {
             case let .shuffle(list):
                 let moving = Set(list.map(\.id))
                 for (k, v) in idAt where moving.contains(v) { idAt[k] = nil }
-                for (id, cell) in list { idAt[cell] = id }
+                for e in list { idAt[e.cell] = e.id }
             }
         }
     }
@@ -184,6 +184,23 @@ for level in file.levels {
             if !board.hasMove() { problem("L\(level.id) no moves after settle") }
             if l.end > 30 { problem("L\(level.id) timeline \(l.end)s") }
             moves += 1
+            // бустеры на копии поля: лента бустера тоже должна сходиться с доской (на итоги уровня не влияет)
+            if moves % 4 == 1 {
+                let kinds: [M3Booster] = [.mixer, .knife, .spatula, .mallet]
+                let b = kinds[(moves / 4 + seed) % kinds.count]
+                var probe = board
+                var m2 = mirror
+                let mid = M3Cell(level.rows / 2, level.cols / 2)
+                let at = probe.tile(mid) != nil ? mid : (probe.allCells.first { probe.tile($0) != nil } ?? mid)
+                if let bl = probe.use(b, at: at) {
+                    m2.apply(bl, level: level.id)
+                    m2.compare(probe, level: level.id, step: "booster \(b.rawValue) \(moves)")
+                    if !probe.findGroups().isEmpty { problem("L\(level.id) groups left after booster \(b.rawValue)") }
+                    if !probe.hasMove() { problem("L\(level.id) no moves after booster \(b.rawValue)") }
+                } else if b == .mixer {
+                    problem("L\(level.id) mixer refused")
+                }
+            }
         }
         if board.won {
             wins += 1

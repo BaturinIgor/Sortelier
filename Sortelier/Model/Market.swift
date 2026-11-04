@@ -207,7 +207,7 @@ extension PlayerProgress {
 
     /// Победа. stars - по оставшимся ходам, collected - собранные продукты (для "Большого рецепта").
     func marketWin(_ level: M3Level, movesLeft: Int, collected: [String: Int]) -> MarketResult {
-        let stars = movesLeft >= level.stars[1] ? 3 : (movesLeft >= level.stars[0] ? 2 : 1)
+        let stars = level.starsFor(movesLeft: movesLeft)
         let key = String(level.id)
         let old = data.market.stars[key] ?? 0
         let first = old == 0

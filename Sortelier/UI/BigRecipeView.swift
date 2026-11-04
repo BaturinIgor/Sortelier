@@ -107,7 +107,7 @@ struct BigRecipeView: View {
                                          center: .center, startRadius: 10, endRadius: 170))
                     .frame(width: 340, height: 340)
                     .scaleEffect(glow ? 1.04 : 0.96)
-                if done { SunRays().frame(width: 340, height: 340).opacity(0.5) }
+                if done { RecipeRays().frame(width: 340, height: 340).opacity(0.5) }
                 GiantPlate(theme: BigRecipe.theme(state.week), items: state.plate, visible: visible, landing: landing)
                     .frame(width: 320, height: 320)
                 if !state.plate.isEmpty { Steam().frame(width: 200, height: 120).offset(y: -130) }
@@ -383,7 +383,7 @@ private struct Steam: View {
 }
 
 /// Лучи за готовым блюдом, медленно вращаются.
-private struct SunRays: View {
+private struct RecipeRays: View {
     @State private var spin = false
 
     var body: some View {
