@@ -129,13 +129,15 @@ struct BigRecipeView: View {
                 .font(Theme.rounded(13, .black))
                 .foregroundColor(Color(red: 1, green: 0.9, blue: 0.7))
                 .outlined(Theme.woodDark, width: 1)
-            HStack(spacing: 6) {
+            HStack(spacing: 4) {
                 ForEach(counts.indices, id: \.self) { k in
-                    HStack(spacing: 2) {
-                        SpriteImage(name: GiantPlate.topping(counts[k].0), size: 30)
-                        Text("×\(counts[k].1)").font(Theme.rounded(14, .black)).foregroundColor(Theme.brown).monospacedDigit()
+                    HStack(spacing: 1) {
+                        SpriteImage(name: GiantPlate.topping(counts[k].0), size: 24)
+                        Text("×\(counts[k].1)").font(Theme.rounded(13, .black)).foregroundColor(Theme.brown).monospacedDigit()
+                            .lineLimit(1)
+                            .fixedSize()
                     }
-                    .padding(.horizontal, 6)
+                    .padding(.horizontal, 5)
                     .padding(.vertical, 2)
                     .background(Capsule().fill(Theme.card))
                     .overlay(Capsule().strokeBorder(Theme.chipBorder, lineWidth: 2))

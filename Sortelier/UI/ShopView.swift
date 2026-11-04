@@ -19,13 +19,13 @@ struct ShopScreen: View {
 
     private var sections: [SegmentPicker<ShopSection>.Item] {
         var items: [SegmentPicker<ShopSection>.Item] = [
-            .init(id: .offers, title: lang.t("shop.section.offers"), icon: "icon_gift",
+            .init(id: .offers, title: lang.t("shop.section.offers"),
                   badge: (!progress.starterBought && progress.isPassed(5)) || progress.jarFull),
-            .init(id: .coins, title: lang.t("shop.section.coins"), icon: "coins_stack"),
-            .init(id: .boosters, title: lang.t("shop.section.boosters"), icon: "icon_hint")
+            .init(id: .coins, title: lang.t("shop.section.coins")),
+            .init(id: .boosters, title: lang.t("shop.section.boosters"))
         ]
         if progress.marketUnlocked {
-            items.append(.init(id: .market, title: lang.t("shop.section.market"), icon: "icon_market"))
+            items.append(.init(id: .market, title: lang.t("shop.section.market")))
         }
         return items
     }

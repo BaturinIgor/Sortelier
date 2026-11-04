@@ -110,8 +110,10 @@ struct MapView: View {
                     }
                 }
                 StrokeText(text: title, size: 11, weight: .black, color: .white, stroke: Theme.woodDark, width: 1.2, drop: 1)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.7)
+                    .fixedSize(horizontal: false, vertical: true)
                     .frame(width: 70)
             }
             .overlay(alignment: .topTrailing) {
