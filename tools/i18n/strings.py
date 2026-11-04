@@ -803,6 +803,17 @@ S.update({
  "task.reviews": ("Get {0} critic reviews", "Получи {0} рецензий критика"),
 })
 
+# Заставка при запуске
+S.update({
+ "splash.subtitle": ("Cozy kitchen puzzle", "Уютная кухня-головоломка"),
+ "splash.loading": ("Warming up the stove...", "Разогреваем плиту..."),
+ "splash.tip.0": ("Serve customers quickly and they'll leave a tip", "Обслуживай покупателей быстро, и они оставят чаевые"),
+ "splash.tip.1": ("The back row opens once the front row is clear", "Задний ряд открывается, когда освободишь передний"),
+ "splash.tip.2": ("Replaying levels you've passed never costs a life", "Переигрывать пройденные уровни можно без жизней"),
+ "splash.tip.3": ("Your first 3 stars on a level give a life back", "Первые 3 звезды на уровне возвращают жизнь"),
+ "splash.tip.4": ("Kitchen stars open chests on the map", "Звезды кухни открывают сундуки на карте"),
+})
+
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 out = os.path.join(root, "Sortelier", "Resources", "Strings")
 os.makedirs(out, exist_ok=True)

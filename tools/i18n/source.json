@@ -3006,5 +3006,33 @@
  "task.reviews": {
   "en": "Get {0} critic reviews",
   "ru": "Получи {0} рецензий критика"
+ },
+ "splash.subtitle": {
+  "en": "Cozy kitchen puzzle",
+  "ru": "Уютная кухня-головоломка"
+ },
+ "splash.loading": {
+  "en": "Warming up the stove...",
+  "ru": "Разогреваем плиту..."
+ },
+ "splash.tip.0": {
+  "en": "Serve customers quickly and they'll leave a tip",
+  "ru": "Обслуживай покупателей быстро, и они оставят чаевые"
+ },
+ "splash.tip.1": {
+  "en": "The back row opens once the front row is clear",
+  "ru": "Задний ряд открывается, когда освободишь передний"
+ },
+ "splash.tip.2": {
+  "en": "Replaying levels you've passed never costs a life",
+  "ru": "Переигрывать пройденные уровни можно без жизней"
+ },
+ "splash.tip.3": {
+  "en": "Your first 3 stars on a level give a life back",
+  "ru": "Первые 3 звезды на уровне возвращают жизнь"
+ },
+ "splash.tip.4": {
+  "en": "Kitchen stars open chests on the map",
+  "ru": "Звезды кухни открывают сундуки на карте"
  }
 }

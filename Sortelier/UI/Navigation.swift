@@ -47,6 +47,8 @@ final class Router: ObservableObject {
     @Published var language = false
     /// Сколько окон открыто поверх экрана: нижняя панель затемняется.
     @Published var modalCount = 0
+    /// Напоминание, по которому открыли игру: ждет, пока уйдет заставка.
+    @Published var pendingPush: PushRoute?
 
     func open(_ tab: AppTab) {
         guard tab != self.tab else { return }
@@ -62,6 +64,37 @@ final class Router: ObservableObject {
     func open(_ section: KitchenSection) {
         kitchenSection = section
         open(AppTab.kitchen)
+    }
+
+    /// Открыть экран, о котором напоминание. Окна поверх карты закрываем; полноэкранный огород
+    /// показываем чуть позже, если перед ним закрылся другой полноэкранный экран.
+    func show(_ route: PushRoute) {
+        let hadCover = merge || recipe || garden
+        settings = false
+        language = false
+        lives = false
+        streak = false
+        jar = false
+        merge = false
+        recipe = false
+        garden = false
+        switch route {
+        case .map:
+            tab = .map
+        case .streak:
+            tab = .map
+            streak = true
+        case .challenges:
+            eventsSection = .challenges
+            tab = .events
+        case .happyHour:
+            eventsSection = .events
+            tab = .events
+        case .garden:
+            tab = .map
+            guard PlayerProgress.shared.marketUnlocked else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + (hadCover ? 0.6 : 0.1)) { self.garden = true }
+        }
     }
 }
 
