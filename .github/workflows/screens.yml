@@ -102,6 +102,11 @@ jobs:
           shoot lives       -uiLang ru -uiScreen lives
           shoot streak      -uiLang ru -uiScreen streak
           shoot info        -uiLang ru -uiScreen album -uiInfo gold
+          shoot album_bottom -uiLang ru -uiScreen album -uiScroll bottom
+          shoot chest_closed -uiLang ru -uiScreen album -uiChest gold
+          shoot chest_reveal -uiLang ru -uiScreen album -uiChest gold -uiChestTaps 3
+          shoot chest_summary -uiLang ru -uiScreen album -uiChest star -uiChestTaps 1 -uiChestAll
+          shoot chest_summary_en -uiLang en -uiScreen album -uiChest gold -uiChestTaps 1 -uiChestAll
           shoot merge       -uiLang ru -uiScreen merge
           shoot shop_de     -uiLang de -uiScreen shop
           shoot events_de   -uiLang de -uiScreen events

@@ -58,7 +58,6 @@ struct RewardPopup: View {
     @EnvironmentObject private var lang: Lang
     @EnvironmentObject private var progress: PlayerProgress
     @State private var appear = false
-    @State private var opening: ChestOpening?
     @State private var openedCount = 0
 
     private var chests: [ChestKind] {
@@ -82,19 +81,13 @@ struct RewardPopup: View {
                     RewardChips(reward: granted.reward, perRow: 4, tileWidth: 62)
                     if openedCount < chests.count && progress.chestCount(chests[openedCount]) > 0 {
                         Button(lang.t(openedCount == 0 ? "chest.open.now" : "chest.open.next")) {
-                            if let result = progress.openChest(chests[openedCount]) {
-                                openedCount += 1
-                                withAnimation { opening = result }
-                            }
+                            // счетчик растет, только когда игрок действительно открыл сундук тапом
+                            ChestOpener.present(chests[openedCount], onOpen: { openedCount += 1 })
                         }
                         .buttonStyle(GameButtonStyle(palette: .orange))
                     }
                     Button(lang.t("common.ok"), action: close).buttonStyle(GameButtonStyle(palette: .green))
                 }
-            }
-            if let opening = opening {
-                ChestOpenView(opening: opening) { withAnimation { self.opening = nil } }
-                    .transition(.opacity)
             }
         }
         .onAppear {

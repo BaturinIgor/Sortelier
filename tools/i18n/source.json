@@ -3006,5 +3006,17 @@
  "task.reviews": {
   "en": "Get {0} critic reviews",
   "ru": "Получи {0} рецензий критика"
+ },
+ "chest.tap.open": {
+  "en": "Tap the chest to open it",
+  "ru": "Нажми на сундук, чтобы открыть"
+ },
+ "chest.later": {
+  "en": "Later",
+  "ru": "Позже"
+ },
+ "chest.skip": {
+  "en": "Show all",
+  "ru": "Показать все"
  }
 }
