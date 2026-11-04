@@ -174,6 +174,16 @@ struct M3Level: Codable, Identifiable {
     let goals: [M3Goal]
     var intro: String?
     var hard: Bool?
+    /// Праздничный уровень "Фейерверк": спецфишки со старта и сверху, все взрывается.
+    var fever: Bool?
+    /// Доля новых фишек цвета соседа (снизу, слева или справа): чаще длинные ряды и уголки.
+    var luck: Double?
+    /// Доля новых фишек, которые падают сразу спецфишкой.
+    var gift: Double?
+    /// Спецфишки на поле со старта (как у бустеров перед уровнем).
+    var start: [M3Special]?
+
+    var isFever: Bool { fever == true }
 
     var rows: Int { cells.count }
     var cols: Int { cells.first?.count ?? 0 }
@@ -203,6 +213,8 @@ struct M3Board {
     private(set) var gotJam = 0
     private var rng: M3RNG
     private var nextId = 1
+    private let luck: Double
+    private let gift: Double
 
     private struct Pending {
         let t: Double
@@ -237,6 +249,8 @@ struct M3Board {
         jam = chars.map { $0 == "j" || $0 == "k" ? 1 : 0 }
         tiles = Array(repeating: nil, count: rows * cols)
         gotColors = Array(repeating: 0, count: level.colors.count)
+        luck = max(0, min(1, level.luck ?? 0))
+        gift = max(0, min(1, level.gift ?? 0))
         fillInitial()
     }
 
@@ -885,6 +899,21 @@ struct M3Board {
 
     // MARK: - Падение
 
+    /// Какие спецфишки падают сверху на праздничных уровнях (скалки чаще, пончик реже всех).
+    private static let gifts: [M3Special] = [.rowPin, .colPin, .rowPin, .colPin, .whisk, .whisk, .bomb, .bomb, .rainbow]
+
+    /// Новая фишка сверху столбца. Без luck и gift - просто случайный цвет (как в tools/match3/rules.py).
+    private mutating func spawnKind(at p: M3Cell) -> M3Kind {
+        if gift > 0 && rng.double() < gift {
+            return .special(rng.pick(Self.gifts))
+        }
+        if luck > 0 && rng.double() < luck {
+            let near = [M3Cell(p.r + 1, p.c), M3Cell(p.r, p.c - 1), M3Cell(p.r, p.c + 1)].compactMap { color($0) }
+            if !near.isEmpty { return .color(rng.pick(near)) }
+        }
+        return .color(rng.int(colorCount))
+    }
+
     /// Падение и новые фишки. Возвращает время, когда все приземлились.
     private mutating func gravity(at t0: Double) -> Double {
         var paths: [Int: [M3Cell]] = [:]
@@ -899,7 +928,7 @@ struct M3Board {
                     var y = r - 1
                     while y >= 0 && (!valid[y * cols + c] || isEmpty(M3Cell(y, c))) { y -= 1 }
                     if y < 0 {
-                        let tile = newTile(.color(rng.int(colorCount)))
+                        let tile = newTile(spawnKind(at: p))
                         tiles[index(p)] = tile
                         spawned[tile.id] = tile
                         let start = M3Cell(topRow(c) - 1 - spawnCount[c], c)

@@ -2,11 +2,12 @@ import Foundation
 
 // MARK: - Уровни "Рынка"
 
-/// 60 уровней мини-игры "Рынок" (3 в ряд), две главы по 30. Генерирует tools/match3/generate.py.
+/// 600 уровней мини-игры "Рынок" (3 в ряд), 20 глав по 30. Генерирует tools/match3/generate.py.
 final class MarketCatalog {
     static let shared = MarketCatalog()
 
     let levels: [M3Level]
+    private let byChapter: [Int: [M3Level]]
     static let perChapter = 30
 
     private struct File: Decodable { let levels: [M3Level] }
@@ -19,16 +20,38 @@ final class MarketCatalog {
         } else {
             levels = []
         }
+        byChapter = Dictionary(grouping: levels, by: \.chapter)
     }
 
-    func level(_ id: Int) -> M3Level? { levels.first { $0.id == id } }
+    func level(_ id: Int) -> M3Level? {
+        if id >= 1 && id <= levels.count && levels[id - 1].id == id { return levels[id - 1] }
+        return levels.first { $0.id == id }
+    }
 
     var chapters: Int { max(1, (levels.count + Self.perChapter - 1) / Self.perChapter) }
 
-    func levels(chapter: Int) -> [M3Level] { levels.filter { $0.chapter == chapter } }
+    func levels(chapter: Int) -> [M3Level] { byChapter[chapter] ?? [] }
 
-    /// Фон главы: кухни из основной игры.
-    static func style(chapter: Int) -> String { chapter == 1 ? "peach" : "lavender" }
+    func chapter(of level: Int) -> Int { self.level(level)?.chapter ?? max(1, (level - 1) / Self.perChapter + 1) }
+
+    /// Фон главы: кухни из основной игры по кругу.
+    static let styles = ["peach", "lavender", "italy", "japan", "mexico", "bakery", "diner", "autumn", "night", "sweets",
+                         "winter", "bbq", "kitchen", "halloween", "gourmet"]
+
+    static func style(chapter: Int) -> String { styles[(max(1, chapter) - 1) % styles.count] }
+
+    /// Музыка главы.
+    static func track(chapter: Int) -> String {
+        let list = ["music_italy", "music_bakery", "music_japan", "music_mexico", "music_kitchen"]
+        return list[(max(1, chapter) - 1) % list.count]
+    }
+
+    /// Название главы: у первых 20 свои, дальше просто номер.
+    static func chapterTitle(_ chapter: Int, _ lang: Lang) -> String {
+        let key = "m3.chapter.\(chapter)"
+        let name = lang.t(key)
+        return name == key ? lang.t("m3.chapter.n", chapter) : name
+    }
 }
 
 // MARK: - Баланс
@@ -81,7 +104,8 @@ enum MarketBalance {
     }
 
     static func chests(chapter: Int) -> [StarChest] {
-        let k = chapter
+        // монеты растут первые 4 главы, дальше держатся, чтобы 20 глав не ломали экономику
+        let k = min(chapter, 4)
         return [
             StarChest(stars: 30, reward: Reward(coins: 150 * k, market: [.mallet: 1, .pin: 1], chests: [.bronze: 1])),
             StarChest(stars: 60, reward: Reward(coins: 300 * k, boosters: [.hint: 1, .undo: 1], market: [.bomb: 1, .knife: 1],
@@ -161,6 +185,14 @@ extension PlayerProgress {
     var marketAllDone: Bool { MarketCatalog.shared.levels.allSatisfy { marketPassed($0.id) } }
 
     func isMarketOpen(_ level: Int) -> Bool { level <= marketCurrent }
+
+    /// Глава открыта, если открыт ее первый уровень.
+    func isMarketChapterOpen(_ chapter: Int) -> Bool {
+        guard let first = MarketCatalog.shared.levels(chapter: chapter).first else { return false }
+        return isMarketOpen(first.id)
+    }
+
+    func marketChapterClaimable(_ chapter: Int) -> Bool { (0..<3).contains { marketChestReady(chapter: chapter, index: $0) } }
 
     // MARK: Бустеры
 
@@ -266,6 +298,6 @@ extension PlayerProgress {
     }
 
     var marketClaimable: Bool {
-        (1...MarketCatalog.shared.chapters).contains { ch in (0..<3).contains { marketChestReady(chapter: ch, index: $0) } }
+        (1...MarketCatalog.shared.chapters).contains { marketChapterClaimable($0) }
     }
 }

@@ -63,7 +63,7 @@ struct MarketLevelContent: View {
             .onAppear {
                 model.scene.hudHeight = geo.safeAreaInsets.top + 58 + 96 + M3StarBar.height + 6
                 model.scene.bottomReserved = geo.safeAreaInsets.bottom + 92
-                Audio.shared.setTrack(model.level.chapter == 1 ? "music_italy" : "music_bakery")
+                Audio.shared.setTrack(MarketCatalog.track(chapter: model.level.chapter))
                 var pending: String?
                 if let raw = model.level.intro {
                     let kind = raw.hasPrefix("m3.") ? String(raw.dropFirst(3)) : raw
@@ -111,6 +111,13 @@ struct MarketLevelContent: View {
                     Text(lang.t("map.hard"))
                         .font(Theme.rounded(12, .black))
                         .foregroundColor(Color(red: 1.0, green: 0.55, blue: 0.45))
+                        .outlined(Theme.woodDark, width: 1)
+                        .lineLimit(1)
+                        .fixedSize()
+                } else if model.level.isFever {
+                    Text(lang.t("m3.fever"))
+                        .font(Theme.rounded(12, .black))
+                        .foregroundColor(Color(red: 1.0, green: 0.85, blue: 0.3))
                         .outlined(Theme.woodDark, width: 1)
                         .lineLimit(1)
                         .fixedSize()
@@ -854,6 +861,13 @@ struct MarketIntroView: View {
             }
         case "carrot":
             row(["tomato", "lime", "cheese", "grapes", "milk", "carrot"], size: 40)
+        case "fever":
+            HStack(spacing: 4) {
+                SpriteImage(name: "m3_pin", size: 52)
+                SpriteImage(name: "m3_bomb", size: 60)
+                SpriteImage(name: "m3_rainbow", size: 56)
+                SpriteImage(name: "m3_whisk", size: 52)
+            }
         default:
             SpriteImage(name: "icon_market", size: 80)
         }

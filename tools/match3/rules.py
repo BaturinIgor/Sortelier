@@ -51,8 +51,12 @@ class Board:
         self.got = {"crate": 0, "ice": 0, "jam": 0}
         self.got_colors = [0] * len(self.colors)
         self.moves = 0
+        # "Подкрутка" новых фишек: luck - доля фишек цвета соседа (чаще длинные ряды и спецфишки),
+        # gift - доля фишек, которые падают сразу спецфишкой (праздничные уровни).
+        self.luck = level.get("luck") or 0.0
+        self.gift = level.get("gift") or 0.0
         self.fill_initial()
-        self.place_specials(specials)
+        self.place_specials(list(level.get("start") or []) + list(specials))
 
     def clone(self):
         b = Board.__new__(Board)
@@ -67,6 +71,7 @@ class Board:
         b.got = dict(self.got)
         b.got_colors = self.got_colors[:]
         b.moves = self.moves
+        b.luck, b.gift = self.luck, self.gift
         return b
 
     # MARK: - Поле
@@ -483,6 +488,19 @@ class Board:
 
     # MARK: - Падение
 
+    GIFTS = "HVHVWWBBR"
+
+    def new_tile(self, r, c):
+        """Новая фишка сверху столбца. Без luck и gift - просто случайный цвет."""
+        if self.gift and self.rng.random() < self.gift:
+            kind = self.rng.choice(self.GIFTS)
+            return kind
+        if self.luck and self.rng.random() < self.luck:
+            near = [k for k in (self.color(r + 1, c), self.color(r, c - 1), self.color(r, c + 1)) if k is not None]
+            if near:
+                return self.rng.choice(near)
+        return self.rng.choice(self.colors)
+
     def gravity(self):
         """Фишки падают вниз сквозь дыры, сверху столбца появляются новые; под ящиком или льдом - по диагонали."""
         while True:
@@ -495,7 +513,7 @@ class Board:
                     while y >= 0 and (not self.valid[y][c] or self.empty(y, c)):
                         y -= 1
                     if y < 0:
-                        self.tile[r][c] = self.rng.choice(self.colors)
+                        self.tile[r][c] = self.new_tile(r, c)
                         moved = True
                     elif self.movable(y, c):
                         self.tile[r][c], self.tile[y][c] = self.tile[y][c], None
@@ -523,7 +541,7 @@ class Board:
     def resolve(self, prefer=()):
         """Падения и каскады до покоя. Если ходов нет - перемешивание."""
         first = True
-        while True:
+        for _ in range(60):
             self.gravity()
             groups = self.find_groups()
             if not groups:
