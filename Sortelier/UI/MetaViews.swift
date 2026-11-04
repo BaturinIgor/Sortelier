@@ -58,7 +58,6 @@ struct RewardPopup: View {
     @EnvironmentObject private var lang: Lang
     @EnvironmentObject private var progress: PlayerProgress
     @State private var appear = false
-    @State private var opening: ChestOpening?
     @State private var openedCount = 0
 
     private var chests: [ChestKind] {
@@ -82,19 +81,13 @@ struct RewardPopup: View {
                     RewardChips(reward: granted.reward, perRow: 4, tileWidth: 62)
                     if openedCount < chests.count && progress.chestCount(chests[openedCount]) > 0 {
                         Button(lang.t(openedCount == 0 ? "chest.open.now" : "chest.open.next")) {
-                            if let result = progress.openChest(chests[openedCount]) {
-                                openedCount += 1
-                                withAnimation { opening = result }
-                            }
+                            // счетчик растет, только когда игрок действительно открыл сундук тапом
+                            ChestOpener.present(chests[openedCount], onOpen: { openedCount += 1 })
                         }
                         .buttonStyle(GameButtonStyle(palette: .orange))
                     }
                     Button(lang.t("common.ok"), action: close).buttonStyle(GameButtonStyle(palette: .green))
                 }
-            }
-            if let opening = opening {
-                ChestOpenView(opening: opening) { withAnimation { self.opening = nil } }
-                    .transition(.opacity)
             }
         }
         .onAppear {
@@ -288,9 +281,11 @@ struct StreakPopup: View {
     private var days: some View {
         let current = progress.streakDay
         let next = progress.playedToday ? current : current % 7 + 1
+        // неделя закрыта, а сегодня еще не играли: начинается новый круг, старые галочки не показываем
+        let filled = !progress.playedToday && current == 7 ? 0 : current
         return HStack(spacing: 4) {
             ForEach(1...7, id: \.self) { d in
-                let done = d <= current && current > 0
+                let done = d <= filled
                 let isNext = d == next && !progress.playedToday
                 VStack(spacing: 3) {
                     Text(lang.t("streak.short", d))

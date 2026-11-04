@@ -304,6 +304,11 @@ final class GameScene: SKScene {
         }
         lockNodes = [:]
         chainNodes = [:]
+        // покупатель, к которому летел заказ, уходит по прилету продукта. Полет снят вместе с полем,
+        // поэтому без уборки он остался бы стоять призраком (а после отмены хода - рядом со своим двойником)
+        for case let node as CustomerNode in customersLayer.children where customerNodes[node.uid] !== node {
+            node.removeFromParent()
+        }
         sync(animated: false)
         updateLocks(animated: false)
         updateChains(animated: false)

@@ -272,7 +272,7 @@ final class Match3Scene: SKScene {
                 drop.timingMode = .easeIn
                 node.run(.sequence([.wait(forDuration: delay),
                                     .group([drop, .fadeIn(withDuration: 0.16), .scale(to: 1, duration: 0.22)]),
-                                    landing()]))
+                                    landing(at: target)]), withKey: Self.moveKey)
             }
             if board.crateLeft(p) > 0 { setCrate(p, left: board.crateLeft(p), animated: false) }
             if board.iceLeft(p) > 0 { setIce(p, left: board.iceLeft(p), animated: false) }
@@ -353,13 +353,26 @@ final class Match3Scene: SKScene {
                    .group([.scaleX(to: 1, duration: 0.09), .scaleY(to: 1, duration: 0.09)])])
     }
 
-    /// Мягкое приземление: сплющивание и маленький отскок вверх.
-    private func landing() -> SKAction {
-        let up = SKAction.moveBy(x: 0, y: cell * 0.07, duration: 0.07)
+    /// Мягкое приземление: сплющивание и маленький отскок вверх. Позиции абсолютные: если отскок прервать
+    /// новым движением, фишка не останется сдвинутой относительно своей клетки.
+    private func landing(at target: CGPoint) -> SKAction {
+        let up = SKAction.move(to: CGPoint(x: target.x, y: target.y + cell * 0.07), duration: 0.07)
         up.timingMode = .easeOut
-        let down = SKAction.moveBy(x: 0, y: -cell * 0.07, duration: 0.09)
+        let down = SKAction.move(to: target, duration: 0.09)
         down.timingMode = .easeIn
         return .group([squash(), .sequence([.wait(forDuration: 0.04), up, down])])
+    }
+
+    /// Все движения фишки идут под одним ключом: новое движение заменяет старое, а не складывается с ним.
+    private static let moveKey = "fall"
+
+    private func runMove(_ node: SKSpriteNode, _ action: SKAction) {
+        node.removeAction(forKey: Self.moveKey)
+        if node.action(forKey: "idle") == nil {
+            node.xScale = 1
+            node.yScale = 1
+        }
+        node.run(action, withKey: Self.moveKey)
     }
 
     private func addJam(_ p: M3Cell) {
@@ -514,13 +527,13 @@ final class Match3Scene: SKScene {
         let lift = SKAction.sequence([.scale(to: 1.14, duration: t * 0.5), .scale(to: 1, duration: t * 0.5)])
         if back {
             let wobble = SKAction.sequence([.rotate(toAngle: 0.12, duration: 0.05), .rotate(toAngle: -0.12, duration: 0.08), .rotate(toAngle: 0, duration: 0.05)])
-            na.run(.sequence([.group([go(na, pb), lift]), .group([go(na, pa), lift]), wobble]))
-            nb.run(.sequence([go(nb, pa), go(nb, pb)]))
+            runMove(na, .sequence([.group([go(na, pb), lift]), .group([go(na, pa), lift]), wobble]))
+            runMove(nb, .sequence([go(nb, pa), go(nb, pb)]))
             sound(.invalid, volume: 0.5)
             Haptics.light()
         } else {
-            na.run(.group([go(na, pb), lift]))
-            nb.run(go(nb, pa))
+            runMove(na, .group([go(na, pb), lift]))
+            runMove(nb, go(nb, pa))
             idAt[a] = ib
             idAt[b] = ia
             sound(.place, volume: 0.6)
@@ -609,7 +622,6 @@ final class Match3Scene: SKScene {
         if let first = path.first, idAt[first] == id { idAt[first] = nil }
         for (cellKey, value) in idAt where value == id && cellKey != last { idAt[cellKey] = nil }
         idAt[last] = id
-        node.removeAction(forKey: "fall")
         let points = path.map(point)
         let action: SKAction
         if points.count == 2 {
@@ -622,24 +634,26 @@ final class Match3Scene: SKScene {
         }
         // равноускоренное падение: все фишки падают с одним ускорением и не наезжают друг на друга
         action.timingFunction = { t in t * t }
-        node.run(.sequence([action, landing()]), withKey: "fall")
+        runMove(node, .sequence([action, landing(at: points[points.count - 1])]))
         if duration > 0.2 { sound(.coin, volume: 0.06) }
     }
 
-    private func shuffle(_ list: [(id: Int, cell: M3Cell)]) {
+    private func shuffle(_ list: [(id: Int, cell: M3Cell, kind: M3Kind)]) {
         // перемешиваются только обычные фишки: лед и спецфишки остаются на своих местах
         let moving = Set(list.map(\.id))
         for (cellKey, value) in idAt where moving.contains(value) { idAt[cellKey] = nil }
         for (i, entry) in list.enumerated() {
             guard let node = nodes[entry.id] else { continue }
             idAt[entry.cell] = entry.id
+            // если движок раздал цвета заново, картинка меняется вместе с ним
+            style(node, entry.kind)
             let center = CGPoint.zero
             let out = SKAction.move(to: CGPoint(x: (node.position.x + center.x) / 2, y: (node.position.y + center.y) / 2), duration: 0.22)
             out.timingMode = .easeIn
             let back = SKAction.move(to: point(entry.cell), duration: 0.28)
             back.timingMode = .easeOut
-            node.run(.sequence([.wait(forDuration: Double(i % 7) * 0.008), .group([out, .rotate(byAngle: .pi, duration: 0.22)]),
-                                .group([back, .rotate(byAngle: .pi, duration: 0.28)])]))
+            runMove(node, .sequence([.wait(forDuration: Double(i % 7) * 0.008), .group([out, .rotate(byAngle: .pi, duration: 0.22)]),
+                                     .group([back, .rotate(byAngle: .pi, duration: 0.28)]), .rotate(toAngle: 0, duration: 0)]))
         }
         sound(.combo, volume: 0.5)
     }
@@ -1018,7 +1032,10 @@ final class Match3Scene: SKScene {
         if let line = model.swap(a, b) {
             play(line) { [weak model] in model?.lineFinished(line) }
         } else if let id = idAt[a], let node = nodes[id] {
-            node.run(.sequence([.moveBy(x: 4, y: 0, duration: 0.04), .moveBy(x: -8, y: 0, duration: 0.06), .moveBy(x: 4, y: 0, duration: 0.04)]))
+            let base = point(a)
+            runMove(node, .sequence([.move(to: CGPoint(x: base.x + 4, y: base.y), duration: 0.04),
+                                     .move(to: CGPoint(x: base.x - 4, y: base.y), duration: 0.06),
+                                     .move(to: base, duration: 0.04)]))
             sound(.invalid, volume: 0.4)
         }
     }
@@ -1069,7 +1086,7 @@ final class Match3Scene: SKScene {
         for node in hinted {
             node.removeAction(forKey: "hint")
             if let id = nodes.first(where: { $0.value === node })?.key, let p = idAt.first(where: { $0.value == id })?.key {
-                node.run(.move(to: point(p), duration: 0.08))
+                runMove(node, .move(to: point(p), duration: 0.08))
             }
         }
         hinted = []

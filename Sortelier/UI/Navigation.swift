@@ -23,6 +23,12 @@ enum EventsSection: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+/// Разделы магазина: выгодные предложения, монеты, бустеры основной игры, бустеры мини-игры "3 в ряд".
+enum ShopSection: String, CaseIterable, Identifiable {
+    case offers, coins, boosters, market
+    var id: String { rawValue }
+}
+
 /// Разделы вкладки "Кухня".
 enum KitchenSection: String, CaseIterable, Identifiable {
     case book, achievements, backgrounds
@@ -36,6 +42,7 @@ final class Router: ObservableObject {
     @Published var tab: AppTab = .map
     @Published var eventsSection: EventsSection = .events
     @Published var kitchenSection: KitchenSection = .book
+    @Published var shopSection: ShopSection = .offers
     @Published var settings = false
     @Published var lives = false
     @Published var streak = false
@@ -47,6 +54,8 @@ final class Router: ObservableObject {
     @Published var language = false
     /// Сколько окон открыто поверх экрана: нижняя панель затемняется.
     @Published var modalCount = 0
+    /// Напоминание, по которому открыли игру: ждет, пока уйдет заставка.
+    @Published var pendingPush: PushRoute?
 
     func open(_ tab: AppTab) {
         guard tab != self.tab else { return }
@@ -62,6 +71,42 @@ final class Router: ObservableObject {
     func open(_ section: KitchenSection) {
         kitchenSection = section
         open(AppTab.kitchen)
+    }
+
+    /// Открыть экран, о котором напоминание. Окна поверх карты закрываем; полноэкранный огород
+    /// показываем чуть позже, если перед ним закрылся другой полноэкранный экран.
+    func show(_ route: PushRoute) {
+        let hadCover = merge || recipe || garden
+        settings = false
+        language = false
+        lives = false
+        streak = false
+        jar = false
+        merge = false
+        recipe = false
+        garden = false
+        switch route {
+        case .map:
+            tab = .map
+        case .streak:
+            tab = .map
+            streak = true
+        case .challenges:
+            eventsSection = .challenges
+            tab = .events
+        case .happyHour:
+            eventsSection = .events
+            tab = .events
+        case .garden:
+            tab = .map
+            guard PlayerProgress.shared.marketUnlocked else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + (hadCover ? 0.6 : 0.1)) { self.garden = true }
+        }
+    }
+
+    func open(_ section: ShopSection) {
+        shopSection = section
+        open(AppTab.shop)
     }
 }
 
@@ -202,7 +247,7 @@ struct ScreenHeader: View {
                 .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if coins {
-                Button { router.open(.shop) } label: { CoinsPill() }
+                Button { router.open(ShopSection.coins) } label: { CoinsPill() }
                     .buttonStyle(PressScaleStyle())
             }
         }
