@@ -687,6 +687,32 @@ extension View {
 // MARK: - Всплывающее окно
 
 /// Окно поверх экрана: бумажная панель, лента с заголовком сверху, красный крестик в углу.
+/// Содержимое окна, которое не выталкивает кнопки за экран: если не помещается, прокручивается.
+/// reserved - сколько высоты экрана нужно оставить на заголовок, кнопки и поля окна.
+struct FitScroll<Content: View>: View {
+    var reserved: CGFloat
+    @ViewBuilder var content: Content
+    @State private var height: CGFloat = 0
+
+    private var limit: CGFloat { max(160, UIScreen.main.bounds.height - reserved) }
+
+    var body: some View {
+        ScrollView(.vertical, showsIndicators: height > limit) {
+            content
+                .frame(maxWidth: .infinity)
+                .background(GeometryReader { g in Color.clear.preference(key: FitScrollHeight.self, value: g.size.height) })
+        }
+        // до первого замера высота 1: ScrollView без высоты растянулся бы на весь экран
+        .frame(height: min(max(height, 1), limit))
+        .onPreferenceChange(FitScrollHeight.self) { height = $0 }
+    }
+}
+
+private struct FitScrollHeight: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
+}
+
 struct PopupCard<Content: View>: View {
     var title: String?
     var close: (() -> Void)?
