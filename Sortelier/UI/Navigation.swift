@@ -23,6 +23,12 @@ enum EventsSection: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 }
 
+/// Разделы магазина: выгодные предложения, монеты, бустеры основной игры, бустеры мини-игры "3 в ряд".
+enum ShopSection: String, CaseIterable, Identifiable {
+    case offers, coins, boosters, market
+    var id: String { rawValue }
+}
+
 /// Разделы вкладки "Кухня".
 enum KitchenSection: String, CaseIterable, Identifiable {
     case book, achievements, backgrounds
@@ -36,6 +42,7 @@ final class Router: ObservableObject {
     @Published var tab: AppTab = .map
     @Published var eventsSection: EventsSection = .events
     @Published var kitchenSection: KitchenSection = .book
+    @Published var shopSection: ShopSection = .offers
     @Published var settings = false
     @Published var lives = false
     @Published var streak = false
@@ -95,6 +102,11 @@ final class Router: ObservableObject {
             guard PlayerProgress.shared.marketUnlocked else { return }
             DispatchQueue.main.asyncAfter(deadline: .now() + (hadCover ? 0.6 : 0.1)) { self.garden = true }
         }
+    }
+
+    func open(_ section: ShopSection) {
+        shopSection = section
+        open(AppTab.shop)
     }
 }
 
@@ -235,7 +247,7 @@ struct ScreenHeader: View {
                 .minimumScaleFactor(0.6)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if coins {
-                Button { router.open(.shop) } label: { CoinsPill() }
+                Button { router.open(ShopSection.coins) } label: { CoinsPill() }
                     .buttonStyle(PressScaleStyle())
             }
         }

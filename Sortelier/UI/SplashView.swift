@@ -70,7 +70,7 @@ struct SplashView: View {
     private func rays(_ size: CGSize) -> some View {
         TimelineView(.animation) { context in
             let angle = context.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 60) * 6
-            SunRays(count: 18)
+            SplashRays(count: 18)
                 .fill(Color.white.opacity(0.16))
                 .frame(width: size.height * 1.4, height: size.height * 1.4)
                 .rotationEffect(.degrees(angle))
@@ -254,7 +254,7 @@ private struct LoadingBar: View {
 }
 
 /// Лучи-клинья от центра.
-private struct SunRays: Shape {
+private struct SplashRays: Shape {
     let count: Int
 
     func path(in rect: CGRect) -> Path {

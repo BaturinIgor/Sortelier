@@ -122,6 +122,9 @@ jobs:
           shoot jar         -uiLang ru -uiScreen jar
           shoot events_m3   -uiLang ru -uiScreen events -uiScroll bottom -uiHappy
           shoot shop_m3     -uiLang ru -uiScreen shop -uiScroll bottom
+          shoot shop_coins  -uiLang ru -uiScreen shop -uiShop coins
+          shoot shop_boosters -uiLang ru -uiScreen shop -uiShop boosters
+          shoot shop_market -uiLang ru -uiScreen shop -uiShop market
           shoot map_rail    -uiLang ru -uiScreen map -uiHappy
           shoot market_en   -uiLang en -uiScreen market
           shoot achievements_bottom -uiLang ru -uiScreen achievements -uiScroll bottom
