@@ -79,7 +79,8 @@ final class Match3Model: ObservableObject {
     /// После появления поля: спецфишки серии и бустеров перед уровнем прилетают на поле.
     func start() {
         guard phase == .starting else { return }
-        var specials = PlayerProgress.shared.streakSpecials
+        // праздничный уровень: свои спецфишки со старта, потом серия побед и бустеры
+        var specials = (level.start ?? []) + PlayerProgress.shared.streakSpecials
         for b in preBoosters {
             if let s = b.special, PlayerProgress.shared.use(b) { specials.append(s) }
         }

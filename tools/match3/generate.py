@@ -18,7 +18,8 @@ from multiprocessing import Pool
 
 sys.path.insert(0, os.path.dirname(__file__))
 from bot import play  # noqa: E402
-from levels import LEVELS, target  # noqa: E402
+from levels import COLORS6, LEVELS, target  # noqa: E402
+from generated import desired_length  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 OUT = os.path.join(ROOT, "Sortelier", "Resources", "Data", "match3.json")
@@ -40,6 +41,31 @@ def pct(values, q):
 def run(args):
     lv, seed, specials = args
     return play(lv, seed, limit=160, specials=specials)
+
+
+def calibrate(pool, lv):
+    """Новые уровни (61+): цели сбора подгоняются, чтобы бот проходил уровень за desired_length ходов."""
+    if lv["id"] <= 60 and not lv.get("fever"):
+        return lv
+    want = desired_length(lv)
+    for _ in range(4):
+        used = [m if m is not None else 160 for m in pool.map(run, [(lv, 300 + s, []) for s in range(12)])]
+        p50 = pct(used, 0.5)
+        if 0.85 * want <= p50 <= 1.2 * want:
+            break
+        goals = [dict(g) for g in lv["goals"]]
+        collect = [g for g in goals if g["type"] == "collect"]
+        if not collect:
+            if p50 > want:
+                break
+            free = [k for k in lv["colors"]]
+            goals.append({"type": "collect", "item": free[lv["id"] % len(free)], "count": 20})
+            collect = goals[-1:]
+        k = want / max(1.0, p50)
+        for g in collect:
+            g["count"] = int(max(10, min(400, round(g["count"] * k / 5.0) * 5)))
+        lv = dict(lv, goals=goals)
+    return lv
 
 
 def tune(pool, lv, runs):
@@ -84,7 +110,7 @@ def main():
         for lv in LEVELS:
             if only and lv["id"] not in only:
                 continue
-            tuned, rep = tune(pool, lv, args.runs)
+            tuned, rep = tune(pool, calibrate(pool, lv), args.runs)
             existing[lv["id"]] = tuned
             reports[lv["id"]] = rep
             print(json.dumps(rep), flush=True)
@@ -93,7 +119,7 @@ def main():
         t = existing.get(lv["id"])
         if not t:
             continue
-        levels.append({k: t[k] for k in ("id", "chapter", "cells", "colors", "moves", "stars", "goals", "intro", "hard")
+        levels.append({k: t[k] for k in ("id", "chapter", "cells", "colors", "moves", "stars", "goals", "intro", "hard", "fever", "luck", "gift", "start")
                        if k in t and t[k] is not None})
     with open(OUT, "w") as f:
         json.dump({"levels": levels}, f, ensure_ascii=False, separators=(",", ":"))

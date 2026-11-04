@@ -1,9 +1,10 @@
-"""60 уровней "Рынка": форма поля, препятствия, цели, обучение.
+"""Уровни "Рынка": форма поля, препятствия, цели, обучение. 1-60 нарисованы вручную, 61-600 собирает generated().
 
 Ходы и пороги звезд здесь не пишутся: их подбирает generate.py по прогонам бота (см. TARGETS).
 Символы клеток - в rules.py. Цвета (продукты) берутся из основной игры.
 """
 
+PER_CHAPTER = 30
 COLORS6 = ["tomato", "lime", "cheese", "grapes", "milk", "carrot"]
 
 SHAPES = {
@@ -73,7 +74,7 @@ def level(n, shape, colors, goals, intro=None, hard=False, build=None):
             total = count(g, chars)
             assert total > 0, (n, goal)
             out_goals.append({"type": goal[0], "count": total})
-    return {"id": n, "chapter": 1 if n <= 30 else 2, "cells": cells, "colors": COLORS6[:colors],
+    return {"id": n, "chapter": (n - 1) // PER_CHAPTER + 1, "cells": cells, "colors": COLORS6[:colors],
             "goals": out_goals, "intro": intro, "hard": hard}
 
 
@@ -199,13 +200,30 @@ LEVELS = [
 
 assert [lv["id"] for lv in LEVELS] == list(range(1, 61))
 
+from generated import generated, FEVER_SLOTS, fever  # noqa: E402
+
+# Праздничные уровни среди нарисованных вручную: те же места в главе, кроме уровней с обучением.
+for _lv in LEVELS:
+    if (_lv["id"] - 1) % PER_CHAPTER + 1 in FEVER_SLOTS and not _lv["intro"] and not _lv["hard"]:
+        fever(_lv, first=_lv["id"] == min(FEVER_SLOTS))
+
+LEVELS += generated(61, 600)
+assert [lv["id"] for lv in LEVELS] == list(range(1, 601))
+
 # Целевая доля побед бота без бустеров (бот играет чуть лучше среднего игрока).
 def target(lv):
     n = lv["id"]
+    if lv.get("fever"):
+        return 0.97
     if n <= 6:
         return 1.0
     if n <= 15:
         return 0.88 if not lv["hard"] else 0.7
     if n <= 30:
         return 0.64 if not lv["hard"] else 0.45
-    return 0.56 if not lv["hard"] else 0.38
+    if n <= 60:
+        return 0.56 if not lv["hard"] else 0.38
+    # дальше чуть строже, но без стены: на каждой главе пара передышек с подкруткой
+    ch = (n - 1) // PER_CHAPTER + 1
+    k = min(1.0, (ch - 3) / 12)
+    return (0.56 - 0.06 * k) if not lv["hard"] else (0.40 - 0.05 * k)
