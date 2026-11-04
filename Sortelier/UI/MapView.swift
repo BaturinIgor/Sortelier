@@ -385,6 +385,7 @@ struct MapView: View {
             }
         }
         .buttonStyle(PressScaleStyle())
+        .accessibilityIdentifier(step < 0 ? "biome.prev" : "biome.next")
         .opacity(target == nil ? 0.3 : 1)
         .disabled(target == nil)
     }

@@ -99,4 +99,35 @@ final class FlowTests: XCTestCase {
         shot(app, "21_achievements")
         check(app, "Шеф-повар", "кухня: Награды")
     }
+
+    /// Задания новичка: 7 штук на день, "Перейти" ведет на карту или в нужный раздел.
+    func testQuestsGo() {
+        let app = launch(["-uiScreen", "quests"])
+        shot(app, "31_quests")
+        let go = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Перейти"))
+        log("кнопок Перейти: \(go.count)")
+        tap(app, "Перейти")
+        shot(app, "32_after_go")
+        log("после Перейти: карта \(element(app, "Звезды кухни").exists), испытания \(element(app, "Испытание дня").exists)")
+    }
+
+    /// Монеты за карточки книги.
+    func testBookCoins() {
+        let app = launch(["-uiScreen", "book"])
+        shot(app, "41_book")
+        check(app, "Забрать", "книга: кнопка Забрать")
+        tap(app, "Забрать")
+        shot(app, "42_book_collected")
+    }
+
+    /// Карта: карточка звезд листается на прошлую кухню.
+    func testMapBiomes() {
+        let app = launch(["-uiScreen", "map"])
+        shot(app, "51_map")
+        let back = app.buttons["biome.prev"]
+        log("стрелка кухни: \(back.exists) \(back.label)")
+        if back.exists { back.tap(); sleep(2) }
+        shot(app, "52_map_prev_biome")
+        check(app, "Американская", "карта: прошлая кухня в карточке")
+    }
 }
