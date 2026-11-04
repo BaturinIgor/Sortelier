@@ -72,7 +72,8 @@ struct LevelContent: View {
         GeometryReader { geo in
             ZStack {
                 KitchenBackground(style: eventStyle ?? progress.background(forBiome: session.level.biome))
-                SpriteView(scene: scene, preferredFramesPerSecond: 120, options: [.allowsTransparency])
+                StableSpriteView(scene: scene)
+                    .equatable()
                     .ignoresSafeArea()
                 VStack(spacing: 4) {
                     topBar
@@ -156,16 +157,15 @@ struct LevelContent: View {
         }
     }
 
+    /// Все бустеры видны всегда: которых нет, покупаются прямо на уровне по "+".
+    /// Пауза терпения на уровнях без терпения бледная и при нажатии объясняет, почему не работает.
     private var boosterBar: some View {
-        let pause = session.pauseAvailable
-        return HStack(spacing: pause ? 10 : 14) {
+        HStack(spacing: 10) {
             boosterButton(.undo) { session.undo() }
             boosterButton(.hint) { session.hint() }
             boosterButton(.shuffle) { session.shuffle() }
             boosterButton(.shelf) { session.useExtraShelf() }
-            if pause {
-                boosterButton(.pause) { session.pausePatience() }
-            }
+            boosterButton(.pause, enabled: session.pauseAvailable) { session.pausePatience() }
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 14)
@@ -181,11 +181,13 @@ struct LevelContent: View {
         }
     }
 
-    private func boosterButton(_ booster: Booster, use: @escaping () -> Bool) -> some View {
+    private func boosterButton(_ booster: Booster, enabled: Bool = true, use: @escaping () -> Bool) -> some View {
         let count = progress.count(booster)
         return Button {
             guard session.phase == .playing else { return }
-            if count > 0 {
+            if !enabled {
+                Toast.info(lang.t("booster.pause.none"))
+            } else if count > 0 {
                 if !use() { Toast.error(lang.t("booster.cant")) }
             } else {
                 buyBooster = booster
@@ -212,6 +214,8 @@ struct LevelContent: View {
                     )
                     .offset(x: 6, y: -6)
             }
+            .saturation(enabled ? 1 : 0)
+            .opacity(enabled ? 1 : 0.55)
         }
         .buttonStyle(PressScaleStyle())
     }
@@ -380,25 +384,10 @@ struct WinView: View {
             if let result = session.result {
                 PopupCard(title: lang.t("win.title"), maxWidth: 330) {
                     VStack(spacing: 12) {
-                        HStack(spacing: 4) {
-                            ForEach(0..<3, id: \.self) { i in
-                                SpriteImage(name: "icon_star", size: i == 1 ? 78 : 62, silhouette: i >= shown)
-                                    .scaleEffect(i < shown ? 1 : 0.7)
-                                    .offset(y: i == 1 ? -8 : 0)
-                            }
+                        // награды прокручиваются, кнопки всегда на экране
+                        FitScroll(reserved: result.reward.coinsAdded > 0 && !session.doubled ? 340 : 250) {
+                            summary(result).padding(.top, 10)
                         }
-                        VStack(spacing: 6) {
-                            row(lang.t("win.orders"), result.served * Balance.coinsPerOrder)
-                            if result.tips > 0 { row(lang.t("win.tips"), result.tips) }
-                            if result.comboCoins > 0 { row(lang.t("win.combo"), result.comboCoins) }
-                            row(lang.t("win.efficiency"), result.efficiency)
-                            Rectangle().fill(Theme.chipBorder).frame(height: 2)
-                            row(lang.t("win.total"), result.total, bold: true)
-                        }
-                        .padding(12)
-                        .background(InsetBackground())
-                        rewardText(result)
-                        extras(result)
                         if result.reward.coinsAdded > 0 && !session.doubled {
                             Button {
                                 session.doubleCoins { ok in if !ok { Toast.error(lang.t("ads.limit")) } }
@@ -427,6 +416,30 @@ struct WinView: View {
                     }
                 }
             }
+        }
+    }
+
+    private func summary(_ result: GameSession.Result) -> some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 4) {
+                ForEach(0..<3, id: \.self) { i in
+                    SpriteImage(name: "icon_star", size: i == 1 ? 78 : 62, silhouette: i >= shown)
+                        .scaleEffect(i < shown ? 1 : 0.7)
+                        .offset(y: i == 1 ? -8 : 0)
+                }
+            }
+            VStack(spacing: 6) {
+                row(lang.t("win.orders"), result.served * Balance.coinsPerOrder)
+                if result.tips > 0 { row(lang.t("win.tips"), result.tips) }
+                if result.comboCoins > 0 { row(lang.t("win.combo"), result.comboCoins) }
+                row(lang.t("win.efficiency"), result.efficiency)
+                Rectangle().fill(Theme.chipBorder).frame(height: 2)
+                row(lang.t("win.total"), result.total, bold: true)
+            }
+            .padding(12)
+            .background(InsetBackground())
+            rewardText(result)
+            extras(result)
         }
     }
 

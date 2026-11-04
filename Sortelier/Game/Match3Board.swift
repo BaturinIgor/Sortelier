@@ -111,7 +111,8 @@ enum M3Event {
     /// Падение по клеткам пути (строки выше поля - отрицательные) и новая фишка сверху.
     case move(id: Int, path: [M3Cell], duration: Double)
     case spawn(M3Tile, path: [M3Cell], duration: Double)
-    case shuffle([(id: Int, cell: M3Cell)])
+    /// Перемешивание: kind - чем фишка стала (если обычное перемешивание не нашло поля с ходом, цвета меняются).
+    case shuffle([(id: Int, cell: M3Cell, kind: M3Kind)])
     case booster(M3Booster, M3Cell)
 }
 
@@ -176,6 +177,13 @@ struct M3Level: Codable, Identifiable {
 
     var rows: Int { cells.count }
     var cols: Int { cells.first?.count ?? 0 }
+
+    /// Звезды за победу, когда осталось movesLeft ходов: 3 и 2 - по порогам stars, 1 - за любую победу.
+    func starsFor(movesLeft: Int) -> Int {
+        let s2 = stars.first ?? 0
+        let s3 = stars.count > 1 ? stars[1] : s2
+        return movesLeft >= s3 ? 3 : (movesLeft >= s2 ? 2 : 1)
+    }
 }
 
 struct M3Board {
@@ -568,7 +576,7 @@ struct M3Board {
             for r in 0..<rows { hit(M3Cell(r, p.c), t: t0 + 0.035 * Double(r)) }
         case .mixer:
             emit(0, .booster(.mixer, p))
-            let end = shuffle(at: 0.3)
+            let end = shuffle(at: 0.3, favor: true)
             return finish(end: end, counted: false)
         default:
             return nil
@@ -968,24 +976,65 @@ struct M3Board {
         return t
     }
 
-    private mutating func shuffle(at t: Double) -> Double {
+    /// Перемешивание обычных фишек. favor - миксер игрока: из нескольких подходящих раскладок берется самая выгодная
+    /// (ход на спецфишку, ходы цветами целей). Автоматическое перемешивание, когда ходов нет, - просто случайное.
+    private mutating func shuffle(at t: Double, favor: Bool = false) -> Double {
         let cells = allCells.filter { movable($0) && color($0) != nil }
         guard cells.count > 1 else { return t }
-        var originals = cells.compactMap { tiles[index($0)] }
-        for attempt in 0..<200 {
-            var order = originals
+        var order = cells.compactMap { tiles[index($0)] }
+        let wanted = favor ? 24 : 1
+        var found = 0
+        var best: [M3Tile]?
+        var bestScore = Int.min
+        for _ in 0..<240 {
             rng.shuffle(&order)
-            if attempt == 199 {
-                order = order.map { M3Tile(id: $0.id, kind: .color(rng.int(colorCount))) }
-            }
             for (p, tile) in zip(cells, order) { tiles[index(p)] = tile }
-            if findGroups().isEmpty && hasMove() { break }
-            if attempt == 199 && !hasMove(), let p = cells.first, let tile = tiles[index(p)] {
+            guard findGroups().isEmpty && hasMove() else { continue }
+            found += 1
+            let score = favor ? favorScore() : 0
+            if score > bestScore {
+                bestScore = score
+                best = order
+            }
+            if found >= wanted { break }
+        }
+        if let best = best {
+            for (p, tile) in zip(cells, best) { tiles[index(p)] = tile }
+        } else {
+            // перестановками ход не получить: цвета раздаются заново, в крайнем случае на поле появляется бомба
+            for _ in 0..<60 {
+                for p in cells {
+                    if let tile = tiles[index(p)] {
+                        let options = (0..<colorCount).filter { !wouldMatch(p, $0) }
+                        tiles[index(p)] = M3Tile(id: tile.id, kind: .color(options.isEmpty ? rng.int(colorCount) : rng.pick(options)))
+                    }
+                }
+                if findGroups().isEmpty && hasMove() { break }
+            }
+            if !hasMove() || !findGroups().isEmpty, let p = cells.first, let tile = tiles[index(p)] {
                 tiles[index(p)] = M3Tile(id: tile.id, kind: .special(.bomb))
             }
-            originals = order
         }
-        emit(t, .shuffle(cells.compactMap { p in tiles[index(p)].map { (id: $0.id, cell: p) } }))
+        emit(t, .shuffle(cells.compactMap { p in tiles[index(p)].map { (id: $0.id, cell: p, kind: $0.kind) } }))
         return t + 0.6
+    }
+
+    /// Насколько раскладка хороша для игрока: лучшая спецфишка за один ход, ходы цветами целей, просто ходы.
+    /// Пончик ценится как бомба: миксер помогает, но не раздает пончики.
+    private func favorScore() -> Int {
+        let rank: [M3Special: Int] = [.whisk: 1, .rowPin: 2, .colPin: 2, .bomb: 3, .rainbow: 3]
+        let want = Set(goals.indices.filter { remaining($0) > 0 }.compactMap { goalColors[$0] })
+        var best = 0, useful = 0, total = 0
+        for (a, b) in moves() {
+            guard let b = b, tile(a)?.kind.special == nil, tile(b)?.kind.special == nil else { continue }
+            var copy = self
+            copy.tiles.swapAt(index(a), index(b))
+            total += 1
+            for g in copy.findGroups() where g.cells.contains(a) || g.cells.contains(b) {
+                best = max(best, Self.special(of: g).flatMap { rank[$0] } ?? 0)
+                if let k = copy.color(g.cells[0]), want.contains(k) { useful += 1 }
+            }
+        }
+        return best * 20 + min(useful, 8) * 3 + min(total, 10)
     }
 }
