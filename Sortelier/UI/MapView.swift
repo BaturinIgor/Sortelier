@@ -536,12 +536,16 @@ struct LivesPopup: View {
     var body: some View {
         ZStack {
             Dim().onTapGesture(perform: close)
-            PopupCard(title: progress.unlimitedLives ? lang.t("lives.unlimited") : lang.t("lives.count", progress.lives, progress.maxLives),
+            PopupCard(title: progress.unlimitedLives ? lang.t("lives.unlimited") : lang.t("lives.count", progress.lives, max(progress.maxLives, progress.lives)),
                       close: close) {
                 VStack(spacing: 12) {
+                    // с VIP сердец до 8: уменьшаем, чтобы ряд не вылезал за окно. После конца VIP жизней
+                    // может остаться больше обычного максимума - показываем все
+                    let hearts = max(progress.maxLives, progress.lives)
                     HStack(spacing: 2) {
-                        ForEach(0..<progress.maxLives, id: \.self) { i in
-                            SpriteImage(name: "icon_heart", size: 40, silhouette: !progress.unlimitedLives && i >= progress.lives)
+                        ForEach(0..<hearts, id: \.self) { i in
+                            SpriteImage(name: "icon_heart", size: hearts > 5 ? 32 : 40,
+                                        silhouette: !progress.unlimitedLives && i >= progress.lives)
                         }
                     }
                     if let left = progress.unlimitedLeft {
