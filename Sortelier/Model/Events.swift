@@ -206,19 +206,29 @@ enum SeasonEvent {
         if fromConfig.count >= 3 { return fromConfig }
         var guest = Reward(coins: 300)
         guest.guest = theme
+        // ~300 печатей: около 100 побед, 5-6 часов игры за полмесяца ивента. Награды идут часто в начале
+        // и реже, но крупнее к концу; гость ивента на середине, фон темы - главный приз.
         return [
-            EventTier(points: 3, free: Reward(coins: 50), pass: Reward(coins: 150)),
-            EventTier(points: 6, free: Reward(boosters: [.hint: 1]), pass: Reward(boosters: [.hint: 1, .undo: 1])),
-            EventTier(points: 10, free: Reward(coins: 100), pass: Reward(unlimitedMinutes: 60)),
-            EventTier(points: 15, free: Reward(boosters: [.undo: 1]), pass: Reward(coins: 300)),
-            EventTier(points: 20, free: Reward(unlimitedMinutes: 30), pass: Reward(chests: [.silver: 1])),
-            EventTier(points: 26, free: Reward(coins: 150), pass: Reward(boosters: [.shelf: 2])),
-            EventTier(points: 32, free: Reward(boosters: [.shelf: 1]), pass: Reward(coins: 400)),
-            EventTier(points: 40, free: Reward(coins: 200, chests: [.bronze: 1]), pass: Reward(chests: [.gold: 1])),
-            EventTier(points: 48, free: Reward(boosters: [.hint: 1, .undo: 1]), pass: Reward(unlimitedMinutes: 120)),
-            EventTier(points: 56, free: Reward(chests: [.silver: 1]), pass: Reward(boosters: [.hint: 2, .undo: 2, .shelf: 2])),
-            EventTier(points: 65, free: guest, pass: Reward(coins: 600)),
-            EventTier(points: 75, free: Reward(background: theme), pass: Reward(coins: 800, chests: [.gold: 1]))
+            EventTier(points: 5, free: Reward(coins: 50), pass: Reward(coins: 150)),
+            EventTier(points: 12, free: Reward(boosters: [.hint: 1]), pass: Reward(boosters: [.hint: 1, .undo: 1])),
+            EventTier(points: 20, free: Reward(coins: 100), pass: Reward(unlimitedMinutes: 60)),
+            EventTier(points: 30, free: Reward(boosters: [.undo: 1]), pass: Reward(coins: 300)),
+            EventTier(points: 40, free: Reward(unlimitedMinutes: 30), pass: Reward(chests: [.silver: 1])),
+            EventTier(points: 52, free: Reward(coins: 150), pass: Reward(boosters: [.shelf: 2])),
+            EventTier(points: 65, free: Reward(boosters: [.shelf: 1]), pass: Reward(coins: 400)),
+            EventTier(points: 80, free: Reward(coins: 200, chests: [.bronze: 1]), pass: Reward(chests: [.gold: 1])),
+            EventTier(points: 95, free: Reward(boosters: [.hint: 1, .undo: 1]), pass: Reward(unlimitedMinutes: 120)),
+            EventTier(points: 110, free: Reward(chests: [.silver: 1]), pass: Reward(boosters: [.hint: 2, .undo: 2, .shelf: 2])),
+            EventTier(points: 125, free: Reward(coins: 250), pass: Reward(coins: 500)),
+            EventTier(points: 140, free: Reward(boosters: [.shuffle: 1, .shelf: 1]), pass: Reward(chests: [.silver: 1])),
+            EventTier(points: 160, free: guest, pass: Reward(coins: 600)),
+            EventTier(points: 180, free: Reward(coins: 300, chests: [.bronze: 1]), pass: Reward(chests: [.gold: 1])),
+            EventTier(points: 200, free: Reward(unlimitedMinutes: 60), pass: Reward(unlimitedMinutes: 180)),
+            EventTier(points: 220, free: Reward(chests: [.silver: 1]), pass: Reward(coins: 800)),
+            EventTier(points: 240, free: Reward(coins: 400), pass: Reward(boosters: [.hint: 3, .undo: 3, .shelf: 3])),
+            EventTier(points: 260, free: Reward(boosters: [.hint: 2, .undo: 2, .shelf: 1]), pass: Reward(chests: [.gold: 1])),
+            EventTier(points: 280, free: Reward(chests: [.gold: 1]), pass: Reward(coins: 1000)),
+            EventTier(points: 300, free: Reward(background: theme), pass: Reward(coins: 1200, chests: [.gold: 1]))
         ]
     }
 
@@ -241,12 +251,16 @@ enum SeasonEvent {
 }
 
 enum HuntEvent {
+    /// ~100 продуктов за 3 дня: около 40 побед, полтора-два часа игры.
     static let tiers: [EventTier] = [
         EventTier(points: 5, free: Reward(coins: 100), pass: Reward()),
         EventTier(points: 12, free: Reward(boosters: [.hint: 1, .undo: 1]), pass: Reward()),
-        EventTier(points: 20, free: Reward(chests: [.silver: 1]), pass: Reward()),
-        EventTier(points: 30, free: Reward(unlimitedMinutes: 60), pass: Reward()),
-        EventTier(points: 42, free: Reward(coins: 500, chests: [.gold: 1]), pass: Reward())
+        EventTier(points: 22, free: Reward(chests: [.bronze: 1]), pass: Reward()),
+        EventTier(points: 35, free: Reward(coins: 200), pass: Reward()),
+        EventTier(points: 50, free: Reward(chests: [.silver: 1]), pass: Reward()),
+        EventTier(points: 65, free: Reward(unlimitedMinutes: 60), pass: Reward()),
+        EventTier(points: 80, free: Reward(boosters: [.shuffle: 1, .shelf: 1]), pass: Reward()),
+        EventTier(points: 100, free: Reward(coins: 500, chests: [.gold: 1]), pass: Reward())
     ]
 }
 

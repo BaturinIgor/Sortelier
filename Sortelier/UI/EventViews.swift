@@ -199,6 +199,9 @@ struct EventsContent: View {
                 Image(uiImage: Art.image(KitchenStyle.image(event.theme)))
                     .resizable()
                     .aspectRatio(contentMode: .fill)
+                    // картинка с .fill больше рамки: обрезка не убирает ее из нажатий, и она перекрывала
+                    // переключатель разделов сверху ("Испытания" и "Новичку" не нажимались)
+                    .allowsHitTesting(false)
                     .frame(height: 84)
                     .frame(maxWidth: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -470,6 +473,7 @@ struct EventsContent: View {
             Image(uiImage: Art.image(KitchenStyle.image(event.theme)))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
+                .allowsHitTesting(false)
         case .hunt:
             ZStack {
                 Color(red: 1.0, green: 0.9, blue: 0.6)

@@ -331,6 +331,46 @@ final class PlayerProgress: ObservableObject {
         return true
     }
 
+    // MARK: - Монеты за карточки книги
+
+    /// Монеты за открытую карточку книги: блюдо дороже продукта. id как в discovered ("dish_burger", "tomato").
+    static func bookCoins(_ id: String) -> Int {
+        let c = RemoteConfig.shared
+        return id.hasPrefix("dish_") ? c.int("balance.bookDishCoins", 15) : c.int("balance.bookItemCoins", 5)
+    }
+
+    /// Открыта, а монеты еще не забраны.
+    func bookUnpaid(_ id: String) -> Bool { isDiscovered(id) && !data.meta.bookPaid.contains(id) }
+
+    /// Есть ли что забрать в книге: точка на вкладке "Кухня".
+    var bookClaimable: Bool {
+        let paid = Set(data.meta.bookPaid)
+        return data.discovered.contains { !paid.contains($0) && Self.isBookCard($0) }
+    }
+
+    /// Только то, что есть на страницах книги (служебных продуктов там нет).
+    static func isBookCard(_ id: String) -> Bool {
+        let pages = 0...Biomes.playable
+        if id.hasPrefix("dish_") { return Catalog.shared.dish(String(id.dropFirst(5))).map { pages.contains($0.biome) } ?? false }
+        return Catalog.shared.item(id).map { pages.contains($0.biome) } ?? false
+    }
+
+    /// Забирает монеты за карточки. Возвращает, сколько монет начислено.
+    @discardableResult
+    func claimBook(_ ids: [String]) -> Int {
+        var total = 0
+        for id in ids where bookUnpaid(id) {
+            data.meta.bookPaid.append(id)
+            total += Self.bookCoins(id)
+        }
+        guard total > 0 else { return 0 }
+        data.coins += total
+        data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += total
+        save()
+        Analytics.log("book_coins", ["coins": total, "cards": ids.count])
+        return total
+    }
+
     // MARK: - Реклама и прочее
 
     var adsLeftToday: Int {

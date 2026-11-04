@@ -120,7 +120,15 @@ struct QuestsContent: View {
             grandCard
             dayTabs
             SectionTitle(title: lang.t("quests.day", day), color: Theme.orange)
-            ForEach(WelcomeQuests.all.filter { $0.day == day }) { q in questRow(q) }
+            VStack(spacing: 8) {
+                ForEach(WelcomeQuests.all.filter { $0.day == day }) { q in questRow(q) }
+            }
+            Text(lang.t("quests.hint", WelcomeQuests.lifetimeDays))
+                .font(Theme.rounded(12, .semibold))
+                .foregroundColor(Theme.brownSoft)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -212,34 +220,48 @@ struct QuestsContent: View {
         }
     }
 
+    /// Строка задания: текст и полоска слева, награда и кнопка справа. Невыполненное ведет туда, где его сделать.
     private func questRow(_ q: Quest) -> some View {
         let value = progress.stat(q.stat)
         let claimed = progress.questClaimed(q)
-        return MetaCard(highlight: progress.canClaim(q)) {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack(spacing: 8) {
-                    Text(lang.t("task." + q.stat.rawValue, q.target))
-                        .font(Theme.rounded(16, .black))
-                        .foregroundColor(Theme.brown)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 0)
-                    if claimed { SpriteImage(name: "icon_check", size: 30) }
-                }
-                HStack(spacing: 8) {
-                    ProgressBar(value: value, target: q.target, color: claimed ? Theme.green : Theme.orange)
+        let claimable = progress.canClaim(q)
+        return HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(lang.t("task." + q.stat.rawValue, q.target))
+                    .font(Theme.rounded(15, .black))
+                    .foregroundColor(claimed ? Theme.brownSoft : Theme.brown)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 6) {
+                    ProgressBar(value: value, target: q.target, color: claimed || claimable ? Theme.green : Theme.orange, height: 12)
                     Text("\(min(value, q.target))/\(q.target)")
-                        .font(Theme.rounded(13, .black)).foregroundColor(Theme.brownSoft).monospacedDigit()
+                        .font(Theme.rounded(12, .black)).foregroundColor(Theme.brownSoft).monospacedDigit()
+                        .fixedSize()
                 }
-                RewardChips(reward: q.reward)
-                if progress.canClaim(q) {
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            RewardMini(reward: q.reward, icon: 28)
+                .frame(width: 58)
+                .opacity(claimed ? 0.5 : 1)
+            Group {
+                if claimed {
+                    SpriteImage(name: "icon_check", size: 32)
+                } else if claimable {
                     Button(lang.t("common.claim")) {
                         grandTitle = false
                         granted = progress.claim(q)
                     }
-                    .buttonStyle(GameButtonStyle(palette: .green))
+                    .buttonStyle(GameButtonStyle(palette: .green, height: 36, fontSize: 14, radius: 11))
+                } else if progress.questUnlocked(q) {
+                    Button(lang.t("task.go")) { Router.shared.go(to: q.stat) }
+                        .buttonStyle(GameButtonStyle(palette: .orange, height: 36, fontSize: 14, radius: 11))
                 }
             }
+            .frame(width: 92)
         }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(PaperBackground(radius: 16, highlight: claimable))
     }
 }
 

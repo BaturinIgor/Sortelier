@@ -141,6 +141,10 @@ struct AchievementsContent: View {
                         StarsRow(count: tier, size: 13, spacing: 1, total: a.tiers.count)
                     }
                     Spacer(minLength: 0)
+                    if !complete && !progress.canClaim(a) {
+                        Button(lang.t("task.go")) { Router.shared.go(to: a.stat) }
+                            .buttonStyle(GameButtonStyle(palette: .orange, height: 32, fontSize: 14, fullWidth: false, radius: 10))
+                    }
                 }
                 Text(lang.t("task." + a.stat.rawValue, target))
                     .font(Theme.rounded(14, .semibold))

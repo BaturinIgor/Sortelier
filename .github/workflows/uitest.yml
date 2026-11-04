@@ -1,0 +1,85 @@
+name: UI tests
+
+# Сценарии с настоящими нажатиями в симуляторе (tools/uitest). Запуск вручную или пушем в ветки claude/*,
+# когда меняются тесты. Снимки и лог уходят в ветку ci-uitest.
+on:
+  push:
+    branches: ["claude/**"]
+    paths:
+      - "tools/uitest/**"
+      - ".github/workflows/uitest.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ui-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: macos-26
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          cp tools/uitest/project-uitest.yml project-uitest.yml
+          xcodegen generate --spec project-uitest.yml
+
+      - name: Pick simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)['devices']
+          c = [x for k, v in d.items() if 'iOS' in k for x in v
+               if x['name'].startswith('iPhone') and 'Max' not in x['name'] and 'Plus' not in x['name'] and 'Air' not in x['name']]
+          c.sort(key=lambda x: x['name'])
+          print(c[-1]['udid'] if c else '')
+          ")
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Run UI tests
+        run: |
+          set +e
+          xcodebuild test \
+            -project Sortelier.xcodeproj \
+            -scheme SortelierUITests \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath build \
+            -resultBundlePath result.xcresult \
+            CODE_SIGNING_ALLOWED=NO > test.log 2>&1
+          echo "status $?" > status.txt
+          grep -E "error:|fatal error" test.log | sort -u | head -80
+          tail -40 test.log
+          exit 0
+
+      - name: Collect report
+        run: |
+          mkdir -p report/shots
+          cp status.txt report/
+          grep "UITEST:" test.log > report/uitest.txt || true
+          grep -E "Test Case|error:|failed|passed" test.log > report/cases.txt || true
+          tail -300 test.log > report/tail.txt
+          xcrun xcresulttool export attachments --path result.xcresult --output-path report/shots || true
+          cp ~/Library/Logs/DiagnosticReports/Sortelier* report/ 2>/dev/null || true
+          ls -R report | head -50
+          cat report/uitest.txt | head -80
+
+      - name: Publish report
+        run: |
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout --orphan ci-uitest
+          git rm -rf --cached . > /dev/null
+          git add -f report/
+          git commit -q -m "UI tests run ${{ github.run_number }} for ${{ github.sha }}"
+          git push -q -f origin ci-uitest

@@ -1,0 +1,29 @@
+# Проект с UI-тестами для CI (.github/workflows/uitest.yml): основной project.yml плюс цель с XCUITest.
+# Копируется в корень репозитория перед xcodegen, поэтому пути от корня.
+include:
+  - project.yml
+
+targets:
+  SortelierUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: tools/uitest/Tests
+    dependencies:
+      - target: Sortelier
+    settings:
+      base:
+        TEST_TARGET_NAME: Sortelier
+        PRODUCT_BUNDLE_IDENTIFIER: com.personal.sortelier.uitests
+        GENERATE_INFOPLIST_FILE: "YES"
+
+schemes:
+  SortelierUITests:
+    build:
+      targets:
+        Sortelier: all
+        SortelierUITests: [test]
+    test:
+      config: Debug
+      targets:
+        - SortelierUITests
