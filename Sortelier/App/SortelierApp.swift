@@ -34,6 +34,7 @@ struct SortelierApp: App {
                 RemoteConfig.shared.refresh()
                 Notifications.clearDelivered()
             case .background:
+                PlayerProgress.shared.flushSave()
                 Notifications.reschedule()
             default:
                 break

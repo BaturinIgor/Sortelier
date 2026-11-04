@@ -7,6 +7,8 @@ final class M3Hud: ObservableObject {
     @Published var shown: [Int]
     @Published var pulse: [Int]
     @Published var moves: Int
+    /// Звезды победы: после победы полоса звезд замирает, пока финал досчитывает оставшиеся ходы.
+    @Published var finalStars: Int?
 
     init(goals: [Int], moves: Int) {
         shown = goals
@@ -36,6 +38,9 @@ final class Match3Model: ObservableObject {
     @Published private(set) var extraBought = 0
     @Published private(set) var adUsed = false
     @Published private(set) var critic: Bool
+    /// Бустеры, потраченные в текущем ходе. Списываются из прогресса, когда поле успокоится: сохранение и
+    /// перерисовка всего интерфейса не попадают на анимацию бустера (из-за этого поле подтормаживало).
+    @Published private(set) var spending: [M3Booster: Int] = [:]
 
     /// Фишки в полете к целям и долетевшие, но еще не показанные на панели.
     private var inFlight: [Int]
@@ -147,26 +152,40 @@ final class Match3Model: ObservableObject {
             targeting = nil
             return true
         }
-        guard PlayerProgress.shared.count(b) > 0 else { return false }
+        guard available(b) > 0 else { return false }
         if b.needsTarget {
             targeting = b
             Haptics.light()
             return true
         }
         var copy = board
-        guard let line = copy.use(b, at: M3Cell(0, 0)), PlayerProgress.shared.use(b) else { return true }
+        guard let line = copy.use(b, at: M3Cell(0, 0)) else { return true }
         board = copy
+        spending[b, default: 0] += 1
         scene.play(line) { [weak self] in self?.lineFinished(line) }
         return true
     }
 
     func useTargeted(at p: M3Cell) -> M3Timeline? {
-        guard let b = targeting else { return nil }
+        guard let b = targeting, available(b) > 0 else { return nil }
         var copy = board
-        guard let line = copy.use(b, at: p), PlayerProgress.shared.use(b) else { return nil }
+        guard let line = copy.use(b, at: p) else { return nil }
         board = copy
+        spending[b, default: 0] += 1
         targeting = nil
         return line
+    }
+
+    /// Сколько бустеров можно потратить с учетом уже потраченных в этом ходе.
+    func available(_ b: M3Booster) -> Int { max(0, PlayerProgress.shared.count(b) - spending[b, default: 0]) }
+
+    private func commitSpending() {
+        guard !spending.isEmpty else { return }
+        let list = spending
+        spending = [:]
+        for (b, n) in list {
+            for _ in 0..<n { _ = PlayerProgress.shared.use(b) }
+        }
     }
 
     // MARK: - Цели
@@ -225,6 +244,7 @@ final class Match3Model: ObservableObject {
     // MARK: - Конец хода
 
     func lineFinished(_ line: M3Timeline) {
+        commitSpending()
         flushHud(0, force: true)
         var shown = hud.shown
         for i in shown.indices {
@@ -246,6 +266,7 @@ final class Match3Model: ObservableObject {
 
     private func beginFinale() {
         phase = .finale
+        hud.finalStars = level.starsFor(movesLeft: movesLeft)
         Haptics.success()
         Audio.shared.play(.win, volume: 0.7)
         let left = movesLeft
@@ -313,6 +334,7 @@ final class Match3Model: ObservableObject {
 
     /// Выход из уровня: если ходы были, это проигрыш (жизнь и серия).
     func abandon() {
+        commitSpending()
         guard phase != .won && phase != .lost else { return }
         if moved {
             PlayerProgress.shared.marketLose(level, collected: collected)
