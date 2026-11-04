@@ -312,12 +312,20 @@ struct StuckView: View {
             Dim()
             PopupCard(title: lang.t("stuck.title"), maxWidth: 320) {
                 VStack(spacing: 12) {
-                    SpriteImage(name: progress.goldShelves ? "shelf_gold" : "shelf", size: 110)
+                    // с кнопками бустеров окно выше: картинку уменьшаем, чтобы все влезло на маленький экран
+                    SpriteImage(name: progress.goldShelves ? "shelf_gold" : "shelf", size: hasOwned ? 72 : 110)
                     Text(lang.t("stuck.text"))
                         .font(Theme.rounded(15, .semibold))
                         .foregroundColor(Theme.brown)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
+                    // свои бустеры предлагаем раньше покупки: раньше окно тупика их не видело
+                    if session.boostersAllowed && progress.count(.shelf) > 0 {
+                        ownedBooster(.shelf) { session.useExtraShelf() }
+                    }
+                    if session.boostersAllowed && session.canUndo && progress.count(.undo) > 0 {
+                        ownedBooster(.undo) { session.undo() }
+                    }
                     Button {
                         if !session.continueWithCoins() { Toast.error(lang.t("common.nocoins")) }
                     } label: {
@@ -338,6 +346,24 @@ struct StuckView: View {
                 }
             }
         }
+    }
+
+    private var hasOwned: Bool {
+        session.boostersAllowed && (progress.count(.shelf) > 0 || (session.canUndo && progress.count(.undo) > 0))
+    }
+
+    /// Кнопка бустера из запаса игрока: иконка, название и сколько осталось.
+    private func ownedBooster(_ booster: Booster, use: @escaping () -> Bool) -> some View {
+        Button {
+            if !use() { Toast.error(lang.t("booster.cant")) }
+        } label: {
+            HStack(spacing: 6) {
+                SpriteImage(name: booster.icon, size: 30)
+                Text(lang.t("booster." + booster.rawValue))
+                Text("×\(progress.count(booster))")
+            }
+        }
+        .buttonStyle(GameButtonStyle(palette: .green))
     }
 }
 
