@@ -400,24 +400,28 @@ struct MapView: View {
             VStack(spacing: 8) {
                 HStack(spacing: 6) {
                     if several { biomeArrow(-1) }
-                    SpriteImage(name: "icon_star", size: 24)
-                    Text(lang.t("map.stars", total, maxStars))
-                        .font(Theme.rounded(15, .heavy))
-                        .foregroundColor(Theme.brown)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                    Spacer(minLength: 4)
                     Button {
                         if let t = replayTarget(biome) {
                             Audio.shared.play(.button, volume: 0.5)
                             scrollTarget = t
                         }
                     } label: {
-                        Text(lang.t("biome.\(biome).name"))
-                            .font(Theme.rounded(13, .bold))
-                            .foregroundColor(Theme.brownSoft)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
+                        VStack(spacing: 1) {
+                            Text(lang.t("biome.\(biome).name"))
+                                .font(Theme.rounded(13, .bold))
+                                .foregroundColor(Theme.brownSoft)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                            HStack(spacing: 4) {
+                                SpriteImage(name: "icon_star", size: 22)
+                                Text(lang.t("map.stars", total, maxStars))
+                                    .font(Theme.rounded(15, .heavy))
+                                    .foregroundColor(Theme.brown)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(PressScaleStyle())
                     if several { biomeArrow(1) }

@@ -88,6 +88,7 @@ struct RewardItemIcon: View {
             Image(uiImage: Art.image(KitchenStyle.image(bg)))
                 .resizable()
                 .aspectRatio(contentMode: .fill)
+                .allowsHitTesting(false)
                 .frame(width: size * 0.72, height: size)
                 .clipShape(RoundedRectangle(cornerRadius: size * 0.15))
                 .overlay(RoundedRectangle(cornerRadius: size * 0.15).strokeBorder(Theme.paperBorder, lineWidth: 1.5))

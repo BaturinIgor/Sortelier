@@ -106,6 +106,8 @@ final class FlowTests: XCTestCase {
         shot(app, "31_quests")
         let go = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Перейти"))
         log("кнопок Перейти: \(go.count)")
+        app.swipeUp()
+        sleep(1)
         tap(app, "Перейти")
         shot(app, "32_after_go")
         log("после Перейти: карта \(element(app, "Звезды кухни").exists), испытания \(element(app, "Испытание дня").exists)")
@@ -113,7 +115,7 @@ final class FlowTests: XCTestCase {
 
     /// Монеты за карточки книги.
     func testBookCoins() {
-        let app = launch(["-uiScreen", "book"])
+        let app = launch(["-uiScreen", "book", "-uiStore"])
         shot(app, "41_book")
         check(app, "Забрать", "книга: кнопка Забрать")
         tap(app, "Забрать")
