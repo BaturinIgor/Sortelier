@@ -1,0 +1,3 @@
+/Users/runner/work/Sortelier/Sortelier/Sortelier/UI/BigRecipeView.swift:110:35: error: missing argument for parameter 'count' in call
+/Users/runner/work/Sortelier/Sortelier/Sortelier/UI/BigRecipeView.swift:384:16: error: invalid redeclaration of 'SunRays'
+/Users/runner/work/Sortelier/Sortelier/Sortelier/UI/SplashView.swift:257:16: error: invalid redeclaration of 'SunRays'
