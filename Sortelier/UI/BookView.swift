@@ -131,7 +131,8 @@ struct BookContent: View {
                 .minimumScaleFactor(0.8)
                 .frame(minHeight: 36)
             HStack(spacing: 1) {
-                ForEach(dish.ingredients, id: \.self) { ing in
+                // у онигири, сока, лимонада и трюфелей три одинаковых ингредиента: id по позиции
+                ForEach(Array(dish.ingredients.enumerated()), id: \.offset) { _, ing in
                     SpriteImage(name: ing, size: 22, silhouette: !open)
                 }
             }
