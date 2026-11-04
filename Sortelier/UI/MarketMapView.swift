@@ -1,6 +1,8 @@
 import SwiftUI
 
-/// Карта "Рынка": две главы по 30 уровней снизу вверх, сундуки за звезды, серия побед, вход в "Большой рецепт".
+/// Карта "Рынка": одна глава на экране (30 уровней снизу вверх и сундуки за звезды), переключатель глав и список
+/// всех глав, серия побед, вход в "Большой рецепт". 600 уровней одной лентой были бы длинным и тяжелым скроллом,
+/// поэтому лента показывает только выбранную главу.
 struct MarketMapView: View {
     let close: () -> Void
 
@@ -11,6 +13,9 @@ struct MarketMapView: View {
     @State private var granted: (String, Granted)?
     @State private var recipe = false
     @State private var welcome: Granted?
+    /// Выбранная глава (0 - еще не выбрана, при входе берется глава текущего уровня).
+    @State private var chapter = 0
+    @State private var chapterList = false
 
     struct MarketLaunch: Identifiable {
         let id = UUID()
@@ -22,7 +27,9 @@ struct MarketMapView: View {
 
     var body: some View {
         ZStack {
-            KitchenBackground(veil: 0.08, style: MarketCatalog.style(chapter: chapterOf(progress.marketCurrent)))
+            KitchenBackground(veil: 0.08, style: MarketCatalog.style(chapter: shownChapter))
+                .id(shownChapter)
+                .transition(.opacity)
             path
             VStack {
                 LinearGradient(colors: [Theme.woodDark.opacity(0.55), Theme.woodDark.opacity(0)], startPoint: .top, endPoint: .bottom)
@@ -39,8 +46,10 @@ struct MarketMapView: View {
                     Spacer()
                     recipeButton
                 }
+                chapterBar
                 Spacer()
                 Button {
+                    if chapterOf(progress.marketCurrent) != shownChapter { select(chapterOf(progress.marketCurrent)) }
                     popup = progress.marketCurrent
                 } label: {
                     Text(progress.marketAllDone ? lang.t("m3.map.done") : lang.t("m3.level", progress.marketCurrent))
@@ -64,23 +73,32 @@ struct MarketMapView: View {
             if let g = welcome {
                 RewardPopup(title: lang.t("m3.welcome"), granted: g) { welcome = nil }
             }
+            if chapterList {
+                MarketChapterList(selected: shownChapter, close: { chapterList = false }) { ch in
+                    chapterList = false
+                    select(ch)
+                }
+            }
         }
         .onAppear {
-            Audio.shared.setTrack("music_italy")
+            if chapter == 0 { chapter = chapterOf(progress.marketCurrent) }
+            Audio.shared.setTrack(MarketCatalog.track(chapter: shownChapter))
             #if DEBUG
             if let id = UIDebug.value("uiMarketLevel").flatMap(Int.init), let level = MarketCatalog.shared.level(id) {
                 launch = MarketLaunch(level: level, pre: [])
                 return
             }
             if let id = UIDebug.value("uiMarketPopup").flatMap(Int.init) { popup = id }
+            if let ch = UIDebug.value("uiMarketChapter").flatMap(Int.init) { chapter = ch }
+            if UIDebug.flag("uiMarketChapters") { chapterList = true }
             #endif
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { welcome = progress.marketWelcome() }
         }
         .fullScreenCover(item: $launch) { item in
             MarketLevelHost(level: item.level, pre: item.pre) { next in
                 launch = nil
-                Audio.shared.setTrack("music_italy")
                 if let next = next, MarketCatalog.shared.level(next) != nil {
+                    if chapterOf(next) != shownChapter { select(chapterOf(next)) }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { popup = next }
                 }
             }
@@ -96,7 +114,66 @@ struct MarketMapView: View {
         }
     }
 
-    private func chapterOf(_ level: Int) -> Int { MarketCatalog.shared.level(level)?.chapter ?? 1 }
+    private func chapterOf(_ level: Int) -> Int { MarketCatalog.shared.chapter(of: level) }
+
+    private var shownChapter: Int { chapter == 0 ? chapterOf(progress.marketCurrent) : chapter }
+
+    private func select(_ ch: Int) {
+        let ch = max(1, min(MarketCatalog.shared.chapters, ch))
+        guard ch != shownChapter else { return }
+        Audio.shared.play(.swoosh, volume: 0.5)
+        withAnimation(.easeInOut(duration: 0.3)) { chapter = ch }
+        Audio.shared.setTrack(MarketCatalog.track(chapter: ch))
+    }
+
+    /// Переключатель глав: стрелки и название, тап по названию открывает список всех глав.
+    private var chapterBar: some View {
+        let ch = shownChapter
+        let total = MarketCatalog.shared.chapters
+        let stars = progress.marketStars(chapter: ch)
+        let cap = MarketCatalog.shared.levels(chapter: ch).count * 3
+        return HStack(spacing: 8) {
+            arrowButton("chevron.left", enabled: ch > 1) { select(ch - 1) }
+            Button { chapterList = true } label: {
+                VStack(spacing: 1) {
+                    Text(MarketCatalog.chapterTitle(ch, lang))
+                        .font(Theme.rounded(15, .black)).foregroundColor(.white).outlined(Theme.woodDark, width: 1)
+                        .lineLimit(1).minimumScaleFactor(0.6)
+                    HStack(spacing: 4) {
+                        Text(lang.t("m3.chapter.of", ch, total))
+                        SpriteImage(name: "icon_star", size: 13)
+                        Text("\(stars)/\(cap)").monospacedDigit()
+                        Image(systemName: "chevron.down").font(.system(size: 10, weight: .black))
+                    }
+                    .font(Theme.rounded(12, .heavy)).foregroundColor(Color(red: 1, green: 0.9, blue: 0.7))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 5)
+                .frame(maxWidth: .infinity)
+                .background(Capsule().fill(Theme.woodDark.opacity(0.8)))
+                .overlay(Capsule().strokeBorder(Theme.gold.opacity(0.8), lineWidth: 1.5))
+                .overlay(alignment: .topTrailing) {
+                    if (1...total).contains(where: { $0 != ch && progress.marketChapterClaimable($0) }) { BadgeDot().offset(x: 2, y: -3) }
+                }
+            }
+            .buttonStyle(PressScaleStyle())
+            arrowButton("chevron.right", enabled: ch < total && progress.isMarketChapterOpen(ch + 1)) { select(ch + 1) }
+        }
+    }
+
+    private func arrowButton(_ symbol: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 17, weight: .black))
+                .foregroundColor(.white)
+                .frame(width: 40, height: 40)
+                .background(Circle().fill(Theme.woodDark.opacity(0.8)))
+                .overlay(Circle().strokeBorder(Theme.gold.opacity(0.8), lineWidth: 1.5))
+        }
+        .buttonStyle(PressScaleStyle())
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.35)
+    }
 
     private var header: some View {
         HStack(spacing: 8) {
@@ -148,21 +225,68 @@ struct MarketMapView: View {
             ScrollViewReader { proxy in
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
-                        Color.clear.frame(height: 120)
-                        ForEach((1...MarketCatalog.shared.chapters).reversed(), id: \.self) { ch in
-                            chapterSection(ch, width: geo.size.width)
+                        Color.clear.frame(height: 170)
+                        if shownChapter < MarketCatalog.shared.chapters {
+                            nextChapterCard(shownChapter + 1)
+                                .padding(.horizontal, 18)
+                                .padding(.bottom, 10)
+                        }
+                        chapterSection(shownChapter, width: geo.size.width)
+                        if shownChapter > 1 {
+                            Button { select(shownChapter - 1) } label: {
+                                Label(lang.t("m3.chapter.prev"), systemImage: "chevron.down")
+                            }
+                            .buttonStyle(GameButtonStyle(palette: .blue, height: 44, fontSize: 16))
+                            .frame(maxWidth: 240)
+                            .padding(.bottom, 6)
                         }
                         Color.clear.frame(height: 110)
                     }
+                    .id(shownChapter)
                 }
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        proxy.scrollTo("m\(progress.marketCurrent)", anchor: .center)
-                    }
-                }
+                .onAppear { scrollToFocus(proxy, animated: false) }
+                .onChange(of: chapter) { _ in scrollToFocus(proxy, animated: false) }
             }
         }
         .ignoresSafeArea(edges: .bottom)
+    }
+
+    /// Текущий уровень, если он в показанной главе, иначе начало главы (низ ленты).
+    private func scrollToFocus(_ proxy: ScrollViewProxy, animated: Bool) {
+        let levels = MarketCatalog.shared.levels(chapter: shownChapter)
+        let current = progress.marketCurrent
+        let target = levels.contains(where: { $0.id == current }) ? current : (levels.first?.id ?? current)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            proxy.scrollTo("m\(target)", anchor: .center)
+        }
+    }
+
+    /// Карточка следующей главы над лентой: открыта - переход, закрыта - что нужно для открытия.
+    private func nextChapterCard(_ next: Int) -> some View {
+        let open = progress.isMarketChapterOpen(next)
+        let first = MarketCatalog.shared.levels(chapter: next).first?.id ?? 0
+        return Button {
+            if open { select(next) } else { Toast.info(lang.t("m3.chapter.locked", first - 1)) }
+        } label: {
+            HStack(spacing: 10) {
+                SpriteImage(name: open ? "icon_market" : "icon_lock", size: 34)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(MarketCatalog.chapterTitle(next, lang))
+                        .font(Theme.rounded(15, .black)).foregroundColor(Theme.brown)
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                    Text(open ? lang.t("m3.chapter.go") : lang.t("m3.chapter.locked", first - 1))
+                        .font(Theme.rounded(12, .heavy)).foregroundColor(Theme.brownSoft)
+                        .lineLimit(2)
+                }
+                Spacer(minLength: 4)
+                if open { Image(systemName: "chevron.up").font(.system(size: 16, weight: .black)).foregroundColor(Theme.brown) }
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(PaperBackground(radius: 16))
+            .opacity(open ? 1 : 0.85)
+        }
+        .buttonStyle(PressScaleStyle())
     }
 
     private func chapterSection(_ chapter: Int, width: CGFloat) -> some View {
@@ -210,15 +334,16 @@ struct MarketMapView: View {
         let passed = progress.marketPassed(level.id)
         let open = progress.isMarketOpen(level.id)
         let hard = level.hard == true
+        let fever = level.isFever
         return Button {
             if open { popup = level.id } else { Toast.error(lang.t("m3.map.locked")) }
         } label: {
             VStack(spacing: 0) {
                 ZStack {
                     Circle().fill(Theme.woodDark).offset(y: 4)
-                    Circle().fill(LinearGradient(colors: nodeColors(passed: passed, current: current, open: open, hard: hard),
+                    Circle().fill(LinearGradient(colors: nodeColors(passed: passed, current: current, open: open, hard: hard, fever: fever),
                                                  startPoint: .top, endPoint: .bottom))
-                    Circle().strokeBorder(hard ? Theme.red : Theme.woodDark, lineWidth: hard ? 4 : 3)
+                    Circle().strokeBorder(hard ? Theme.red : (fever ? Theme.gold : Theme.woodDark), lineWidth: hard || fever ? 4 : 3)
                     if open {
                         StrokeText(text: "\(level.id)", size: current ? 24 : 20, weight: .black, color: .white,
                                    stroke: Theme.woodDark, width: 1.5, drop: 2)
@@ -227,6 +352,9 @@ struct MarketMapView: View {
                     }
                 }
                 .frame(width: current ? 66 : 54, height: current ? 66 : 54)
+                .overlay(alignment: .topTrailing) {
+                    if fever { SpriteImage(name: "m3_rainbow", size: 26).offset(x: 8, y: -6) }
+                }
                 .modifier(Pulse(active: current))
                 if passed {
                     StarsRow(count: progress.marketStars(level.id), size: 13)
@@ -235,14 +363,20 @@ struct MarketMapView: View {
                     Text(lang.t("map.hard")).font(Theme.rounded(11, .black)).foregroundColor(.white)
                         .padding(.horizontal, 6).padding(.vertical, 1)
                         .background(Capsule().fill(Theme.red))
+                } else if fever {
+                    Text(lang.t("m3.fever")).font(Theme.rounded(11, .black)).foregroundColor(.white)
+                        .lineLimit(1).fixedSize()
+                        .padding(.horizontal, 6).padding(.vertical, 1)
+                        .background(Capsule().fill(MarketFever.gradient))
                 }
             }
         }
         .buttonStyle(PressScaleStyle())
     }
 
-    private func nodeColors(passed: Bool, current: Bool, open: Bool, hard: Bool) -> [Color] {
+    private func nodeColors(passed: Bool, current: Bool, open: Bool, hard: Bool, fever: Bool) -> [Color] {
         if current { return [Color(red: 1, green: 0.78, blue: 0.35), Theme.orange] }
+        if fever && open { return [Color(red: 1, green: 0.62, blue: 0.85), Color(red: 0.78, green: 0.3, blue: 0.75)] }
         if passed { return hard ? [Color(red: 0.95, green: 0.5, blue: 0.45), Theme.red] : [Color(red: 0.55, green: 0.85, blue: 0.45), Theme.green] }
         if open { return [Color(red: 0.6, green: 0.8, blue: 1), Theme.blue] }
         return [Color(red: 0.75, green: 0.70, blue: 0.62), Color(red: 0.55, green: 0.50, blue: 0.44)]
@@ -255,7 +389,7 @@ struct MarketMapView: View {
         return Panel(padding: 12) {
             VStack(spacing: 8) {
                 HStack {
-                    Text(lang.t("m3.chapter.\(chapter)"))
+                    Text(MarketCatalog.chapterTitle(chapter, lang))
                         .font(Theme.rounded(17, .black))
                         .foregroundColor(Theme.brown)
                     Spacer()
@@ -374,6 +508,15 @@ struct MarketLevelPopup: View {
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
                             .background(Capsule().fill(Theme.red))
+                    } else if level.isFever {
+                        Text(lang.t("m3.fever.text"))
+                            .font(Theme.rounded(13, .black))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 5)
+                            .background(Capsule().fill(MarketFever.gradient))
                     }
                     Text(lang.t("m3.goals")).font(Theme.rounded(14, .heavy)).foregroundColor(Theme.brownSoft)
                     HStack(spacing: 8) {
@@ -453,6 +596,97 @@ struct MarketLevelPopup: View {
                     }
                 }
                 .offset(x: 6, y: -6)
+            }
+        }
+        .buttonStyle(PressScaleStyle())
+    }
+}
+
+// MARK: - Праздничные уровни
+
+enum MarketFever {
+    static let gradient = LinearGradient(colors: [Color(red: 0.98, green: 0.45, blue: 0.7), Color(red: 0.62, green: 0.32, blue: 0.9)],
+                                         startPoint: .leading, endPoint: .trailing)
+}
+
+// MARK: - Список глав
+
+/// Все главы сеткой: звезды, замок, готовый сундук. Тап по открытой главе показывает ее на карте.
+struct MarketChapterList: View {
+    let selected: Int
+    let close: () -> Void
+    let pick: (Int) -> Void
+
+    @EnvironmentObject private var progress: PlayerProgress
+    @EnvironmentObject private var lang: Lang
+
+    var body: some View {
+        ZStack {
+            Dim().onTapGesture(perform: close)
+            PopupCard(title: lang.t("m3.chapters"), close: close, maxWidth: 360) {
+                ScrollView(showsIndicators: false) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 3), spacing: 8) {
+                        ForEach(1...MarketCatalog.shared.chapters, id: \.self) { ch in tile(ch) }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .frame(maxHeight: 460)
+            }
+            .padding(.horizontal, 12)
+        }
+    }
+
+    private static let tints: [[Color]] = [
+        [Color(red: 1, green: 0.78, blue: 0.55), Color(red: 0.93, green: 0.55, blue: 0.35)],
+        [Color(red: 0.8, green: 0.7, blue: 1), Color(red: 0.55, green: 0.42, blue: 0.85)],
+        [Color(red: 0.6, green: 0.88, blue: 0.5), Color(red: 0.3, green: 0.65, blue: 0.3)],
+        [Color(red: 1, green: 0.65, blue: 0.7), Color(red: 0.85, green: 0.35, blue: 0.45)],
+        [Color(red: 0.55, green: 0.85, blue: 1), Color(red: 0.25, green: 0.55, blue: 0.85)],
+        [Color(red: 1, green: 0.88, blue: 0.45), Color(red: 0.9, green: 0.62, blue: 0.2)],
+    ]
+
+    static func tint(_ ch: Int) -> [Color] { tints[(max(1, ch) - 1) % tints.count] }
+
+    private func tile(_ ch: Int) -> some View {
+        let open = progress.isMarketChapterOpen(ch)
+        let levels = MarketCatalog.shared.levels(chapter: ch)
+        let stars = progress.marketStars(chapter: ch)
+        let current = levels.contains { $0.id == progress.marketCurrent } && !progress.marketAllDone
+        let done = !levels.isEmpty && levels.allSatisfy { progress.marketPassed($0.id) }
+        return Button {
+            if open { pick(ch) } else { Toast.info(lang.t("m3.chapter.locked", (levels.first?.id ?? 1) - 1)) }
+        } label: {
+            VStack(spacing: 3) {
+                ZStack {
+                    // цветная плашка вместо фона главы: 20 больших картинок в одном окне - лишняя память
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(LinearGradient(colors: open ? Self.tint(ch) : [Color(red: 0.75, green: 0.70, blue: 0.62), Color(red: 0.55, green: 0.50, blue: 0.44)],
+                                             startPoint: .top, endPoint: .bottom))
+                    RoundedRectangle(cornerRadius: 10, style: .continuous).strokeBorder(Theme.woodDark.opacity(0.6), lineWidth: 2)
+                    if open {
+                        StrokeText(text: "\(ch)", size: 24, weight: .black, color: .white, stroke: Theme.woodDark, width: 1.5, drop: 2)
+                    } else {
+                        SpriteImage(name: "icon_lock", size: 28)
+                    }
+                }
+                .frame(height: 50)
+                Text(MarketCatalog.chapterTitle(ch, lang))
+                    .font(Theme.rounded(11, .black)).foregroundColor(Theme.brown)
+                    .lineLimit(2).multilineTextAlignment(.center).minimumScaleFactor(0.7)
+                    .frame(height: 28)
+                HStack(spacing: 2) {
+                    SpriteImage(name: done ? "icon_check" : "icon_star", size: 13)
+                    Text("\(stars)/\(levels.count * 3)").font(Theme.rounded(11, .black)).foregroundColor(Theme.brownSoft).monospacedDigit()
+                }
+            }
+            .padding(6)
+            .background(InsetBackground(radius: 14, color: ch == selected ? Color(red: 1, green: 0.93, blue: 0.6) : Theme.cream))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(current ? Theme.orange : Color.clear, lineWidth: 3)
+            )
+            .overlay(alignment: .topTrailing) {
+                if progress.marketChapterClaimable(ch) { BadgeDot().offset(x: 3, y: -3) }
             }
         }
         .buttonStyle(PressScaleStyle())
