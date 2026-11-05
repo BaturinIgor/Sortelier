@@ -132,4 +132,23 @@ final class FlowTests: XCTestCase {
         shot(app, "52_map_prev_biome")
         check(app, "Американская", "карта: прошлая кухня в карточке")
     }
+
+    /// Награда в одно нажатие: после "Забрать" сверху плашка "Награда получена", без кнопки ОК, сама исчезает.
+    func testClaimOneTap() {
+        for screen in ["quests", "achievements", "events"] {
+            let app = launch(["-uiScreen", screen])
+            let claim = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Забрать"))
+            log("\(screen): кнопок Забрать \(claim.count)")
+            guard claim.count > 0 else { app.terminate(); continue }
+            let target = claim.firstMatch
+            if target.isHittable { target.tap() } else { target.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap() }
+            let banner = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Награда получена")).firstMatch
+            let shown = banner.waitForExistence(timeout: 2)
+            shot(app, "61_claim_\(screen)")
+            log("\(screen): плашка награды \(shown ? "OK" : "FAIL"), кнопка Понятно \(app.buttons["Понятно"].exists ? "FAIL (есть)" : "OK (нет)")")
+            sleep(5)
+            log("\(screen): плашка спряталась сама \(banner.exists ? "FAIL" : "OK")")
+            app.terminate()
+        }
+    }
 }
