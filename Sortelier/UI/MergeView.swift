@@ -95,10 +95,11 @@ struct MergeView: View {
                         Capsule().strokeBorder(Theme.woodDark, lineWidth: 2.5)
                     }
                 )
-                .layoutPriority(1)
             Spacer(minLength: 4)
+            // счетчики не сжимаем: длинное название ("Продуктовый ряд", "Мастерская шефа") уменьшается само
             Button { showEnergy = true } label: { EnergyPill() }.buttonStyle(PressScaleStyle())
-            CoinsPill(plus: false)
+                .fixedSize()
+            CoinsPill(plus: false).fixedSize()
         }
         .padding(.top, 6)
     }

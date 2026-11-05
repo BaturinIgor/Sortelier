@@ -81,7 +81,8 @@ final class RegressionTests: XCTestCase {
     /// Окно жизней на карте рынка должно появляться поверх рынка, а не после выхода с него.
     func testMarketLivesPopup() {
         let app = launch(["-uiScreen", "market"])
-        let pill = app.buttons["lives.pill"]
+        shot(app, "60_market_header")
+        let pill = app.buttons["market.lives"]
         log("кнопка жизней на рынке: \(pill.exists)")
         if pill.exists { pill.tap(); sleep(2) }
         shot(app, "65_market_lives")
@@ -93,6 +94,8 @@ final class RegressionTests: XCTestCase {
         let app = launch(["-uiScreen", "map"])
         tap(app, "Мастерская")
         shot(app, "71_merge")
+        let pills = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "12450"))
+        log("монеты в шапке мастерской видны: \(pills.count) кнопок, frame \(pills.firstMatch.frame)")
         log("tree merge:\n" + String(app.debugDescription.prefix(2500)))
         tap(app, "Огород")
         shot(app, "72_garden_or_same")

@@ -194,11 +194,12 @@ struct MarketMapView: View {
                     WoodBackground().clipShape(Capsule())
                     Capsule().strokeBorder(Theme.woodDark, lineWidth: 2.5)
                 })
-                .layoutPriority(1)
             Spacer(minLength: 4)
+            // счетчики не сжимаем: длинное название ("Продуктовый ряд", "Мастерская шефа") уменьшается само
             Button { Router.shared.lives = true } label: { LivesPill() }.buttonStyle(PressScaleStyle())
-                .accessibilityIdentifier("lives.pill")
-            CoinsPill(plus: false)
+                .fixedSize()
+                .accessibilityIdentifier("market.lives")
+            CoinsPill(plus: false).fixedSize()
         }
         .padding(.top, 6)
     }
