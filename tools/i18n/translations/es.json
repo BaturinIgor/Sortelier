@@ -808,5 +808,12 @@
  "win.title": "¡Bien hecho!",
  "win.total": "Total",
  "win.vip": "Bono VIP: +{0} monedas",
- "win.weekly": "Desafío semanal completado"
+ "win.weekly": "Desafío semanal completado",
+ "lock.level": "Nv. {0}",
+ "lock.left": "Niveles restantes: {0}",
+ "lock.market.text": "Un juego de 3 en raya aparte: intercambia productos, cumple los objetivos y gana premios para tu cocina.",
+ "lock.garden.text": "La cosecha crece sola y va a la Gran Receta. Cada victoria riega los huertos.",
+ "unlock.feature.title": "¡Desbloqueado!",
+ "unlock.feature.text": "Mercado Match y el Huerto ya están en el mapa. Mercado Match es un juego de 3 en raya aparte con sus propios niveles y premios.",
+ "unlock.feature.go": "Probar"
 }

@@ -808,5 +808,12 @@
  "win.title": "잘했어요!",
  "win.total": "합계",
  "win.vip": "VIP 보너스: 코인 +{0}",
- "win.weekly": "주간 도전 완료"
+ "win.weekly": "주간 도전 완료",
+ "lock.level": "Lv.{0}",
+ "lock.left": "남은 레벨: {0}",
+ "lock.market.text": "별도의 매치-3 게임: 식재료를 바꿔 목표를 달성하고 주방 보상을 받으세요.",
+ "lock.garden.text": "작물은 저절로 자라 빅 레시피에 들어갑니다. 승리할 때마다 밭에 물을 줍니다.",
+ "unlock.feature.title": "잠금 해제!",
+ "unlock.feature.text": "지도에 마켓 매치와 텃밭이 생겼어요. 마켓 매치는 자체 레벨과 보상이 있는 별도의 3매치 게임이에요.",
+ "unlock.feature.go": "해 보기"
 }

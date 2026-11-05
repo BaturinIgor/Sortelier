@@ -127,6 +127,8 @@ struct MarketData: Codable {
     var chests: [String] = []
     var welcomed = false
     var bestStreak = 0
+    /// Показано ли окно "Открыто!" на карте, когда мини-игры открылись.
+    var unlockSeen = false
 
     init() {}
 
@@ -139,6 +141,8 @@ struct MarketData: Codable {
         chests = try c.decodeIfPresent([String].self, forKey: .chests) ?? []
         welcomed = try c.decodeIfPresent(Bool.self, forKey: .welcomed) ?? false
         bestStreak = try c.decodeIfPresent(Int.self, forKey: .bestStreak) ?? 0
+        // кто уже заходил на рынок, тому окно "Открыто!" не нужно
+        unlockSeen = try c.decodeIfPresent(Bool.self, forKey: .unlockSeen) ?? welcomed
     }
 }
 
@@ -166,6 +170,19 @@ extension PlayerProgress {
         if UIDebug.flag("uiMarket") { return true }
         #endif
         return isPassed(MarketBalance.unlockLevel)
+    }
+
+    /// Сколько уровней карты еще пройти до открытия мини-игр.
+    var marketLevelsLeft: Int {
+        (1...max(1, MarketBalance.unlockLevel)).filter { !isPassed($0) }.count
+    }
+
+    /// Один раз после открытия: отмечает окно "Открыто!" показанным и говорит, надо ли его показать.
+    func takeMarketUnlockNews() -> Bool {
+        guard marketUnlocked, !data.market.unlockSeen else { return false }
+        data.market.unlockSeen = true
+        save()
+        return true
     }
 
     func marketStars(_ level: Int) -> Int { data.market.stars[String(level)] ?? 0 }

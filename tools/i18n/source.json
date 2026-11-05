@@ -3082,5 +3082,33 @@
  "chest.skip": {
   "en": "Show all",
   "ru": "Показать все"
+ },
+ "lock.level": {
+  "en": "Lv. {0}",
+  "ru": "Ур. {0}"
+ },
+ "lock.left": {
+  "en": "Levels left: {0}",
+  "ru": "Осталось пройти уровней: {0}"
+ },
+ "lock.market.text": {
+  "en": "A separate match-3 game: swap products, complete the goals and earn rewards for your kitchen.",
+  "ru": "Отдельная игра «3 в ряд»: меняй продукты местами, выполняй цели и получай награды для кухни."
+ },
+ "lock.garden.text": {
+  "en": "Crops grow on their own and go into the Big Recipe. Every win waters the beds.",
+  "ru": "Урожай растет сам и идет в Большой рецепт. Каждая победа поливает грядки."
+ },
+ "unlock.feature.title": {
+  "en": "Unlocked!",
+  "ru": "Открыто!"
+ },
+ "unlock.feature.text": {
+  "en": "Market Match and the Garden are now on the map. Market Match is a separate match-3 game with its own levels and rewards.",
+  "ru": "На карте появились «Продуктовый ряд» и огород. «Продуктовый ряд» - отдельная игра «3 в ряд» со своими уровнями и наградами."
+ },
+ "unlock.feature.go": {
+  "en": "Try it",
+  "ru": "Попробовать"
  }
 }

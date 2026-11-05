@@ -808,5 +808,12 @@
  "win.title": "Brawo!",
  "win.total": "Razem",
  "win.vip": "Bonus VIP: monety +{0}",
- "win.weekly": "Wyzwanie tygodnia ukończone"
+ "win.weekly": "Wyzwanie tygodnia ukończone",
+ "lock.level": "Poz. {0}",
+ "lock.left": "Zostało poziomów: {0}",
+ "lock.market.text": "Osobna gra typu match-3: zamieniaj produkty, wykonuj cele i zdobywaj nagrody dla kuchni.",
+ "lock.garden.text": "Plony rosną same i trafiają do Wielkiego Przepisu. Każda wygrana podlewa grządki.",
+ "unlock.feature.title": "Odblokowane!",
+ "unlock.feature.text": "Na mapie pojawiły się Targ Match i Ogródek. Targ Match to osobna gra „3 w rzędzie” z własnymi poziomami i nagrodami.",
+ "unlock.feature.go": "Spróbuj"
 }

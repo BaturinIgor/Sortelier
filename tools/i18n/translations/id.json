@@ -808,5 +808,12 @@
  "win.title": "Hebat!",
  "win.total": "Total",
  "win.vip": "Bonus VIP: +{0} koin",
- "win.weekly": "Tantangan mingguan selesai"
+ "win.weekly": "Tantangan mingguan selesai",
+ "lock.level": "Lv. {0}",
+ "lock.left": "Level tersisa: {0}",
+ "lock.market.text": "Game cocok-3 tersendiri: tukar produk, selesaikan target, dan dapatkan hadiah untuk dapurmu.",
+ "lock.garden.text": "Hasil panen tumbuh sendiri dan masuk ke Resep Besar. Setiap kemenangan menyiram kebun.",
+ "unlock.feature.title": "Terbuka!",
+ "unlock.feature.text": "Pasar Match dan Kebun kini ada di peta. Pasar Match adalah game cocok-3 tersendiri dengan level dan hadiahnya sendiri.",
+ "unlock.feature.go": "Coba"
 }

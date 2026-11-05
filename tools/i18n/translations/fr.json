@@ -808,5 +808,12 @@
  "win.title": "Bien joué !",
  "win.total": "Total",
  "win.vip": "Bonus VIP : +{0} pièces",
- "win.weekly": "Défi de la semaine réussi"
+ "win.weekly": "Défi de la semaine réussi",
+ "lock.level": "Niv. {0}",
+ "lock.left": "Niveaux restants : {0}",
+ "lock.market.text": "Un jeu de match-3 à part : échange les produits, remplis les objectifs et gagne des récompenses pour ta cuisine.",
+ "lock.garden.text": "La récolte pousse toute seule et va dans la Grande Recette. Chaque victoire arrose le potager.",
+ "unlock.feature.title": "Débloqué !",
+ "unlock.feature.text": "Marché Match et le Potager sont maintenant sur la carte. Marché Match est un jeu de match-3 à part, avec ses niveaux et ses récompenses.",
+ "unlock.feature.go": "Essayer"
 }

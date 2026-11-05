@@ -808,5 +808,12 @@
  "win.title": "おみごと！",
  "win.total": "合計",
  "win.vip": "VIPボーナス：+{0}コイン",
- "win.weekly": "ウィークリーチャレンジ達成"
+ "win.weekly": "ウィークリーチャレンジ達成",
+ "lock.level": "Lv.{0}",
+ "lock.left": "あと{0}レベル",
+ "lock.market.text": "独立したマッチ3ゲーム：食材を入れ替えて目標を達成し、キッチン用の報酬をゲットしよう。",
+ "lock.garden.text": "作物は自然に育ち、ビッグレシピに使われます。勝つたびに畑に水やりされます。",
+ "unlock.feature.title": "解放！",
+ "unlock.feature.text": "マップに「マーケットマッチ」と「畑」が登場しました。マーケットマッチはレベルと報酬が独立した3マッチゲームです。",
+ "unlock.feature.go": "遊んでみる"
 }

@@ -808,5 +808,12 @@
  "win.title": "Harika!",
  "win.total": "Toplam",
  "win.vip": "VIP bonusu: +{0} jeton",
- "win.weekly": "Haftalık mücadele tamamlandı"
+ "win.weekly": "Haftalık mücadele tamamlandı",
+ "lock.level": "Sv. {0}",
+ "lock.left": "Kalan seviye: {0}",
+ "lock.market.text": "Ayrı bir 3'lü eşleştirme oyunu: ürünlerin yerini değiştir, hedefleri tamamla ve mutfağın için ödüller kazan.",
+ "lock.garden.text": "Ürünler kendiliğinden büyür ve Büyük Tarif'e gider. Her galibiyet bostanı sular.",
+ "unlock.feature.title": "Kilit açıldı!",
+ "unlock.feature.text": "Pazar Eşleştir ve Bahçe artık haritada. Pazar Eşleştir, kendi seviyeleri ve ödülleri olan ayrı bir 3'lü eşleştirme oyunu.",
+ "unlock.feature.go": "Dene"
 }
