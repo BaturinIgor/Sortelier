@@ -808,5 +808,12 @@
  "win.title": "Tuyệt vời!",
  "win.total": "Tổng cộng",
  "win.vip": "Thưởng VIP: +{0} xu",
- "win.weekly": "Hoàn thành thử thách tuần"
+ "win.weekly": "Hoàn thành thử thách tuần",
+ "lock.level": "Cấp {0}",
+ "lock.left": "Còn lại: {0} màn",
+ "lock.market.text": "Một trò xếp 3 riêng: đổi chỗ sản phẩm, hoàn thành mục tiêu và nhận thưởng cho căn bếp.",
+ "lock.garden.text": "Nông sản tự lớn và góp vào Công thức lớn. Mỗi lần thắng sẽ tưới vườn.",
+ "unlock.feature.title": "Đã mở khóa!",
+ "unlock.feature.text": "Chợ Ghép và Vườn đã có trên bản đồ. Chợ Ghép là trò ghép 3 riêng với màn chơi và phần thưởng riêng.",
+ "unlock.feature.go": "Thử ngay"
 }

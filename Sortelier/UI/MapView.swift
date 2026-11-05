@@ -13,6 +13,10 @@ struct MapView: View {
     @State private var vipDaily: Granted?
     /// Награда из сундука звезд: готовый сундук открывается одним нажатием, без окна.
     @State private var chestGranted: (title: String, granted: Granted)?
+    /// Закрытая мини-игра, про которую игрок спросил тапом.
+    @State private var lockedInfo: LockedFeature?
+    /// Окно "Открыто!" после прохождения уровня открытия мини-игр.
+    @State private var featureOpened = false
     /// Кухня, чьи звезды и сундуки показаны в карточке снизу (nil - текущая).
     @State private var shownBiome: Int?
     /// Куда прокрутить карту: уровень, который стоит переиграть.
@@ -51,11 +55,31 @@ struct MapView: View {
             if let pair = chestGranted {
                 RewardPopup(title: pair.title, granted: pair.granted) { chestGranted = nil }
             }
+            if let feature = lockedInfo {
+                LockedFeaturePopup(feature: feature) { lockedInfo = nil }
+            }
+            if featureOpened {
+                FeatureOpenedPopup(close: { featureOpened = false }) {
+                    featureOpened = false
+                    router.market = true
+                }
+            }
         }
         .onAppear {
             Audio.shared.setTrack(Biomes.music(progress.mapBiome))
             progress.applyPassCredit()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { vipDaily = progress.claimVIPDaily() }
+            checkUnlockNews()
+        }
+        .onChange(of: progress.marketUnlocked) { _ in checkUnlockNews() }
+    }
+
+    /// Мини-игры только что открылись: один раз показываем праздничное окно с переходом в "Продуктовый ряд".
+    private func checkUnlockNews() {
+        guard progress.marketUnlocked, !progress.data.market.unlockSeen else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+            guard openedBiome == nil, progress.takeMarketUnlockNews() else { return }
+            withAnimation(.easeOut(duration: 0.2)) { featureOpened = true }
         }
     }
 
@@ -79,6 +103,15 @@ struct MapView: View {
                         router.jar = true
                     }
                 }
+            } else {
+                // закрытые мини-игры видно сразу: серые, с замком и уровнем открытия, по тапу - что это и когда откроется
+                railButton("icon_market", title: lang.t("rail.market"), tag: lang.t("rail.tag.match3"), badge: false,
+                           lockedAt: MarketBalance.unlockLevel) {
+                    lockedInfo = .market
+                }
+                railButton("icon_garden", title: lang.t("rail.garden"), badge: false, lockedAt: MarketBalance.unlockLevel) {
+                    lockedInfo = .garden
+                }
             }
             if progress.welcomeActive {
                 railButton("icon_gift", title: lang.t("rail.quests"), badge: progress.questsClaimable) {
@@ -89,7 +122,8 @@ struct MapView: View {
     }
 
     /// Кнопка сбоку карты. У мини-игр снизу плашка с жанром ("3 в ряд", "Слияние"), чтобы было видно, что это отдельная игра.
-    private func railButton(_ icon: String, title: String, tag: String? = nil, badge: Bool, action: @escaping () -> Void) -> some View {
+    private func railButton(_ icon: String, title: String, tag: String? = nil, badge: Bool, lockedAt: Int? = nil,
+                            action: @escaping () -> Void) -> some View {
         Button {
             Audio.shared.play(.button, volume: 0.6)
             action()
@@ -100,8 +134,21 @@ struct MapView: View {
                     RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Theme.card)
                     RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(tag == nil ? Theme.paperBorder : ButtonPalette.orange.dark, lineWidth: 3)
                     SpriteImage(name: icon, size: 46)
+                        .saturation(lockedAt == nil ? 1 : 0)
+                        .opacity(lockedAt == nil ? 1 : 0.6)
                 }
                 .frame(width: 58, height: 58)
+                .overlay(alignment: .topLeading) {
+                    if lockedAt != nil {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 12, weight: .black))
+                            .foregroundColor(.white)
+                            .frame(width: 24, height: 24)
+                            .background(Circle().fill(Theme.woodDark))
+                            .overlay(Circle().strokeBorder(Color.white, lineWidth: 2))
+                            .offset(x: -6, y: -6)
+                    }
+                }
                 .overlay(alignment: .bottom) {
                     if let tag = tag {
                         Text(tag)
@@ -124,6 +171,10 @@ struct MapView: View {
                     .minimumScaleFactor(0.7)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(width: 70)
+                if let level = lockedAt {
+                    StrokeText(text: lang.t("lock.level", level), size: 10, weight: .black, color: Theme.gold,
+                               stroke: Theme.woodDark, width: 1.2, drop: 1)
+                }
             }
             .overlay(alignment: .topTrailing) {
                 if badge { BadgeDot().offset(x: -2, y: -4) }
@@ -843,5 +894,97 @@ struct LanguageScreen: View {
 
     private func close() {
         withAnimation(.easeInOut(duration: 0.22)) { router.language = false }
+    }
+}
+
+/// Закрытая мини-игра на карте.
+enum LockedFeature {
+    case market, garden
+
+    var icon: String { self == .market ? "icon_market" : "icon_garden" }
+    var titleKey: String { self == .market ? "rail.market" : "rail.garden" }
+    var textKey: String { self == .market ? "lock.market.text" : "lock.garden.text" }
+}
+
+/// Тап по закрытой мини-игре: что это, с какого уровня откроется и сколько осталось.
+struct LockedFeaturePopup: View {
+    let feature: LockedFeature
+    let close: () -> Void
+    @EnvironmentObject private var progress: PlayerProgress
+    @EnvironmentObject private var lang: Lang
+
+    var body: some View {
+        let need = MarketBalance.unlockLevel
+        let left = progress.marketLevelsLeft
+        ZStack {
+            Dim().onTapGesture(perform: close)
+            PopupCard(title: lang.t(feature.titleKey), close: close) {
+                VStack(spacing: 12) {
+                    ZStack(alignment: .bottomTrailing) {
+                        SpriteImage(name: feature.icon, size: 96).saturation(0.2)
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundColor(.white)
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(Theme.woodDark))
+                            .overlay(Circle().strokeBorder(Color.white, lineWidth: 2.5))
+                    }
+                    Text(lang.t(feature.textKey))
+                        .font(Theme.rounded(15, .semibold))
+                        .foregroundColor(Theme.brown)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                    VStack(spacing: 6) {
+                        Text(lang.t("task.go.locked", need))
+                            .font(Theme.rounded(16, .black))
+                            .foregroundColor(Theme.brown)
+                        ProgressBar(value: need - left, target: need, color: Theme.orange, height: 12)
+                        Text(lang.t("lock.left", left))
+                            .font(Theme.rounded(13, .heavy))
+                            .foregroundColor(Theme.brownSoft)
+                    }
+                    .padding(10)
+                    .background(InsetBackground())
+                    Button(lang.t("common.ok"), action: close).buttonStyle(GameButtonStyle(palette: .green))
+                }
+            }
+        }
+        .accessibilityIdentifier("locked.popup")
+    }
+}
+
+/// Мини-игры открылись: праздничное окно один раз, с переходом в "Продуктовый ряд".
+struct FeatureOpenedPopup: View {
+    let close: () -> Void
+    let go: () -> Void
+    @EnvironmentObject private var lang: Lang
+    @State private var shown = false
+
+    var body: some View {
+        ZStack {
+            Dim().onTapGesture(perform: close)
+            PopupCard(title: lang.t("unlock.feature.title"), close: close) {
+                VStack(spacing: 14) {
+                    HStack(spacing: 18) {
+                        SpriteImage(name: "icon_market", size: 96)
+                        SpriteImage(name: "icon_garden", size: 72)
+                    }
+                    .scaleEffect(shown ? 1 : 0.4)
+                    .rotationEffect(.degrees(shown ? 0 : -12))
+                    Text(lang.t("unlock.feature.text"))
+                        .font(Theme.rounded(15, .semibold))
+                        .foregroundColor(Theme.brown)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button(lang.t("unlock.feature.go"), action: go).buttonStyle(GameButtonStyle(palette: .green))
+                    Button(lang.t("chest.later"), action: close).buttonStyle(GameButtonStyle(palette: .orange, height: 44, fontSize: 17))
+                }
+            }
+        }
+        .onAppear {
+            Audio.shared.play(.chest)
+            Haptics.success()
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) { shown = true }
+        }
     }
 }

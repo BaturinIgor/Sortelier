@@ -5,6 +5,7 @@ import SwiftUI
 /// Параметры запуска: -uiScreen shop, -uiLang de, -uiDemo (тестовый прогресс), -uiInfo gold (карточка сундука),
 /// -uiChest gold (открытие сундука, с -uiChestTaps 3 и -uiChestAll).
 /// -uiSplash (заставка не уходит), -uiPush garden (как будто игру открыли нажатием на напоминание).
+/// -uiNewbie (мини-игры еще закрыты), -uiUnlockNews (окно "Открыто!" на карте).
 enum UIDebug {
     static var args: [String] { ProcessInfo.processInfo.arguments }
 
@@ -131,6 +132,7 @@ extension PlayerProgress {
         d.market.streak = 3
         d.market.wins = 12
         d.market.welcomed = true
+        d.market.unlockSeen = true
         let week = Day.weekKey()
         d.extras.recipe = RecipeState(week: week, step: 9, choice: 0, progress: 14,
                                       plate: ["tomato", "cheese", "lime", "tomato", "carrot", "grapes", "milk", "cheese", "tomato"], unseen: 0)
@@ -147,6 +149,13 @@ extension PlayerProgress {
         d.meta.race.joined = Date().addingTimeInterval(-15 * 60)
         d.meta.race.wins = 2
         d.meta.race.seed = 42
+        // -uiNewbie: пройдено 5 уровней, мини-игры еще закрыты (кнопки с замком на карте)
+        if UIDebug.flag("uiNewbie") {
+            d.stars = d.stars.filter { (Int($0.key) ?? 0) <= 5 }
+            d.market.unlockSeen = false
+        }
+        // -uiUnlockNews: мини-игры только что открылись, на карте окно "Открыто!"
+        if UIDebug.flag("uiUnlockNews") { d.market.unlockSeen = false }
         data = d
     }
 }

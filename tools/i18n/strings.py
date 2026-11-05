@@ -868,6 +868,16 @@ S.update({
  "map.replay.hint": ("Replay levels with fewer than 3 stars for free to get more stars and open the chests", "Переигрывай бесплатно уровни, где меньше 3 звезд, чтобы добрать звезды и открыть сундуки"),
 })
 
+S.update({
+ "lock.level": ("Lv. {0}", "Ур. {0}"),
+ "lock.left": ("Levels left: {0}", "Осталось пройти уровней: {0}"),
+ "lock.market.text": ("A separate match-3 game: swap products, complete the goals and earn rewards for your kitchen.", "Отдельная игра «3 в ряд»: меняй продукты местами, выполняй цели и получай награды для кухни."),
+ "lock.garden.text": ("Crops grow on their own and go into the Big Recipe. Every win waters the beds.", "Урожай растет сам и идет в Большой рецепт. Каждая победа поливает грядки."),
+ "unlock.feature.title": ("Unlocked!", "Открыто!"),
+ "unlock.feature.text": ("Market Match and the Garden are now on the map. Market Match is a separate match-3 game with its own levels and rewards.", "На карте появились «Продуктовый ряд» и огород. «Продуктовый ряд» - отдельная игра «3 в ряд» со своими уровнями и наградами."),
+ "unlock.feature.go": ("Try it", "Попробовать"),
+})
+
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 out = os.path.join(root, "Sortelier", "Resources", "Strings")
 os.makedirs(out, exist_ok=True)

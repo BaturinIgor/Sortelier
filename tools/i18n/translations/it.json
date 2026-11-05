@@ -808,5 +808,12 @@
  "win.title": "Ben fatto!",
  "win.total": "Totale",
  "win.vip": "Bonus VIP: +{0} monete",
- "win.weekly": "Sfida settimanale completata"
+ "win.weekly": "Sfida settimanale completata",
+ "lock.level": "Liv. {0}",
+ "lock.left": "Livelli mancanti: {0}",
+ "lock.market.text": "Un gioco match-3 a parte: scambia i prodotti, completa gli obiettivi e ottieni premi per la tua cucina.",
+ "lock.garden.text": "Il raccolto cresce da solo e va nella Grande Ricetta. Ogni vittoria innaffia l'orto.",
+ "unlock.feature.title": "Sbloccato!",
+ "unlock.feature.text": "Mercato Match e l'Orto sono ora sulla mappa. Mercato Match è un gioco match-3 a parte con livelli e premi propri.",
+ "unlock.feature.go": "Prova"
 }

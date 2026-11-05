@@ -808,5 +808,12 @@
  "win.title": "Geschafft!",
  "win.total": "Gesamt",
  "win.vip": "VIP-Bonus: +{0} Münzen",
- "win.weekly": "Wochen-Challenge geschafft"
+ "win.weekly": "Wochen-Challenge geschafft",
+ "lock.level": "Lv. {0}",
+ "lock.left": "Noch Level: {0}",
+ "lock.market.text": "Ein eigenes Match-3-Spiel: Tausche Produkte, erfülle die Ziele und verdiene Belohnungen für deine Küche.",
+ "lock.garden.text": "Die Ernte wächst von selbst und geht ins Große Rezept. Jeder Sieg gießt die Beete.",
+ "unlock.feature.title": "Freigeschaltet!",
+ "unlock.feature.text": "Markt-Match und der Garten sind jetzt auf der Karte. Markt-Match ist ein eigenes 3-Gewinnt-Spiel mit eigenen Levels und Belohnungen.",
+ "unlock.feature.go": "Ausprobieren"
 }

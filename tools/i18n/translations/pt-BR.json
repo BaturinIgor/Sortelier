@@ -808,5 +808,12 @@
  "win.title": "Muito bem!",
  "win.total": "Total",
  "win.vip": "Bônus VIP: +{0} moedas",
- "win.weekly": "Desafio semanal concluído"
+ "win.weekly": "Desafio semanal concluído",
+ "lock.level": "Nv. {0}",
+ "lock.left": "Faltam níveis: {0}",
+ "lock.market.text": "Um jogo de combinar 3 à parte: troque produtos, cumpra os objetivos e ganhe prêmios para sua cozinha.",
+ "lock.garden.text": "A colheita cresce sozinha e vai para a Grande Receita. Cada vitória rega a horta.",
+ "unlock.feature.title": "Desbloqueado!",
+ "unlock.feature.text": "A Feira Match e a Horta agora estão no mapa. A Feira Match é um jogo de combinar 3 à parte, com fases e prêmios próprios.",
+ "unlock.feature.go": "Experimentar"
 }

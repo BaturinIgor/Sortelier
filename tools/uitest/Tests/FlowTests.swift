@@ -151,4 +151,26 @@ final class FlowTests: XCTestCase {
             app.terminate()
         }
     }
+
+    /// Новичок: "Продуктовый ряд" и огород видны на карте с замком, по тапу окно с уровнем открытия.
+    func testLockedMiniGames() {
+        let app = launch(["-uiScreen", "map", "-uiNewbie"])
+        shot(app, "71_map_locked")
+        check(app, "Ур. 8", "карта: замок с уровнем у мини-игр")
+        tap(app, "Продуктовый ряд")
+        shot(app, "72_locked_popup")
+        check(app, "Откроется после уровня 8", "закрытая игра: окно с уровнем")
+        check(app, "Осталось пройти уровней: 3", "закрытая игра: сколько осталось")
+        tap(app, "Понятно")
+        log("после Понятно рынок не открылся: \(element(app, "Звезды кухни").exists ? "OK" : "FAIL")")
+    }
+
+    /// Мини-игры только что открылись: на карте один раз окно "Открыто!", "Попробовать" ведет в "Продуктовый ряд".
+    func testUnlockNews() {
+        let app = launch(["-uiScreen", "map", "-uiUnlockNews"])
+        shot(app, "73_unlock_news")
+        check(app, "Открыто!", "окно Открыто")
+        tap(app, "Попробовать")
+        shot(app, "74_after_try")
+    }
 }

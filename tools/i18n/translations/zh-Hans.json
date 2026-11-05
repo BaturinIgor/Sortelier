@@ -808,5 +808,12 @@
  "win.title": "太棒了！",
  "win.total": "总计",
  "win.vip": "VIP 奖励：+{0}金币",
- "win.weekly": "每周挑战完成"
+ "win.weekly": "每周挑战完成",
+ "lock.level": "第{0}关",
+ "lock.left": "还需通过：{0}关",
+ "lock.market.text": "独立的三消小游戏：交换食材、完成目标，为你的厨房赢取奖励。",
+ "lock.garden.text": "作物会自己生长并用于大食谱。每次胜利都会浇灌菜园。",
+ "unlock.feature.title": "已解锁！",
+ "unlock.feature.text": "地图上出现了市集消消乐和菜园。市集消消乐是独立的三消游戏，有自己的关卡和奖励。",
+ "unlock.feature.go": "去试试"
 }
