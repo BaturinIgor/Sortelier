@@ -707,7 +707,7 @@ S.update({
  "m3.out.lose.streak": ("You'll lose a life and your win streak.", "Ты потеряешь жизнь и серию побед."),
  "m3.lose.title": ("Level failed", "Уровень не пройден"),
  "m3.lose.streak": ("The win streak is broken", "Серия побед прервалась"),
- "m3.win.bonus": ("Market bonus", "Бонус рынка"),
+ "m3.win.bonus": ("Market bonus", "Бонус за победу"),
  "m3.target.mallet": ("Tap a tile to smash it", "Нажми на клетку, чтобы разбить ее"),
  "m3.target.knife": ("Tap a row to cut it", "Нажми на ряд, чтобы срезать его"),
  "m3.target.spatula": ("Tap a column to sweep it", "Нажми на столбец, чтобы смахнуть его"),
