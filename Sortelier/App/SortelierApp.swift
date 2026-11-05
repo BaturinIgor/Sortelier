@@ -105,7 +105,8 @@ struct RootView: View {
                     .transition(.move(edge: .trailing))
                     .zIndex(5)
             }
-            if router.lives {
+            // на рынке окно жизней показывает сам экран рынка (он открыт поверх)
+            if router.lives && !router.market {
                 LivesPopup { router.lives = false }.zIndex(6)
             }
             if router.streak {

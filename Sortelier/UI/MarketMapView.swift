@@ -16,6 +16,8 @@ struct MarketMapView: View {
     /// Выбранная глава (0 - еще не выбрана, при входе берется глава текущего уровня).
     @State private var chapter = 0
     @State private var chapterList = false
+    /// Окно жизней показываем здесь: окно из RootView осталось бы под экраном рынка и всплыло бы только после выхода.
+    @ObservedObject private var router = Router.shared
 
     struct MarketLaunch: Identifiable {
         let id = UUID()
@@ -78,6 +80,9 @@ struct MarketMapView: View {
                     chapterList = false
                     select(ch)
                 }
+            }
+            if router.lives {
+                LivesPopup { router.lives = false }
             }
         }
         .onAppear {
@@ -192,6 +197,7 @@ struct MarketMapView: View {
                 .layoutPriority(1)
             Spacer(minLength: 4)
             Button { Router.shared.lives = true } label: { LivesPill() }.buttonStyle(PressScaleStyle())
+                .accessibilityIdentifier("lives.pill")
             CoinsPill(plus: false)
         }
         .padding(.top, 6)
