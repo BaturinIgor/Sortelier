@@ -11,6 +11,8 @@ struct MapView: View {
     @State private var chest: Int?
     @State private var openedBiome: Int?
     @State private var vipDaily: Granted?
+    /// Награда из сундука звезд: готовый сундук открывается одним нажатием, без окна.
+    @State private var chestGranted: (title: String, granted: Granted)?
     /// Кухня, чьи звезды и сундуки показаны в карточке снизу (nil - текущая).
     @State private var shownBiome: Int?
     /// Куда прокрутить карту: уровень, который стоит переиграть.
@@ -45,6 +47,9 @@ struct MapView: View {
             }
             if let granted = vipDaily {
                 RewardPopup(title: lang.t("vip.daily"), granted: granted) { vipDaily = nil }
+            }
+            if let pair = chestGranted {
+                RewardPopup(title: pair.title, granted: pair.granted) { chestGranted = nil }
             }
         }
         .onAppear {
@@ -454,7 +459,16 @@ struct MapView: View {
         let ready = progress.chestReady(index)
         let claimed = progress.chestClaimed(index)
         let crown = index % 3 == 2
-        return Button { chest = index } label: {
+        return Button {
+            if ready && !claimed {
+                let info = Biomes.chest(index)
+                progress.claimChest(index)
+                chestGranted = (lang.t(crown ? "chest.gold.title" : "chest.title", info.stars),
+                                Granted(reward: ChestPopup.reward(info), card: nil))
+            } else {
+                chest = index
+            }
+        } label: {
             SpriteImage(name: claimed ? "icon_check" : (crown ? "chest_gold" : "chest_bronze"), size: crown ? 40 : 34)
                 .saturation(ready || claimed ? 1 : 0.5)
                 .scaleEffect(ready ? 1.15 : 1)
@@ -579,7 +593,7 @@ struct ChestPopup: View {
     @State private var opened = false
 
     /// Содержимое сундука в виде обычной награды: те же плитки, что везде.
-    private func reward(_ chest: Balance.Chest) -> Reward {
+    static func reward(_ chest: Balance.Chest) -> Reward {
         Reward(coins: chest.coins, boosters: chest.boosters, unlimitedMinutes: Int(chest.unlimitedLives / 60),
                chests: chest.album.map { [$0: 1] } ?? [:])
     }
@@ -597,7 +611,7 @@ struct ChestPopup: View {
                                 size: 120)
                         .rotationEffect(.degrees(opened ? 0 : -6))
                         .scaleEffect(opened ? 1.1 : 1)
-                    RewardChips(reward: reward(chest), perRow: 4, tileWidth: 60)
+                    RewardChips(reward: ChestPopup.reward(chest), perRow: 4, tileWidth: 60)
                     if chest.goldShelves {
                         HStack(spacing: 8) {
                             SpriteImage(name: "shelf_gold", size: 44)
