@@ -50,51 +50,97 @@ struct RewardLine: View {
     }
 }
 
-/// Окно "Получено" после нажатия "Забрать". Если в награде сундуки, их можно открыть сразу.
+/// Плашка "Получено" сразу после нажатия "Забрать": выезжает сверху, сама прячется через пару секунд
+/// и не мешает нажимать дальше. Тап или свайп вверх убирает ее сразу. Если в награде сундуки,
+/// на плашке есть кнопка открыть их, и тогда она держится чуть дольше.
 struct RewardPopup: View {
     let title: String
     let granted: Granted
     let close: () -> Void
     @EnvironmentObject private var lang: Lang
     @EnvironmentObject private var progress: PlayerProgress
-    @State private var appear = false
-    @State private var openedCount = 0
+    @State private var shown = false
+    @State private var closing = false
+
+    static let duration: TimeInterval = 2.6
+    static let chestDuration: TimeInterval = 4.5
 
     private var chests: [ChestKind] {
         granted.reward.chestList.flatMap { Array(repeating: $0.0, count: $0.1) }
     }
 
     var body: some View {
-        ZStack {
-            Dim().onTapGesture(perform: close)
-            PopupCard(title: title, close: close) {
-                VStack(spacing: 14) {
-                    Group {
-                        if let chest = chests.first {
-                            SpriteImage(name: chest.sprite, size: 120)
-                        } else {
-                            SpriteImage(name: "icon_gift", size: 100)
-                        }
+        let items = granted.reward.items
+        let shownItems = Array(items.prefix(items.count > 5 ? 4 : 5))
+        let rest = items.count - shownItems.count
+        let openable = chests.filter { progress.chestCount($0) > 0 }
+        VStack(spacing: 8) {
+            HStack(spacing: 8) {
+                SpriteImage(name: chests.first?.sprite ?? "icon_gift", size: 34)
+                Text(title)
+                    .font(Theme.rounded(16, .black))
+                    .foregroundColor(Theme.brown)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                Spacer(minLength: 0)
+            }
+            if !shownItems.isEmpty {
+                HStack(spacing: 6) {
+                    ForEach(shownItems) { item in RewardTile(item: item, size: 46) }
+                    if rest > 0 {
+                        Text("+\(rest)").font(Theme.rounded(15, .black)).foregroundColor(Theme.brownSoft)
                     }
-                    .scaleEffect(appear ? 1 : 0.4)
-                    .rotationEffect(.degrees(appear ? 0 : -12))
-                    RewardChips(reward: granted.reward, perRow: 4, tileWidth: 62)
-                    if openedCount < chests.count && progress.chestCount(chests[openedCount]) > 0 {
-                        Button(lang.t(openedCount == 0 ? "chest.open.now" : "chest.open.next")) {
-                            // счетчик растет, только когда игрок действительно открыл сундук тапом
-                            ChestOpener.present(chests[openedCount], onOpen: { openedCount += 1 })
-                        }
-                        .buttonStyle(GameButtonStyle(palette: .orange))
-                    }
-                    Button(lang.t("common.ok"), action: close).buttonStyle(GameButtonStyle(palette: .green))
                 }
+                .frame(maxWidth: .infinity)
+            }
+            if !openable.isEmpty {
+                Button(lang.t("chest.open.now")) {
+                    let queue = openable
+                    dismiss()
+                    // сундуки открываются по очереди: следующий после закрытия предыдущего
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { RewardPopup.open(queue) }
+                }
+                .buttonStyle(GameButtonStyle(palette: .orange, height: 40, fontSize: 16))
             }
         }
-        .onAppear {
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .frame(maxWidth: 360)
+        .background(PaperBackground(radius: 18, highlight: true))
+        .contentShape(Rectangle())
+        .onTapGesture(perform: dismiss)
+        .gesture(DragGesture(minimumDistance: 10).onEnded { if $0.translation.height < -10 { dismiss() } })
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("reward.banner")
+        .padding(.horizontal, 16)
+        .padding(.top, 6)
+        .offset(y: shown ? 0 : -220)
+        .opacity(shown ? 1 : 0)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        // ожидание заново на каждую новую награду: две подряд не закроют друг друга раньше времени
+        .task(id: granted) {
+            closing = false
             Audio.shared.play(.chest)
             Haptics.success()
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.5)) { appear = true }
+            withAnimation(.spring(response: 0.38, dampingFraction: 0.72)) { shown = true }
+            let wait = chests.isEmpty ? RewardPopup.duration : RewardPopup.chestDuration
+            try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+            if !Task.isCancelled { dismiss() }
         }
+    }
+
+    private func dismiss() {
+        guard !closing else { return }
+        closing = true
+        withAnimation(.easeIn(duration: 0.22)) { shown = false }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.24) { close() }
+    }
+
+    static func open(_ queue: [ChestKind]) {
+        guard let first = queue.first else { return }
+        ChestOpener.present(first, onClose: {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { open(Array(queue.dropFirst())) }
+        })
     }
 }
 
