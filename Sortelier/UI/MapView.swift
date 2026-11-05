@@ -135,6 +135,7 @@ struct MapView: View {
     private var topBar: some View {
         HStack(spacing: 6) {
             Button { router.lives = true } label: { LivesPill() }.buttonStyle(PressScaleStyle())
+                .accessibilityIdentifier("lives.pill")
             Button { router.open(ShopSection.coins) } label: { CoinsPill() }.buttonStyle(PressScaleStyle())
             StreakButton { router.streak = true }
             Spacer(minLength: 0)

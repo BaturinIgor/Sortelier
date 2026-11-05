@@ -16,6 +16,8 @@ struct MarketMapView: View {
     /// Выбранная глава (0 - еще не выбрана, при входе берется глава текущего уровня).
     @State private var chapter = 0
     @State private var chapterList = false
+    /// Окно жизней показываем здесь: окно из RootView осталось бы под экраном рынка и всплыло бы только после выхода.
+    @ObservedObject private var router = Router.shared
 
     struct MarketLaunch: Identifiable {
         let id = UUID()
@@ -78,6 +80,9 @@ struct MarketMapView: View {
                     chapterList = false
                     select(ch)
                 }
+            }
+            if router.lives {
+                LivesPopup { router.lives = false }
             }
         }
         .onAppear {
@@ -178,21 +183,25 @@ struct MarketMapView: View {
     private var header: some View {
         HStack(spacing: 8) {
             CircleIconButton(symbol: "xmark", size: 42, action: close)
-            StrokeText(text: lang.t("m3.title"), size: 21, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
-                       stroke: Theme.woodDark, width: 1.5, drop: 2)
-                .lineLimit(1)
+            // длинное название ("Продуктовый ряд") переносится на вторую строку, а не обрезается
+            StrokeText(text: lang.t("m3.title"), size: 17, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
+                       stroke: Theme.woodDark, width: 1.3, drop: 1.5)
+                .lineLimit(2)
+                .lineSpacing(-4)
                 .minimumScaleFactor(0.6)
-                .padding(.horizontal, 14)
-                .frame(height: 42)
+                .padding(.horizontal, 12)
+                .frame(minHeight: 42, maxHeight: 48)
                 .background(ZStack {
                     Capsule().fill(Theme.woodDark).offset(y: 3)
                     WoodBackground().clipShape(Capsule())
                     Capsule().strokeBorder(Theme.woodDark, lineWidth: 2.5)
                 })
-                .layoutPriority(1)
             Spacer(minLength: 4)
+            // счетчики не сжимаем: место под цифры важнее названия
             Button { Router.shared.lives = true } label: { LivesPill() }.buttonStyle(PressScaleStyle())
-            CoinsPill(plus: false)
+                .fixedSize()
+                .accessibilityIdentifier("market.lives")
+            CoinsPill(plus: false).fixedSize()
         }
         .padding(.top, 6)
     }
