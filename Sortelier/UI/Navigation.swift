@@ -229,7 +229,7 @@ struct MainTabBar: View {
     private func badge(_ tab: AppTab) -> some View {
         switch tab {
         case .shop:
-            if !progress.starterBought && progress.isPassed(5) { BadgeDot() }
+            if progress.shopNudge { BadgeDot() }
         case .events:
             if progress.eventsClaimable || (progress.welcomeActive && progress.questsClaimable) || !progress.dailyDone() {
                 BadgeDot()

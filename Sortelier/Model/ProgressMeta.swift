@@ -275,6 +275,29 @@ extension PlayerProgress {
         return grant(m.reward, source: "achievement_track")
     }
 
+    /// Сколько наград ачивок и ленты звезд можно забрать прямо сейчас.
+    var achievementClaimCount: Int {
+        Achievements.all.filter { canClaim($0) }.count + AchievementTrack.milestones.filter { canClaimMilestone($0) }.count
+    }
+
+    /// "Забрать все": все готовые ступени ачивок, потом открывшиеся от новых звезд награды ленты. Одна общая награда.
+    func claimAllAchievements() -> Granted? {
+        var total = Reward()
+        var any = false
+        var progressed = true
+        while progressed {
+            progressed = false
+            for a in Achievements.all {
+                while let g = claim(a) { total = total + g.reward; any = true; progressed = true }
+            }
+            for m in AchievementTrack.milestones {
+                if let g = claimMilestone(m) { total = total + g.reward; any = true; progressed = true }
+            }
+        }
+        if any { Analytics.log("claim_all", ["source": "achievements"]) }
+        return any ? Granted(reward: total, card: nil) : nil
+    }
+
     var achievementsClaimable: Bool {
         Achievements.all.contains { canClaim($0) } || AchievementTrack.milestones.contains { canClaimMilestone($0) }
     }
@@ -298,6 +321,18 @@ extension PlayerProgress {
     func equip(_ style: KitchenStyle) {
         guard owns(style) else { return }
         data.meta.background = style.id
+        save()
+    }
+
+    // MARK: - Магазин
+
+    /// Точка на магазине: стартовый набор еще не куплен, и сегодня игрок магазин не открывал.
+    /// Раньше точка горела постоянно, и к красным точкам привыкали, переставая их замечать.
+    var shopNudge: Bool { !starterBought && isPassed(5) && data.meta.shopSeenDay != Day.key() }
+
+    func markShopSeen() {
+        guard data.meta.shopSeenDay != Day.key() else { return }
+        data.meta.shopSeenDay = Day.key()
         save()
     }
 

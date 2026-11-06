@@ -212,7 +212,18 @@ struct MarketLevelContent: View {
         } else if model.phase == .lost {
             MarketLoseView(model: model, retry: { close(model.level.id) }, map: { close(nil) })
         } else if paused {
-            MarketPauseView(moved: model.moved, streak: model.streakAtStart, resume: { paused = false }, exit: {
+            MarketPauseView(moved: model.moved, streak: model.streakAtStart, resume: { paused = false }, restart: {
+                paused = false
+                let costs = model.moved
+                model.abandon()
+                // как "Еще раз" после проигрыша: окно уровня, где можно снова взять бустеры
+                if !costs || progress.hasLife {
+                    close(model.level.id)
+                } else {
+                    close(nil)
+                    Router.shared.lives = true
+                }
+            }, exit: {
                 paused = false
                 model.abandon()
                 close(nil)
@@ -425,6 +436,7 @@ struct GoalIcon: View {
         case "collect": SpriteImage(name: goal.item ?? "tomato", size: size)
         case "crate": SpriteImage(name: "m3_crate_1", size: size)
         case "jam": SpriteImage(name: "m3_jam", size: size)
+        case "choc": SpriteImage(name: "m3_choc", size: size)
         default: IceGlyph(size: size)
         }
     }
@@ -474,6 +486,7 @@ struct MarketPauseView: View {
     let moved: Bool
     let streak: Int
     let resume: () -> Void
+    let restart: () -> Void
     let exit: () -> Void
     @EnvironmentObject private var lang: Lang
 
@@ -490,6 +503,7 @@ struct MarketPauseView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     Button(lang.t("pause.resume"), action: resume).buttonStyle(GameButtonStyle(palette: .green))
+                    Button(lang.t("pause.restart"), action: restart).buttonStyle(GameButtonStyle(palette: .orange))
                     Button(lang.t("pause.exit"), action: exit).buttonStyle(GameButtonStyle(palette: .paper))
                 }
             }
@@ -858,6 +872,13 @@ struct MarketIntroView: View {
             ZStack {
                 SpriteImage(name: "m3_jam", size: 76)
                 SpriteImage(name: "tomato", size: 52)
+            }
+        case "choc":
+            HStack(spacing: 6) {
+                SpriteImage(name: "m3_choc", size: 60)
+                arrow
+                SpriteImage(name: "m3_choc", size: 60)
+                SpriteImage(name: "m3_choc", size: 60)
             }
         case "carrot":
             row(["tomato", "lime", "cheese", "grapes", "milk", "carrot"], size: 40)

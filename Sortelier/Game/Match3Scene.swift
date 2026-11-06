@@ -154,6 +154,7 @@ final class Match3Scene: SKScene {
     private var crates: [M3Cell: SKSpriteNode] = [:]
     private var ices: [M3Cell: SKSpriteNode] = [:]
     private var jams: [M3Cell: SKSpriteNode] = [:]
+    private var chocs: [M3Cell: SKSpriteNode] = [:]
 
     // Проигрывание ленты
     private var queue: [M3Timed] = []
@@ -192,7 +193,7 @@ final class Match3Scene: SKScene {
         fxLayer.zPosition = 10
         boardNode.addChild(fxLayer)
         var names = level.colors.map { "m3t_" + $0 }
-        names += M3Special.allCases.map(\.sprite) + ["m3_crate_1", "m3_crate_2", "m3_crate_3", "m3_jam"]
+        names += M3Special.allCases.map(\.sprite) + ["m3_crate_1", "m3_crate_2", "m3_crate_3", "m3_jam", "m3_choc"]
         SKTexture.preload(names.map { Art.texture($0) }) {}
         _ = (M3Art.glow, M3Art.sparkle, M3Art.ring, M3Art.beam, M3Art.ice(1), M3Art.ice(2))
     }
@@ -275,6 +276,7 @@ final class Match3Scene: SKScene {
                                     landing(at: target)]), withKey: Self.moveKey)
             }
             if board.crateLeft(p) > 0 { setCrate(p, left: board.crateLeft(p), animated: false) }
+            if board.hasChoc(p) { addChoc(p, animated: false) }
             if board.iceLeft(p) > 0 { setIce(p, left: board.iceLeft(p), animated: false) }
         }
         backing.alpha = 0
@@ -407,6 +409,22 @@ final class Match3Scene: SKScene {
         }
     }
 
+    private func addChoc(_ p: M3Cell, animated: Bool) {
+        let node = SKSpriteNode(texture: Art.texture("m3_choc"))
+        node.size = CGSize(width: cell * 1.0, height: cell * 1.0)
+        node.position = point(p)
+        node.zPosition = 2
+        overLayer.addChild(node)
+        chocs[p] = node
+        if animated {
+            node.setScale(0.2)
+            node.alpha = 0
+            let grow = SKAction.group([.scale(to: 1.08, duration: 0.22), .fadeIn(withDuration: 0.12)])
+            grow.timingMode = .easeOut
+            node.run(.sequence([grow, .scale(to: 1, duration: 0.1)]))
+        }
+    }
+
     private func setIce(_ p: M3Cell, left: Int, animated: Bool) {
         if left <= 0 {
             guard let node = ices.removeValue(forKey: p) else { return }
@@ -489,6 +507,23 @@ final class Match3Scene: SKScene {
                 debris(at: jam.position, color: UIColor(red: 0.85, green: 0.15, blue: 0.3, alpha: 1), count: 5)
                 flyBlocker("jam", from: point(p), texture: Art.texture("m3_jam"))
             }
+        case let .choc(p):
+            if let node = chocs.removeValue(forKey: p) {
+                debris(at: node.position, color: UIColor(red: 0.42, green: 0.24, blue: 0.13, alpha: 1), count: 9)
+                node.run(.sequence([.group([.scale(to: 1.25, duration: 0.14), .fadeOut(withDuration: 0.14)]), .removeFromParent()]))
+                sound(.crack, volume: 0.6)
+                flyBlocker("choc", from: point(p), texture: Art.texture("m3_choc"))
+            }
+        case let .chocGrow(from, to, id):
+            // фишка тонет в шоколаде, шоколад наплывает из соседней клетки
+            if let node = nodes.removeValue(forKey: id) {
+                if idAt[to] == id { idAt[to] = nil }
+                node.removeAllActions()
+                node.run(.sequence([.group([.scale(to: 0.3, duration: 0.2), .fadeOut(withDuration: 0.2)]), .removeFromParent()]))
+            }
+            chocs[from]?.run(.sequence([.scale(to: 1.1, duration: 0.1), .scale(to: 1, duration: 0.12)]))
+            addChoc(to, animated: true)
+            sound(.swoosh, volume: 0.4)
         case let .move(id, path, duration): fall(id, path: path, duration: duration)
         case let .spawn(tile, path, duration):
             let node = makeNode(tile)

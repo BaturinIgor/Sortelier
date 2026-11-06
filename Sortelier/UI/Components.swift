@@ -747,3 +747,21 @@ struct PopupCard<Content: View>: View {
         .padding(.horizontal, 22)
     }
 }
+
+/// "Забрать все (N)": появляется, когда готовых наград больше одной; выдает их одним окном.
+struct ClaimAllButton: View {
+    let count: Int
+    let action: () -> Void
+    @EnvironmentObject private var lang: Lang
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                SpriteImage(name: "icon_gift", size: 26)
+                Text(lang.t("common.claimAll", count))
+            }
+        }
+        .buttonStyle(GameButtonStyle(palette: .green, height: 46, fontSize: 18))
+        .accessibilityIdentifier("claimAll")
+    }
+}

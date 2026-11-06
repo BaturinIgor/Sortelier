@@ -14,10 +14,19 @@ struct KitchenHub: View {
          .init(id: .backgrounds, title: lang.t("kitchen.section.backgrounds"), icon: "icon_palette")]
     }
 
+    private var tipIcon: String {
+        switch router.kitchenSection {
+        case .book: return "icon_book"
+        case .achievements: return "icon_trophy"
+        case .backgrounds: return "icon_palette"
+        }
+    }
+
     var body: some View {
         ZStack {
             ScreenScaffold(title: lang.t("tab.kitchen"), back: { router.open(.map) }) {
                 SegmentPicker(items: sections, selection: $router.kitchenSection)
+                ScreenTip(id: "kitchen." + router.kitchenSection.rawValue, icon: tipIcon).id(router.kitchenSection)
                 Group {
                     switch router.kitchenSection {
                     case .book: BookContent()

@@ -70,7 +70,7 @@ def level(n, shape, colors, goals, intro=None, hard=False, build=None):
         if goal[0] == "collect":
             out_goals.append({"type": "collect", "item": goal[1], "count": goal[2]})
         else:
-            chars = {"crate": "123", "ice": "iIk", "jam": "jk"}[goal[0]]
+            chars = {"crate": "123", "ice": "iIk", "jam": "jk", "choc": "c"}[goal[0]]
             total = count(g, chars)
             assert total > 0, (n, goal)
             out_goals.append({"type": goal[0], "count": total})

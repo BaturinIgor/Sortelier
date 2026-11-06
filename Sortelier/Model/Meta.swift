@@ -203,6 +203,8 @@ struct MetaData: Codable {
     var vipUntil: Date?
     var vipDailyDay = ""
     var starterBought = false
+    /// День, когда игрок последний раз заходил в магазин: точка на магазине про стартовый набор горит раз в день.
+    var shopSeenDay = ""
     var deliveredTx: [String] = []
     var passCredits = 0
     // Альбом карточек, сундуки в запасе, короткие гонки, шкала звезд ачивок
@@ -241,6 +243,7 @@ struct MetaData: Codable {
         vipUntil = try c.decodeIfPresent(Date.self, forKey: .vipUntil)
         vipDailyDay = try c.decodeIfPresent(String.self, forKey: .vipDailyDay) ?? ""
         starterBought = try c.decodeIfPresent(Bool.self, forKey: .starterBought) ?? false
+        shopSeenDay = try c.decodeIfPresent(String.self, forKey: .shopSeenDay) ?? ""
         deliveredTx = try c.decodeIfPresent([String].self, forKey: .deliveredTx) ?? []
         passCredits = try c.decodeIfPresent(Int.self, forKey: .passCredits) ?? 0
         album = try c.decodeIfPresent(AlbumState.self, forKey: .album) ?? AlbumState()
