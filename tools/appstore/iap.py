@@ -4,6 +4,7 @@
 Ключ берется из переменных ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8 (секреты GitHub).
 Скрипт можно запускать повторно: что уже создано, пропускается, недостающее (переводы, цены) дозаполняется.
 """
+import hashlib
 import json
 import os
 import sys
@@ -92,6 +93,34 @@ def find_price_point(path, price):
     return None
 
 
+REVIEW_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "appstore", "review")
+# какой снимок магазина показать проверяющему для каждого товара
+REVIEW_SHOT = {"coinss": "shop_coins", "coinsm": "shop_coins", "coinsl": "shop_coins", "coinsxl": "shop_coins",
+               "coinsxxl": "shop_coins", "boosters": "shop_boosters", "market": "shop_market",
+               "lives": "shop_m3", "jar": "shop_m3", "eventpass": "shop", "starter": "shop",
+               "vipweek": "shop", "vipmonth": "shop"}
+
+
+def upload_review_shot(kind, rel_name, rel_type, owner_id, key):
+    """Снимок для проверки Apple: резервирование, загрузка частями, подтверждение."""
+    path = os.path.join(REVIEW_DIR, REVIEW_SHOT[key] + ".png")
+    data = open(path, "rb").read()
+    r = call("POST", f"/v1/{kind}", {"data": {"type": kind,
+             "attributes": {"fileName": f"{key}.png", "fileSize": len(data)},
+             "relationships": {rel_name: rel(rel_type, owner_id)}}})
+    if not r:
+        return
+    shot = r["data"]["id"]
+    for op in r["data"]["attributes"]["uploadOperations"]:
+        chunk = data[op["offset"]:op["offset"] + op["length"]]
+        req = urllib.request.Request(op["url"], data=chunk, method=op["method"],
+                                     headers={h["name"]: h["value"] for h in op.get("requestHeaders", [])})
+        urllib.request.urlopen(req).read()
+    call("PATCH", f"/v1/{kind}/{shot}", {"data": {"type": kind, "id": shot,
+         "attributes": {"uploaded": True, "sourceFileChecksum": hashlib.md5(data).hexdigest()}}})
+    print("review shot", key)
+
+
 def main():
     apps = get_all(f"/v1/apps?filter[bundleId]={BUNDLE}")
     if not apps:
@@ -136,6 +165,8 @@ def main():
                  "attributes": {"availableInNewTerritories": True},
                  "relationships": {"inAppPurchase": rel("inAppPurchases", iap),
                                    "availableTerritories": {"data": [{"type": "territories", "id": t} for t in territories]}}}})
+        if not call("GET", f"/v2/inAppPurchases/{iap}/appStoreReviewScreenshot"):
+            upload_review_shot("inAppPurchaseAppStoreReviewScreenshots", "inAppPurchaseV2", "inAppPurchases", iap, key)
 
     # --- подписка VIP ---
     groups = {g["attributes"]["referenceName"]: g["id"] for g in get_all(f"/v1/apps/{app}/subscriptionGroups?limit=50")}
@@ -194,6 +225,8 @@ def main():
                     if len(errors) > 400:
                         sys.exit("too many errors")
                 print("prices", pid, len(points))
+        if not call("GET", f"/v1/subscriptions/{sub}/appStoreReviewScreenshot"):
+            upload_review_shot("subscriptionAppStoreReviewScreenshots", "subscription", "subscriptions", sub, key)
     print("errors:", len(errors))
     for e in errors:
         print(" ", e)
