@@ -8,7 +8,8 @@ enum ShopItem: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var productId: String { "com.personal.sortelier." + rawValue.lowercased() }
+    /// Идентификатор покупки в App Store Connect: bundle id приложения + имя товара (com.example.sortelier.starter).
+    var productId: String { (Bundle.main.bundleIdentifier ?? "com.personal.sortelier") + "." + rawValue.lowercased() }
 
     static func from(productId: String) -> ShopItem? { allCases.first { $0.productId == productId } }
 

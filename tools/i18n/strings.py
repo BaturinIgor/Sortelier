@@ -889,6 +889,12 @@ S.update({
  "unlock.feature.go": ("Try it", "Попробовать"),
 })
 
+S.update({
+ "ads.notReady": ("The video isn't ready yet. Check your connection and try again", "Ролик еще не загрузился. Проверь интернет и попробуй еще раз"),
+ "settings.adPrivacy": ("Ad privacy", "Настройки рекламы"),
+ "att.usage": ("Allow tracking so the ads you watch for rewards match your interests. The game works the same either way.", "Разреши отслеживание, чтобы ролики за награду были ближе к твоим интересам. Игра работает одинаково при любом выборе."),
+})
+
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 out = os.path.join(root, "Sortelier", "Resources", "Strings")
 os.makedirs(out, exist_ok=True)
@@ -911,4 +917,14 @@ for code in langs:
     table = {k: data[k] for k in S if k in data and k not in bad}
     with open(os.path.join(out, code + ".json"), "w") as f:
         json.dump(table, f, ensure_ascii=False, indent=1, sort_keys=True)
+
+# Системный вопрос ATT читается из InfoPlist.strings, а не из наших json.
+loc = os.path.join(root, "Sortelier", "Resources", "Localization")
+for code in ["en", "ru"] + langs:
+    table = json.load(open(os.path.join(out, code + ".json")))
+    text = table.get("att.usage", S["att.usage"][0]).replace('"', '\\"')
+    d = os.path.join(loc, code + ".lproj")
+    os.makedirs(d, exist_ok=True)
+    with open(os.path.join(d, "InfoPlist.strings"), "w") as f:
+        f.write(f'"NSUserTrackingUsageDescription" = "{text}";\n')
 print(len(S), "keys,", 2 + len(langs), "languages")
