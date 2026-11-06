@@ -51,6 +51,11 @@ jobs:
           c = [x for x in c if x['name'] == want] or c
           print(c[-1]['udid'] if c else '')
           ")
+          # нужного iPhone нет в списке (SE, mini): создаем его на текущей iOS, если Xcode знает такую модель
+          if [ -n "$WANT" ] && ! xcrun simctl list devices available | grep -q "$WANT ("; then
+            NEW=$(xcrun simctl create "$WANT" "$WANT" 2>&1) && UDID="$NEW" || echo "cannot create $WANT: $NEW"
+            xcrun simctl list devicetypes | grep -i iphone
+          fi
           echo "Simulator: $UDID"
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
           xcrun simctl boot "$UDID" || true
