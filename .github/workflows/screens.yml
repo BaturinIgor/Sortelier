@@ -53,7 +53,8 @@ jobs:
           ")
           # нужного iPhone нет в списке (SE, mini): создаем его на текущей iOS, если Xcode знает такую модель
           if [ -n "$WANT" ] && ! xcrun simctl list devices available | grep -q "$WANT ("; then
-            NEW=$(xcrun simctl create "$WANT" "$WANT" 2>&1) && UDID="$NEW" || echo "cannot create $WANT: $NEW"
+            NEW=$(xcrun simctl create "$WANT" "$WANT" 2>/dev/null | tail -1)
+            if [ -n "$NEW" ]; then UDID="$NEW"; else echo "cannot create $WANT"; fi
             xcrun simctl list devicetypes | grep -i iphone
           fi
           echo "Simulator: $UDID"
