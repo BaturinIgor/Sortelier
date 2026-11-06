@@ -1,0 +1,300 @@
+    t =    42.10s Get number of matches for: Elements matching predicate 'label CONTAINS "Коллекция"'
+    t =    43.06s Find the Button (Element at index 0)
+    t =    43.51s Find the "Коллекция" Button
+UITEST: tap 'Коллекция' -> Коллекция hittable=true
+    t =    43.85s Find the "Коллекция" Button
+    t =    44.10s Tap "Коллекция" Button
+    t =    44.10s     Wait for com.personal.sortelier to idle
+    t =    44.10s     Find the "Коллекция" Button
+    t =    44.29s     Check for interrupting elements affecting "Коллекция" Button
+    t =    44.48s     Synthesize event
+    t =    44.83s     Wait for com.personal.sortelier to idle
+    t =    46.84s Get number of matches for: Elements matching predicate 'label CONTAINS "Перейти"'
+    t =    50.74s Get number of matches for: Elements matching predicate 'label CONTAINS "Перейти"'
+UITEST: tap 'Перейти': NOT FOUND
+    t =    50.98s Tear Down
+Test Case '-[SortelierUITests.RegressionTests testAchievementsGo]' passed (51.325 seconds).
+Test Case '-[SortelierUITests.RegressionTests testMarketFromMap]' started.
+    t =     0.00s Start Test at 2026-11-06 22:31:43.671
+    t =     0.05s Set Up
+    t =     0.06s Open com.personal.sortelier
+    t =     0.06s     Launch com.personal.sortelier
+    t =     0.06s         Terminate com.personal.sortelier:28096
+2026-11-06 22:31:44.755 xcodebuild[2799:14439] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-11-06 22:31:44.755 xcodebuild[2799:14439] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.94s         Setting up automation session
+    t =     3.75s         Wait for com.personal.sortelier to idle
+    t =    11.50s Get number of matches for: Elements matching predicate 'label CONTAINS "Продуктовый ряд"'
+    t =    12.40s Find the Button (Element at index 0)
+    t =    13.13s Find the "3 в ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд" Button
+UITEST: tap 'Продуктовый ряд' -> 3 в ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд hittable=true
+    t =    13.73s Find the "3 в ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд" Button
+    t =    14.81s Tap "3 в ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд" Button
+    t =    14.81s     Wait for com.personal.sortelier to idle
+    t =    14.82s     Find the "3 в ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд" Button
+    t =    15.72s     Check for interrupting elements affecting "3 в ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд, Продуктовый ряд" Button
+    t =    16.55s     Synthesize event
+    t =    16.87s     Wait for com.personal.sortelier to idle
+    t =    19.37s Find the Target Application 'com.personal.sortelier'
+    t =    20.33s Added attachment named '61_market'
+    t =    20.34s Checking existence of `Button (First Match)`
+    t =    20.46s Waiting 3.0s for Button (First Match) to exist
+    t =    21.51s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    21.52s         Checking existence of `Button (First Match)`
+UITEST: рынок открылся с карты: OK (ищем 'Уровень')
+    t =    21.63s Get number of matches for: Elements matching predicate 'label CONTAINS "Главы"'
+    t =    22.59s Get number of matches for: Elements matching predicate 'label CONTAINS "Главы"'
+UITEST: tap 'Главы': NOT FOUND
+    t =    23.54s Find the Target Application 'com.personal.sortelier'
+    t =    24.71s Added attachment named '62_chapters'
+    t =    24.72s Tap Target Application 'com.personal.sortelier'
+    t =    24.72s     Wait for com.personal.sortelier to idle
+    t =    24.74s     Find the Target Application 'com.personal.sortelier'
+    t =    25.54s     Check for interrupting elements affecting "Sortelier" Application
+    t =    26.35s     Synthesize event
+    t =    26.68s     Wait for com.personal.sortelier to idle
+    t =    27.69s Get number of matches for: Elements matching predicate 'label CONTAINS "Уровень"'
+    t =    28.63s Get number of matches for: Elements matching predicate 'label CONTAINS "Уровень"'
+    t =    29.40s Find the Button (Element at index 0)
+    t =    30.47s Find the "Уровень 13" Button
+UITEST: tap 'Уровень' -> Уровень 13 hittable=true
+    t =    31.80s Find the "Уровень 13" Button
+    t =    32.74s Tap "Уровень 13" Button
+    t =    32.74s     Wait for com.personal.sortelier to idle
+    t =    32.75s     Find the "Уровень 13" Button
+    t =    33.62s     Check for interrupting elements affecting "Уровень 13" Button
+    t =    34.44s     Synthesize event
+    t =    34.79s     Wait for com.personal.sortelier to idle
+    t =    36.91s Find the Target Application 'com.personal.sortelier'
+    t =    38.09s Added attachment named '63_popup'
+    t =    38.10s Checking existence of `Button (First Match)`
+    t =    38.27s Waiting 3.0s for Button (First Match) to exist
+    t =    39.32s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    39.32s         Checking existence of `Button (First Match)`
+UITEST: окно уровня рынка: OK (ищем 'Играть')
+    t =    39.41s Get number of matches for: Elements matching predicate 'label CONTAINS "Играть"'
+    t =    40.37s Find the Button (Element at index 0)
+    t =    41.33s Find the "Играть" Button
+UITEST: tap 'Играть' -> Играть hittable=true
+    t =    42.48s Find the "Играть" Button
+    t =    43.58s Tap "Играть" Button
+    t =    43.58s     Wait for com.personal.sortelier to idle
+    t =    43.63s     Find the "Играть" Button
+    t =    44.94s     Check for interrupting elements affecting "Играть" Button
+    t =    46.35s     Synthesize event
+    t =    46.85s     Wait for com.personal.sortelier to idle
+    t =    56.19s Find the Target Application 'com.personal.sortelier'
+    t =    58.97s Added attachment named '64_m3_level'
+    t =    58.98s Tear Down
+Test Case '-[SortelierUITests.RegressionTests testMarketFromMap]' passed (59.674 seconds).
+Test Case '-[SortelierUITests.RegressionTests testMarketLivesPopup]' started.
+    t =     0.00s Start Test at 2026-11-06 22:32:43.346
+    t =     0.18s Set Up
+    t =     0.18s Open com.personal.sortelier
+    t =     0.18s     Launch com.personal.sortelier
+    t =     0.18s         Terminate com.personal.sortelier:28829
+2026-11-06 22:32:45.682 xcodebuild[2799:14439] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-11-06 22:32:45.683 xcodebuild[2799:14439] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     5.46s         Setting up automation session
+    t =     9.72s         Wait for com.personal.sortelier to idle
+    t =    22.40s Find the Target Application 'com.personal.sortelier'
+    t =    23.78s Added attachment named '60_market_header'
+    t =    23.79s Checking existence of `"market.lives" Button`
+UITEST: кнопка жизней на рынке: true
+    t =    24.59s Checking existence of `"market.lives" Button`
+    t =    25.56s Tap "market.lives" Button
+    t =    25.56s     Wait for com.personal.sortelier to idle
+    t =    25.56s     Find the "market.lives" Button
+    t =    26.37s     Check for interrupting elements affecting "market.lives" Button
+    t =    27.21s     Synthesize event
+    t =    27.70s     Wait for com.personal.sortelier to idle
+    t =    29.87s Find the Target Application 'com.personal.sortelier'
+    t =    31.22s Added attachment named '65_market_lives'
+    t =    31.23s Checking existence of `Button (First Match)`
+    t =    39.20s Waiting 3.0s for StaticText (First Match) to exist
+    t =    40.27s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =    40.27s         Checking existence of `StaticText (First Match)`
+UITEST: окно жизней поверх рынка: OK (ищем 'Жизни:')
+    t =    40.69s Tear Down
+Test Case '-[SortelierUITests.RegressionTests testMarketLivesPopup]' passed (41.129 seconds).
+Test Case '-[SortelierUITests.RegressionTests testPushGardenOverMerge]' started.
+    t =     0.00s Start Test at 2026-11-06 22:33:24.476
+    t =     0.15s Set Up
+    t =     0.15s Open com.personal.sortelier
+    t =     0.15s     Launch com.personal.sortelier
+    t =     0.15s         Terminate com.personal.sortelier:31100
+2026-11-06 22:33:25.674 xcodebuild[2799:14439] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-11-06 22:33:25.674 xcodebuild[2799:14439] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     8.21s         Setting up automation session
+    t =    10.08s         Wait for com.personal.sortelier to idle
+    t =    20.10s Find the Target Application 'com.personal.sortelier'
+    t =    21.34s Added attachment named '95_push_garden_over_merge'
+    t =    21.35s Tear Down
+Test Case '-[SortelierUITests.RegressionTests testPushGardenOverMerge]' passed (21.654 seconds).
+Test Case '-[SortelierUITests.RegressionTests testRailScreens]' started.
+    t =     0.00s Start Test at 2026-11-06 22:33:46.132
+    t =     0.05s Set Up
+    t =     0.06s Open com.personal.sortelier
+    t =     0.06s     Launch com.personal.sortelier
+    t =     0.06s         Terminate com.personal.sortelier:32367
+2026-11-06 22:33:47.220 xcodebuild[2799:14439] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-11-06 22:33:47.220 xcodebuild[2799:14439] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.73s         Setting up automation session
+    t =     4.48s         Wait for com.personal.sortelier to idle
+    t =    12.90s Get number of matches for: Elements matching predicate 'label CONTAINS "Мастерская"'
+    t =    13.63s Find the Button (Element at index 0)
+    t =    14.29s Find the "Слияние, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская" Button
+UITEST: tap 'Мастерская' -> Слияние, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская hittable=true
+    t =    15.02s Find the "Слияние, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская" Button
+    t =    15.83s Tap "Слияние, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская" Button
+    t =    15.83s     Wait for com.personal.sortelier to idle
+    t =    15.83s     Find the "Слияние, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская" Button
+    t =    16.45s     Check for interrupting elements affecting "Слияние, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская, Мастерская" Button
+    t =    17.15s     Synthesize event
+    t =    17.56s     Wait for com.personal.sortelier to idle
+    t =    19.98s Find the Target Application 'com.personal.sortelier'
+    t =    21.03s Added attachment named '71_merge'
+    t =    21.04s Get number of matches for: Elements matching predicate 'label CONTAINS "12450"'
+    t =    21.93s Find the Button (First Match)
+UITEST: монеты в шапке мастерской видны: 1 кнопок, frame (112.0, 56.0, 117.0, 36.0)
+    t =    22.04s Requesting snapshot of accessibility hierarchy for app with pid 33220
+    t =    25.49s Requesting snapshot of accessibility hierarchy for app with pid 33220
+UITEST: tree merge:
+Attributes: Application, 0x11450f980, pid: 33220, label: 'Sortelier'
+Element subtree:
+ →Application, 0x11450f980, pid: 33220, label: 'Sortelier'
+    Window (Main), 0x11450e6c0, {{0.0, 0.0}, {390.0, 844.0}}
+      Other, 0x11450d040, {{0.0, 0.0}, {390.0, 844.0}}
+        Other, 0x11450d400, {{0.0, 0.0}, {390.0, 844.0}}
+          Other, 0x11450fac0, {{0.0, 0.0}, {390.0, 844.0}}
+            Other, 0x11450de00, {{0.0, 0.0}, {390.0, 844.0}}
+              Image, 0x11450f480, {{0.0, 0.0}, {390.0, 844.0}}
+              ScrollView, 0x11450f5c0, {{0.0, 0.0}, {390.0, 844.0}}
+                Other, 0x11450ee40, {{0.0, -11249.7}, {390.0, 15467.7}}
+                  Image, 0x11450df40, {{56.0, -11153.7}, {34.0, 34.0}}
+                  StaticText, 0x11450e440, {{102.0, -11157.7}, {141.3, 22.0}}, label: 'Индийская кухня'
+                  StaticText, 0x11450f840, {{102.0, -11133.7}, {40.3, 18.0}}, label: 'Скоро'
+                  Image, 0x11450f0c0, {{56.0, -11077.7}, {34.0, 34.0}}
+                  StaticText, 0x11450fc00, {{102.0, -11081.7}, {137.7, 22.0}}, label: 'Китайская кухня'
+                  StaticText, 0x11450fd40, {{102.0, -11057.7}, {40.3, 18.0}}, label: 'Скоро'
+                  Button, 0x11450fe80, {{173.0, -10996.7}, {60.0, 65.0}}
+                  StaticText, 0x11450f340, {{175.9, -10931.8}, {54.0, 15.3}}, label: 'Сложный'
+                  Button, 0x113da1680, {{240.0, -10889.7}, {60.0, 65.0}}
+                  Button, 0x113da30c0, {{250.3, -10793.7}, {60.0, 65.0}}
+                  Button, 0x113da17c0, {{196.0, -10697.7}, {60.0, 65.0}}
+                  Button, 0x114540000, {{118.3, -10601.7}, {60.0, 65.0}}
+                  Button, 0x114540140, {{76.0, -10516.7}, {60.0, 65.0}}
+                  StaticText, 0x114540280, {{79.0, -10451.8}, {54.0, 15.3}}, label: 'Сложный'
+                  Button, 0x1145403c0, {{101.0, -10409.7}, {60.0, 65.0}}
+                  Button, 0x114540500, {{174.3, -10313.7}, {60.0, 65.0}}
+                  Button, 0x114540640, {{240.7, -10217.7}, {60.0, 65.0}}
+                  Button, 0x114540780, {{249.7, -10121.7}, {60.0, 65.0}}
+                  Button, 0x1145408c0, {{194.7, -10036.7}, {60.0, 65.0}}
+                  StaticText, 0x114540a00, {{197.6, -9971.8}, {54.0, 15.3}}, label: 'Сложный'
+                  Button, 0x114540b40, {{117.0, -9929.7}, {60.0, 65.0}}
+                  Button, 0x114540c80, {{75.7, -9833.7}, {60.0, 65.0}}
+                  Button, 0x114540dc0, {{102.0, -9737.7}, {60.0, 65.0}}
+                  Butto
+    t =    26.52s Get number of matches for: Elements matching predicate 'label CONTAINS "Огород"'
+    t =    27.26s Find the Button (Element at index 0)
+    t =    28.04s Find the "Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород" Button
+UITEST: tap 'Огород' -> Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород hittable=false
+    t =    28.84s Find the "Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород" Button
+    t =    29.49s Tap "Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород" Button[0.50, 0.50]
+    t =    29.49s     Wait for com.personal.sortelier to idle
+    t =    29.51s     Find the "Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород" Button
+    t =    30.26s     Check for interrupting elements affecting "Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород" Button
+    t =    31.34s     Synthesize event
+    t =    31.50s         Find the "Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород" Button
+    t =    32.44s         Find the "Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород" Button
+    t =    33.26s         Find the "Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород, Огород" Button
+    t =    34.40s     Wait for com.personal.sortelier to idle
+    t =    36.42s Find the Target Application 'com.personal.sortelier'
+    t =    37.43s Added attachment named '72_garden_or_same'
+    t =    37.43s Tear Down
+Test Case '-[SortelierUITests.RegressionTests testRailScreens]' passed (37.699 seconds).
+Test Case '-[SortelierUITests.RegressionTests testShopSections]' started.
+    t =     0.00s Start Test at 2026-11-06 22:34:23.831
+    t =     0.07s Set Up
+    t =     0.07s Open com.personal.sortelier
+    t =     0.07s     Launch com.personal.sortelier
+    t =     0.07s         Terminate com.personal.sortelier:33220
+2026-11-06 22:34:24.940 xcodebuild[2799:14439] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-11-06 22:34:24.940 xcodebuild[2799:14439] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     2.05s         Setting up automation session
+    t =     3.67s         Wait for com.personal.sortelier to idle
+    t =    11.25s Get number of matches for: Elements matching predicate 'label CONTAINS "12"'
+    t =    11.57s Find the Button (Element at index 0)
+    t =    11.72s Find the "12450" Button
+UITEST: tap '12' -> 12450 hittable=true
+    t =    11.86s Find the "12450" Button
+    t =    12.72s Tap "12450" Button
+    t =    12.72s     Wait for com.personal.sortelier to idle
+    t =    12.76s     Find the "12450" Button
+    t =    13.09s     Check for interrupting elements affecting "12450" Button
+    t =    13.30s     Synthesize event
+    t =    13.63s     Wait for com.personal.sortelier to idle
+    t =    15.79s Find the Target Application 'com.personal.sortelier'
+    t =    16.12s Added attachment named '91_coins_from_header'
+    t =    16.12s Checking existence of `Button (First Match)`
+    t =    16.69s Waiting 3.0s for Button (First Match) to exist
+    t =    17.69s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    17.69s         Checking existence of `Button (First Match)`
+UITEST: магазин открылся: OK (ищем 'Монеты')
+    t =    18.02s Get number of matches for: Elements matching predicate 'label CONTAINS "Бустеры"'
+    t =    18.14s Find the Button (Element at index 0)
+    t =    18.33s Find the "Бустеры" Button
+UITEST: tap 'Бустеры' -> Бустеры hittable=true
+    t =    18.55s Find the "Бустеры" Button
+    t =    18.68s Tap "Бустеры" Button
+    t =    18.68s     Wait for com.personal.sortelier to idle
+    t =    18.69s     Find the "Бустеры" Button
+    t =    18.82s     Check for interrupting elements affecting "Бустеры" Button
+    t =    18.95s     Synthesize event
+    t =    19.30s     Wait for com.personal.sortelier to idle
+    t =    21.36s Find the Target Application 'com.personal.sortelier'
+    t =    21.69s Added attachment named '92_shop_boosters'
+    t =    21.69s Get number of matches for: Elements matching predicate 'label CONTAINS "3 в ряд"'
+    t =    21.78s Find the Button (Element at index 0)
+    t =    21.87s Find the "3 в ряд" Button
+UITEST: tap '3 в ряд' -> 3 в ряд hittable=true
+    t =    22.02s Find the "3 в ряд" Button
+    t =    22.14s Tap "3 в ряд" Button
+    t =    22.14s     Wait for com.personal.sortelier to idle
+    t =    22.14s     Find the "3 в ряд" Button
+    t =    22.23s     Check for interrupting elements affecting "3 в ряд" Button
+    t =    22.28s     Synthesize event
+    t =    22.60s     Wait for com.personal.sortelier to idle
+    t =    24.65s Find the Target Application 'com.personal.sortelier'
+    t =    24.96s Added attachment named '93_shop_market'
+    t =    24.96s Get number of matches for: Elements matching predicate 'label CONTAINS "Выгодно"'
+    t =    25.06s Find the Button (Element at index 0)
+    t =    25.15s Find the "Выгодно" Button
+UITEST: tap 'Выгодно' -> Выгодно hittable=true
+    t =    25.32s Find the "Выгодно" Button
+    t =    25.45s Tap "Выгодно" Button
+    t =    25.45s     Wait for com.personal.sortelier to idle
+    t =    25.45s     Find the "Выгодно" Button
+    t =    25.54s     Check for interrupting elements affecting "Выгодно" Button
+    t =    25.64s     Synthesize event
+    t =    25.98s     Wait for com.personal.sortelier to idle
+    t =    28.06s Find the Target Application 'com.personal.sortelier'
+    t =    28.36s Added attachment named '94_shop_offers'
+    t =    28.37s Tear Down
+Test Case '-[SortelierUITests.RegressionTests testShopSections]' passed (28.621 seconds).
+Test Suite 'RegressionTests' passed at 2026-11-06 22:34:52.453.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 240.101 (240.112) seconds
+Test Suite 'SortelierUITests.xctest' passed at 2026-11-06 22:34:52.453.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 600.087 (600.114) seconds
+Test Suite 'All tests' passed at 2026-11-06 22:34:52.454.
+	 Executed 15 tests, with 0 failures (0 unexpected) in 600.087 (600.120) seconds
+2026-11-06 22:34:54.303 xcodebuild[2799:14439] [MT] IDETestOperationsObserverDebug: 676.577 elapsed -- Testing started completed.
+2026-11-06 22:34:54.303 xcodebuild[2799:14439] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-06 22:34:54.303 xcodebuild[2799:14439] [MT] IDETestOperationsObserverDebug: 676.577 sec, +676.577 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/runner/work/Sortelier/Sortelier/result.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started
