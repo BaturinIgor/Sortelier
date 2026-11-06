@@ -1,0 +1,1201 @@
+G1 moves 14 win 12/12 p50 6
+G2 moves 23 win 12/12 p50 10
+G3 moves 19 win 12/12 p50 9
+G4 moves 21 win 12/12 p50 11
+G5 moves 18 win 12/12 p50 12
+G6 moves 20 win 11/12 p50 12
+G7 moves 17 win 10/12 p50 12
+G8 moves 16 win 11/12 p50 8
+G9 moves 27 win 12/12 p50 18
+G10 moves 19 win 9/12 p50 16
+G11 moves 10 win 11/12 p50 6
+G12 moves 39 win 10/12 p50 28
+G13 moves 15 win 12/12 p50 11
+G14 moves 39 win 12/12 p50 25
+G15 moves 24 win 11/12 p50 16
+G16 moves 10 win 10/12 p50 8
+G17 moves 18 win 10/12 p50 15
+G18 moves 24 win 8/12 p50 22
+G19 moves 22 win 9/12 p50 20
+G20 moves 14 win 12/12 p50 10
+G21 moves 32 win 8/12 p50 32
+G22 moves 16 win 12/12 p50 12
+G23 moves 18 win 7/12 p50 16
+G24 moves 16 win 7/12 p50 13
+G25 moves 20 win 7/12 p50 20
+G26 moves 17 win 11/12 p50 16
+G27 moves 39 win 5/12 p50 47
+G28 moves 18 win 11/12 p50 13
+G29 moves 13 win 11/12 p50 11
+G30 moves 18 win 11/12 p50 15
+G31 moves 18 win 8/12 p50 16
+G32 moves 29 win 12/12 p50 26
+G33 moves 19 win 7/12 p50 19
+G34 moves 26 win 9/12 p50 20
+G35 moves 29 win 6/12 p50 33
+G36 moves 36 win 11/12 p50 31
+G37 moves 31 win 7/12 p50 31
+G38 moves 35 win 8/12 p50 30
+G39 moves 23 win 10/12 p50 19
+G40 moves 26 win 4/12 p50 36
+G41 moves 25 win 7/12 p50 23
+G42 moves 33 win 10/12 p50 28
+G43 moves 17 win 11/12 p50 12
+G44 moves 35 win 6/12 p50 36
+G45 moves 22 win 7/12 p50 20
+G46 moves 38 win 8/12 p50 35
+G47 moves 19 win 7/12 p50 18
+G48 moves 33 win 9/12 p50 31
+G49 moves 42 win 11/12 p50 31
+G50 moves 24 win 3/12 p50 30
+G51 moves 41 win 8/12 p50 40
+G52 moves 20 win 12/12 p50 14
+G53 moves 34 win 6/12 p50 41
+G54 moves 43 win 4/12 p50 51
+G55 moves 30 win 5/12 p50 34
+G56 moves 43 win 9/12 p50 40
+G57 moves 37 win 5/12 p50 45
+G58 moves 19 win 12/12 p50 15
+G59 moves 33 win 11/12 p50 28
+G60 moves 26 win 5/12 p50 34
+G61 moves 25 win 11/12 p50 21
+G62 moves 29 win 7/12 p50 23
+G63 moves 16 win 8/12 p50 15
+G64 moves 22 win 10/12 p50 17
+G65 moves 29 win 10/12 p50 24
+G66 moves 21 win 9/12 p50 19
+G67 moves 17 win 12/12 p50 14
+G68 moves 19 win 6/12 p50 20
+G69 moves 17 win 10/12 p50 15
+G70 moves 39 win 6/12 p50 44
+G71 moves 27 win 8/12 p50 26
+G72 moves 20 win 6/12 p50 21
+G73 moves 20 win 12/12 p50 14
+G74 moves 20 win 10/12 p50 17
+G75 moves 23 win 3/12 p50 28
+G76 moves 31 win 8/12 p50 27
+G77 moves 23 win 4/12 p50 24
+G78 moves 13 win 6/12 p50 14
+G79 moves 24 win 9/12 p50 22
+G80 moves 27 win 10/12 p50 22
+G81 moves 33 win 10/12 p50 26
+G82 moves 17 win 10/12 p50 15
+G83 moves 19 win 5/12 p50 21
+G84 moves 28 win 7/12 p50 24
+G85 moves 45 win 3/12 p50 66
+G86 moves 23 win 7/12 p50 23
+G87 moves 18 win 10/12 p50 17
+G88 moves 13 win 11/12 p50 11
+G89 moves 22 win 5/12 p50 24
+G90 moves 33 win 3/12 p50 50
+G91 moves 25 win 10/12 p50 19
+G92 moves 25 win 8/12 p50 22
+G93 moves 32 win 8/12 p50 30
+G94 moves 50 win 9/12 p50 44
+G95 moves 30 win 7/12 p50 30
+G96 moves 26 win 8/12 p50 23
+G97 moves 17 win 11/12 p50 12
+G98 moves 24 win 5/12 p50 27
+G99 moves 25 win 11/12 p50 21
+G100 moves 20 win 5/12 p50 22
+G101 moves 19 win 4/12 p50 26
+G102 moves 25 win 8/12 p50 20
+G103 moves 16 win 12/12 p50 13
+G104 moves 24 win 6/12 p50 27
+G105 moves 26 win 7/12 p50 26
+G106 moves 24 win 8/12 p50 20
+G107 moves 25 win 10/12 p50 20
+G108 moves 22 win 7/12 p50 22
+G109 moves 23 win 7/12 p50 23
+G110 moves 32 win 5/12 p50 34
+G111 moves 26 win 9/12 p50 23
+G112 moves 15 win 11/12 p50 11
+G113 moves 23 win 6/12 p50 24
+G114 moves 22 win 5/12 p50 26
+G115 moves 28 win 8/12 p50 27
+G116 moves 27 win 5/12 p50 31
+G117 moves 24 win 4/12 p50 26
+G118 moves 15 win 10/12 p50 12
+G119 moves 20 win 9/12 p50 18
+G120 moves 22 win 8/12 p50 21
+G121 moves 21 win 9/12 p50 18
+G122 moves 28 win 10/12 p50 19
+G123 moves 25 win 7/12 p50 25
+G124 moves 22 win 8/12 p50 22
+G125 moves 22 win 5/12 p50 24
+G126 moves 21 win 9/12 p50 18
+G127 moves 19 win 11/12 p50 13
+G128 moves 19 win 5/12 p50 20
+G129 moves 23 win 7/12 p50 23
+G130 moves 22 win 8/12 p50 22
+G131 moves 26 win 8/12 p50 24
+G132 moves 18 win 6/12 p50 19
+G133 moves 19 win 12/12 p50 13
+G134 moves 29 win 5/12 p50 35
+G135 moves 26 win 8/12 p50 22
+G136 moves 24 win 6/12 p50 26
+G137 moves 24 win 10/12 p50 21
+G138 moves 24 win 9/12 p50 20
+G139 moves 27 win 10/12 p50 26
+G140 moves 26 win 1/12 p50 38
+G141 moves 30 win 8/12 p50 26
+G142 moves 19 win 12/12 p50 12
+G143 moves 60 win 4/12 p50 74
+G144 moves 27 win 7/12 p50 27
+G145 moves 28 win 8/12 p50 26
+G146 moves 24 win 7/12 p50 23
+G147 moves 23 win 8/12 p50 22
+G148 moves 18 win 12/12 p50 15
+G149 moves 23 win 8/12 p50 22
+G150 moves 30 win 7/12 p50 29
+G151 moves 24 win 6/12 p50 25
+G152 moves 32 win 6/12 p50 36
+G153 moves 23 win 9/12 p50 22
+G154 moves 22 win 8/12 p50 20
+G155 moves 33 win 6/12 p50 36
+G156 moves 38 win 4/12 p50 42
+G157 moves 18 win 11/12 p50 15
+G158 moves 30 win 8/12 p50 30
+G159 moves 56 win 10/12 p50 46
+G160 moves 34 win 6/12 p50 36
+G161 moves 22 win 7/12 p50 22
+G162 moves 57 win 8/12 p50 55
+G163 moves 17 win 11/12 p50 13
+G164 moves 44 win 7/12 p50 41
+G165 moves 44 win 2/12 p50 57
+G166 moves 23 win 10/12 p50 19
+G167 moves 32 win 11/12 p50 22
+G168 moves 29 win 6/12 p50 32
+G169 moves 35 win 7/12 p50 35
+G170 moves 24 win 5/12 p50 27
+G171 moves 19 win 5/12 p50 21
+G172 moves 19 win 12/12 p50 12
+G173 moves 44 win 7/12 p50 44
+G174 moves 28 win 4/12 p50 33
+G175 moves 23 win 4/12 p50 25
+G176 moves 60 win 4/12 p50 88
+G177 moves 24 win 8/12 p50 23
+G178 moves 19 win 12/12 p50 12
+G179 moves 30 win 5/12 p50 35
+G180 moves 50 win 9/12 p50 46
+G181 moves 23 win 7/12 p50 23
+G182 moves 29 win 10/12 p50 24
+G183 moves 26 win 11/12 p50 16
+G184 moves 26 win 5/12 p50 28
+G185 moves 53 win 3/12 p50 63
+G186 moves 26 win 9/12 p50 20
+G187 moves 17 win 8/12 p50 15
+G188 moves 60 win 2/12 p50 76
+G189 moves 27 win 9/12 p50 25
+G190 moves 26 win 5/12 p50 29
+G191 moves 30 win 5/12 p50 32
+G192 moves 25 win 11/12 p50 21
+G193 moves 21 win 12/12 p50 14
+G194 moves 27 win 12/12 p50 23
+G195 moves 25 win 6/12 p50 26
+G196 moves 60 win 5/12 p50 77
+G197 moves 32 win 5/12 p50 35
+G198 moves 24 win 9/12 p50 24
+G199 moves 30 win 9/12 p50 28
+G200 moves 27 win 6/12 p50 32
+G201 moves 36 win 8/12 p50 27
+G202 moves 16 win 11/12 p50 13
+G203 moves 27 win 8/12 p50 25
+G204 moves 19 win 7/12 p50 19
+G205 moves 36 win 7/12 p50 32
+G206 moves 20 win 7/12 p50 17
+G207 moves 29 win 10/12 p50 23
+G208 moves 16 win 12/12 p50 11
+G209 moves 26 win 8/12 p50 25
+G210 moves 29 win 6/12 p50 33
+G211 moves 27 win 7/12 p50 27
+G212 moves 28 win 7/12 p50 28
+G213 moves 17 win 4/12 p50 20
+G214 moves 33 win 6/12 p50 34
+G215 moves 32 win 5/12 p50 34
+G216 moves 22 win 8/12 p50 19
+G217 moves 17 win 12/12 p50 14
+G218 moves 23 win 6/12 p50 24
+G219 moves 25 win 7/12 p50 25
+G220 moves 23 win 2/12 p50 32
+G221 moves 25 win 7/12 p50 25
+G222 moves 24 win 10/12 p50 20
+G223 moves 22 win 12/12 p50 13
+G224 moves 25 win 9/12 p50 22
+G225 moves 25 win 4/12 p50 27
+G226 moves 60 win 0/12 p50 999
+G227 moves 30 win 5/12 p50 34
+G228 moves 21 win 6/12 p50 22
+G229 moves 21 win 4/12 p50 23
+G230 moves 28 win 6/12 p50 29
+G231 moves 24 win 5/12 p50 25
+G232 moves 17 win 11/12 p50 14
+G233 moves 28 win 11/12 p50 26
+G234 moves 44 win 6/12 p50 46
+G235 moves 52 win 4/12 p50 62
+G236 moves 26 win 10/12 p50 22
+G237 moves 28 win 8/12 p50 27
+G238 moves 18 win 12/12 p50 13
+G239 moves 28 win 10/12 p50 22
+G240 moves 29 win 6/12 p50 30
+G241 moves 32 win 5/12 p50 34
+G242 moves 29 win 10/12 p50 25
+G243 moves 21 win 4/12 p50 23
+G244 moves 20 win 9/12 p50 17
+G245 moves 20 win 6/12 p50 22
+G246 moves 24 win 6/12 p50 26
+G247 moves 19 win 12/12 p50 14
+G248 moves 24 win 8/12 p50 21
+G249 moves 26 win 10/12 p50 24
+G250 moves 30 win 7/12 p50 29
+G251 moves 26 win 7/12 p50 25
+G252 moves 60 win 1/12 p50 93
+G253 moves 16 win 12/12 p50 11
+G254 moves 22 win 4/12 p50 29
+G255 moves 25 win 8/12 p50 22
+G256 moves 32 win 7/12 p50 30
+G257 moves 26 win 8/12 p50 23
+G258 moves 23 win 8/12 p50 22
+G259 moves 25 win 9/12 p50 23
+G260 moves 25 win 6/12 p50 26
+G261 moves 25 win 8/12 p50 24
+G262 moves 17 win 11/12 p50 10
+G263 moves 25 win 10/12 p50 20
+G264 moves 21 win 4/12 p50 24
+G265 moves 19 win 6/12 p50 20
+G266 moves 31 win 6/12 p50 32
+G267 moves 37 win 4/12 p50 44
+G268 moves 15 win 11/12 p50 12
+G269 moves 52 win 6/12 p50 64
+G270 moves 25 win 5/12 p50 26
+G271 moves 35 win 4/12 p50 54
+G272 moves 24 win 6/12 p50 25
+G273 moves 28 win 5/12 p50 30
+G274 moves 33 win 8/12 p50 32
+G275 moves 60 win 1/12 p50 99
+G276 moves 26 win 9/12 p50 24
+G277 moves 17 win 12/12 p50 11
+G278 moves 30 win 10/12 p50 25
+G279 moves 23 win 9/12 p50 20
+G280 moves 37 win 2/12 p50 48
+G281 moves 26 win 10/12 p50 23
+G282 moves 29 win 7/12 p50 28
+G283 moves 21 win 12/12 p50 14
+G284 moves 54 win 5/12 p50 65
+G285 moves 21 win 8/12 p50 19
+G286 moves 29 win 8/12 p50 24
+G287 moves 33 win 11/12 p50 29
+G288 moves 28 win 6/12 p50 29
+G289 moves 23 win 7/12 p50 23
+G290 moves 60 win 0/12 p50 999
+G291 moves 27 win 8/12 p50 25
+G292 moves 24 win 12/12 p50 14
+G293 moves 28 win 7/12 p50 27
+G294 moves 27 win 7/12 p50 26
+G295 moves 28 win 2/12 p50 43
+G296 moves 32 win 10/12 p50 26
+G297 moves 40 win 9/12 p50 31
+G298 moves 15 win 11/12 p50 11
+G299 moves 27 win 7/12 p50 27
+G300 moves 60 win 1/12 p50 103
+G301 moves 27 win 8/12 p50 26
+G302 moves 28 win 8/12 p50 26
+G303 moves 22 win 7/12 p50 20
+G304 moves 43 win 3/12 p50 56
+G305 moves 24 win 7/12 p50 24
+G306 moves 44 win 6/12 p50 50
+G307 moves 19 win 12/12 p50 14
+G308 moves 34 win 7/12 p50 33
+G309 moves 60 win 1/12 p50 84
+G310 moves 38 win 4/12 p50 50
+G311 moves 20 win 2/12 p50 23
+G312 moves 28 win 7/12 p50 23
+G313 moves 13 win 9/12 p50 12
+G314 moves 60 win 3/12 p50 69
+G315 moves 30 win 4/12 p50 35
+G316 moves 26 win 6/12 p50 30
+G317 moves 25 win 8/12 p50 23
+G318 moves 28 win 7/12 p50 27
+G319 moves 26 win 8/12 p50 25
+G320 moves 36 win 10/12 p50 33
+G321 moves 30 win 10/12 p50 27
+G322 moves 15 win 12/12 p50 10
+G323 moves 22 win 8/12 p50 20
+G324 moves 24 win 5/12 p50 25
+G325 moves 60 win 0/12 p50 999
+G326 moves 27 win 7/12 p50 27
+G327 moves 28 win 9/12 p50 25
+G328 moves 18 win 11/12 p50 14
+G329 moves 30 win 11/12 p50 25
+G330 moves 26 win 3/12 p50 32
+G331 moves 29 win 4/12 p50 42
+G332 moves 34 win 9/12 p50 28
+G333 moves 42 win 7/12 p50 34
+G334 moves 32 win 5/12 p50 41
+G335 moves 29 win 8/12 p50 29
+G336 moves 26 win 6/12 p50 27
+G337 moves 13 win 11/12 p50 12
+G338 moves 29 win 8/12 p50 25
+G339 moves 25 win 8/12 p50 24
+G340 moves 29 win 8/12 p50 27
+G341 moves 24 win 6/12 p50 25
+G342 moves 27 win 5/12 p50 30
+G343 moves 18 win 12/12 p50 14
+G344 moves 23 win 6/12 p50 24
+G345 moves 39 win 1/12 p50 52
+G346 moves 37 win 3/12 p50 45
+G347 moves 33 win 8/12 p50 31
+G348 moves 27 win 7/12 p50 26
+G349 moves 26 win 7/12 p50 26
+G350 moves 60 win 0/12 p50 122
+G351 moves 29 win 11/12 p50 22
+G352 moves 15 win 11/12 p50 12
+G353 moves 45 win 8/12 p50 43
+G354 moves 22 win 3/12 p50 25
+G355 moves 50 win 3/12 p50 61
+G356 moves 26 win 4/12 p50 30
+G357 moves 26 win 6/12 p50 27
+G358 moves 18 win 12/12 p50 14
+G359 moves 27 win 8/12 p50 24
+G360 moves 45 win 4/12 p50 55
+G361 moves 18 win 4/12 p50 21
+G362 moves 26 win 8/12 p50 25
+G363 moves 25 win 6/12 p50 26
+G364 moves 47 win 8/12 p50 41
+G365 moves 29 win 8/12 p50 28
+G366 moves 31 win 8/12 p50 27
+G367 moves 18 win 11/12 p50 14
+G368 moves 19 win 5/12 p50 20
+G369 moves 28 win 7/12 p50 27
+G370 moves 35 win 7/12 p50 35
+G371 moves 28 win 6/12 p50 30
+G372 moves 26 win 9/12 p50 21
+G373 moves 20 win 12/12 p50 12
+G374 moves 27 win 4/12 p50 33
+G375 moves 60 win 0/12 p50 131
+G376 moves 33 win 7/12 p50 32
+G377 moves 26 win 7/12 p50 26
+G378 moves 26 win 5/12 p50 31
+G379 moves 60 win 2/12 p50 107
+G380 moves 50 win 7/12 p50 47
+G381 moves 22 win 9/12 p50 19
+G382 moves 18 win 12/12 p50 14
+G383 moves 25 win 8/12 p50 24
+G384 moves 56 win 5/12 p50 62
+G385 moves 30 win 8/12 p50 24
+G386 moves 33 win 4/12 p50 41
+G387 moves 45 win 7/12 p50 44
+G388 moves 20 win 12/12 p50 12
+G389 moves 24 win 1/12 p50 40
+G390 moves 47 win 7/12 p50 44
+G391 moves 37 win 9/12 p50 35
+G392 moves 27 win 9/12 p50 24
+G393 moves 29 win 8/12 p50 28
+G394 moves 34 win 5/12 p50 35
+G395 moves 60 win 2/12 p50 82
+G396 moves 24 win 7/12 p50 21
+G397 moves 18 win 11/12 p50 12
+G398 moves 45 win 4/12 p50 60
+G399 moves 28 win 6/12 p50 31
+G400 moves 35 win 5/12 p50 42
+G401 moves 25 win 6/12 p50 29
+G402 moves 26 win 7/12 p50 24
+G403 moves 17 win 11/12 p50 13
+G404 moves 27 win 6/12 p50 28
+G405 moves 60 win 0/12 p50 113
+G406 moves 55 win 6/12 p50 68
+G407 moves 28 win 4/12 p50 33
+G408 moves 27 win 8/12 p50 25
+G409 moves 33 win 8/12 p50 31
+G410 moves 29 win 3/12 p50 30
+G411 moves 34 win 5/12 p50 37
+G412 moves 16 win 12/12 p50 11
+G413 moves 28 win 4/12 p50 34
+G414 moves 22 win 5/12 p50 25
+G415 moves 31 win 6/12 p50 33
+G416 moves 26 win 4/12 p50 29
+G417 moves 28 win 9/12 p50 25
+G418 moves 17 win 11/12 p50 13
+G419 moves 29 win 6/12 p50 31
+G420 moves 30 win 5/12 p50 34
+G421 moves 30 win 8/12 p50 26
+G422 moves 28 win 10/12 p50 25
+G423 moves 22 win 4/12 p50 29
+G424 moves 36 win 8/12 p50 36
+G425 moves 24 win 5/12 p50 27
+G426 moves 26 win 5/12 p50 29
+G427 moves 20 win 12/12 p50 12
+G428 moves 29 win 9/12 p50 25
+G429 moves 31 win 10/12 p50 31
+G430 moves 60 win 1/12 p50 102
+G431 moves 60 win 8/12 p50 49
+G432 moves 33 win 9/12 p50 32
+G433 moves 18 win 12/12 p50 13
+G434 moves 44 win 7/12 p50 43
+G435 moves 42 win 5/12 p50 46
+G436 moves 26 win 11/12 p50 19
+G437 moves 29 win 8/12 p50 27
+G438 moves 34 win 7/12 p50 34
+G439 moves 26 win 5/12 p50 27
+G440 moves 31 win 11/12 p50 25
+G441 moves 28 win 10/12 p50 23
+G442 moves 18 win 12/12 p50 11
+G443 moves 26 win 7/12 p50 26
+G444 moves 31 win 5/12 p50 33
+G445 moves 28 win 4/12 p50 33
+G446 moves 27 win 5/12 p50 29
+G447 moves 29 win 5/12 p50 31
+G448 moves 23 win 12/12 p50 13
+G449 moves 27 win 7/12 p50 27
+G450 moves 55 win 8/12 p50 51
+G451 moves 32 win 10/12 p50 27
+G452 moves 26 win 8/12 p50 25
+G453 moves 29 win 6/12 p50 31
+G454 moves 31 win 6/12 p50 32
+G455 moves 26 win 3/12 p50 29
+G456 moves 27 win 9/12 p50 24
+G457 moves 17 win 12/12 p50 13
+G458 moves 60 win 4/12 p50 73
+G459 moves 29 win 6/12 p50 30
+G460 moves 29 win 6/12 p50 30
+G461 moves 34 win 8/12 p50 32
+G462 moves 33 win 9/12 p50 27
+G463 moves 17 win 11/12 p50 14
+G464 moves 36 win 12/12 p50 29
+G465 moves 30 win 7/12 p50 29
+G466 moves 28 win 6/12 p50 29
+G467 moves 27 win 4/12 p50 30
+G468 moves 18 win 9/12 p50 18
+G469 moves 34 win 6/12 p50 35
+G470 moves 35 win 2/12 p50 57
+G471 moves 27 win 8/12 p50 24
+G472 moves 23 win 12/12 p50 13
+G473 moves 24 win 7/12 p50 24
+G474 moves 31 win 8/12 p50 30
+G475 moves 60 win 2/12 p50 106
+G476 moves 29 win 6/12 p50 30
+G477 moves 29 win 7/12 p50 29
+G478 moves 16 win 12/12 p50 12
+G479 moves 30 win 7/12 p50 30
+G480 moves 29 win 6/12 p50 30
+G481 moves 32 win 11/12 p50 23
+G482 moves 38 win 9/12 p50 29
+G483 moves 57 win 5/12 p50 64
+G484 moves 24 win 1/12 p50 31
+G485 moves 33 win 1/12 p50 51
+G486 moves 25 win 5/12 p50 28
+G487 moves 17 win 12/12 p50 13
+G488 moves 25 win 7/12 p50 22
+G489 moves 24 win 4/12 p50 30
+G490 moves 31 win 6/12 p50 32
+G491 moves 30 win 7/12 p50 30
+G492 moves 25 win 5/12 p50 26
+G493 moves 17 win 11/12 p50 14
+G494 moves 27 win 7/12 p50 26
+G495 moves 31 win 6/12 p50 32
+G496 moves 39 win 9/12 p50 36
+G497 moves 31 win 8/12 p50 30
+G498 moves 29 win 12/12 p50 25
+G499 moves 35 win 7/12 p50 35
+G500 moves 52 win 4/12 p50 67
+G501 moves 24 win 7/12 p50 24
+G502 moves 18 win 12/12 p50 14
+G503 moves 23 win 4/12 p50 27
+G504 moves 24 win 9/12 p50 23
+G505 moves 30 win 5/12 p50 33
+G506 moves 30 win 8/12 p50 30
+G507 moves 28 win 7/12 p50 26
+G508 moves 17 win 11/12 p50 15
+G509 moves 27 win 7/12 p50 25
+G510 moves 39 win 4/12 p50 55
+G511 moves 47 win 3/12 p50 53
+G512 moves 31 win 7/12 p50 31
+G513 moves 32 win 7/12 p50 29
+G514 moves 60 win 1/12 p50 89
+G515 moves 57 win 8/12 p50 54
+G516 moves 30 win 5/12 p50 31
+G517 moves 18 win 12/12 p50 14
+G518 moves 34 win 7/12 p50 33
+G519 moves 34 win 7/12 p50 34
+G520 moves 36 win 9/12 p50 34
+G521 moves 26 win 8/12 p50 21
+G522 moves 28 win 7/12 p50 24
+G523 moves 17 win 12/12 p50 12
+G524 moves 31 win 7/12 p50 29
+G525 moves 43 win 5/12 p50 53
+G526 moves 32 win 3/12 p50 41
+G527 moves 30 win 7/12 p50 29
+G528 moves 30 win 7/12 p50 29
+G529 moves 33 win 5/12 p50 36
+G530 moves 32 win 3/12 p50 37
+G531 moves 28 win 6/12 p50 29
+G532 moves 18 win 12/12 p50 12
+G533 moves 30 win 10/12 p50 24
+G534 moves 52 win 4/12 p50 62
+G535 moves 33 win 7/12 p50 33
+G536 moves 28 win 8/12 p50 23
+G537 moves 34 win 5/12 p50 36
+G538 moves 18 win 12/12 p50 11
+G539 moves 36 win 9/12 p50 28
+G540 moves 31 win 6/12 p50 32
+G541 moves 29 win 7/12 p50 26
+G542 moves 35 win 5/12 p50 39
+G543 moves 44 win 9/12 p50 33
+G544 moves 31 win 7/12 p50 30
+G545 moves 24 win 4/12 p50 27
+G546 moves 29 win 10/12 p50 25
+G547 moves 21 win 12/12 p50 13
+G548 moves 33 win 9/12 p50 28
+G549 moves 27 win 9/12 p50 24
+G550 moves 28 win 6/12 p50 34
+G551 moves 35 win 10/12 p50 31
+G552 moves 30 win 5/12 p50 33
+G553 moves 19 win 12/12 p50 15
+G554 moves 31 win 4/12 p50 38
+G555 moves 28 win 4/12 p50 31
+G556 moves 33 win 7/12 p50 32
+G557 moves 26 win 8/12 p50 21
+G558 moves 25 win 6/12 p50 26
+G559 moves 56 win 5/12 p50 60
+G560 moves 30 win 8/12 p50 29
+G561 moves 26 win 8/12 p50 23
+G562 moves 20 win 12/12 p50 14
+G563 moves 35 win 11/12 p50 31
+G564 moves 32 win 8/12 p50 30
+G565 moves 29 win 9/12 p50 28
+G566 moves 29 win 5/12 p50 39
+G567 moves 30 win 11/12 p50 27
+G568 moves 16 win 12/12 p50 12
+G569 moves 31 win 7/12 p50 31
+G570 moves 30 win 3/12 p50 37
+G571 moves 50 win 8/12 p50 37
+G572 moves 36 win 3/12 p50 47
+G573 moves 25 win 7/12 p50 25
+G574 moves 28 win 9/12 p50 25
+G575 moves 34 win 8/12 p50 32
+G576 moves 36 win 10/12 p50 31
+G577 moves 15 win 11/12 p50 11
+G578 moves 31 win 9/12 p50 24
+G579 moves 37 win 4/12 p50 40
+G580 moves 43 win 6/12 p50 52
+G581 moves 53 win 5/12 p50 57
+G582 moves 50 win 1/12 p50 68
+G583 moves 20 win 12/12 p50 12
+G584 moves 31 win 11/12 p50 27
+G585 moves 35 win 6/12 p50 36
+G586 moves 33 win 4/12 p50 42
+G587 moves 33 win 11/12 p50 31
+G588 moves 31 win 7/12 p50 30
+G589 moves 60 win 4/12 p50 87
+G590 moves 60 win 1/12 p50 119
+G591 moves 33 win 6/12 p50 34
+G592 moves 17 win 12/12 p50 12
+G593 moves 43 win 9/12 p50 40
+G594 moves 32 win 7/12 p50 30
+G595 moves 37 win 6/12 p50 38
+G596 moves 32 win 9/12 p50 31
+G597 moves 29 win 5/12 p50 32
+G598 moves 20 win 12/12 p50 14
+G599 moves 27 win 4/12 p50 30
+G600 moves 33 win 6/12 p50 36
+L1 moves 14 win 12/12 p50 5 jam/move 0.00
+L2 moves 23 win 12/12 p50 11 jam/move 0.00
+L3 moves 19 win 12/12 p50 13 jam/move 0.00
+L4 moves 21 win 12/12 p50 18 jam/move 0.00
+L5 moves 18 win 12/12 p50 15 jam/move 0.00
+L6 moves 20 win 12/12 p50 15 jam/move 0.00
+L7 moves 17 win 12/12 p50 14 jam/move 0.00
+L8 moves 16 win 9/12 p50 21 jam/move 0.00
+L9 moves 27 win 12/12 p50 23 jam/move 0.00
+L10 moves 19 win 8/12 p50 23 jam/move 0.00
+L11 moves 10 win 12/12 p50 11 jam/move 0.00
+L12 moves 39 win 12/12 p50 32 jam/move 0.00
+L13 moves 15 win 12/12 p50 19 jam/move 0.00
+L14 moves 39 win 12/12 p50 39 jam/move 0.00
+L15 moves 24 win 8/12 p50 31 jam/move 0.00
+L16 moves 10 win 12/12 p50 13 jam/move 1.71
+L17 moves 18 win 12/12 p50 27 jam/move 0.00
+L18 moves 24 win 10/12 p50 30 jam/move 1.02
+L19 moves 22 win 12/12 p50 27 jam/move 0.00
+L20 moves 14 win 5/12 p50 23 jam/move 0.82
+L21 moves 32 win 12/12 p50 35 jam/move 0.00
+L22 moves 16 win 12/12 p50 14 jam/move 0.00
+L23 moves 18 win 10/12 p50 21 jam/move 0.81
+L24 moves 16 win 6/12 p50 27 jam/move 0.00
+L25 moves 20 win 11/12 p50 28 jam/move 0.00
+L26 moves 17 win 11/12 p50 22 jam/move 0.57
+L27 moves 39 win 3/12 p50 47 jam/move 0.00
+L28 moves 18 win 12/12 p50 17 jam/move 1.54
+L29 moves 13 win 10/12 p50 18 jam/move 1.46
+L30 moves 18 win 5/12 p50 23 jam/move 0.00
+L31 moves 18 win 12/12 p50 25 jam/move 0.00
+L32 moves 29 win 6/12 p50 27 jam/move 0.00
+L33 moves 19 win 11/12 p50 26 jam/move 0.00
+L34 moves 26 win 11/12 p50 33 jam/move 0.58
+L35 moves 29 win 3/12 p50 44 jam/move 0.34
+L36 moves 36 win 10/12 p50 40 jam/move 0.00
+L37 moves 31 win 1/12 p50 42 jam/move 0.00
+L38 moves 35 win 11/12 p50 45 jam/move 0.37
+L39 moves 23 win 10/12 p50 28 jam/move 1.08
+L40 moves 26 win 0/12 p50 -1 jam/move 0.00
+L41 moves 25 win 9/12 p50 30 jam/move 0.93
+L42 moves 33 win 11/12 p50 39 jam/move 0.00
+L43 moves 17 win 12/12 p50 18 jam/move 0.00
+L44 moves 35 win 6/12 p50 49 jam/move 0.59
+L45 moves 22 win 3/12 p50 40 jam/move 0.00
+L46 moves 38 win 11/12 p50 40 jam/move 0.00
+L47 moves 19 win 8/12 p50 29 jam/move 1.15
+L48 moves 33 win 11/12 p50 33 jam/move 0.00
+L49 moves 42 win 2/12 p50 47 jam/move 0.27
+L50 moves 24 win 0/12 p50 -1 jam/move 0.36
+L51 moves 41 win 9/12 p50 51 jam/move 0.00
+L52 moves 20 win 12/12 p50 16 jam/move 0.00
+L53 moves 34 win 8/12 p50 46 jam/move 0.52
+L54 moves 43 win 10/12 p50 60 jam/move 0.00
+L55 moves 30 win 3/12 p50 45 jam/move 0.00
+L56 moves 43 win 12/12 p50 48 jam/move 0.81
+L57 moves 37 win 2/12 p50 56 jam/move 0.00
+L58 moves 19 win 12/12 p50 18 jam/move 1.46
+L59 moves 33 win 12/12 p50 39 jam/move 0.00
+L60 moves 26 win 4/12 p50 39 jam/move 0.34
+L61 moves 25 win 12/12 p50 30 jam/move 0.00
+L62 moves 29 win 3/12 p50 26 jam/move 0.00
+L63 moves 16 win 9/12 p50 22 jam/move 0.97
+L64 moves 22 win 12/12 p50 29 jam/move 0.00
+L65 moves 29 win 10/12 p50 34 jam/move 0.00
+L66 moves 21 win 12/12 p50 26 jam/move 1.08
+L67 moves 17 win 12/12 p50 16 jam/move 0.00
+L68 moves 19 win 5/12 p50 19 jam/move 0.71
+L69 moves 17 win 12/12 p50 21 jam/move 0.68
+L70 moves 39 win 1/12 p50 46 jam/move 0.00
+L71 moves 27 win 4/12 p50 40 jam/move 0.19
+L72 moves 20 win 10/12 p50 32 jam/move 0.79
+L73 moves 20 win 12/12 p50 18 jam/move 0.00
+L74 moves 20 win 12/12 p50 18 jam/move 0.92
+L75 moves 23 win 12/12 p50 26 jam/move 0.89
+L76 moves 31 win 10/12 p50 29 jam/move 0.00
+L77 moves 23 win 12/12 p50 30 jam/move 0.00
+L78 moves 13 win 10/12 p50 21 jam/move 1.45
+L79 moves 24 win 9/12 p50 27 jam/move 0.58
+L80 moves 27 win 12/12 p50 33 jam/move 0.46
+L81 moves 33 win 8/12 p50 43 jam/move 0.72
+L82 moves 17 win 12/12 p50 15 jam/move 0.00
+L83 moves 19 win 9/12 p50 24 jam/move 0.82
+L84 moves 28 win 7/12 p50 32 jam/move 0.43
+L85 moves 45 win 0/12 p50 -1 jam/move 0.00
+L86 moves 23 win 10/12 p50 27 jam/move 0.63
+L87 moves 18 win 12/12 p50 23 jam/move 0.97
+L88 moves 13 win 12/12 p50 13 jam/move 0.00
+L89 moves 22 win 11/12 p50 29 jam/move 0.00
+L90 moves 33 win 1/12 p50 48 jam/move 0.23
+L91 moves 25 win 12/12 p50 32 jam/move 0.00
+L92 moves 25 win 12/12 p50 31 jam/move 0.00
+L93 moves 32 win 5/12 p50 42 jam/move 0.00
+L94 moves 50 win 8/12 p50 59 jam/move 0.00
+L95 moves 30 win 9/12 p50 42 jam/move 0.51
+L96 moves 26 win 4/12 p50 36 jam/move 0.00
+L97 moves 17 win 12/12 p50 21 jam/move 0.00
+L98 moves 24 win 12/12 p50 27 jam/move 0.00
+L99 moves 25 win 11/12 p50 24 jam/move 0.00
+L100 moves 20 win 12/12 p50 31 jam/move 0.52
+L101 moves 19 win 7/12 p50 31 jam/move 0.00
+L102 moves 25 win 11/12 p50 27 jam/move 0.00
+L103 moves 16 win 12/12 p50 16 jam/move 0.00
+L104 moves 24 win 3/12 p50 31 jam/move 0.72
+L105 moves 26 win 11/12 p50 37 jam/move 0.55
+L106 moves 24 win 11/12 p50 28 jam/move 0.00
+L107 moves 25 win 6/12 p50 43 jam/move 0.00
+L108 moves 22 win 11/12 p50 23 jam/move 0.00
+L109 moves 23 win 11/12 p50 32 jam/move 0.00
+L110 moves 32 win 8/12 p50 43 jam/move 0.71
+L111 moves 26 win 12/12 p50 37 jam/move 0.00
+L112 moves 15 win 12/12 p50 12 jam/move 0.00
+L113 moves 23 win 9/12 p50 26 jam/move 0.58
+L114 moves 22 win 7/12 p50 38 jam/move 0.33
+L115 moves 28 win 7/12 p50 41 jam/move 0.00
+L116 moves 27 win 7/12 p50 33 jam/move 0.00
+L117 moves 24 win 11/12 p50 32 jam/move 0.00
+L118 moves 15 win 12/12 p50 15 jam/move 3.27
+L119 moves 20 win 12/12 p50 28 jam/move 0.88
+L120 moves 22 win 9/12 p50 28 jam/move 0.00
+L121 moves 21 win 8/12 p50 33 jam/move 0.00
+L122 moves 28 win 12/12 p50 25 jam/move 0.68
+L123 moves 25 win 9/12 p50 25 jam/move 0.89
+L124 moves 22 win 12/12 p50 29 jam/move 0.00
+L125 moves 22 win 12/12 p50 36 jam/move 0.82
+L126 moves 21 win 9/12 p50 30 jam/move 0.52
+L127 moves 19 win 12/12 p50 17 jam/move 0.00
+L128 moves 19 win 5/12 p50 31 jam/move 0.00
+L129 moves 23 win 10/12 p50 27 jam/move 0.63
+L130 moves 22 win 12/12 p50 27 jam/move 0.77
+L131 moves 26 win 11/12 p50 32 jam/move 0.40
+L132 moves 18 win 9/12 p50 22 jam/move 1.04
+L133 moves 19 win 12/12 p50 13 jam/move 4.21
+L134 moves 29 win 3/12 p50 31 jam/move 0.40
+L135 moves 26 win 11/12 p50 31 jam/move 0.00
+L136 moves 24 win 5/12 p50 34 jam/move 0.00
+L137 moves 24 win 11/12 p50 29 jam/move 0.00
+L138 moves 24 win 12/12 p50 34 jam/move 0.00
+L139 moves 27 win 12/12 p50 27 jam/move 0.00
+L140 moves 26 win 5/12 p50 35 jam/move 0.00
+L141 moves 30 win 5/12 p50 42 jam/move 0.00
+L142 moves 19 win 12/12 p50 17 jam/move 0.00
+L143 moves 60 win 0/12 p50 -1 jam/move 0.00
+L144 moves 27 win 11/12 p50 30 jam/move 0.38
+L145 moves 28 win 8/12 p50 43 jam/move 0.00
+L146 moves 24 win 10/12 p50 36 jam/move 0.00
+L147 moves 23 win 11/12 p50 31 jam/move 0.60
+L148 moves 18 win 12/12 p50 18 jam/move 0.00
+L149 moves 23 win 11/12 p50 34 jam/move 0.00
+L150 moves 30 win 7/12 p50 33 jam/move 0.69
+L151 moves 24 win 5/12 p50 33 jam/move 0.00
+L152 moves 32 win 3/12 p50 43 jam/move 0.12
+L153 moves 23 win 11/12 p50 28 jam/move 0.00
+L154 moves 22 win 12/12 p50 28 jam/move 0.00
+L155 moves 33 win 10/12 p50 39 jam/move 0.41
+L156 moves 38 win 3/12 p50 40 jam/move 0.00
+L157 moves 18 win 12/12 p50 16 jam/move 0.00
+L158 moves 30 win 6/12 p50 32 jam/move 0.00
+L159 moves 56 win 0/12 p50 -1 jam/move 0.00
+L160 moves 34 win 1/12 p50 47 jam/move 0.42
+L161 moves 22 win 12/12 p50 26 jam/move 0.00
+L162 moves 57 win 2/12 p50 75 jam/move 0.00
+L163 moves 17 win 12/12 p50 15 jam/move 0.00
+L164 moves 44 win 3/12 p50 47 jam/move 0.00
+L165 moves 44 win 1/12 p50 34 jam/move 0.00
+L166 moves 23 win 12/12 p50 33 jam/move 0.00
+L167 moves 32 win 3/12 p50 45 jam/move 0.00
+L168 moves 29 win 7/12 p50 36 jam/move 0.00
+L169 moves 35 win 2/12 p50 45 jam/move 0.20
+L170 moves 24 win 12/12 p50 29 jam/move 0.31
+L171 moves 19 win 12/12 p50 24 jam/move 0.00
+L172 moves 19 win 12/12 p50 16 jam/move 4.21
+L173 moves 44 win 4/12 p50 54 jam/move 0.00
+L174 moves 28 win 9/12 p50 36 jam/move 0.00
+L175 moves 23 win 8/12 p50 32 jam/move 0.66
+L176 moves 60 win 1/12 p50 77 jam/move 0.00
+L177 moves 24 win 12/12 p50 26 jam/move 0.47
+L178 moves 19 win 12/12 p50 12 jam/move 4.63
+L179 moves 30 win 3/12 p50 46 jam/move 0.00
+L180 moves 50 win 3/12 p50 61 jam/move 0.00
+L181 moves 23 win 11/12 p50 29 jam/move 0.00
+L182 moves 29 win 10/12 p50 31 jam/move 0.00
+L183 moves 26 win 12/12 p50 28 jam/move 0.79
+L184 moves 26 win 0/12 p50 -1 jam/move 0.00
+L185 moves 53 win 2/12 p50 54 jam/move 0.00
+L186 moves 26 win 10/12 p50 25 jam/move 0.62
+L187 moves 17 win 12/12 p50 18 jam/move 0.00
+L188 moves 60 win 1/12 p50 60 jam/move 0.20
+L189 moves 27 win 12/12 p50 29 jam/move 0.00
+L190 moves 26 win 9/12 p50 34 jam/move 0.49
+L191 moves 30 win 11/12 p50 32 jam/move 0.00
+L192 moves 25 win 11/12 p50 30 jam/move 0.00
+L193 moves 21 win 12/12 p50 20 jam/move 3.03
+L194 moves 27 win 12/12 p50 31 jam/move 0.00
+L195 moves 25 win 12/12 p50 34 jam/move 0.00
+L196 moves 60 win 0/12 p50 -1 jam/move 0.00
+L197 moves 32 win 0/12 p50 -1 jam/move 0.38
+L198 moves 24 win 8/12 p50 35 jam/move 0.43
+L199 moves 30 win 12/12 p50 33 jam/move 0.48
+L200 moves 27 win 7/12 p50 35 jam/move 0.69
+L201 moves 36 win 8/12 p50 33 jam/move 0.68
+L202 moves 16 win 12/12 p50 15 jam/move 0.00
+L203 moves 27 win 12/12 p50 32 jam/move 0.00
+L204 moves 19 win 12/12 p50 31 jam/move 0.97
+L205 moves 36 win 6/12 p50 42 jam/move 0.32
+L206 moves 20 win 12/12 p50 27 jam/move 0.00
+L207 moves 29 win 11/12 p50 34 jam/move 0.00
+L208 moves 16 win 12/12 p50 17 jam/move 0.00
+L209 moves 26 win 12/12 p50 30 jam/move 0.00
+L210 moves 29 win 3/12 p50 23 jam/move 0.36
+L211 moves 27 win 12/12 p50 27 jam/move 0.00
+L212 moves 28 win 4/12 p50 41 jam/move 0.00
+L213 moves 17 win 6/12 p50 30 jam/move 0.80
+L214 moves 33 win 11/12 p50 39 jam/move 0.52
+L215 moves 32 win 10/12 p50 41 jam/move 0.00
+L216 moves 22 win 12/12 p50 22 jam/move 0.00
+L217 moves 17 win 12/12 p50 16 jam/move 0.00
+L218 moves 23 win 11/12 p50 34 jam/move 0.00
+L219 moves 25 win 11/12 p50 30 jam/move 0.57
+L220 moves 23 win 3/12 p50 31 jam/move 0.66
+L221 moves 25 win 12/12 p50 29 jam/move 0.71
+L222 moves 24 win 7/12 p50 32 jam/move 0.54
+L223 moves 22 win 12/12 p50 15 jam/move 3.90
+L224 moves 25 win 12/12 p50 31 jam/move 0.00
+L225 moves 25 win 11/12 p50 34 jam/move 0.54
+L226 moves 60 win 0/12 p50 -1 jam/move 0.00
+L227 moves 30 win 1/12 p50 24 jam/move 0.31
+L228 moves 21 win 11/12 p50 29 jam/move 0.00
+L229 moves 21 win 12/12 p50 26 jam/move 0.00
+L230 moves 28 win 12/12 p50 35 jam/move 0.00
+L231 moves 24 win 10/12 p50 38 jam/move 0.00
+L232 moves 17 win 12/12 p50 22 jam/move 0.00
+L233 moves 28 win 12/12 p50 34 jam/move 0.27
+L234 moves 44 win 7/12 p50 54 jam/move 0.00
+L235 moves 52 win 0/12 p50 -1 jam/move 0.29
+L236 moves 26 win 12/12 p50 32 jam/move 0.00
+L237 moves 28 win 9/12 p50 37 jam/move 0.00
+L238 moves 18 win 12/12 p50 17 jam/move 4.63
+L239 moves 28 win 12/12 p50 30 jam/move 0.58
+L240 moves 29 win 8/12 p50 41 jam/move 0.65
+L241 moves 32 win 3/12 p50 31 jam/move 0.39
+L242 moves 29 win 12/12 p50 37 jam/move 0.32
+L243 moves 21 win 10/12 p50 24 jam/move 0.00
+L244 moves 20 win 6/12 p50 32 jam/move 0.55
+L245 moves 20 win 5/12 p50 29 jam/move 0.00
+L246 moves 24 win 11/12 p50 32 jam/move 0.56
+L247 moves 19 win 12/12 p50 14 jam/move 0.00
+L248 moves 24 win 12/12 p50 31 jam/move 0.74
+L249 moves 26 win 12/12 p50 24 jam/move 0.00
+L250 moves 30 win 11/12 p50 39 jam/move 0.00
+L251 moves 26 win 12/12 p50 27 jam/move 0.00
+L252 moves 60 win 0/12 p50 -1 jam/move 0.00
+L253 moves 16 win 12/12 p50 14 jam/move 0.00
+L254 moves 22 win 10/12 p50 25 jam/move 0.69
+L255 moves 25 win 12/12 p50 36 jam/move 0.55
+L256 moves 32 win 6/12 p50 44 jam/move 0.00
+L257 moves 26 win 3/12 p50 38 jam/move 0.00
+L258 moves 23 win 4/12 p50 40 jam/move 0.00
+L259 moves 25 win 11/12 p50 28 jam/move 0.00
+L260 moves 25 win 1/12 p50 31 jam/move 0.51
+L261 moves 25 win 10/12 p50 29 jam/move 0.00
+L262 moves 17 win 12/12 p50 15 jam/move 3.31
+L263 moves 25 win 11/12 p50 29 jam/move 0.00
+L264 moves 21 win 9/12 p50 31 jam/move 0.71
+L265 moves 19 win 6/12 p50 29 jam/move 0.73
+L266 moves 31 win 12/12 p50 33 jam/move 0.32
+L267 moves 37 win 1/12 p50 44 jam/move 0.00
+L268 moves 15 win 12/12 p50 14 jam/move 0.00
+L269 moves 52 win 0/12 p50 -1 jam/move 0.00
+L270 moves 25 win 7/12 p50 36 jam/move 0.00
+L271 moves 35 win 2/12 p50 34 jam/move 0.00
+L272 moves 24 win 11/12 p50 26 jam/move 0.44
+L273 moves 28 win 12/12 p50 36 jam/move 0.43
+L274 moves 33 win 12/12 p50 44 jam/move 0.00
+L275 moves 60 win 0/12 p50 -1 jam/move 0.18
+L276 moves 26 win 11/12 p50 29 jam/move 0.64
+L277 moves 17 win 12/12 p50 12 jam/move 4.85
+L278 moves 30 win 2/12 p50 32 jam/move 0.33
+L279 moves 23 win 10/12 p50 33 jam/move 0.00
+L280 moves 37 win 2/12 p50 54 jam/move 0.00
+L281 moves 26 win 12/12 p50 27 jam/move 0.00
+L282 moves 29 win 11/12 p50 28 jam/move 0.97
+L283 moves 21 win 12/12 p50 15 jam/move 0.00
+L284 moves 54 win 10/12 p50 59 jam/move 0.00
+L285 moves 21 win 6/12 p50 35 jam/move 0.83
+L286 moves 29 win 6/12 p50 36 jam/move 0.00
+L287 moves 33 win 11/12 p50 33 jam/move 0.54
+L288 moves 28 win 11/12 p50 25 jam/move 0.72
+L289 moves 23 win 2/12 p50 24 jam/move 0.00
+L290 moves 60 win 0/12 p50 -1 jam/move 0.00
+L291 moves 27 win 10/12 p50 32 jam/move 0.00
+L292 moves 24 win 12/12 p50 21 jam/move 0.00
+L293 moves 28 win 12/12 p50 38 jam/move 0.00
+L294 moves 27 win 8/12 p50 35 jam/move 0.43
+L295 moves 28 win 1/12 p50 39 jam/move 0.00
+L296 moves 32 win 12/12 p50 32 jam/move 0.00
+L297 moves 40 win 5/12 p50 53 jam/move 0.00
+L298 moves 15 win 12/12 p50 15 jam/move 3.52
+L299 moves 27 win 7/12 p50 36 jam/move 0.41
+L300 moves 60 win 0/12 p50 -1 jam/move 0.00
+L301 moves 27 win 5/12 p50 28 jam/move 0.49
+L302 moves 28 win 10/12 p50 31 jam/move 0.50
+L303 moves 22 win 9/12 p50 32 jam/move 0.00
+L304 moves 43 win 6/12 p50 48 jam/move 0.39
+L305 moves 24 win 5/12 p50 36 jam/move 0.67
+L306 moves 44 win 4/12 p50 58 jam/move 0.00
+L307 moves 19 win 12/12 p50 14 jam/move 4.60
+L308 moves 34 win 7/12 p50 43 jam/move 0.00
+L309 moves 60 win 0/12 p50 -1 jam/move 0.00
+L310 moves 38 win 1/12 p50 58 jam/move 0.00
+L311 moves 20 win 11/12 p50 28 jam/move 0.00
+L312 moves 28 win 10/12 p50 31 jam/move 0.55
+L313 moves 13 win 12/12 p50 13 jam/move 0.00
+L314 moves 60 win 1/12 p50 65 jam/move 0.15
+L315 moves 30 win 7/12 p50 25 jam/move 0.57
+L316 moves 26 win 5/12 p50 38 jam/move 0.00
+L317 moves 25 win 11/12 p50 33 jam/move 0.61
+L318 moves 28 win 7/12 p50 40 jam/move 0.00
+L319 moves 26 win 11/12 p50 36 jam/move 0.00
+L320 moves 36 win 9/12 p50 34 jam/move 0.00
+L321 moves 30 win 11/12 p50 34 jam/move 0.00
+L322 moves 15 win 12/12 p50 13 jam/move 0.00
+L323 moves 22 win 12/12 p50 23 jam/move 0.00
+L324 moves 24 win 12/12 p50 23 jam/move 0.65
+L325 moves 60 win 0/12 p50 -1 jam/move 0.00
+L326 moves 27 win 10/12 p50 35 jam/move 0.00
+L327 moves 28 win 12/12 p50 30 jam/move 0.00
+L328 moves 18 win 12/12 p50 16 jam/move 0.00
+L329 moves 30 win 12/12 p50 28 jam/move 0.55
+L330 moves 26 win 11/12 p50 37 jam/move 0.63
+L331 moves 29 win 2/12 p50 46 jam/move 0.30
+L332 moves 34 win 10/12 p50 36 jam/move 0.00
+L333 moves 42 win 1/12 p50 50 jam/move 0.00
+L334 moves 32 win 1/12 p50 49 jam/move 0.38
+L335 moves 29 win 10/12 p50 42 jam/move 0.00
+L336 moves 26 win 9/12 p50 39 jam/move 0.00
+L337 moves 13 win 12/12 p50 13 jam/move 0.00
+L338 moves 29 win 8/12 p50 37 jam/move 0.44
+L339 moves 25 win 12/12 p50 28 jam/move 0.00
+L340 moves 29 win 10/12 p50 41 jam/move 0.47
+L341 moves 24 win 9/12 p50 30 jam/move 0.00
+L342 moves 27 win 11/12 p50 31 jam/move 0.00
+L343 moves 18 win 12/12 p50 16 jam/move 0.00
+L344 moves 23 win 11/12 p50 31 jam/move 0.98
+L345 moves 39 win 0/12 p50 -1 jam/move 0.00
+L346 moves 37 win 0/12 p50 -1 jam/move 0.21
+L347 moves 33 win 11/12 p50 31 jam/move 0.00
+L348 moves 27 win 11/12 p50 28 jam/move 0.27
+L349 moves 26 win 9/12 p50 32 jam/move 0.63
+L350 moves 60 win 0/12 p50 -1 jam/move 0.00
+L351 moves 29 win 3/12 p50 31 jam/move 0.00
+L352 moves 15 win 12/12 p50 14 jam/move 0.00
+L353 moves 45 win 3/12 p50 61 jam/move 0.00
+L354 moves 22 win 6/12 p50 31 jam/move 0.84
+L355 moves 50 win 0/12 p50 -1 jam/move 0.28
+L356 moves 26 win 10/12 p50 34 jam/move 0.29
+L357 moves 26 win 12/12 p50 26 jam/move 0.68
+L358 moves 18 win 12/12 p50 19 jam/move 0.00
+L359 moves 27 win 12/12 p50 31 jam/move 0.67
+L360 moves 45 win 1/12 p50 29 jam/move 0.17
+L361 moves 18 win 9/12 p50 29 jam/move 0.79
+L362 moves 26 win 8/12 p50 36 jam/move 0.00
+L363 moves 25 win 12/12 p50 37 jam/move 0.56
+L364 moves 47 win 0/12 p50 -1 jam/move 0.22
+L365 moves 29 win 9/12 p50 32 jam/move 0.27
+L366 moves 31 win 10/12 p50 41 jam/move 0.00
+L367 moves 18 win 12/12 p50 14 jam/move 3.98
+L368 moves 19 win 6/12 p50 28 jam/move 0.83
+L369 moves 28 win 9/12 p50 30 jam/move 0.00
+L370 moves 35 win 12/12 p50 42 jam/move 0.42
+L371 moves 28 win 9/12 p50 34 jam/move 0.00
+L372 moves 26 win 12/12 p50 29 jam/move 0.55
+L373 moves 20 win 12/12 p50 16 jam/move 3.28
+L374 moves 27 win 10/12 p50 38 jam/move 0.37
+L375 moves 60 win 0/12 p50 -1 jam/move 0.14
+L376 moves 33 win 10/12 p50 44 jam/move 0.41
+L377 moves 26 win 4/12 p50 28 jam/move 0.47
+L378 moves 26 win 2/12 p50 46 jam/move 0.00
+L379 moves 60 win 1/12 p50 78 jam/move 0.20
+L380 moves 50 win 0/12 p50 -1 jam/move 0.00
+L381 moves 22 win 11/12 p50 28 jam/move 0.58
+L382 moves 18 win 12/12 p50 17 jam/move 0.00
+L383 moves 25 win 12/12 p50 30 jam/move 0.00
+L384 moves 56 win 3/12 p50 72 jam/move 0.00
+L385 moves 30 win 10/12 p50 33 jam/move 0.50
+L386 moves 33 win 2/12 p50 51 jam/move 0.00
+L387 moves 45 win 4/12 p50 53 jam/move 0.32
+L388 moves 20 win 12/12 p50 16 jam/move 3.28
+L389 moves 24 win 2/12 p50 42 jam/move 0.00
+L390 moves 47 win 2/12 p50 63 jam/move 0.18
+L391 moves 37 win 11/12 p50 40 jam/move 0.00
+L392 moves 27 win 11/12 p50 31 jam/move 0.00
+L393 moves 29 win 11/12 p50 37 jam/move 0.00
+L394 moves 34 win 10/12 p50 39 jam/move 0.56
+L395 moves 60 win 1/12 p50 73 jam/move 0.00
+L396 moves 24 win 11/12 p50 33 jam/move 0.83
+L397 moves 18 win 12/12 p50 14 jam/move 0.00
+L398 moves 45 win 0/12 p50 -1 jam/move 0.00
+L399 moves 28 win 8/12 p50 35 jam/move 0.43
+L400 moves 35 win 1/12 p50 41 jam/move 0.00
+L401 moves 25 win 11/12 p50 25 jam/move 0.83
+L402 moves 26 win 5/12 p50 33 jam/move 0.43
+L403 moves 17 win 12/12 p50 14 jam/move 0.00
+L404 moves 27 win 7/12 p50 42 jam/move 0.00
+L405 moves 60 win 0/12 p50 -1 jam/move 0.00
+L406 moves 55 win 6/12 p50 61 jam/move 0.00
+L407 moves 28 win 10/12 p50 34 jam/move 0.75
+L408 moves 27 win 7/12 p50 44 jam/move 0.72
+L409 moves 33 win 9/12 p50 32 jam/move 0.45
+L410 moves 29 win 11/12 p50 31 jam/move 0.53
+L411 moves 34 win 3/12 p50 45 jam/move 0.39
+L412 moves 16 win 12/12 p50 13 jam/move 0.00
+L413 moves 28 win 12/12 p50 34 jam/move 0.00
+L414 moves 22 win 9/12 p50 32 jam/move 0.00
+L415 moves 31 win 4/12 p50 40 jam/move 0.00
+L416 moves 26 win 9/12 p50 30 jam/move 0.76
+L417 moves 28 win 12/12 p50 31 jam/move 0.00
+L418 moves 17 win 12/12 p50 15 jam/move 0.00
+L419 moves 29 win 11/12 p50 39 jam/move 0.00
+L420 moves 30 win 12/12 p50 44 jam/move 0.59
+L421 moves 30 win 4/12 p50 49 jam/move 0.00
+L422 moves 28 win 11/12 p50 39 jam/move 0.00
+L423 moves 22 win 6/12 p50 29 jam/move 0.57
+L424 moves 36 win 0/12 p50 -1 jam/move 0.00
+L425 moves 24 win 10/12 p50 37 jam/move 0.00
+L426 moves 26 win 7/12 p50 33 jam/move 0.00
+L427 moves 20 win 12/12 p50 14 jam/move 4.00
+L428 moves 29 win 5/12 p50 38 jam/move 0.00
+L429 moves 31 win 11/12 p50 34 jam/move 0.00
+L430 moves 60 win 0/12 p50 -1 jam/move 0.00
+L431 moves 60 win 1/12 p50 68 jam/move 0.00
+L432 moves 33 win 12/12 p50 40 jam/move 0.00
+L433 moves 18 win 12/12 p50 17 jam/move 0.00
+L434 moves 44 win 0/12 p50 -1 jam/move 0.00
+L435 moves 42 win 3/12 p50 51 jam/move 0.00
+L436 moves 26 win 12/12 p50 25 jam/move 1.02
+L437 moves 29 win 10/12 p50 39 jam/move 0.00
+L438 moves 34 win 12/12 p50 38 jam/move 0.00
+L439 moves 26 win 10/12 p50 37 jam/move 0.00
+L440 moves 31 win 10/12 p50 43 jam/move 0.51
+L441 moves 28 win 6/12 p50 44 jam/move 0.00
+L442 moves 18 win 12/12 p50 13 jam/move 4.52
+L443 moves 26 win 12/12 p50 37 jam/move 0.00
+L444 moves 31 win 11/12 p50 38 jam/move 0.00
+L445 moves 28 win 9/12 p50 39 jam/move 0.41
+L446 moves 27 win 12/12 p50 26 jam/move 0.00
+L447 moves 29 win 12/12 p50 31 jam/move 0.00
+L448 moves 23 win 12/12 p50 16 jam/move 4.03
+L449 moves 27 win 9/12 p50 43 jam/move 0.00
+L450 moves 55 win 3/12 p50 62 jam/move 0.21
+L451 moves 32 win 4/12 p50 44 jam/move 0.00
+L452 moves 26 win 11/12 p50 27 jam/move 0.78
+L453 moves 29 win 9/12 p50 35 jam/move 0.00
+L454 moves 31 win 8/12 p50 37 jam/move 0.00
+L455 moves 26 win 10/12 p50 34 jam/move 0.80
+L456 moves 27 win 11/12 p50 37 jam/move 0.00
+L457 moves 17 win 12/12 p50 17 jam/move 0.00
+L458 moves 60 win 5/12 p50 71 jam/move 0.15
+L459 moves 29 win 11/12 p50 27 jam/move 0.00
+L460 moves 29 win 11/12 p50 27 jam/move 0.00
+L461 moves 34 win 9/12 p50 47 jam/move 0.00
+L462 moves 33 win 10/12 p50 39 jam/move 0.00
+L463 moves 17 win 12/12 p50 21 jam/move 0.00
+L464 moves 36 win 11/12 p50 35 jam/move 0.00
+L465 moves 30 win 4/12 p50 40 jam/move 0.48
+L466 moves 28 win 10/12 p50 39 jam/move 0.51
+L467 moves 27 win 12/12 p50 39 jam/move 0.00
+L468 moves 18 win 8/12 p50 26 jam/move 0.71
+L469 moves 34 win 11/12 p50 36 jam/move 0.00
+L470 moves 35 win 0/12 p50 -1 jam/move 0.00
+L471 moves 27 win 11/12 p50 34 jam/move 0.00
+L472 moves 23 win 12/12 p50 16 jam/move 4.03
+L473 moves 24 win 4/12 p50 25 jam/move 0.71
+L474 moves 31 win 12/12 p50 39 jam/move 0.79
+L475 moves 60 win 0/12 p50 -1 jam/move 0.18
+L476 moves 29 win 10/12 p50 38 jam/move 0.00
+L477 moves 29 win 12/12 p50 39 jam/move 0.00
+L478 moves 16 win 11/12 p50 17 jam/move 4.12
+L479 moves 30 win 8/12 p50 38 jam/move 0.34
+L480 moves 29 win 10/12 p50 37 jam/move 0.37
+L481 moves 32 win 9/12 p50 35 jam/move 0.46
+L482 moves 38 win 10/12 p50 49 jam/move 0.35
+L483 moves 57 win 2/12 p50 76 jam/move 0.00
+L484 moves 24 win 10/12 p50 32 jam/move 0.40
+L485 moves 33 win 0/12 p50 -1 jam/move 0.15
+L486 moves 25 win 11/12 p50 25 jam/move 0.95
+L487 moves 17 win 12/12 p50 17 jam/move 0.00
+L488 moves 25 win 11/12 p50 35 jam/move 0.77
+L489 moves 24 win 10/12 p50 41 jam/move 0.76
+L490 moves 31 win 12/12 p50 40 jam/move 0.00
+L491 moves 30 win 9/12 p50 45 jam/move 0.57
+L492 moves 25 win 9/12 p50 32 jam/move 0.00
+L493 moves 17 win 12/12 p50 16 jam/move 0.00
+L494 moves 27 win 11/12 p50 34 jam/move 0.48
+L495 moves 31 win 11/12 p50 41 jam/move 0.41
+L496 moves 39 win 1/12 p50 40 jam/move 0.00
+L497 moves 31 win 12/12 p50 34 jam/move 0.00
+L498 moves 29 win 11/12 p50 33 jam/move 0.85
+L499 moves 35 win 8/12 p50 41 jam/move 0.60
+L500 moves 52 win 1/12 p50 66 jam/move 0.00
+L501 moves 24 win 12/12 p50 28 jam/move 0.00
+L502 moves 18 win 12/12 p50 17 jam/move 4.61
+L503 moves 23 win 10/12 p50 32 jam/move 0.00
+L504 moves 24 win 10/12 p50 33 jam/move 0.61
+L505 moves 30 win 12/12 p50 41 jam/move 0.00
+L506 moves 30 win 11/12 p50 40 jam/move 0.00
+L507 moves 28 win 4/12 p50 44 jam/move 0.00
+L508 moves 17 win 12/12 p50 17 jam/move 0.00
+L509 moves 27 win 10/12 p50 33 jam/move 0.00
+L510 moves 39 win 0/12 p50 -1 jam/move 0.27
+L511 moves 47 win 6/12 p50 61 jam/move 0.00
+L512 moves 31 win 5/12 p50 37 jam/move 0.00
+L513 moves 32 win 7/12 p50 37 jam/move 0.00
+L514 moves 60 win 0/12 p50 -1 jam/move 0.00
+L515 moves 57 win 1/12 p50 49 jam/move 0.00
+L516 moves 30 win 12/12 p50 37 jam/move 0.00
+L517 moves 18 win 12/12 p50 15 jam/move 0.00
+L518 moves 34 win 4/12 p50 44 jam/move 0.00
+L519 moves 34 win 12/12 p50 45 jam/move 0.61
+L520 moves 36 win 10/12 p50 40 jam/move 0.00
+L521 moves 26 win 6/12 p50 42 jam/move 0.00
+L522 moves 28 win 12/12 p50 34 jam/move 0.76
+L523 moves 17 win 12/12 p50 15 jam/move 0.00
+L524 moves 31 win 5/12 p50 46 jam/move 0.42
+L525 moves 43 win 0/12 p50 -1 jam/move 0.19
+L526 moves 32 win 0/12 p50 -1 jam/move 0.26
+L527 moves 30 win 12/12 p50 29 jam/move 0.57
+L528 moves 30 win 11/12 p50 38 jam/move 0.68
+L529 moves 33 win 12/12 p50 39 jam/move 0.00
+L530 moves 32 win 10/12 p50 36 jam/move 0.52
+L531 moves 28 win 10/12 p50 28 jam/move 0.56
+L532 moves 18 win 12/12 p50 17 jam/move 0.00
+L533 moves 30 win 12/12 p50 33 jam/move 0.32
+L534 moves 52 win 6/12 p50 57 jam/move 0.00
+L535 moves 33 win 8/12 p50 46 jam/move 0.00
+L536 moves 28 win 10/12 p50 35 jam/move 0.59
+L537 moves 34 win 6/12 p50 49 jam/move 0.44
+L538 moves 18 win 12/12 p50 17 jam/move 0.00
+L539 moves 36 win 12/12 p50 40 jam/move 0.57
+L540 moves 31 win 11/12 p50 39 jam/move 0.46
+L541 moves 29 win 6/12 p50 37 jam/move 0.00
+L542 moves 35 win 8/12 p50 48 jam/move 0.52
+L543 moves 44 win 2/12 p50 47 jam/move 0.00
+L544 moves 31 win 11/12 p50 35 jam/move 0.00
+L545 moves 24 win 12/12 p50 34 jam/move 0.49
+L546 moves 29 win 10/12 p50 42 jam/move 0.00
+L547 moves 21 win 12/12 p50 16 jam/move 3.87
+L548 moves 33 win 10/12 p50 42 jam/move 0.00
+L549 moves 27 win 9/12 p50 38 jam/move 0.63
+L550 moves 28 win 0/12 p50 -1 jam/move 0.00
+L551 moves 35 win 11/12 p50 45 jam/move 0.00
+L552 moves 30 win 3/12 p50 46 jam/move 0.00
+L553 moves 19 win 12/12 p50 16 jam/move 0.00
+L554 moves 31 win 8/12 p50 43 jam/move 0.64
+L555 moves 28 win 10/12 p50 34 jam/move 0.47
+L556 moves 33 win 11/12 p50 39 jam/move 0.00
+L557 moves 26 win 11/12 p50 35 jam/move 0.50
+L558 moves 25 win 9/12 p50 30 jam/move 0.62
+L559 moves 56 win 1/12 p50 68 jam/move 0.19
+L560 moves 30 win 7/12 p50 33 jam/move 0.67
+L561 moves 26 win 12/12 p50 33 jam/move 0.30
+L562 moves 20 win 12/12 p50 17 jam/move 0.00
+L563 moves 35 win 12/12 p50 48 jam/move 0.36
+L564 moves 32 win 7/12 p50 37 jam/move 0.40
+L565 moves 29 win 11/12 p50 42 jam/move 0.00
+L566 moves 29 win 3/12 p50 33 jam/move 0.00
+L567 moves 30 win 12/12 p50 32 jam/move 0.58
+L568 moves 16 win 12/12 p50 16 jam/move 0.00
+L569 moves 31 win 11/12 p50 32 jam/move 0.56
+L570 moves 30 win 10/12 p50 41 jam/move 0.40
+L571 moves 50 win 2/12 p50 64 jam/move 0.24
+L572 moves 36 win 1/12 p50 44 jam/move 0.00
+L573 moves 25 win 10/12 p50 36 jam/move 0.58
+L574 moves 28 win 11/12 p50 39 jam/move 0.60
+L575 moves 34 win 10/12 p50 44 jam/move 0.14
+L576 moves 36 win 12/12 p50 40 jam/move 0.00
+L577 moves 15 win 12/12 p50 16 jam/move 0.00
+L578 moves 31 win 4/12 p50 47 jam/move 0.50
+L579 moves 37 win 0/12 p50 -1 jam/move 0.00
+L580 moves 43 win 4/12 p50 54 jam/move 0.00
+L581 moves 53 win 2/12 p50 68 jam/move 0.00
+L582 moves 50 win 1/12 p50 51 jam/move 0.00
+L583 moves 20 win 12/12 p50 21 jam/move 3.53
+L584 moves 31 win 11/12 p50 40 jam/move 0.00
+L585 moves 35 win 12/12 p50 42 jam/move 0.00
+L586 moves 33 win 0/12 p50 -1 jam/move 0.00
+L587 moves 33 win 12/12 p50 36 jam/move 0.00
+L588 moves 31 win 8/12 p50 38 jam/move 0.53
+L589 moves 60 win 2/12 p50 71 jam/move 0.00
+L590 moves 60 win 0/12 p50 -1 jam/move 0.18
+L591 moves 33 win 1/12 p50 51 jam/move 0.00
+L592 moves 17 win 12/12 p50 15 jam/move 0.00
+L593 moves 43 win 4/12 p50 58 jam/move 0.29
+L594 moves 32 win 4/12 p50 47 jam/move 0.00
+L595 moves 37 win 10/12 p50 37 jam/move 0.25
+L596 moves 32 win 12/12 p50 43 jam/move 0.00
+L597 moves 29 win 9/12 p50 34 jam/move 0.00
+L598 moves 20 win 12/12 p50 17 jam/move 0.00
+L599 moves 27 win 11/12 p50 35 jam/move 0.69
+L600 moves 33 win 9/12 p50 45 jam/move 0.00
+problems: 0
