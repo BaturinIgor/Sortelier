@@ -174,6 +174,13 @@ def main():
                 call("POST", "/v1/subscriptionLocalizations", {"data": {"type": "subscriptionLocalizations",
                      "attributes": {"locale": locale, "name": name, "description": desc},
                      "relationships": {"subscription": rel("subscriptions", sub)}}})
+        # сначала страны продажи: без них Apple не принимает цены (UNSUPPORTED_TERRITORY)
+        if not call("GET", f"/v1/subscriptions/{sub}/subscriptionAvailability"):
+            call("POST", "/v1/subscriptionAvailabilities", {"data": {"type": "subscriptionAvailabilities",
+                 "attributes": {"availableInNewTerritories": True},
+                 "relationships": {"subscription": rel("subscriptions", sub),
+                                   "availableTerritories": {"data": [{"type": "territories", "id": t} for t in territories]}}}})
+
         if not get_all(f"/v1/subscriptions/{sub}/prices?limit=1"):
             point = find_price_point(f"/v1/subscriptions/{sub}/pricePoints", price)
             if point:
@@ -184,13 +191,9 @@ def main():
                          "attributes": {"startDate": None, "preserveCurrentPrice": False},
                          "relationships": {"subscription": rel("subscriptions", sub),
                                            "subscriptionPricePoint": rel("subscriptionPricePoints", p)}}})
+                    if len(errors) > 400:
+                        sys.exit("too many errors")
                 print("prices", pid, len(points))
-        if not call("GET", f"/v1/subscriptions/{sub}/subscriptionAvailability"):
-            call("POST", "/v1/subscriptionAvailabilities", {"data": {"type": "subscriptionAvailabilities",
-                 "attributes": {"availableInNewTerritories": True},
-                 "relationships": {"subscription": rel("subscriptions", sub),
-                                   "availableTerritories": {"data": [{"type": "territories", "id": t} for t in territories]}}}})
-
     print("errors:", len(errors))
     for e in errors:
         print(" ", e)
