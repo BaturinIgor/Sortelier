@@ -184,12 +184,7 @@ struct MarketMapView: View {
         HStack(spacing: 8) {
             CircleIconButton(symbol: "xmark", size: 42, action: close)
             // длинное название ("Продуктовый ряд") переносится на вторую строку, а не обрезается
-            StrokeText(text: Self.twoLines(lang.t("m3.title")), size: 16, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
-                       stroke: Theme.woodDark, width: 1.3, drop: 1.5)
-                .lineLimit(2)
-                .lineSpacing(-4)
-                .minimumScaleFactor(0.6)
-                .multilineTextAlignment(.center)
+            HeaderTitle(text: lang.t("m3.title"))
                 .padding(.horizontal, 12)
                 .frame(minHeight: 42, maxHeight: 48)
                 .background(ZStack {

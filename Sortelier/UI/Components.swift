@@ -780,3 +780,21 @@ extension View {
         return out
     }
 }
+
+/// Название мини-игры в деревянной плашке шапки: до двух строк по границе слов,
+/// каждая строка ужимается сама и никогда не рвется посреди слова.
+struct HeaderTitle: View {
+    let text: String
+
+    var body: some View {
+        let lines = Self.twoLines(text).components(separatedBy: "\n")
+        VStack(spacing: -3) {
+            ForEach(lines.indices, id: \.self) { i in
+                StrokeText(text: lines[i], size: 16, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
+                           stroke: Theme.woodDark, width: 1.3, drop: 1.5)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+            }
+        }
+    }
+}
