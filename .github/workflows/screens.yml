@@ -40,7 +40,7 @@ jobs:
         run: |
           xcrun simctl list devices available
           WANT="${{ github.event.inputs.device }}"
-          UDID=$(WANT="$WANT" xcrun simctl list devices available -j | python3 -c "
+          UDID=$(xcrun simctl list devices available -j | WANT="$WANT" python3 -c "
           import json, os, sys
           d = json.load(sys.stdin)['devices']
           want = os.environ.get('WANT', '')
