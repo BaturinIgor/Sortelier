@@ -6,7 +6,7 @@ import UserMessagingPlatform
 /// Реклама за награду через Google AdMob.
 /// Порядок запуска: согласие (UMP, нужно для Европы), запрос ATT, старт SDK, загрузка ролика.
 /// ID приложения лежит в Info.plist (GADApplicationIdentifier), ID блока - AdMobRewardedUnit.
-/// Пока стоят тестовые ID Google: ролик настоящий, но с пометкой Test Ad и без дохода.
+/// В отладке и в сборке для SideStore показывается тестовый ролик Google (пометка Test Ad, без дохода).
 final class Ads: NSObject, FullScreenContentDelegate {
     static let shared = Ads()
 
@@ -14,8 +14,13 @@ final class Ads: NSObject, FullScreenContentDelegate {
     static let testUnit = "ca-app-pub-3940256099942544/1712485313"
 
     static var unitId: String {
+        // свои ролики на тестовых сборках смотреть нельзя: AdMob банит аккаунт за "накрутку"
+        #if DEBUG || SIDELOAD
+        return testUnit
+        #else
         let value = (Bundle.main.object(forInfoDictionaryKey: "AdMobRewardedUnit") as? String) ?? ""
         return value.isEmpty ? testUnit : value
+        #endif
     }
 
     private var started = false

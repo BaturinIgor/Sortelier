@@ -56,9 +56,9 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         UIAppFonts: [Nunito-Bold.ttf, Nunito-ExtraBold.ttf, Nunito-Black.ttf]
         AppMetricaAPIKey: ""
-        # AdMob: пока тестовые ID Google. Перед релизом заменить на ID из кабинета AdMob.
-        GADApplicationIdentifier: ca-app-pub-3940256099942544~1458002511
-        AdMobRewardedUnit: ca-app-pub-3940256099942544/1712485313
+        # AdMob, приложение Sortelier. В отладке и сборке для SideStore код берет тестовый блок Google (Ads.unitId).
+        GADApplicationIdentifier: ca-app-pub-9867750696429328~4506031184
+        AdMobRewardedUnit: ca-app-pub-9867750696429328/4907541770
         NSUserTrackingUsageDescription: "Your data will be used to show you more relevant ads."
         SKAdNetworkItems:
           - SKAdNetworkIdentifier: cstr6suwn9.skadnetwork
