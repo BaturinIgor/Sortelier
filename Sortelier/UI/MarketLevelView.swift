@@ -69,6 +69,9 @@ struct MarketLevelContent: View {
                     let kind = raw.hasPrefix("m3.") ? String(raw.dropFirst(3)) : raw
                     if !progress.seenIntro("m3." + kind) { pending = kind }
                 }
+                #if DEBUG
+                if UIDebug.flag("uiM3Pause") { paused = true }
+                #endif
                 if let kind = pending {
                     // обучение показывается до старта, поле стартует после него
                     intro = kind

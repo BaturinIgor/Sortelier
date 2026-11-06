@@ -9,6 +9,11 @@ on:
       - "README.md"
       - "tools/**"
   workflow_dispatch:
+    inputs:
+      device:
+        description: "Часть имени симулятора, например SE или Pro Max (по умолчанию - обычный iPhone)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -34,11 +39,14 @@ jobs:
         id: sim
         run: |
           xcrun simctl list devices available
-          UDID=$(xcrun simctl list devices available -j | python3 -c "
-          import json, sys
+          WANT="${{ github.event.inputs.device }}"
+          UDID=$(WANT="$WANT" xcrun simctl list devices available -j | python3 -c "
+          import json, os, sys
           d = json.load(sys.stdin)['devices']
-          c = [x for k, v in d.items() if 'iOS' in k for x in v
-               if x['name'].startswith('iPhone') and 'Max' not in x['name'] and 'Plus' not in x['name'] and 'Air' not in x['name']]
+          want = os.environ.get('WANT', '')
+          phones = [x for k, v in d.items() if 'iOS' in k for x in v if x['name'].startswith('iPhone')]
+          c = [x for x in phones if want in x['name']] if want else \
+              [x for x in phones if 'Max' not in x['name'] and 'Plus' not in x['name'] and 'Air' not in x['name']]
           c.sort(key=lambda x: x['name'])
           print(c[-1]['udid'] if c else '')
           ")
@@ -122,6 +130,11 @@ jobs:
           shoot m3_intro    -uiLang ru -uiScreen marketlevel -uiMarketLevel 11
           shoot m3_out      -uiLang ru -uiScreen marketlevel -uiMarketLevel 14 -uiNoIntro -uiM3Out
           shoot m3_win      -uiLang ru -uiScreen marketlevel -uiMarketLevel 12 -uiNoIntro -uiM3Win
+          shoot m3_pause    -uiLang ru -uiScreen marketlevel -uiMarketLevel 20 -uiNoIntro -uiM3Pause
+          shoot m3_fever    -uiLang ru -uiScreen marketlevel -uiMarketLevel 97 -uiNoIntro
+          shoot m3_choc_intro -uiLang ru -uiScreen marketlevel -uiMarketLevel 94
+          shoot m3_choc     -uiLang ru -uiScreen marketlevel -uiMarketLevel 106 -uiNoIntro -uiAutoplay 6
+          shoot m3_choc_en  -uiLang en -uiScreen marketlevel -uiMarketLevel 94
           shoot recipe      -uiLang ru -uiScreen recipe
           shoot garden      -uiLang ru -uiScreen garden -uiHappy
           shoot jar         -uiLang ru -uiScreen jar
