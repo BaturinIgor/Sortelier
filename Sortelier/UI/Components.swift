@@ -765,3 +765,18 @@ struct ClaimAllButton: View {
         .accessibilityIdentifier("claimAll")
     }
 }
+
+extension View {
+    /// Название в шапке на две строки по границе слов: "Продуктовый ряд" -> "Продуктовый\nряд".
+    /// Иначе на узком экране текст переносится посреди слова ("Продуктов-ый").
+    static func twoLines(_ text: String) -> String {
+        guard !text.contains("\n") else { return text }
+        let spaces = text.indices.filter { text[$0] == " " }
+        guard !spaces.isEmpty else { return text }
+        let mid = text.count / 2
+        let best = spaces.min { abs(text.distance(from: text.startIndex, to: $0) - mid) < abs(text.distance(from: text.startIndex, to: $1) - mid) }!
+        var out = text
+        out.replaceSubrange(best...best, with: "\n")
+        return out
+    }
+}

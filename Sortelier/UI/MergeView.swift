@@ -83,11 +83,12 @@ struct MergeView: View {
         HStack(spacing: 8) {
             CircleIconButton(symbol: "xmark", size: 42, action: close)
             // длинное название ("Продуктовый ряд") переносится на вторую строку, а не обрезается
-            StrokeText(text: lang.t("merge.title"), size: 17, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
+            StrokeText(text: Self.twoLines(lang.t("merge.title")), size: 16, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
                        stroke: Theme.woodDark, width: 1.3, drop: 1.5)
                 .lineLimit(2)
                 .lineSpacing(-4)
                 .minimumScaleFactor(0.6)
+                .multilineTextAlignment(.center)
                 .padding(.horizontal, 12)
                 .frame(minHeight: 42, maxHeight: 48)
                 .background(
@@ -97,6 +98,7 @@ struct MergeView: View {
                         Capsule().strokeBorder(Theme.woodDark, lineWidth: 2.5)
                     }
                 )
+                .layoutPriority(1)
             Spacer(minLength: 4)
             // счетчики не сжимаем: место под цифры важнее названия
             Button { showEnergy = true } label: { EnergyPill() }.buttonStyle(PressScaleStyle())
