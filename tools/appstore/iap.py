@@ -37,6 +37,32 @@ SUBS = {
     "vipmonth": ("ONE_MONTH", "4.99", 1, ("VIP for a month", "Ad rewards instantly, x1.5 coins, 8 lives"), ("VIP на месяц", "Награды без рекламы, монеты x1.5, 8 жизней")),
 }
 GROUP = ("VIP", ("VIP", "Sortelier"), ("VIP", "Sortelier"))
+# язык -> локали App Store Connect (как в tools/appstore/build.py)
+LOCALES = {
+    "de": ["de-DE"], "es": ["es-ES", "es-MX"], "fr": ["fr-FR"], "it": ["it"], "pt-BR": ["pt-BR"], "tr": ["tr"],
+    "pl": ["pl"], "id": ["id"], "vi": ["vi"], "th": ["th"], "hi": ["hi"], "ar": ["ar-SA"], "ja": ["ja"], "ko": ["ko"],
+    "zh-Hans": ["zh-Hans"], "zh-Hant": ["zh-Hant"],
+}
+COINS = {"coinss": 500, "coinsm": 1800, "coinsl": 3500, "coinsxl": 8000, "coinsxxl": 18000}
+
+
+def texts(key, en, ru):
+    """Все переводы товара: {локаль: (название, описание)}."""
+    out = {"en-US": en, "en-GB": en, "ru": ru}
+    table = json.load(open(os.path.join(os.path.dirname(__file__), "iap_l10n.json"), encoding="utf-8"))
+    for lang, locales in LOCALES.items():
+        t = table[lang]
+        if key in COINS:
+            v = (t["coins"].format(COINS[key]), t["coins_d"].format(COINS[key]))
+        elif key in ("vipweek", "vipmonth"):
+            v = (t[key], t["vip_d"])
+        else:
+            v = tuple(t[key])
+        for loc in locales:
+            out[loc] = v
+    return out
+
+
 REVIEW_NOTE = "Shop tab in the game. Purchases grant in-game items immediately."
 
 
@@ -145,7 +171,7 @@ def main():
             iap = r["data"]["id"]
             print("created", pid)
         locs = {l["attributes"]["locale"] for l in get_all(f"/v2/inAppPurchases/{iap}/inAppPurchaseLocalizations")}
-        for locale, (name, desc) in (("en-US", en), ("ru", ru)):
+        for locale, (name, desc) in texts(key, en, ru).items():
             if locale not in locs:
                 call("POST", "/v1/inAppPurchaseLocalizations", {"data": {"type": "inAppPurchaseLocalizations",
                      "attributes": {"locale": locale, "name": name, "description": desc},
@@ -165,7 +191,7 @@ def main():
                  "attributes": {"availableInNewTerritories": True},
                  "relationships": {"inAppPurchase": rel("inAppPurchases", iap),
                                    "availableTerritories": {"data": [{"type": "territories", "id": t} for t in territories]}}}})
-        if not call("GET", f"/v2/inAppPurchases/{iap}/appStoreReviewScreenshot"):
+        if not (call("GET", f"/v2/inAppPurchases/{iap}/appStoreReviewScreenshot") or {}).get("data"):
             upload_review_shot("inAppPurchaseAppStoreReviewScreenshots", "inAppPurchaseV2", "inAppPurchases", iap, key)
 
     # --- подписка VIP ---
@@ -179,7 +205,8 @@ def main():
     if not group:
         return
     glocs = {l["attributes"]["locale"] for l in get_all(f"/v1/subscriptionGroups/{group}/subscriptionGroupLocalizations")}
-    for locale, (name, app_name) in (("en-US", GROUP[1]), ("ru", GROUP[2])):
+    group_locales = ["en-US", "en-GB", "ru"] + [l for ls in LOCALES.values() for l in ls]
+    for locale, (name, app_name) in ((l, GROUP[1]) for l in group_locales):
         if locale not in glocs:
             call("POST", "/v1/subscriptionGroupLocalizations", {"data": {"type": "subscriptionGroupLocalizations",
                  "attributes": {"locale": locale, "name": name, "customAppName": app_name},
@@ -200,7 +227,7 @@ def main():
         else:
             print("exists", pid)
         locs = {l["attributes"]["locale"] for l in get_all(f"/v1/subscriptions/{sub}/subscriptionLocalizations")}
-        for locale, (name, desc) in (("en-US", en), ("ru", ru)):
+        for locale, (name, desc) in texts(key, en, ru).items():
             if locale not in locs:
                 call("POST", "/v1/subscriptionLocalizations", {"data": {"type": "subscriptionLocalizations",
                      "attributes": {"locale": locale, "name": name, "description": desc},
@@ -225,7 +252,7 @@ def main():
                     if len(errors) > 400:
                         sys.exit("too many errors")
                 print("prices", pid, len(points))
-        if not call("GET", f"/v1/subscriptions/{sub}/appStoreReviewScreenshot"):
+        if not (call("GET", f"/v1/subscriptions/{sub}/appStoreReviewScreenshot") or {}).get("data"):
             upload_review_shot("subscriptionAppStoreReviewScreenshots", "subscription", "subscriptions", sub, key)
     print("errors:", len(errors))
     for e in errors:
