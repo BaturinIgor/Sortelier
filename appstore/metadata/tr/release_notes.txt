@@ -1,4 +1,6 @@
-- Meksika Mutfağı ve Fransız Fırını: yeni ürünler, yemekler ve müziklerle 60 yeni seviye
-- Yeni engeller: anahtar ürünle açılan kilitler ve zincirli raflar
-- Sezonluk etkinliklerin artık kendi haritası, özel ikramları ve kostümlü bir konuğu var
-- Halloween Gecesi etkinliği
+Sortelier'e hoş geldin! İlk sürümde:
+- Dünyanın 5 mutfağında 150 sıralama bölümü
+- Pazar Eşleştir: 600 üçlü eşleştirme bölümü
+- Şefin Atölyesi: malzemeleri yemeklere birleştir
+- Tedarikçi bahçesi ve Büyük Tarif
+- Günlük ve haftalık görevler, şef yarışları, sezon etkinlikleri ve kart albümü

@@ -1,4 +1,6 @@
-- Dapur Meksiko dan Toko Roti Prancis: 60 level baru dengan produk, hidangan, dan musik baru
-- Rintangan baru: gembok dengan produk kunci dan rak yang dirantai
-- Event musiman kini punya peta sendiri dengan kudapan spesial dan tamu berkostum
-- Event Malam Halloween
+Selamat datang di Sortelier! Di versi pertama:
+- 150 level sortir di 5 dapur dunia
+- Pasar Match: 600 level match-3
+- Bengkel Koki: gabungkan bahan menjadi hidangan
+- Kebun pemasok dan Resep Besar
+- Tantangan harian dan mingguan, balapan koki, event musiman, dan album kartu

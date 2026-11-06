@@ -1,4 +1,6 @@
-- Bếp Mexico và Tiệm Bánh Pháp: 60 màn chơi mới, cùng nguyên liệu, món ăn và nhạc mới
-- Chướng ngại mới: ổ khóa cần món chìa khóa và những kệ bị xích
-- Sự kiện theo mùa nay có bản đồ riêng với món đặc biệt và vị khách hóa trang
-- Sự kiện Đêm Halloween
+Chào mừng đến với Sortelier! Trong phiên bản đầu tiên:
+- 150 màn sắp xếp ở 5 căn bếp thế giới
+- Chợ Ghép: 600 màn ghép 3
+- Xưởng bếp trưởng: ghép nguyên liệu thành món ăn
+- Vườn nhà cung cấp và Công thức lớn
+- Thử thách ngày và tuần, đua đầu bếp, sự kiện theo mùa và album thẻ
