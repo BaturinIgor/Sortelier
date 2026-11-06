@@ -217,6 +217,8 @@ def target(lv):
         return 0.97
     if n <= 6:
         return 1.0
+    if n > 60 and lv.get("intro"):
+        return 0.9  # уровень с обучением новому блокеру проходится почти всегда
     if n <= 15:
         return 0.88 if not lv["hard"] else 0.7
     if n <= 30:

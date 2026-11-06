@@ -13,6 +13,8 @@
 """
 from __future__ import annotations
 
+import json
+import os
 import random
 
 from levels import COLORS6, PER_CHAPTER, SHAPES, block, checker, count, level, mirror, put, rows_
@@ -278,16 +280,30 @@ def desired_length(lv):
     return min(30, 20 + ch // 2) + (4 if lv["hard"] else 0)
 
 
+# Уровни, которые бот не мог пройти за разумное число ходов (стена ящиков за дырами и т.п.): generate.py
+# пересобирает их с другим зерном и запоминает номер варианта здесь.
+RELAYOUT_PATH = os.path.join(os.path.dirname(__file__), "relayout.json")
+
+
+def relayout():
+    if os.path.exists(RELAYOUT_PATH):
+        return {int(k): v for k, v in json.load(open(RELAYOUT_PATH)).items()}
+    return {}
+
+
+def build_one(n, variant=0):
+    """Уровень n; variant > 0 - другая раскладка того же типа."""
+    salt = variant * 100003
+    pos = (n - 1) % PER_CHAPTER + 1
+    if pos in FEVER_SLOTS:
+        return make_fever(n, random.Random(n * 1009 + 17 + salt))
+    if pos in CHOC_SLOTS and n >= first_choc():
+        # отдельное зерно: остальные уровни главы не меняются
+        return make_choc(n, random.Random(n * 7919 + 3 + salt))
+    return make_normal(n, random.Random(n * 1009 + 17 + salt), hard=pos in HARD_SLOTS)
+
+
 def generated(first, last):
-    out = []
-    for n in range(first, last + 1):
-        rng = random.Random(n * 1009 + 17)
-        pos = (n - 1) % PER_CHAPTER + 1
-        if pos in FEVER_SLOTS:
-            out.append(make_fever(n, rng))
-        elif pos in CHOC_SLOTS and n >= first_choc():
-            # отдельное зерно: остальные уровни главы не меняются
-            out.append(make_choc(n, random.Random(n * 7919 + 3)))
-        else:
-            out.append(make_normal(n, rng, hard=pos in HARD_SLOTS))
-    return out
+    variants = relayout()
+    return [build_one(n, variants.get(n, 0)) for n in range(first, last + 1)]
+

@@ -207,6 +207,8 @@ final class PlayerProgress: ObservableObject {
         guard data.lives < maxLives else {
             return
         }
+        // часы перевели назад: отсчет с "будущей" даты встал бы на часы и дни
+        if data.livesUpdatedAt > Date() { data.livesUpdatedAt = Date() }
         let elapsed = Date().timeIntervalSince(data.livesUpdatedAt)
         let gained = Int(elapsed / Balance.lifeRegen)
         guard gained > 0 else { return }

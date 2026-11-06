@@ -375,10 +375,12 @@ struct SegmentPicker<ID: Hashable>: View {
                 } label: {
                     HStack(spacing: 4) {
                         if let icon = item.icon { SpriteImage(name: icon, size: 26) }
+                        // длинные названия ("Мастерская шефа") переносятся на вторую строку, а не обрезаются
                         Text(item.title)
                             .font(Theme.rounded(14, .black))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.6)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.center)
+                            .minimumScaleFactor(0.7)
                     }
                     .foregroundColor(on ? .white : Theme.brown)
                     .modifier(Outline(color: on ? ButtonPalette.orange.dark : .clear, width: 1))

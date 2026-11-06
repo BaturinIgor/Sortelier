@@ -22,9 +22,10 @@ struct GardenView: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                     Spacer(minLength: 0)
-                    if HappyHour.active(progress.now) { HappyHourChip() }
                 }
                 .padding(.top, 8)
+                // плашка счастливого часа отдельной строкой: в одной строке с заголовком она его обрезала
+                if HappyHour.active(progress.now) { HappyHourChip() }
                 Text(lang.t("garden.text", Int(Garden.waterSeconds / 60)))
                     .font(Theme.rounded(14, .bold))
                     .foregroundColor(.white)
