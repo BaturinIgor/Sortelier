@@ -26,7 +26,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install tools
-        run: brew install xcodegen
+        run: |
+          brew install xcodegen libraqm
+          pip3 install -q --break-system-packages pillow pyjwt cryptography 2>/dev/null || pip3 install -q pillow pyjwt cryptography
+          # Arabic (RTL) captions need Pillow's raqm layout; fail fast instead of after the screenshots
+          python3 -c "from PIL import features; assert features.check('raqm'), 'Pillow has no raqm'; print('raqm ok')"
 
       - name: Generate Xcode project
         run: xcodegen generate
