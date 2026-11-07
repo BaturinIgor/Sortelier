@@ -54,6 +54,10 @@ def main():
     locales = sorted(d for d in os.listdir(META) if os.path.isdir(os.path.join(META, d)))
     app = get_all(f"/v1/apps?filter[bundleId]={BUNDLE}")[0]["id"]
 
+    # права на материалы: сторонний контент (реклама AdMob, шрифты OFL) есть, права на него есть
+    call("PATCH", f"/v1/apps/{app}", {"data": {"type": "apps", "id": app,
+         "attributes": {"contentRightsDeclaration": "USES_THIRD_PARTY_CONTENT"}}})
+
     # --- информация о приложении: название, подзаголовок, политика, категория, рейтинг ---
     infos = get_all(f"/v1/apps/{app}/appInfos")
     info = next((i for i in infos if i["attributes"].get("appStoreState") in
@@ -116,7 +120,10 @@ def main():
         print("age rating", "set" if done else "FAILED", len(fields), "fields")
 
     # --- цена: бесплатно ---
-    if not (call("GET", f"/v1/apps/{app}/appPriceSchedule") or {}).get("data"):
+    sched = (call("GET", f"/v1/apps/{app}/appPriceSchedule") or {}).get("data")
+    priced = bool(sched and get_all(f"/v1/appPriceSchedules/{sched['id']}/manualPrices"))
+    print("price schedule exists:", priced)
+    if not priced:
         free = next((p["id"] for p in get_all(f"/v1/apps/{app}/appPricePoints?filter[territory]=USA&limit=200")
                      if float(p["attributes"].get("customerPrice") or 0) == 0), None)
         if free:

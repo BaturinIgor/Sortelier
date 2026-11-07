@@ -1,0 +1,27 @@
+name: App Store page texts
+
+# Быстрое обновление страницы в App Store Connect без новых скриншотов (store_upload.py --no-shots):
+# тексты, категория, рейтинг, цена, права на материалы. Секреты ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8.
+on:
+  workflow_dispatch:
+  push:
+    branches: ["claude/**"]
+    paths:
+      - ".github/workflows/store-meta.yml"
+      - "tools/appstore/store_upload.py"
+      - "appstore/metadata/**"
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload page texts
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          pip install -q "pyjwt[crypto]"
+          python3 tools/appstore/store_upload.py --no-shots

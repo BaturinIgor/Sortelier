@@ -115,6 +115,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.personal.sortelier
         PRODUCT_NAME: Sortelier
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # Только iPhone: пресет xcodegen для приложения иначе ставит 1,2, и App Store требует снимки iPad
+        TARGETED_DEVICE_FAMILY: "1"
       configs:
         # Бесплатные покупки только в отладочной сборке (симулятор, снимки в CI). Релиз и App Store покупают по-настоящему.
         Debug:
