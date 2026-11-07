@@ -1,4 +1,6 @@
-- Cozinha Mexicana e Padaria Francesa: 60 novos níveis, com novos produtos, pratos e músicas
-- Novos obstáculos: cadeados com produto-chave e prateleiras acorrentadas
-- Os eventos sazonais agora têm mapa próprio, com guloseimas especiais e um convidado fantasiado
-- Evento Noite de Halloween
+Boas-vindas ao Sortelier! Na primeira versão:
+- 150 fases de organizar em 5 cozinhas do mundo
+- Feira Match: 600 fases de combinar 3
+- Oficina do chef: junte ingredientes em pratos
+- Horta do fornecedor e Grande Receita
+- Desafios diários e semanais, corridas de chefs, eventos sazonais e um álbum de cartas

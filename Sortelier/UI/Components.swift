@@ -747,3 +747,54 @@ struct PopupCard<Content: View>: View {
         .padding(.horizontal, 22)
     }
 }
+
+/// "Забрать все (N)": появляется, когда готовых наград больше одной; выдает их одним окном.
+struct ClaimAllButton: View {
+    let count: Int
+    let action: () -> Void
+    @EnvironmentObject private var lang: Lang
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                SpriteImage(name: "icon_gift", size: 26)
+                Text(lang.t("common.claimAll", count))
+            }
+        }
+        .buttonStyle(GameButtonStyle(palette: .green, height: 46, fontSize: 18))
+        .accessibilityIdentifier("claimAll")
+    }
+}
+
+extension View {
+    /// Название в шапке на две строки по границе слов: "Продуктовый ряд" -> "Продуктовый\nряд".
+    /// Иначе на узком экране текст переносится посреди слова ("Продуктов-ый").
+    static func twoLines(_ text: String) -> String {
+        guard !text.contains("\n") else { return text }
+        let spaces = text.indices.filter { text[$0] == " " }
+        guard !spaces.isEmpty else { return text }
+        let mid = text.count / 2
+        let best = spaces.min { abs(text.distance(from: text.startIndex, to: $0) - mid) < abs(text.distance(from: text.startIndex, to: $1) - mid) }!
+        var out = text
+        out.replaceSubrange(best...best, with: "\n")
+        return out
+    }
+}
+
+/// Название мини-игры в деревянной плашке шапки: до двух строк по границе слов,
+/// каждая строка ужимается сама и никогда не рвется посреди слова.
+struct HeaderTitle: View {
+    let text: String
+
+    var body: some View {
+        let lines = Self.twoLines(text).components(separatedBy: "\n")
+        VStack(spacing: -3) {
+            ForEach(lines.indices, id: \.self) { i in
+                StrokeText(text: lines[i], size: 16, weight: .black, color: Color(red: 1.0, green: 0.95, blue: 0.84),
+                           stroke: Theme.woodDark, width: 1.3, drop: 1.5)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+            }
+        }
+    }
+}

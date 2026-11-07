@@ -81,6 +81,22 @@ extension PlayerProgress {
         return grant(pass ? tier.pass : tier.free, source: "event_\(event.kind.rawValue)")
     }
 
+    /// Готовые к выдаче ступени ивента: (индекс, ветка пропуска).
+    func claimableTiers(_ event: GameEvent) -> [(Int, Bool)] {
+        tiers(event).indices.flatMap { i in [false, true].filter { canClaimTier(event, i, pass: $0) }.map { (i, $0) } }
+    }
+
+    /// "Забрать все" на шкале ивента: одна общая награда.
+    func claimAllTiers(_ event: GameEvent) -> Granted? {
+        var total = Reward()
+        var any = false
+        for (i, pass) in claimableTiers(event) {
+            if let g = claimTier(event, i, pass: pass) { total = total + g.reward; any = true }
+        }
+        if any { Analytics.log("claim_all", ["source": "event"]) }
+        return any ? Granted(reward: total, card: nil) : nil
+    }
+
     // MARK: - Уровни сезонного ивента
 
     func completeEventLevel(_ eventId: String, index: Int) -> Bool {

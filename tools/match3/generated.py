@@ -4,13 +4,17 @@
 
 Ритм главы из 30 уровней (номер внутри главы):
 - 5, 10, 15, 20, 25, 30 - сложные;
-- 7, 13, 22, 28 - праздничные ("Фейерверк"): 4 продукта, спецфишки на поле со старта и падают сверху,
-  новые фишки чаще повторяют цвет соседа - все взрывается, цели крупные, ходов с запасом;
+- 7, 13, 22, 28 - праздничные ("Фейерверк"): 4 продукта, пара спецфишек на поле со старта, сверху они не падают;
+  новые фишки чаще повторяют цвет соседа, поэтому ряды часто собираются сами и легко собираются руками,
+  цели чуть меньше обычных, ходов с запасом;
+- 4, 9, 16, 26 с 4-й главы - шоколадные: шоколад растекается, если за ход его не задеть;
 - 3, 11, 18, 24 - с подкруткой: новые фишки иногда подстраиваются под соседей, чтобы чаще выходили
   длинные ряды и уголки (скалки, бомбы, пончики), но не настолько, чтобы уровень играл сам.
 """
 from __future__ import annotations
 
+import json
+import os
 import random
 
 from levels import COLORS6, PER_CHAPTER, SHAPES, block, checker, count, level, mirror, put, rows_
@@ -19,6 +23,8 @@ from validate import starving
 FEVER_SLOTS = (7, 13, 22, 28)
 LUCKY_SLOTS = (3, 11, 18, 24)
 HARD_SLOTS = (5, 10, 15, 20, 25, 30)
+CHOC_SLOTS = (4, 9, 16, 26)
+CHOC_CHAPTER = 4
 
 # Формы для новых глав: к старым добавлены еще несколько.
 SHAPES.update({
@@ -34,9 +40,12 @@ SHAPES.update({
 NORMAL_SHAPES = ["full", "wide", "diamond", "heart", "hourglass", "ring", "columns", "stairs", "plus", "twins",
                  "mushroom", "house", "bowl", "window", "corners", "cross", "arch", "pyramid", "zigzag", "frame",
                  "tower", "butterfly"]
+# без стенок посреди поля: за стенкой шоколад не достать
+CHOC_SHAPES = ["full", "wide", "diamond", "heart", "house", "bowl", "corners", "plus", "mushroom", "cross", "pyramid",
+               "tower"]
 FEVER_SHAPES = ["full", "wide", "diamond", "heart", "plus", "corners", "house", "cross", "frame"]
 
-FEVER_START = ["B", "H", "W"]
+FEVER_START = ["B", "W"]
 
 
 def fever(lv, first=False):
@@ -46,8 +55,8 @@ def fever(lv, first=False):
     lv["goals"] = [g for g in lv["goals"] if g["type"] != "collect" or g["item"] in lv["colors"]] or \
         [{"type": "collect", "item": lv["colors"][0], "count": 60}]
     lv["luck"] = 0.25
-    lv["gift"] = 0.05
-    lv["start"] = FEVER_START + (["R"] if lv["id"] > 60 else [])
+    lv.pop("gift", None)
+    lv["start"] = list(FEVER_START)
     if first:
         lv["intro"] = "m3.fever"
     return lv
@@ -116,6 +125,18 @@ def mixed_ice_jam(rng, g, thick):
     put(g, "k", checker(rng.randint(1, n - 3), 0, 1, 8, rng.randint(0, 1)))
     if thick:
         ice_pattern(rng, g, True)
+
+
+def choc_pattern(rng, g):
+    """Шоколад: одно-два пятна в середине или у дна поля. Его немного - он и так растет."""
+    n = rows_of(g)
+    kind = rng.choice(["center", "center", "bottom", "twins"])
+    if kind == "center":
+        put(g, "c", block(n // 2 - 1, rng.randint(2, 3), 2, rng.choice([2, 3])))
+    elif kind == "bottom":
+        put(g, "c", rows_(g, [n - 1], range(2, 6)))
+    else:
+        put(g, "c", mirror(block(rng.randint(n // 2 - 1, n - 3), 1, 2, 2)))
 
 
 # MARK: - Сборка
@@ -213,22 +234,76 @@ def make_fever(n, rng):
     return fever(lv)
 
 
+def make_choc(n, rng):
+    """Шоколадный уровень: цель - разбить шоколад, плюс сбор одного продукта, позже еще ящики или варенье."""
+    ch = (n - 1) // PER_CHAPTER + 1
+    first = n == first_choc()
+    colors = 6 if rng.random() < 0.8 else 5
+    extra = None if first or ch < 6 else rng.choice([None, None, "crate", "jam"])
+    for _ in range(80):
+        shape = rng.choice(CHOC_SHAPES if not first else ["full", "wide"])
+        state = {}
+
+        def build(g):
+            choc_pattern(rng, g)
+            if extra == "crate":
+                crate_pattern(rng, g, 1)
+            elif extra == "jam":
+                jam_pattern(rng, g)
+            state["g"] = g
+
+        goals = [("choc",)] + ([(extra,)] if extra else [])
+        goals += collect_goals(rng, colors, 1, (70 + 6 * min(ch, 15)) * 0.4)
+        try:
+            lv = level(n, shape, colors, goals, intro="choc" if first else None, build=build)
+        except AssertionError:
+            continue
+        g = state["g"]
+        if not blank_ok(g) or count(g, ".ijIk") < 36:
+            continue
+        if not 4 <= count(g, "c") <= 10:
+            continue
+        return lv
+    raise RuntimeError(f"level {n}: no chocolate layout")
+
+
+def first_choc():
+    return (CHOC_CHAPTER - 1) * PER_CHAPTER + CHOC_SLOTS[0]
+
+
 def desired_length(lv):
     """Сколько ходов (медиана бота) должен длиться уровень: generate.py подгоняет под это цели сбора."""
     n = lv["id"]
     if lv.get("fever"):
-        return 16
+        return 13
     ch = (n - 1) // PER_CHAPTER + 1
     return min(30, 20 + ch // 2) + (4 if lv["hard"] else 0)
 
 
+# Уровни, которые бот не мог пройти за разумное число ходов (стена ящиков за дырами и т.п.): generate.py
+# пересобирает их с другим зерном и запоминает номер варианта здесь.
+RELAYOUT_PATH = os.path.join(os.path.dirname(__file__), "relayout.json")
+
+
+def relayout():
+    if os.path.exists(RELAYOUT_PATH):
+        return {int(k): v for k, v in json.load(open(RELAYOUT_PATH)).items()}
+    return {}
+
+
+def build_one(n, variant=0):
+    """Уровень n; variant > 0 - другая раскладка того же типа."""
+    salt = variant * 100003
+    pos = (n - 1) % PER_CHAPTER + 1
+    if pos in FEVER_SLOTS:
+        return make_fever(n, random.Random(n * 1009 + 17 + salt))
+    if pos in CHOC_SLOTS and n >= first_choc():
+        # отдельное зерно: остальные уровни главы не меняются
+        return make_choc(n, random.Random(n * 7919 + 3 + salt))
+    return make_normal(n, random.Random(n * 1009 + 17 + salt), hard=pos in HARD_SLOTS)
+
+
 def generated(first, last):
-    out = []
-    for n in range(first, last + 1):
-        rng = random.Random(n * 1009 + 17)
-        pos = (n - 1) % PER_CHAPTER + 1
-        if pos in FEVER_SLOTS:
-            out.append(make_fever(n, rng))
-        else:
-            out.append(make_normal(n, rng, hard=pos in HARD_SLOTS))
-    return out
+    variants = relayout()
+    return [build_one(n, variants.get(n, 0)) for n in range(first, last + 1)]
+

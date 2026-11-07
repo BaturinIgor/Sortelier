@@ -278,6 +278,8 @@ extension PlayerProgress {
 
     func refreshEnergy() {
         guard data.merge.energy < MergeBalance.maxEnergy else { return }
+        // часы перевели назад: отсчет с "будущей" даты встал бы на часы и дни
+        if data.merge.energyUpdatedAt > Date() { data.merge.energyUpdatedAt = Date() }
         let gained = Int(Date().timeIntervalSince(data.merge.energyUpdatedAt) / MergeBalance.energyRegen)
         guard gained > 0 else { return }
         data.merge.energy = min(MergeBalance.maxEnergy, data.merge.energy + gained)

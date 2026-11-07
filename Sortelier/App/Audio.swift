@@ -52,6 +52,7 @@ final class Audio {
 
     /// Включает или выключает музыку по настройке, с плавным переходом громкости.
     func updateMusic() {
+        guard !silenced else { return }
         if PlayerProgress.shared.settings.music {
             if music == nil, let url = Bundle.main.url(forResource: track, withExtension: "m4a")
                 ?? Bundle.main.url(forResource: "music_kitchen", withExtension: "m4a") {
@@ -82,9 +83,21 @@ final class Audio {
         updateMusic()
     }
 
+    /// На время рекламы музыка молчит: у ролика свой звук.
+    private(set) var silenced = false
+
+    func silence(_ on: Bool) {
+        silenced = on
+        if on {
+            music?.pause()
+        } else {
+            resume()
+        }
+    }
+
     /// После возврата в приложение плеер мог остановиться.
     func resume() {
-        guard started else { return }
+        guard started, !silenced else { return }
         try? AVAudioSession.sharedInstance().setActive(true)
         updateMusic()
     }

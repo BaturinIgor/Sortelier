@@ -1,0 +1,27 @@
+name: App Store purchases
+
+# Заводит покупки и подписку VIP в App Store Connect (tools/appstore/iap.py).
+# Нужны секреты ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8. Повторный запуск безопасен.
+on:
+  workflow_dispatch:
+  # пока workflow нет в main, запуск вручную недоступен: запускается при изменении скрипта в ветке
+  push:
+    branches: ["claude/**"]
+    paths:
+      - ".github/workflows/iap.yml"
+      - "tools/appstore/iap.py"
+
+jobs:
+  iap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create purchases
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          pip install -q "pyjwt[crypto]"
+          python3 tools/appstore/iap.py

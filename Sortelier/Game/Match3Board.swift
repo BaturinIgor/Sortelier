@@ -108,6 +108,10 @@ enum M3Event {
     case crate(M3Cell, left: Int)
     case ice(M3Cell, left: Int)
     case jam(M3Cell)
+    /// Шоколад разбит.
+    case choc(M3Cell)
+    /// Шоколад растекся из from в to; фишка id в to исчезает под ним.
+    case chocGrow(from: M3Cell, to: M3Cell, id: Int)
     /// Падение по клеткам пути (строки выше поля - отрицательные) и новая фишка сверху.
     case move(id: Int, path: [M3Cell], duration: Double)
     case spawn(M3Tile, path: [M3Cell], duration: Double)
@@ -157,7 +161,7 @@ struct M3RNG {
 }
 
 struct M3Goal: Codable, Hashable {
-    /// collect (собрать фишки item), crate, ice, jam.
+    /// collect (собрать фишки item), crate, ice, jam, choc.
     let type: String
     var item: String?
     let count: Int
@@ -207,10 +211,15 @@ struct M3Board {
     private(set) var crate: [Int]
     private(set) var ice: [Int]
     private(set) var jam: [Int]
+    /// Шоколад: стоит вместо фишки, бьется как ящик в 1 слой и растекается, если за ход его не задеть.
+    private(set) var choc: [Int]
+    private let chocCap: Int
+    private var chocHit = false
     private(set) var gotColors: [Int]
     private(set) var gotCrate = 0
     private(set) var gotIce = 0
     private(set) var gotJam = 0
+    private(set) var gotChoc = 0
     private var rng: M3RNG
     private var nextId = 1
     private let luck: Double
@@ -247,6 +256,8 @@ struct M3Board {
         crate = chars.map { Int(String($0)).map { min(3, max(0, $0)) } ?? 0 }
         ice = chars.map { $0 == "i" || $0 == "k" ? 1 : ($0 == "I" ? 2 : 0) }
         jam = chars.map { $0 == "j" || $0 == "k" ? 1 : 0 }
+        choc = chars.map { $0 == "c" ? 1 : 0 }
+        chocCap = max(6, 2 * choc.reduce(0, +))
         tiles = Array(repeating: nil, count: rows * cols)
         gotColors = Array(repeating: 0, count: level.colors.count)
         luck = max(0, min(1, level.luck ?? 0))
@@ -262,7 +273,10 @@ struct M3Board {
     func tile(_ p: M3Cell) -> M3Tile? { inBounds(p) ? tiles[index(p)] : nil }
     func color(_ p: M3Cell) -> Int? { tile(p)?.kind.color }
     func movable(_ p: M3Cell) -> Bool { inside(p) && tiles[index(p)] != nil && ice[index(p)] == 0 }
-    func isEmpty(_ p: M3Cell) -> Bool { inside(p) && tiles[index(p)] == nil && crate[index(p)] == 0 }
+    func isEmpty(_ p: M3Cell) -> Bool { inside(p) && tiles[index(p)] == nil && crate[index(p)] == 0 && choc[index(p)] == 0 }
+    /// Ящик или шоколад: бьется соседними совпадениями.
+    func isBlock(_ p: M3Cell) -> Bool { inside(p) && (crate[index(p)] > 0 || choc[index(p)] > 0) }
+    func hasChoc(_ p: M3Cell) -> Bool { inBounds(p) && choc[index(p)] > 0 }
     func crateLeft(_ p: M3Cell) -> Int { inBounds(p) ? crate[index(p)] : 0 }
     func iceLeft(_ p: M3Cell) -> Int { inBounds(p) ? ice[index(p)] : 0 }
     func hasJam(_ p: M3Cell) -> Bool { inBounds(p) && jam[index(p)] > 0 }
@@ -294,7 +308,7 @@ struct M3Board {
         for _ in 0..<300 {
             for p in allCells {
                 let i = index(p)
-                guard valid[i], crate[i] == 0 else {
+                guard valid[i], crate[i] == 0, choc[i] == 0 else {
                     tiles[i] = nil
                     continue
                 }
@@ -537,7 +551,7 @@ struct M3Board {
             tiles[index(b)] = nil
             combo(ta, tb, sa, sb, at: b, t: Self.swapTime * 0.6)
             let end = settle(from: Self.swapTime, prefer: [], groupsFirst: false)
-            return finish(end: end, counted: true)
+            return finish(end: spreadChoc(at: end), counted: true)
         }
         if sa != nil || sb != nil {
             emit(0, .swap(a, b, back: false))
@@ -549,7 +563,7 @@ struct M3Board {
             schedule(Self.swapTime, id: special.id, cell: pos, fire)
             // как в rules.py: сначала срабатывает спецфишка, совпадения ищутся после падения
             let end = settle(from: Self.swapTime, prefer: [], groupsFirst: false)
-            return finish(end: end, counted: true)
+            return finish(end: spreadChoc(at: end), counted: true)
         }
         guard swapMakesMatch(a, b) else {
             emit(0, .swap(a, b, back: true))
@@ -558,7 +572,7 @@ struct M3Board {
         emit(0, .swap(a, b, back: false))
         tiles.swapAt(index(a), index(b))
         let end = settle(from: Self.swapTime, prefer: [b, a])
-        return finish(end: end, counted: true)
+        return finish(end: spreadChoc(at: end), counted: true)
     }
 
     /// Тап по спецфишке: срабатывает на месте.
@@ -568,7 +582,7 @@ struct M3Board {
         tiles[index(p)] = nil
         schedule(0.02, id: t.id, cell: p, M3Fire(special: special))
         let end = settle(from: 0.02, prefer: [], groupsFirst: false)
-        return finish(end: end, counted: true)
+        return finish(end: spreadChoc(at: end), counted: true)
     }
 
     /// Бустер во время уровня. Ход не тратится.
@@ -577,7 +591,7 @@ struct M3Board {
         let t0 = 0.32
         switch booster {
         case .mallet:
-            guard inside(p), tiles[index(p)] != nil || crate[index(p)] > 0 else { return nil }
+            guard inside(p), tiles[index(p)] != nil || isBlock(p) else { return nil }
             emit(0, .booster(.mallet, p))
             hit(p, t: t0)
         case .knife:
@@ -634,6 +648,7 @@ struct M3Board {
     // MARK: - Лента событий
 
     private mutating func begin() {
+        chocHit = false
         out = []
         fires = []
         bornAt = [:]
@@ -667,6 +682,13 @@ struct M3Board {
             emit(t, .crate(p, left: crate[i]))
             return
         }
+        if choc[i] > 0 {
+            choc[i] = 0
+            gotChoc += 1
+            chocHit = true
+            emit(t, .choc(p))
+            return
+        }
         if jam[i] > 0 {
             jam[i] = 0
             gotJam += 1
@@ -697,7 +719,7 @@ struct M3Board {
             var crates: [M3Cell] = []
             for p in g.cells {
                 for q in [M3Cell(p.r - 1, p.c), M3Cell(p.r + 1, p.c), M3Cell(p.r, p.c - 1), M3Cell(p.r, p.c + 1)]
-                where inside(q) && crate[index(q)] > 0 && !crates.contains(q) {
+                where isBlock(q) && !crates.contains(q) {
                     crates.append(q)
                 }
             }
@@ -853,6 +875,7 @@ struct M3Board {
         case "crate": return gotCrate
         case "ice": return gotIce
         case "jam": return gotJam
+        case "choc": return gotChoc
         default: return 0
         }
     }
@@ -862,13 +885,14 @@ struct M3Board {
     /// Цель венчика: нужные ящики, лед, варенье, потом фишки нужного цвета, потом любая фишка.
     private mutating func whiskTarget(excluding exclude: Set<M3Cell>) -> M3Cell? {
         var wantColors = Set<Int>()
-        var wantCrate = false, wantIce = false, wantJam = false
+        var wantCrate = false, wantIce = false, wantJam = false, wantChoc = false
         for i in goals.indices where remaining(i) > 0 {
             switch goals[i].type {
             case "collect": if let k = goalColors[i] { wantColors.insert(k) }
             case "crate": wantCrate = true
             case "ice": wantIce = true
             case "jam": wantJam = true
+            case "choc": wantChoc = true
             default: break
             }
         }
@@ -879,6 +903,8 @@ struct M3Board {
             var score = 0
             if crate[i] > 0 {
                 score = wantCrate ? 3 : 0
+            } else if choc[i] > 0 {
+                score = wantChoc ? 3 : 0
             } else if ice[i] > 0 && wantIce {
                 score = 3
             } else if jam[i] > 0 && wantJam {
@@ -895,6 +921,36 @@ struct M3Board {
             if score > 0 && score == best { options.append(p) }
         }
         return options.isEmpty ? nil : rng.pick(options)
+    }
+
+    // MARK: - Шоколад
+
+    /// После засчитанного хода: если шоколад не задели, одна случайная плитка занимает соседнюю клетку
+    /// с обычной фишкой (как spread_choc в tools/match3/rules.py). Возвращает новое время конца.
+    private mutating func spreadChoc(at t: Double) -> Double {
+        guard !chocHit, choc.contains(where: { $0 > 0 }), choc.reduce(0, +) < chocCap else { return t }
+        var options: [(M3Cell, M3Cell)] = []
+        for p in allCells where choc[index(p)] > 0 {
+            for q in [M3Cell(p.r - 1, p.c), M3Cell(p.r + 1, p.c), M3Cell(p.r, p.c - 1), M3Cell(p.r, p.c + 1)]
+            where movable(q) && color(q) != nil && !hasJam(q) {
+                options.append((p, q))
+            }
+        }
+        // клетки по порядку, без повторов: тот же выбор, что у бота
+        var seen = Set<M3Cell>()
+        var targets: [M3Cell] = []
+        for (_, q) in options where !seen.contains(q) { seen.insert(q); targets.append(q) }
+        targets.sort { ($0.r, $0.c) < ($1.r, $1.c) }
+        guard !targets.isEmpty else { return t }
+        let q = rng.pick(targets)
+        let from = options.first { $0.1 == q }?.0 ?? q
+        guard let tile = tiles[index(q)] else { return t }
+        tiles[index(q)] = nil
+        choc[index(q)] = 1
+        emit(t + 0.05, .chocGrow(from: from, to: q, id: tile.id))
+        var end = t + 0.5
+        if !hasMove() { end = shuffle(at: end) }
+        return end
     }
 
     // MARK: - Падение

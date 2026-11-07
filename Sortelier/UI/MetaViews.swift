@@ -362,3 +362,34 @@ struct StreakPopup: View {
         }
     }
 }
+
+/// Подсказка при первом заходе в раздел: что здесь и зачем. Закрывается кнопкой и больше не показывается.
+struct ScreenTip: View {
+    /// Ключ раздела: текст берется из tip.<id>, отметка о показе - в seenIntros как tip.<id>.
+    let id: String
+    let icon: String
+    @EnvironmentObject private var progress: PlayerProgress
+    @EnvironmentObject private var lang: Lang
+
+    var body: some View {
+        if !progress.seenIntro("tip." + id) {
+            HStack(alignment: .center, spacing: 12) {
+                SpriteImage(name: icon, size: 40)
+                Text(lang.t("tip." + id))
+                    .font(Theme.rounded(14, .semibold))
+                    .foregroundColor(Theme.brown)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Button(lang.t("tip.ok")) {
+                    withAnimation(.easeOut(duration: 0.2)) { progress.markIntro("tip." + id) }
+                }
+                .buttonStyle(GameButtonStyle(palette: .green, height: 36, fontSize: 15, fullWidth: false, radius: 12))
+                .fixedSize()
+            }
+            .padding(12)
+            .background(InsetBackground(radius: 16, color: Color(red: 1.0, green: 0.93, blue: 0.7)))
+            .transition(.opacity.combined(with: .move(edge: .top)))
+            .accessibilityIdentifier("tip." + id)
+        }
+    }
+}

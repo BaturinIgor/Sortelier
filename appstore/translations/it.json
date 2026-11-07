@@ -2,9 +2,9 @@
  "name": "Sortelier: Ordina e Cucina",
  "subtitle": "Smista, cucina e servi",
  "keywords": "puzzle,rompicapo,ricette,cibo,scaffali,chef,ristorante,unisci,casual,logica,cuoco,pasticceria",
- "promo": "Novità: Cucina Messicana e Panetteria Francese, più un evento di Halloween con mappa tutta sua, dolcetti spaventosi e una streghetta ospite!",
- "description": "Sortelier è un accogliente puzzle a tema cibo. Trascina i prodotti tra gli scaffali della cucina, prepara piatti seguendo le ricette e servi i clienti in attesa al bancone.\n\nNON SOLO ORDINARE, ANCHE CUCINARE\nTre prodotti uguali vanno a un cliente, ma tre ingredienti diversi diventano un piatto: pane, carne e lattuga fanno un hamburger, riso, pesce e salsa di soia fanno il sushi. La farina diventa impasto e l'impasto finisce nella pizza. Ogni mossa conta.\n\nCINQUE CUCINE DAL MONDO\nDiner americano, cucina giapponese, trattoria italiana, cantina messicana e panetteria francese: 150 livelli controllati a mano, e ogni cucina ha i suoi prodotti, la sua musica e il suo sfondo.\n\nNUOVE SFIDE LUNGO LA STRADA\nProdotti congelati, articoli misteriosi, Buongustai esigenti con mance generose, scaffali chiusi a chiave con un prodotto-chiave e scaffali incatenati tra loro.\n\nNIENTE TIMER, NIENTE STRESS\nI clienti non se ne vanno mai. Servili in fretta e lasceranno più mancia, prenditela con calma e smetteranno semplicemente di lasciarla.\n\nOGNI GIORNO C'È QUALCOSA DA FARE\nSfide giornaliere e settimanali, una medaglia mensile, una serie con premi, gare tra chef ed eventi stagionali con una mappa tutta loro, dolcetti e ospiti in costume.\n\nCOLLEZIONA TUTTO\nRiempi il ricettario, completa l'album delle carte, ottieni obiettivi e decora la tua cucina con nuovi sfondi.\n\nNiente pubblicità forzata tra un livello e l'altro. Le pubblicità con ricompensa sono sempre facoltative.",
- "release_notes": "- Cucina Messicana e Panetteria Francese: 60 nuovi livelli, con nuovi prodotti, piatti e musiche\n- Nuovi ostacoli: lucchetti con prodotto-chiave e scaffali incatenati\n- Gli eventi stagionali hanno ora una mappa tutta loro, con dolcetti speciali e un ospite in costume\n- Evento Notte di Halloween",
+ "promo": "Ordina, cucina e servi in 5 cucine del mondo, poi gioca a 600 livelli di Mercato Match, al Laboratorio dello chef e al tuo orto!",
+ "description": "Sortelier è un accogliente puzzle a tema cibo. Trascina i prodotti tra gli scaffali della cucina, prepara piatti seguendo le ricette e servi i clienti in attesa al bancone.\n\nNON SOLO ORDINARE, ANCHE CUCINARE\nTre prodotti uguali vanno a un cliente, ma tre ingredienti diversi diventano un piatto: pane, carne e lattuga fanno un hamburger, riso, pesce e salsa di soia fanno il sushi. La farina diventa impasto e l'impasto finisce nella pizza. Ogni mossa conta.\n\nCINQUE CUCINE DAL MONDO\nDiner americano, cucina giapponese, trattoria italiana, cantina messicana e panetteria francese: 150 livelli controllati a mano, e ogni cucina ha i suoi prodotti, la sua musica e il suo sfondo.\n\nALTRI TRE GIOCHI INCLUSI\nMercato Match: 600 livelli match-3 con potenziamenti, livelli fuochi d'artificio e cioccolato che si espande se lo lasci stare.\nLaboratorio dello chef: unisci due oggetti uguali in uno migliore e completa gli ordini dei clienti.\nOrto del fornitore: il raccolto cresce da solo e, con ogni vittoria, va nella Grande Ricetta per un grande premio.\n\nNUOVE SFIDE LUNGO LA STRADA\nProdotti congelati, articoli misteriosi, Buongustai esigenti con mance generose, scaffali chiusi a chiave con un prodotto-chiave e scaffali incatenati tra loro.\n\nNIENTE TIMER, NIENTE STRESS\nI clienti non se ne vanno mai. Servili in fretta e lasceranno più mancia, prenditela con calma e smetteranno semplicemente di lasciarla.\n\nOGNI GIORNO C'È QUALCOSA DA FARE\nSfide giornaliere e settimanali, una medaglia mensile, una serie con premi, gare tra chef ed eventi stagionali con una mappa tutta loro, dolcetti e ospiti in costume.\n\nCOLLEZIONA TUTTO\nRiempi il ricettario, completa l'album delle carte, ottieni obiettivi e decora la tua cucina con nuovi sfondi.\n\nNiente pubblicità forzata tra un livello e l'altro. Le pubblicità con ricompensa sono sempre facoltative.",
+ "release_notes": "Benvenuto in Sortelier! Nella prima versione:\n- 150 livelli di ordinamento in 5 cucine del mondo\n- Mercato Match: 600 livelli match-3\n- Laboratorio dello chef: unisci ingredienti in piatti\n- Orto del fornitore e Grande Ricetta\n- Sfide giornaliere e settimanali, gare di chef, eventi stagionali e un album di carte",
  "captions": {
   "recipes": [
    "Cucina con le ricette",
@@ -13,6 +13,14 @@
   "customers": [
    "Servi ogni cliente",
    "Più veloce, più mance"
+  ],
+  "market": [
+   "Mercato Match",
+   "600 livelli match-3"
+  ],
+  "workshop": [
+   "Laboratorio chef",
+   "Unisci e consegna ordini"
   ],
   "kitchens": [
    "Cucine dal mondo",

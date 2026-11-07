@@ -26,6 +26,7 @@ struct SortelierApp: App {
                     Audio.shared.start()
                     Store.shared.start()
                     PlayerProgress.shared.ensureWelcomeStart()
+                    Ads.shared.start()
                 }
         }
         .onChange(of: scenePhase) { phase in

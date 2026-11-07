@@ -8,6 +8,7 @@
 import argparse
 import json
 import math
+import glob
 import os
 import random
 
@@ -24,12 +25,14 @@ LOCALES = {
     "it": ["it"], "tr": ["tr"], "pl": ["pl"], "id": ["id"], "vi": ["vi"], "th": ["th"], "hi": ["hi"], "ar": ["ar-SA"],
     "ja": ["ja"], "ko": ["ko"], "zh-Hans": ["zh-Hans"], "zh-Hant": ["zh-Hant"],
 }
-SHOTS = ["recipes", "customers", "kitchens", "events", "twists", "collect"]
+SHOTS = ["recipes", "customers", "market", "workshop", "kitchens", "events", "twists", "collect"]
 
 # фон кадра: градиент сверху вниз и продукты-украшения вокруг подписи
 STYLE = {
     "recipes": (((255, 150, 60), (240, 80, 90)), ["bun", "patty", "lettuce", "dish_burger"]),
     "customers": (((40, 190, 170), (30, 120, 160)), ["dish_taco", "nachos", "lime", "churros"]),
+    "market": (((240, 90, 120), (250, 160, 60)), ["tomato", "cheese", "milk", "grapes"]),
+    "workshop": (((60, 170, 120), (40, 120, 170)), ["dish_burger", "cookie", "sausage", "tomato"]),
     "kitchens": (((90, 140, 250), (130, 80, 220)), ["dish_sushi", "dish_pizza", "dish_croissant", "dish_taco"]),
     "events": (((140, 70, 200), (250, 120, 40)), ["pumpkin", "candy_corn", "ghost_cookie", "caramel_apple"]),
     "twists": (((70, 90, 210), (40, 170, 230)), ["macaron", "dish_eclair", "strawberry", "chocolate"]),
@@ -206,6 +209,11 @@ def main():
     ap.add_argument("--fonts", default=os.path.join(ROOT, "art", "fonts"))
     args = ap.parse_args()
     langs = [l for l in args.only.split(",") if l] or list(LOCALES)
+    # старые снимки (другой набор экранов) убираем, иначе в App Store уйдет больше 10
+    for lang in langs:
+        for loc in LOCALES[lang]:
+            for old in glob.glob(os.path.join(STORE, "screenshots", loc, "*.jpg")):
+                os.remove(old)
     for lang in langs:
         write_metadata(lang)
         for i, key in enumerate(SHOTS):

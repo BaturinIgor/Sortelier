@@ -28,6 +28,12 @@ struct AchievementsContent: View {
 
     var body: some View {
         VStack(spacing: 14) {
+            if progress.achievementClaimCount >= 2 {
+                ClaimAllButton(count: progress.achievementClaimCount) {
+                    frozen = nil
+                    granted = progress.claimAllAchievements()
+                }
+            }
             starTrack
             SegmentPicker(items: categories, selection: Binding(get: { category }, set: { c in
                 frozen = nil

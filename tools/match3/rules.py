@@ -6,6 +6,9 @@
   i I  фишка во льду в 1-2 слоя (не двигается и не падает, удар снимает слой)
   j  пятно варенья под фишкой (смывается, когда клетку задевает совпадение или взрыв)
   k  варенье и лед в 1 слой
+  c  шоколад (вместо фишки, бьется как ящик в 1 слой). Если за засчитанный ход не разбит ни один шоколад,
+     он растекается: одна случайная плитка шоколада занимает соседнюю клетку с обычной фишкой.
+     Шоколада на поле не больше, чем вдвое против начального (и не больше 6, если сначала было меньше трех).
 
 Ход - обмен двух соседних фишек. Ход засчитывается, если появилось совпадение или в обмене участвует спецфишка.
 Тап по спецфишке тоже ход: она срабатывает на месте.
@@ -47,8 +50,11 @@ class Board:
         self.crate = [[int(ch) if ch in "123" else 0 for ch in row] for row in cells]
         self.ice = [[{"i": 1, "I": 2, "k": 1}.get(ch, 0) for ch in row] for row in cells]
         self.jam = [[1 if ch in "jk" else 0 for ch in row] for row in cells]
+        self.choc = [[1 if ch == "c" else 0 for ch in row] for row in cells]
+        self.choc_hit = False
+        self.choc_cap = max(6, 2 * sum(map(sum, self.choc)))
         self.tile = [[None] * self.cols for _ in range(self.rows)]
-        self.got = {"crate": 0, "ice": 0, "jam": 0}
+        self.got = {"crate": 0, "ice": 0, "jam": 0, "choc": 0}
         self.got_colors = [0] * len(self.colors)
         self.moves = 0
         # "Подкрутка" новых фишек: luck - доля фишек цвета соседа (чаще длинные ряды и спецфишки),
@@ -67,6 +73,9 @@ class Board:
         b.crate = [row[:] for row in self.crate]
         b.ice = [row[:] for row in self.ice]
         b.jam = [row[:] for row in self.jam]
+        b.choc = [row[:] for row in self.choc]
+        b.choc_hit = self.choc_hit
+        b.choc_cap = self.choc_cap
         b.tile = [row[:] for row in self.tile]
         b.got = dict(self.got)
         b.got_colors = self.got_colors[:]
@@ -94,14 +103,18 @@ class Board:
         return self.inside(r, c) and self.tile[r][c] is not None and self.ice[r][c] == 0
 
     def empty(self, r, c):
-        return self.inside(r, c) and self.tile[r][c] is None and self.crate[r][c] == 0
+        return self.inside(r, c) and self.tile[r][c] is None and self.crate[r][c] == 0 and self.choc[r][c] == 0
+
+    def blocked(self, r, c):
+        """Ящик или шоколад: клетка без фишки, бьется соседними совпадениями."""
+        return self.inside(r, c) and (self.crate[r][c] > 0 or self.choc[r][c] > 0)
 
     def fill_initial(self):
         """Стартовое поле без готовых совпадений и хотя бы с одним ходом."""
         for _ in range(300):
             for r in range(self.rows):
                 for c in range(self.cols):
-                    if not self.inside(r, c) or self.crate[r][c]:
+                    if not self.inside(r, c) or self.crate[r][c] or self.choc[r][c]:
                         self.tile[r][c] = None
                         continue
                     options = [k for k in self.colors if not self.would_match(r, c, k)]
@@ -279,9 +292,32 @@ class Board:
         return False
 
     def play(self, move):
-        if move[0] == "tap":
-            return self.tap(move[1])
-        return self.swap(move[1], move[2])
+        self.choc_hit = False
+        ok = self.tap(move[1]) if move[0] == "tap" else self.swap(move[1], move[2])
+        if ok:
+            self.spread_choc()
+        return ok
+
+    def spread_choc(self):
+        """Шоколад растекается, если за ход его не задели."""
+        if self.choc_hit or sum(map(sum, self.choc)) >= self.choc_cap:
+            return
+        options = []
+        for r in range(self.rows):
+            for c in range(self.cols):
+                if not self.choc[r][c]:
+                    continue
+                for dr, dc in DIRS:
+                    y, x = r + dr, c + dc
+                    if self.movable(y, x) and isinstance(self.tile[y][x], int) and not self.jam[y][x]:
+                        options.append((y, x))
+        if not options:
+            return
+        y, x = self.rng.choice(sorted(set(options)))
+        self.tile[y][x] = None
+        self.choc[y][x] = 1
+        if not self.has_move():
+            self.shuffle()
 
     def swap(self, a, b):
         """Ход обменом (b - клетка, куда тянули фишку из a). True, если ход засчитан."""
@@ -332,6 +368,11 @@ class Board:
             if self.crate[r][c] == 0:
                 self.got["crate"] += 1
             return
+        if self.choc[r][c]:
+            self.choc[r][c] = 0
+            self.got["choc"] += 1
+            self.choc_hit = True
+            return
         if self.jam[r][c]:
             self.jam[r][c] = 0
             self.got["jam"] += 1
@@ -358,7 +399,7 @@ class Board:
             crates = set()
             for (r, c) in cells:
                 for dr, dc in DIRS:
-                    if self.inside(r + dr, c + dc) and self.crate[r + dr][c + dc]:
+                    if self.blocked(r + dr, c + dc):
                         crates.add((r + dr, c + dc))
             for p in cells:
                 self.hit(p, queue)
@@ -433,6 +474,8 @@ class Board:
                 score = 0
                 if self.crate[y][x]:
                     score = 3 if "crate" in blockers else 0
+                elif self.choc[y][x]:
+                    score = 3 if "choc" in blockers else 0
                 elif self.ice[y][x] and "ice" in blockers:
                     score = 3
                 elif self.jam[y][x] and "jam" in blockers:

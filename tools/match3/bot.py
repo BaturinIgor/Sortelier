@@ -20,6 +20,8 @@ def score(before, after):
             continue
         gain = min(after.progress(g), g["count"]) - before.progress(g)
         s += gain * (3.0 if g["type"] != "collect" else 1.0)
+    # растекшийся шоколад - минус: он отнимает клетки поля
+    s -= 2.0 * (sum(map(sum, after.choc)) - sum(map(sum, before.choc)))
     for r in range(after.rows):
         for c in range(after.cols):
             t = after.tile[r][c]

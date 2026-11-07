@@ -1,4 +1,6 @@
-- Mexikanische Küche und Französische Bäckerei: 60 neue Level, neue Produkte, Gerichte und Musik
-- Neue Hindernisse: Schlösser mit Schlüsselprodukt und aneinandergekettete Regale
-- Saisonale Events haben jetzt eine eigene Karte mit besonderen Leckereien und einem kostümierten Gast
-- Halloween-Nacht-Event
+Willkommen bei Sortelier! In der ersten Version:
+- 150 Sortier-Level in 5 Küchen der Welt
+- Markt-Match: 600 Match-3-Level
+- Kochwerkstatt: Zutaten zu Gerichten kombinieren
+- Garten des Lieferanten und das Große Rezept
+- Tägliche und wöchentliche Challenges, Kochrennen, saisonale Events und ein Kartenalbum

@@ -1426,6 +1426,39 @@ def icon_happy():
     return I.finish(parts, tilt=6)
 
 
+def m3_choc():
+    """Плитка шоколада спереди, как ящик: четыре дольки на толстом основании, сверху наплыв растаявшего шоколада."""
+    W, H, D = CRATE_W, CRATE_H, CRATE_D
+    yf = -D / 2
+    base_m = material("Choc", [(0.0, (0.20, 0.09, 0.04)), (0.55, (0.33, 0.16, 0.07)), (1.0, (0.45, 0.24, 0.11))],
+                      coord="z", lo=0.0, hi=H, rough=0.28, coat=0.6, coat_rough=0.12, spec=0.55)
+    piece_m = material("ChocPiece", [(0.0, (0.27, 0.12, 0.05)), (0.6, (0.42, 0.21, 0.09)), (1.0, (0.56, 0.31, 0.14))],
+                       coord="z", lo=0.0, hi=H, rough=0.22, coat=0.8, coat_rough=0.08, spec=0.6)
+    drip_m = material("ChocDrip", [(0.0, (0.24, 0.10, 0.04)), (1.0, (0.40, 0.19, 0.08))], coord="z", lo=0.4, hi=H + 0.1,
+                      rough=0.12, coat=1.0, coat_rough=0.04, spec=0.7)
+    parts = [rbox("ChocBase", -W / 2, W / 2, yf, D / 2, 0.0, H, base_m, 0.08, 4)]
+    # дольки 2x2 выступают вперед, как у настоящей плитки
+    gap, pad = 0.06, 0.07
+    pw = (W - 2 * pad - gap) / 2
+    ph = (H - 2 * pad - gap) / 2
+    for i in range(2):
+        for k in range(2):
+            x0 = -W / 2 + pad + i * (pw + gap)
+            z0 = pad + k * (ph + gap)
+            parts.append(rbox(f"ChocPiece{i}{k}", x0, x0 + pw, yf - 0.07, yf + 0.05, z0, z0 + ph, piece_m, 0.045, 4))
+    # растаявший край: шоколад стекает с верха на дольки
+    for k, (x, ln, r) in enumerate(((-0.3, 0.26, 0.055), (0.02, 0.38, 0.065), (0.3, 0.2, 0.05))):
+        drip = M.capsule(f"ChocDrop{k}", ln, r, 16, 10)
+        drip.rotation_euler = (0, math.radians(90), 0)
+        drip.scale = (1.0, 0.6, 1.0)
+        drip.location = (x, yf - 0.075, H - ln / 2 + 0.01)
+        apply_transform(drip)
+        parts.append(assign(smooth(drip), drip_m))
+    edge = rbox("ChocEdge", -W / 2 + 0.02, W / 2 - 0.02, yf - 0.1, yf + 0.06, H - 0.07, H + 0.01, drip_m, 0.035, 4)
+    parts.append(edge)
+    return face_cam(parts)
+
+
 M.MODELS.update({
     "m3_pin": m3_pin,
     "m3_bomb": m3_bomb,
@@ -1435,6 +1468,7 @@ M.MODELS.update({
     "m3_crate_2": lambda: crate(2),
     "m3_crate_3": lambda: crate(3),
     "m3_jam": m3_jam,
+    "m3_choc": m3_choc,
     "icon_m3_mallet": icon_m3_mallet,
     "icon_m3_knife": icon_m3_knife,
     "icon_m3_spatula": icon_m3_spatula,
