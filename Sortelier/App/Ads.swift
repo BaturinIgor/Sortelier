@@ -18,6 +18,8 @@ final class Ads: NSObject, FullScreenContentDelegate {
         #if DEBUG || SIDELOAD
         return testUnit
         #else
+        // TestFlight: квитанция песочницы. Там тоже тестовые ролики, настоящие только у игроков из App Store
+        if Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt" { return testUnit }
         let value = (Bundle.main.object(forInfoDictionaryKey: "AdMobRewardedUnit") as? String) ?? ""
         return value.isEmpty ? testUnit : value
         #endif
