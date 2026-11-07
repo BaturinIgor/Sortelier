@@ -78,6 +78,9 @@ TOKEN_AT = 0
 errors = []
 
 
+LAST_ERROR = {"text": ""}
+
+
 def call(method, path, body=None):
     global TOKEN, TOKEN_AT
     # токен живет 20 минут: обновляем заранее, загрузка скриншотов идет дольше
@@ -93,6 +96,7 @@ def call(method, path, body=None):
             return json.loads(raw) if raw else {}
     except urllib.error.HTTPError as e:
         text = e.read().decode(errors="replace")
+        LAST_ERROR["text"] = text
         print(f"! {method} {path}: {e.code} {text[:600]}")
         errors.append(f"{method} {path}: {e.code}")
         return None

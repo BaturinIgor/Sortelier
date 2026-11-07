@@ -8,6 +8,7 @@
 import argparse
 import json
 import math
+import glob
 import os
 import random
 
@@ -208,6 +209,11 @@ def main():
     ap.add_argument("--fonts", default=os.path.join(ROOT, "art", "fonts"))
     args = ap.parse_args()
     langs = [l for l in args.only.split(",") if l] or list(LOCALES)
+    # старые снимки (другой набор экранов) убираем, иначе в App Store уйдет больше 10
+    for lang in langs:
+        for loc in LOCALES[lang]:
+            for old in glob.glob(os.path.join(STORE, "screenshots", loc, "*.jpg")):
+                os.remove(old)
     for lang in langs:
         write_metadata(lang)
         for i, key in enumerate(SHOTS):

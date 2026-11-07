@@ -12,7 +12,9 @@ import sys
 import urllib.request
 
 sys.path.insert(0, os.path.dirname(__file__))
-from iap import BUNDLE, call, errors, get_all, rel  # noqa: E402
+import json
+
+from iap import BUNDLE, LAST_ERROR, call, errors, get_all, rel  # noqa: E402
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 META = os.path.join(ROOT, "appstore", "metadata")
@@ -71,8 +73,8 @@ def main():
                  "attributes": dict(attrs, locale=loc), "relationships": {"appInfo": rel("appInfos", info)}}})
     print("app info", len(locales), "locales")
 
-    # возрастной рейтинг: без насилия, азарта и прочего; реклама есть. По одному полю, чтобы
-    # незнакомое API поле не сорвало остальные.
+    # возрастной рейтинг: без насилия, азарта и прочего; реклама есть. API принимает только полный
+    # набор полей одним запросом; поля, которые оно требует сверх известных, дописываем по ответу.
     age = call("GET", f"/v1/appInfos/{info}/ageRatingDeclaration")
     if age and age.get("data"):
         aid = age["data"]["id"]
@@ -83,12 +85,35 @@ def main():
             "violenceRealistic", "violenceRealisticProlongedGraphicOrSadistic", "gunsOrOtherWeapons")}
         fields.update({"gambling": False, "unrestrictedWebAccess": False, "lootBox": False, "advertising": True,
                        "messagingAndChat": False, "userGeneratedContent": False, "parentalControls": False,
-                       "ageAssurance": False, "healthOrWellnessTopics": False})
-        ok = 0
-        for k, v in fields.items():
-            if call("PATCH", f"/v1/ageRatingDeclarations/{aid}", {"data": {"type": "ageRatingDeclarations", "id": aid, "attributes": {k: v}}}) is not None:
-                ok += 1
-        print("age rating fields set", ok, "of", len(fields))
+                       "ageAssurance": False, "healthOrWellnessTopics": False, "socialMedia": False})
+        done = False
+        for attempt in range(6):
+            if call("PATCH", f"/v1/ageRatingDeclarations/{aid}", {"data": {"type": "ageRatingDeclarations", "id": aid,
+                                                                           "attributes": fields}}) is not None:
+                done = True
+                errors[:] = [e for e in errors if "ageRatingDeclarations" not in e]
+                break
+            try:
+                errs = json.loads(LAST_ERROR["text"]).get("errors", [])
+            except ValueError:
+                break
+            changed = False
+            for e in errs:
+                name = (e.get("source") or {}).get("pointer", "").rsplit("/", 1)[-1]
+                if not name:
+                    continue
+                if e.get("code", "").endswith("REQUIRED") and name not in fields:
+                    fields[name] = False
+                elif name in fields and fields[name] is False and "REQUIRED" not in e.get("code", ""):
+                    fields[name] = "NONE"  # поле оказалось перечислением, а не да/нет
+                elif name in fields and "REQUIRED" not in e.get("code", ""):
+                    fields.pop(name)  # API такого поля не знает
+                else:
+                    continue
+                changed = True
+            if not changed:
+                break
+        print("age rating", "set" if done else "FAILED", len(fields), "fields")
 
     # --- цена: бесплатно ---
     if not (call("GET", f"/v1/apps/{app}/appPriceSchedule") or {}).get("data"):
