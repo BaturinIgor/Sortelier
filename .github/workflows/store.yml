@@ -4,6 +4,9 @@ name: Store screenshots
 # Запуск вручную (workflow_dispatch). Снимки уходят в ветку ci-store, подписи и рамку добавляет
 # tools/appstore/build.py.
 on:
+  # пока workflow нет в main: запуск пушем коммита со словом [store] в сообщении
+  push:
+    branches: ["main", "claude/**"]
   workflow_dispatch:
     inputs:
       langs:
@@ -16,6 +19,7 @@ permissions:
 
 jobs:
   shots:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[store]')
     runs-on: macos-26
     timeout-minutes: 80
     steps:
@@ -66,9 +70,13 @@ jobs:
             xcrun simctl io "$UDID" screenshot "store/$name.png" >/dev/null 2>&1
             echo "$name"
           }
-          for lang in ${{ github.event.inputs.langs }}; do
+          LANGS="${{ github.event.inputs.langs }}"
+          [ -z "$LANGS" ] && LANGS="en ru es pt-BR de fr it tr pl id vi th hi ar ja ko zh-Hans zh-Hant"
+          for lang in $LANGS; do
             shoot "${lang}_recipes" -uiLang $lang -uiLevel 25 -uiAutoplay 5
             shoot "${lang}_customers" -uiLang $lang -uiLevel 94 -uiAutoplay 4
+            shoot "${lang}_market" -uiLang $lang -uiScreen marketlevel -uiMarketLevel 20 -uiAutoplay 4
+            shoot "${lang}_workshop" -uiLang $lang -uiScreen merge
             shoot "${lang}_kitchens" -uiLang $lang -uiScreen map
             shoot "${lang}_events" -uiLang $lang -uiScreen eventmap
             shoot "${lang}_twists" -uiLang $lang -uiLevel 140 -uiAutoplay 3
@@ -76,12 +84,34 @@ jobs:
           done
           ls store | wc -l
 
+      - name: Compose store images
+        run: |
+          pip3 install -q --break-system-packages pillow pyjwt cryptography 2>/dev/null || pip3 install -q pillow pyjwt cryptography
+          mkdir -p art/fonts
+          base=https://raw.githubusercontent.com/google/fonts/main/ofl
+          for f in "mitr/Mitr-Bold.ttf" "baloo2/Baloo2%5Bwght%5D.ttf" "baloobhaijaan2/BalooBhaijaan2%5Bwght%5D.ttf" \
+                   "mplusrounded1c/MPLUSRounded1c-ExtraBold.ttf" "jua/Jua-Regular.ttf" \
+                   "notosanssc/NotoSansSC%5Bwght%5D.ttf" "notosanstc/NotoSansTC%5Bwght%5D.ttf"; do
+            name=$(basename "$f" | sed 's/%5B/[/; s/%5D/]/')
+            curl -sSfL -o "art/fonts/$name" "$base/$f"
+          done
+          ls art/fonts
+          python3 tools/appstore/build.py store
+
+      - name: Upload to App Store Connect
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: python3 tools/appstore/store_upload.py
+
       - name: Publish screenshots
+        if: always()
         run: |
           git config user.name "ci"
           git config user.email "ci@users.noreply.github.com"
           git checkout --orphan ci-store
           git rm -rf --cached . > /dev/null
-          git add -f store/
+          git add -f store/ appstore/screenshots/
           git commit -q -m "Store screenshots run ${{ github.run_number }} for ${{ github.sha }}"
           git push -q -f origin ci-store

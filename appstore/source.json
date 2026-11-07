@@ -54,6 +54,26 @@
     "Чем быстрее, тем больше чаевых"
    ]
   },
+  "market": {
+   "en": [
+    "Match-3 market",
+    "600 levels with boosters"
+   ],
+   "ru": [
+    "Продуктовый ряд",
+    "600 уровней «3 в ряд»"
+   ]
+  },
+  "workshop": {
+   "en": [
+    "Chef's Workshop",
+    "Merge food, fill orders"
+   ],
+   "ru": [
+    "Мастерская шефа",
+    "Соединяй и выполняй заказы"
+   ]
+  },
   "kitchens": {
    "en": [
     "Kitchens of the world",

@@ -74,12 +74,15 @@ def token():
 
 
 TOKEN = None
+TOKEN_AT = 0
 errors = []
 
 
 def call(method, path, body=None):
-    global TOKEN
-    TOKEN = TOKEN or token()
+    global TOKEN, TOKEN_AT
+    # токен живет 20 минут: обновляем заранее, загрузка скриншотов идет дольше
+    if not TOKEN or time.time() - TOKEN_AT > 900:
+        TOKEN, TOKEN_AT = token(), time.time()
     url = path if path.startswith("http") else API + path
     data = json.dumps(body).encode() if body is not None else None
     req = urllib.request.Request(url, data=data, method=method,
