@@ -1,0 +1,92 @@
+[analytics] app_open [:]
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+[analytics] level_start ["mode": "main", "level": 45, "replay": true]
+2026-11-09 16:16:39.676 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241001.146 place 0.80
+SFX 1794241003.493 place 0.80
+SFX 1794241003.494 invalid 0.25
+SFX 1794241004.127 triple 1.00
+2026-11-09 16:16:44.760 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241005.054 coin 0.70
+SFX 1794241006.065 place 0.80
+SFX 1794241008.244 place 0.80
+SFX 1794241008.244 invalid 0.25
+SFX 1794241009.076 triple 1.00
+SFX 1794241009.741 coin 0.70
+2026-11-09 16:16:49.842 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241010.725 place 0.80
+SFX 1794241013.017 place 0.80
+SFX 1794241013.659 dish 1.00
+SFX 1794241013.661 combo 0.70
+SFX 1794241014.500 coin 0.70
+2026-11-09 16:16:55.044 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241015.377 place 0.80
+SFX 1794241016.008 dish 1.00
+SFX 1794241016.009 combo 0.70
+SFX 1794241017.031 coin 0.70
+SFX 1794241017.743 place 0.80
+SFX 1794241020.128 place 0.80
+2026-11-09 16:17:00.148 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241020.759 triple 1.00
+SFX 1794241020.759 combo 0.70
+SFX 1794241021.647 coin 0.70
+SFX 1794241022.493 place 0.80
+SFX 1794241025.075 place 0.80
+2026-11-09 16:17:05.243 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241027.243 place 0.80
+SFX 1794241028.025 triple 1.00
+SFX 1794241028.026 combo 0.70
+SFX 1794241028.764 coin 0.70
+SFX 1794241029.692 place 0.80
+SFX 1794241030.309 dish 1.00
+SFX 1794241030.309 combo 0.70
+2026-11-09 16:17:10.326 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241031.165 coin 0.70
+SFX 1794241032.042 place 0.80
+SFX 1794241034.375 place 0.80
+SFX 1794241035.008 triple 1.00
+SFX 1794241035.009 combo 0.70
+2026-11-09 16:17:15.409 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241036.025 coin 0.70
+SFX 1794241036.759 place 0.80
+SFX 1794241039.126 place 0.80
+SFX 1794241039.759 triple 1.00
+SFX 1794241039.759 combo 0.70
+2026-11-09 16:17:20.492 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241040.647 coin 0.70
+SFX 1794241041.493 place 0.80
+SFX 1794241044.009 place 0.80
+SFX 1794241044.641 triple 1.00
+SFX 1794241044.642 combo 0.70
+SFX 1794241045.493 coin 0.70
+2026-11-09 16:17:25.575 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241046.243 place 0.80
+SFX 1794241048.675 place 0.80
+SFX 1794241049.325 dish 1.00
+SFX 1794241049.326 combo 0.70
+SFX 1794241050.191 coin 0.70
+2026-11-09 16:17:30.676 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241051.025 place 0.80
+SFX 1794241051.658 dish 1.00
+SFX 1794241051.659 combo 0.70
+SFX 1794241052.516 coin 0.70
+SFX 1794241053.377 place 0.80
+SFX 1794241055.758 place 0.80
+2026-11-09 16:17:35.792 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241058.125 place 0.80
+SFX 1794241058.759 triple 1.00
+SFX 1794241058.760 combo 0.70
+SFX 1794241059.647 coin 0.70
+SFX 1794241060.492 place 0.80
+2026-11-09 16:17:41.059 Sortelier[79767:203374] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794241061.125 triple 1.00
+SFX 1794241061.125 combo 0.70
+SFX 1794241062.025 coin 0.70
+[analytics] reward ["coins": 60, "chests": 1, "source": "streak"]
+[analytics] streak_day ["day": 4]
+[analytics] level_win ["level": 45, "stars": 3, "tips": 34, "moves": 26, "coins": 148, "replay": true, "par": 25]
+SFX 1794241062.456 win 0.80
+SFX 1794241063.125 star1 1.00
+SFX 1794241063.445 star2 1.00
+SFX 1794241063.759 star3 1.00
+com.personal.sortelier: 79767

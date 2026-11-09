@@ -1,0 +1,92 @@
+[analytics] app_open [:]
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+[analytics] level_start ["level": 45, "replay": true, "mode": "main"]
+2026-11-09 15:48:29.244 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239310.761 place 0.80
+SFX 1794239313.127 place 0.80
+SFX 1794239313.129 invalid 0.25
+SFX 1794239313.760 triple 1.00
+2026-11-09 15:48:34.326 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239314.701 coin 0.70
+SFX 1794239315.797 place 0.80
+SFX 1794239317.892 place 0.80
+SFX 1794239317.892 invalid 0.25
+SFX 1794239318.658 triple 1.00
+SFX 1794239319.375 coin 0.70
+2026-11-09 15:48:39.426 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239320.326 place 0.80
+SFX 1794239322.709 place 0.80
+SFX 1794239323.359 dish 1.00
+SFX 1794239323.364 combo 0.70
+SFX 1794239324.183 coin 0.70
+2026-11-09 15:48:44.694 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239325.009 place 0.80
+SFX 1794239325.658 dish 1.00
+SFX 1794239325.659 combo 0.70
+SFX 1794239326.611 coin 0.70
+SFX 1794239327.392 place 0.80
+SFX 1794239329.760 place 0.80
+2026-11-09 15:48:49.783 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239330.394 triple 1.00
+SFX 1794239330.395 combo 0.70
+SFX 1794239331.264 coin 0.70
+SFX 1794239332.127 place 0.80
+SFX 1794239334.675 place 0.80
+2026-11-09 15:48:54.877 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239336.877 place 0.80
+SFX 1794239337.599 triple 1.00
+SFX 1794239337.600 combo 0.70
+SFX 1794239338.397 coin 0.70
+SFX 1794239339.392 place 0.80
+2026-11-09 15:48:59.966 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239340.088 dish 1.00
+SFX 1794239340.090 combo 0.70
+SFX 1794239340.875 coin 0.70
+SFX 1794239341.709 place 0.80
+SFX 1794239344.027 place 0.80
+SFX 1794239344.677 triple 1.00
+SFX 1794239344.678 combo 0.70
+2026-11-09 15:49:05.044 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239345.586 coin 0.70
+SFX 1794239346.392 place 0.80
+SFX 1794239348.759 place 0.80
+SFX 1794239349.392 triple 1.00
+SFX 1794239349.392 combo 0.70
+2026-11-09 15:49:10.126 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239350.289 coin 0.70
+SFX 1794239351.128 place 0.80
+SFX 1794239353.692 place 0.80
+SFX 1794239354.325 triple 1.00
+SFX 1794239354.326 combo 0.70
+SFX 1794239355.160 coin 0.70
+2026-11-09 15:49:15.210 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239355.876 place 0.80
+SFX 1794239358.308 place 0.80
+SFX 1794239358.959 dish 1.00
+SFX 1794239358.960 combo 0.70
+SFX 1794239359.827 coin 0.70
+2026-11-09 15:49:20.326 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239360.692 place 0.80
+SFX 1794239361.325 dish 1.00
+SFX 1794239361.326 combo 0.70
+SFX 1794239362.184 coin 0.70
+SFX 1794239363.009 place 0.80
+SFX 1794239365.392 place 0.80
+2026-11-09 15:49:25.409 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239367.760 place 0.80
+SFX 1794239368.392 triple 1.00
+SFX 1794239368.393 combo 0.70
+SFX 1794239369.283 coin 0.70
+SFX 1794239370.127 place 0.80
+2026-11-09 15:49:30.694 Sortelier[18511:56399] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239370.742 triple 1.00
+SFX 1794239370.742 combo 0.70
+SFX 1794239371.692 coin 0.70
+[analytics] reward ["source": "streak", "coins": 60, "chests": 1]
+[analytics] streak_day ["day": 4]
+[analytics] level_win ["replay": true, "coins": 148, "tips": 34, "par": 25, "stars": 3, "level": 45, "moves": 26]
+SFX 1794239372.136 win 0.80
+SFX 1794239372.810 star1 1.00
+SFX 1794239373.129 star2 1.00
+SFX 1794239373.445 star3 1.00
+com.personal.sortelier: 18511

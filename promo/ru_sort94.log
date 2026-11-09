@@ -1,0 +1,67 @@
+[analytics] app_open [:]
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+[analytics] level_start ["replay": true, "level": 94, "mode": "main"]
+2026-11-09 15:55:29.027 Sortelier[33116:92143] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239730.528 place 0.80
+SFX 1794239732.893 place 0.80
+SFX 1794239733.509 triple 1.00
+2026-11-09 15:55:34.109 Sortelier[33116:92143] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239734.458 coin 0.70
+SFX 1794239735.292 place 0.80
+SFX 1794239737.643 place 0.80
+SFX 1794239738.309 triple 1.00
+SFX 1794239738.693 unlock 0.60
+SFX 1794239739.181 coin 0.70
+2026-11-09 15:55:39.226 Sortelier[33116:92143] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239740.126 place 0.80
+SFX 1794239742.391 place 0.80
+2026-11-09 15:55:44.493 Sortelier[33116:92143] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239744.775 place 0.80
+SFX 1794239744.776 invalid 0.25
+SFX 1794239745.475 dish 1.00
+SFX 1794239745.476 combo 0.70
+SFX 1794239746.329 coin 0.70
+SFX 1794239747.159 place 0.80
+SFX 1794239747.775 triple 1.00
+SFX 1794239747.776 combo 0.70
+SFX 1794239748.625 coin 0.70
+SFX 1794239749.525 place 0.80
+2026-11-09 15:55:49.576 Sortelier[33116:92143] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239751.893 place 0.80
+SFX 1794239752.509 dish 1.00
+SFX 1794239752.510 combo 0.70
+SFX 1794239753.480 coin 0.70
+SFX 1794239754.292 place 0.80
+2026-11-09 15:55:54.659 Sortelier[33116:92143] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239754.908 triple 1.00
+SFX 1794239754.909 combo 0.70
+SFX 1794239755.768 coin 0.70
+SFX 1794239756.641 place 0.80
+SFX 1794239759.109 place 0.80
+SFX 1794239759.725 triple 1.00
+SFX 1794239759.725 combo 0.70
+2026-11-09 15:55:59.742 Sortelier[33116:92143] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239760.598 coin 0.70
+SFX 1794239761.475 place 0.80
+SFX 1794239763.777 place 0.80
+2026-11-09 15:56:04.826 Sortelier[33116:92143] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239766.159 place 0.80
+SFX 1794239768.527 place 0.80
+SFX 1794239769.159 triple 1.00
+2026-11-09 15:56:09.909 Sortelier[33116:92143] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1794239770.031 coin 0.70
+SFX 1794239770.909 place 0.80
+SFX 1794239771.509 dish 1.00
+SFX 1794239772.475 coin 0.70
+SFX 1794239773.292 place 0.80
+SFX 1794239773.909 triple 1.00
+SFX 1794239773.909 combo 0.70
+SFX 1794239774.782 coin 0.70
+[analytics] reward ["coins": 60, "chests": 1, "source": "streak"]
+[analytics] streak_day ["day": 4]
+[analytics] level_win ["replay": true, "coins": 97, "moves": 19, "tips": 20, "stars": 3, "level": 94, "par": 19]
+SFX 1794239775.203 win 0.80
+SFX 1794239775.861 star1 1.00
+SFX 1794239776.192 star2 1.00
+SFX 1794239776.510 star3 1.00
+com.personal.sortelier: 33116
