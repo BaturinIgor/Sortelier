@@ -393,6 +393,11 @@ def build(rec_dir, out_dir, lang, theme, variant, fmt, work):
         src = os.path.join(rec_dir, name + ".mp4")
         cw, ch, clip_len = probe(src)
         seg = dict(seg, t0=resolve(rec_dir, name, seg, clip_len))
+        if seg.get("until"):
+            # кусок не должен заходить на окно победы: его покажет следующий кусок
+            stop = [t for t, e, _ in sfx_events(rec_dir, name) if e == seg["until"]]
+            if stop:
+                seg["dur"] = max(1.0, min(seg["dur"], (stop[0] - 3.2 - seg["t0"]) / seg.get("speed", 1.0)))
         png = os.path.join(work, f"{lang}_{ad_key}_{fmt}.png")
         if not os.path.exists(png):
             hook = ad["hook"][lang]

@@ -58,15 +58,17 @@
     {
      "clip": "sort94",
      "at": "first",
-     "off": 0.3,
-     "dur": 9,
-     "speed": 1.5
+     "off": 0.5,
+     "dur": 20,
+     "speed": 2.5,
+     "until": "win"
     },
     {
      "clip": "sort94",
      "at": "win",
-     "off": -2.5,
-     "dur": 4
+     "off": -3.0,
+     "dur": 4.5,
+     "speed": 1.2
     }
    ],
    "hooks": [
@@ -100,15 +102,17 @@
     {
      "clip": "sort45",
      "at": "first",
-     "off": 0.5,
-     "dur": 9,
-     "speed": 1.5
+     "off": 1,
+     "dur": 20,
+     "speed": 2.5,
+     "until": "win"
     },
     {
      "clip": "sort45",
      "at": "win",
-     "off": -2.5,
-     "dur": 4
+     "off": -3.0,
+     "dur": 4.5,
+     "speed": 1.2
     }
    ],
    "hooks": [
@@ -140,43 +144,44 @@
     {
      "clip": "sort25",
      "at": "first",
-     "off": 3,
-     "dur": 2.6,
-     "speed": 1.3
+     "off": 6,
+     "dur": 3.6,
+     "speed": 2.5
     },
     {
      "clip": "sort45",
      "at": "first",
-     "off": 8,
-     "dur": 2.6,
-     "speed": 1.3
+     "off": 18,
+     "dur": 3.6,
+     "speed": 2.5
     },
     {
      "clip": "sort75",
      "at": "first",
-     "off": 8,
-     "dur": 2.6,
-     "speed": 1.3
+     "off": 18,
+     "dur": 3.6,
+     "speed": 2.5
     },
     {
      "clip": "sort94",
      "at": "first",
-     "off": 5,
-     "dur": 2.6,
-     "speed": 1.3
+     "off": 10,
+     "dur": 3.6,
+     "speed": 2.5
     },
     {
      "clip": "sort140",
      "at": "first",
-     "off": 4,
-     "dur": 2.6,
-     "speed": 1.3
+     "off": 20,
+     "dur": 3.6,
+     "speed": 2.5
     },
     {
      "clip": "sort94",
      "at": "win",
-     "off": -0.6,
-     "dur": 3
+     "off": -3.0,
+     "dur": 4,
+     "speed": 1.2
     }
    ],
    "hooks": [
@@ -208,16 +213,16 @@
     {
      "clip": "m3_7",
      "at": "first",
-     "off": 0.3,
-     "dur": 9,
-     "speed": 1.25
+     "off": 0.5,
+     "dur": 14,
+     "speed": 2.5
     },
     {
      "clip": "m3_28",
      "at": "first",
-     "off": 3,
-     "dur": 4.5,
-     "speed": 1.2
+     "off": 5,
+     "dur": 8,
+     "speed": 2.5
     }
    ],
    "hooks": [
@@ -253,43 +258,43 @@
     {
      "clip": "sort25",
      "at": "first",
-     "off": 4,
-     "dur": 3,
-     "speed": 1.3
+     "off": 8,
+     "dur": 4,
+     "speed": 2.5
     },
     {
      "clip": "sort94",
      "at": "first",
-     "off": 4,
-     "dur": 2.5,
-     "speed": 1.3
+     "off": 10,
+     "dur": 3.5,
+     "speed": 2.5
     },
     {
      "clip": "m3_7",
      "at": "first",
-     "off": 5,
-     "dur": 3,
-     "speed": 1.2
+     "off": 12,
+     "dur": 4.5,
+     "speed": 2.5
     },
     {
      "clip": "recipe",
      "at": 5,
-     "dur": 2
+     "dur": 2.5
     },
     {
      "clip": "book",
      "at": 5,
-     "dur": 2
+     "dur": 2.5
     },
     {
      "clip": "events",
      "at": 5,
-     "dur": 2
+     "dur": 2.5
     },
     {
      "clip": "map",
      "at": 5,
-     "dur": 2
+     "dur": 2.5
     }
    ],
    "hooks": [
@@ -321,16 +326,16 @@
     {
      "clip": "sort140",
      "at": "first",
-     "off": 9,
-     "dur": 6.5,
-     "speed": 1.3
+     "off": 22,
+     "dur": 11,
+     "speed": 2.5
     },
     {
      "clip": "sort75",
      "at": "first",
-     "off": 8,
-     "dur": 6.5,
-     "speed": 1.3
+     "off": 20,
+     "dur": 11,
+     "speed": 2.5
     }
    ],
    "hooks": [
