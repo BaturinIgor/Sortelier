@@ -218,6 +218,9 @@ def caption_overlay(fmt, hook, highlight, style):
     ImageDraw.Draw(hole).rounded_rectangle((x0, y0, x1, y1), 44, fill=0)
     im.putalpha(Image.fromarray(np.minimum(np.array(im.getchannel("A")), np.array(hole))))
     if hook:
+        if highlight:
+            # акцент не разрывается переносом строки
+            hook = hook.replace(highlight.replace("\u00a0", " "), highlight)
         if fmt == "v":
             hook_card(im, hook, highlight, (50, 40, W - 50, 330), 74)
         else:
@@ -361,8 +364,25 @@ def mix_audio(total, placed, music, music_vol, out):
 
 # ---------- Сборка ролика ----------
 
-def build(rec_dir, out_dir, lang, ad_key, fmt, work):
-    ad = SCRIPT["ads"][ad_key]
+def resolve(rec_dir, name, seg, duration):
+    """Начало куска: число секунд или якорь "first" (первый ход) / "win" (звук победы) плюс "off".
+    Время ходов и победы у каждого языка свое, якоря берутся из лога звуков."""
+    at = seg.get("at", 0)
+    if isinstance(at, (int, float)):
+        t0 = float(at)
+    else:
+        events = sfx_events(rec_dir, name)
+        hits = [t for t, e, _ in events if at == "first" or e == at]
+        t0 = hits[0] if hits else seg.get("fallback", 10.0)
+    t0 += seg.get("off", 0.0)
+    span = seg["dur"] * seg.get("speed", 1.0)
+    return max(0.0, min(t0, duration - span - 0.1))
+
+
+def build(rec_dir, out_dir, lang, theme, variant, fmt, work):
+    base = SCRIPT["ads"][theme]
+    ad = dict(base, hook=base["hooks"][variant], title=base["titles"][variant])
+    ad_key = theme + ("" if variant == 0 else "_b")
     style = SCRIPT["styles"][ad.get("style", "teal")]
     work = os.path.join(work, f"{lang}_{ad_key}_{fmt}")
     os.makedirs(work, exist_ok=True)
@@ -371,7 +391,8 @@ def build(rec_dir, out_dir, lang, ad_key, fmt, work):
     for i, seg in enumerate(ad["segments"]):
         name = f"{lang}_{seg['clip']}"
         src = os.path.join(rec_dir, name + ".mp4")
-        cw, ch, _ = probe(src)
+        cw, ch, clip_len = probe(src)
+        seg = dict(seg, t0=resolve(rec_dir, name, seg, clip_len))
         png = os.path.join(work, f"{lang}_{ad_key}_{fmt}.png")
         if not os.path.exists(png):
             hook = ad["hook"][lang]
@@ -397,14 +418,14 @@ def build(rec_dir, out_dir, lang, ad_key, fmt, work):
     silent = os.path.join(work, f"{lang}_{ad_key}_{fmt}_v.mp4")
     run(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", silent])
     wav = os.path.join(work, f"{lang}_{ad_key}_{fmt}.m4a")
-    mix_audio(total, placed, ad.get("music", "music_kitchen"), ad.get("music_vol", 0.45), wav)
+    mix_audio(total, placed, ad.get("music", "music_kitchen"), ad.get("music_vol", 0.4), wav)
     # имена как у роликов Harvest Hollow: <тема>_<язык>.mp4 и рядом json для публикации
     stem = f"{ad_key}_{lang}" + ("" if fmt == "v" else "_16x9")
     out = os.path.join(out_dir, stem + ".mp4")
     tags = SCRIPT["hashtags"][lang]
     title = ad["title"][lang]
     meta = {"id": ad_key, "lang": lang, "file": stem + ".mp4", "title": title,
-            "caption": f"{title}. {SCRIPT['texts'][lang]['free']} " + " ".join(tags), "hashtags": tags}
+            "caption": title + ("" if title[-1] in "?!." else ".") + f" {SCRIPT['texts'][lang]['free']} " + " ".join(tags), "hashtags": tags}
     with open(os.path.join(out_dir, stem + ".json"), "w") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
     run(["ffmpeg", "-y", "-v", "error", "-i", silent, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "copy",
@@ -426,8 +447,9 @@ def main():
     for lang in args.only.split(","):
         for ad in args.ads.split(","):
             fmts = args.formats.split(",") if args.formats else SCRIPT["ads"][ad].get("formats", ["v"])
-            for fmt in fmts:
-                build(args.recordings, args.out, lang, ad, fmt, work)
+            for variant in range(len(SCRIPT["ads"][ad]["hooks"])):
+                for fmt in fmts:
+                    build(args.recordings, args.out, lang, ad, variant, fmt, work)
 
 
 if __name__ == "__main__":
