@@ -84,7 +84,7 @@ jobs:
             kill -INT $rpid; wait $rpid || true
             kill $lpid 2>/dev/null || true
             # сырые записи 60 к/с весят до 100+ МБ (лимит GitHub на файл): пережимаем в 30 к/с
-            ffmpeg -v error -y -i "raw/$name.mp4" -vf fps=30 -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p "promo/$name.mp4"
+            ffmpeg -nostdin -v error -y -i "raw/$name.mp4" -vf fps=30 -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p "promo/$name.mp4"
             rm -f "raw/$name.mp4"
             echo "$name $(du -h "promo/$name.mp4" | cut -f1) sfx=$(grep -c '^SFX' "promo/$name.log")"
           }
