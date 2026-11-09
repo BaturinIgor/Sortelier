@@ -1,13 +1,14 @@
 # Сцены для рекламы: имя, секунд записи, параметры запуска (язык добавляется сам).
-# -uiLivePlay N: ход каждые N секунд, палец сам носит продукты (сортировка - по решателю, 3 в ряд - подсказка).
-sort25 55 -uiLevel 25 -uiLivePlay 0.95
-sort45 55 -uiLevel 45 -uiLivePlay 0.95
-sort75 55 -uiLevel 75 -uiLivePlay 0.95
-sort94 55 -uiLevel 94 -uiLivePlay 0.95
-sort140 55 -uiLevel 140 -uiLivePlay 0.95
-m3_7 60 -uiScreen marketlevel -uiMarketLevel 7 -uiLivePlay 1.3
-m3_22 60 -uiScreen marketlevel -uiMarketLevel 22 -uiLivePlay 1.3
-m3_28 60 -uiScreen marketlevel -uiMarketLevel 28 -uiLivePlay 1.3
+# -uiLivePlay N: ход каждые N секунд игрового времени, палец сам носит продукты (сортировка - по решателю, 3 в ряд - подсказка).
+# -uiSlowMo 0.4: сцены идут в 2.5 раза медленнее, при сборке ролика запись ускоряется обратно - так плавнее.
+sort25 140 -uiLevel 25 -uiLivePlay 0.95 -uiSlowMo 0.4
+sort45 140 -uiLevel 45 -uiLivePlay 0.95 -uiSlowMo 0.4
+sort75 140 -uiLevel 75 -uiLivePlay 0.95 -uiSlowMo 0.4
+sort94 120 -uiLevel 94 -uiLivePlay 0.95 -uiSlowMo 0.4
+sort140 140 -uiLevel 140 -uiLivePlay 0.95 -uiSlowMo 0.4
+m3_7 140 -uiScreen marketlevel -uiMarketLevel 7 -uiLivePlay 1.3 -uiSlowMo 0.4
+m3_22 110 -uiScreen marketlevel -uiMarketLevel 22 -uiLivePlay 1.3 -uiSlowMo 0.4
+m3_28 140 -uiScreen marketlevel -uiMarketLevel 28 -uiLivePlay 1.3 -uiSlowMo 0.4
 map 9 -uiScreen map
 book 9 -uiScreen book
 recipe 9 -uiScreen recipe

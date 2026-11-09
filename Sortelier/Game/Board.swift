@@ -441,7 +441,7 @@ extension Board {
         return out
     }
 
-    func debugSolve(beam: Int = 60, maxDepth: Int = 250, seconds: Double = 5) -> [(from: Int, slot: Int, to: Int)]? {
+    func debugSolve(beam: Int = 80, maxDepth: Int = 250, seconds: Double = 20) -> [(from: Int, slot: Int, to: Int)]? {
         let deadline = Date().addingTimeInterval(seconds)
         typealias Move = (from: Int, slot: Int, to: Int)
         var frontier: [(board: Board, path: [Move], h: Double)] = [(self, [], 0)]

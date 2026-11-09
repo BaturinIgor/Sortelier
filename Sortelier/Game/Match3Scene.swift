@@ -212,6 +212,7 @@ final class Match3Scene: SKScene {
         view.ignoresSiblingOrder = true
         if !built && size.width > 10 && model != nil { build() }
         #if DEBUG
+        speed = UIDebug.slowMo
         startLivePlay()
         #endif
     }
@@ -434,7 +435,8 @@ final class Match3Scene: SKScene {
     }
 
     override func update(_ currentTime: TimeInterval) {
-        let dt = lastTime == 0 ? 0 : min(0.1, currentTime - lastTime)
+        // speed влияет только на SKAction; лента событий идет по своим часам, поэтому множим и ее
+        let dt = (lastTime == 0 ? 0 : min(0.1, currentTime - lastTime)) * Double(speed)
         lastTime = currentTime
         budget = 48
         guard !isPaused else { return }

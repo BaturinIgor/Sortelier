@@ -224,6 +224,7 @@ final class GameScene: SKScene {
         view.isMultipleTouchEnabled = false
         rebuild()
         #if DEBUG
+        speed = UIDebug.slowMo
         startLivePlay()
         #endif
     }
@@ -1242,7 +1243,7 @@ extension GameScene {
             guard let self = self else { timer.invalidate(); return }
             if self.session.newDish != nil {
                 shownFor += 1
-                if shownFor >= 9 { self.session.newDish = nil; shownFor = 0 }
+                if Double(shownFor) >= 9 / Double(UIDebug.slowMo) { self.session.newDish = nil; shownFor = 0 }
             } else {
                 shownFor = 0
             }
