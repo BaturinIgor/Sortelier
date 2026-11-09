@@ -223,6 +223,10 @@ final class GameScene: SKScene {
     override func didMove(to view: SKView) {
         view.isMultipleTouchEnabled = false
         rebuild()
+        #if DEBUG
+        speed = UIDebug.slowMo
+        startLivePlay()
+        #endif
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -1230,3 +1234,100 @@ final class GameScene: SKScene {
                             .removeFromParent()]))
     }
 }
+
+#if DEBUG
+// MARK: - Живая игра для рекламных роликов (-uiLivePlay 1.1)
+
+/// Палец сам берет продукт и несет его на полку, ходы подсказки с паузой: запись видео в CI.
+extension GameScene {
+    func startLivePlay() {
+        guard let pace = UIDebug.value("uiLivePlay").flatMap(Double.init), action(forKey: "livePlay") == nil else { return }
+        // окно "Новое блюдо" ставит сцену на паузу: закрываем его сами через пару секунд
+        var shownFor = 0
+        Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] timer in
+            guard let self = self else { timer.invalidate(); return }
+            if self.session.newDish != nil {
+                shownFor += 1
+                if Double(shownFor) >= 9 / Double(UIDebug.slowMo) { self.session.newDish = nil; shownFor = 0 }
+            } else {
+                shownFor = 0
+            }
+        }
+        let step = SKAction.sequence([.run { [weak self] in self?.livePlayStep(pace) }, .wait(forDuration: pace)])
+        run(.sequence([.wait(forDuration: 1.6), .repeatForever(step)]), withKey: "livePlay")
+        _ = nextLiveMove()
+    }
+
+    /// Следующий ход из готового решения. Решение ищется в фоне (в отладочной сборке это секунды);
+    /// если уровень пошел не по плану, ищем заново, а пока ждем - ход подсказки.
+    private func nextLiveMove() -> (from: Int, slot: Int, to: Int)? {
+        let board = session.board
+        if var plan = GameScene.livePlan, let m = plan.first {
+            var copy = board
+            if copy.move(from: m.from, slot: m.slot, to: m.to) != nil {
+                plan.removeFirst()
+                GameScene.livePlan = plan
+                return m
+            }
+        }
+        if GameScene.liveSolving || GameScene.liveFailed { return nil }
+        GameScene.livePlan = nil
+        GameScene.liveSolving = true
+        DispatchQueue.global(qos: .userInitiated).async {
+            let plan = board.debugSolve()
+            DispatchQueue.main.async {
+                GameScene.livePlan = plan
+                GameScene.liveFailed = plan == nil
+                GameScene.liveSolving = false
+            }
+        }
+        return nil
+    }
+
+    private static var liveSolving = false
+    private static var liveFailed = false
+    private static var livePlan: [(from: Int, slot: Int, to: Int)]?
+
+    private func demoHand() -> SKLabelNode {
+        if let hand = board.childNode(withName: "demoHand") as? SKLabelNode { return hand }
+        let hand = SKLabelNode(text: "\u{1F446}")
+        hand.name = "demoHand"
+        hand.fontSize = itemSize * 1.15
+        hand.verticalAlignmentMode = .top
+        hand.horizontalAlignmentMode = .center
+        hand.zPosition = 200
+        hand.alpha = 0
+        hand.position = CGPoint(x: size.width * 0.75, y: itemSize)
+        board.addChild(hand)
+        return hand
+    }
+
+    private func livePlayStep(_ pace: Double) {
+        let hand = demoHand()
+        guard session.phase == .playing, !session.board.isWon, session.newDish == nil else {
+            hand.run(.fadeOut(withDuration: 0.2))
+            return
+        }
+        // решатель не справился: ходим подсказкой
+        let planned = nextLiveMove() ?? (GameScene.liveFailed ? session.board.hint() : nil)
+        guard let m = planned, let piece = session.board.front(m.from)[m.slot], let node = pieceNodes[piece.uid] else { return }
+        let dstSlot = session.board.freeSlot(in: m.to) ?? 1
+        let start = node.position, end = slotPosition(m.to, dstSlot)
+        // кончик пальца чуть ниже центра продукта
+        let tip = CGPoint(x: itemSize * 0.08, y: -itemSize * 0.05)
+        let reach = min(0.3, pace * 0.3), carry = min(0.34, pace * 0.32)
+        let toPiece = SKAction.move(to: CGPoint(x: start.x + tip.x, y: start.y + tip.y), duration: reach)
+        toPiece.timingMode = .easeInEaseOut
+        let toShelf = SKAction.move(to: CGPoint(x: end.x + tip.x, y: end.y + tip.y), duration: carry)
+        toShelf.timingMode = .easeInEaseOut
+        hand.removeAllActions()
+        hand.run(.sequence([.group([.fadeIn(withDuration: 0.15), toPiece]), .scale(to: 0.88, duration: 0.07), toShelf,
+                            .scale(to: 1, duration: 0.08)]))
+        let lift = SKAction.move(to: end, duration: carry)
+        lift.timingMode = .easeInEaseOut
+        node.zPosition = 20
+        node.run(.sequence([.wait(forDuration: reach + 0.07), .group([lift, .scale(to: 1.12, duration: carry)]),
+                            .run { [weak self] in self?.attemptMove(from: m.from, slot: m.slot, to: m.to) }]))
+    }
+}
+#endif

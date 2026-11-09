@@ -1,0 +1,113 @@
+name: Promo videos
+
+# Записи геймплея для рекламы (TikTok, Shorts, YouTube): отладочная сборка сама играет уровни
+# ходами подсказки с пальцем (-uiLivePlay), simctl пишет экран, время звуков идет в лог (-uiSfxLog).
+# Сырые записи уходят в ветку ci-promo, ролики собирает tools/promo/compose.py.
+on:
+  push:
+    branches: ["claude/**"]
+    paths:
+      - ".github/workflows/promo.yml"
+      - "tools/promo/shots.txt"
+  workflow_dispatch:
+    inputs:
+      langs:
+        description: "Языки через пробел"
+        required: false
+        default: "ru en"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: promo-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  record:
+    runs-on: macos-26
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tools
+        run: brew install xcodegen ffmpeg
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Boot simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)['devices']
+          c = [x for k, v in d.items() if 'iOS' in k for x in v if x['name'].startswith('iPhone') and 'Pro Max' in x['name']]
+          c.sort(key=lambda x: x['name'])
+          print(c[-1]['udid'] if c else '')
+          ")
+          echo "Simulator: $UDID"
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl status_bar "$UDID" override --time "9:41" --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3 || true
+
+      - name: Build for simulator
+        run: |
+          set +e
+          # отладочная сборка (нужны флаги -ui...), но с оптимизацией: решатель и отрисовка в симуляторе быстрее
+          xcodebuild -project Sortelier.xcodeproj -scheme Sortelier -configuration Debug -sdk iphonesimulator \
+            -destination "id=${{ steps.sim.outputs.udid }}" -derivedDataPath build CODE_SIGNING_ALLOWED=NO \
+            SWIFT_OPTIMIZATION_LEVEL=-O GCC_OPTIMIZATION_LEVEL=s build > build.log 2>&1
+          status=$?
+          grep -E "error:" build.log | sort -u | head -50
+          exit $status
+
+      - name: Record gameplay
+        run: |
+          UDID="${{ steps.sim.outputs.udid }}"
+          APP=com.personal.sortelier
+          xcrun simctl install "$UDID" build/Build/Products/Debug-iphonesimulator/Sortelier.app
+          mkdir -p promo raw
+          now() { python3 -c 'import time; print("%.3f" % time.time())'; }
+          rec() {
+            name="$1"; dur="$2"; shift 2
+            xcrun simctl terminate "$UDID" $APP >/dev/null 2>&1 || true
+            sleep 1
+            xcrun simctl io "$UDID" recordVideo --codec=h264 --force "raw/$name.mp4" > "promo/$name.rec" 2>&1 &
+            rpid=$!
+            # recordVideo пишет "Recording started", когда пошел первый кадр
+            for i in $(seq 1 50); do grep -q "started" "promo/$name.rec" 2>/dev/null && break; sleep 0.1; done
+            now > "promo/$name.start"
+            xcrun simctl launch --terminate-running-process --console-pty "$UDID" $APP \
+              -uiDemo -uiNoIntro -uiStore -uiSfxLog "$@" > "promo/$name.log" 2>&1 &
+            lpid=$!
+            sleep "$dur"
+            kill -INT $rpid; wait $rpid || true
+            kill $lpid 2>/dev/null || true
+            # сырые записи 60 к/с весят до 100+ МБ (лимит GitHub на файл): пережимаем в 30 к/с
+            ffmpeg -nostdin -v error -y -i "raw/$name.mp4" -vf "fps=30,scale=900:-2" -c:v libx264 -preset veryfast -crf 22 -pix_fmt yuv420p "promo/$name.mp4"
+            rm -f "raw/$name.mp4"
+            echo "$name $(du -h "promo/$name.mp4" | cut -f1) sfx=$(grep -c '^SFX' "promo/$name.log")"
+          }
+          LANGS="${{ github.event.inputs.langs }}"
+          [ -z "$LANGS" ] && LANGS="ru en"
+          for lang in $LANGS; do
+            while read -r name dur args; do
+              case "$name" in ''|'#'*) continue ;; esac
+              rec "${lang}_${name}" "$dur" -uiLang "$lang" $args
+            done < tools/promo/shots.txt
+          done
+          ls -la promo
+
+      - name: Publish recordings
+        if: always()
+        run: |
+          cp build.log promo/ 2>/dev/null || true
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout --orphan ci-promo
+          git rm -rf --cached . > /dev/null
+          git add -f promo/
+          git commit -q -m "Promo recordings run ${{ github.run_number }} for ${{ github.sha }}"
+          git push -q -f origin ci-promo

@@ -44,6 +44,10 @@ enum UIDebug {
     /// Сколько ходов подсказки сделать сразу: снимок уровня в середине игры (-uiAutoplay 6).
     static var autoplay: Int { value("uiAutoplay").flatMap(Int.init) ?? 0 }
 
+    /// Замедление игровых сцен для записи роликов (-uiSlowMo 0.4): симулятор в CI рисует мало кадров в секунду,
+    /// замедленная запись потом ускоряется при сборке ролика и выходит плавной.
+    static var slowMo: CGFloat { value("uiSlowMo").flatMap(Double.init).map { CGFloat($0) } ?? 1 }
+
     static func apply(_ router: Router) {
         guard let screen = value("uiScreen") else { return }
         switch screen {
