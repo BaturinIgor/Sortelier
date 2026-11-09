@@ -441,14 +441,15 @@ extension Board {
         return out
     }
 
-    func debugSolve(beam: Int = 40, maxDepth: Int = 250, seconds: Double = 8) -> [(from: Int, slot: Int, to: Int)]? {
+    func debugSolve(beam: Int = 60, maxDepth: Int = 250, seconds: Double = 5) -> [(from: Int, slot: Int, to: Int)]? {
         let deadline = Date().addingTimeInterval(seconds)
         typealias Move = (from: Int, slot: Int, to: Int)
         var frontier: [(board: Board, path: [Move], h: Double)] = [(self, [], 0)]
         var seen: Set<DebugKey> = [debugKey]
         for _ in 0..<maxDepth {
-            // отладочная сборка медленная: не нашли за отведенное время - сцена ходит подсказкой
-            if Date() > deadline { return nil }
+            // отладочная сборка медленная: не дошли до конца за отведенное время - отдаем лучший кусок пути,
+            // сцена сыграет его и продолжит поиск с нового места
+            if Date() > deadline { return frontier.first.map(\.path) }
             var next: [(board: Board, path: [Move], h: Double)] = []
             for node in frontier {
                 if node.board.isWon { return node.path }
