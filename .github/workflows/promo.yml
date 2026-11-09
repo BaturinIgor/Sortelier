@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install tools
-        run: brew install xcodegen
+        run: brew install xcodegen ffmpeg
 
       - name: Generate Xcode project
         run: xcodegen generate
@@ -66,13 +66,13 @@ jobs:
           UDID="${{ steps.sim.outputs.udid }}"
           APP=com.personal.sortelier
           xcrun simctl install "$UDID" build/Build/Products/Debug-iphonesimulator/Sortelier.app
-          mkdir -p promo
+          mkdir -p promo raw
           now() { python3 -c 'import time; print("%.3f" % time.time())'; }
           rec() {
             name="$1"; dur="$2"; shift 2
             xcrun simctl terminate "$UDID" $APP >/dev/null 2>&1 || true
             sleep 1
-            xcrun simctl io "$UDID" recordVideo --codec=h264 --force "promo/$name.mp4" > "promo/$name.rec" 2>&1 &
+            xcrun simctl io "$UDID" recordVideo --codec=h264 --force "raw/$name.mp4" > "promo/$name.rec" 2>&1 &
             rpid=$!
             # recordVideo пишет "Recording started", когда пошел первый кадр
             for i in $(seq 1 50); do grep -q "started" "promo/$name.rec" 2>/dev/null && break; sleep 0.1; done
@@ -83,6 +83,9 @@ jobs:
             sleep "$dur"
             kill -INT $rpid; wait $rpid || true
             kill $lpid 2>/dev/null || true
+            # сырые записи 60 к/с весят до 100+ МБ (лимит GitHub на файл): пережимаем в 30 к/с
+            ffmpeg -v error -y -i "raw/$name.mp4" -vf fps=30 -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p "promo/$name.mp4"
+            rm -f "raw/$name.mp4"
             echo "$name $(du -h "promo/$name.mp4" | cut -f1) sfx=$(grep -c '^SFX' "promo/$name.log")"
           }
           LANGS="${{ github.event.inputs.langs }}"

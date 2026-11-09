@@ -4,7 +4,8 @@
 Записи берутся из ветки ci-promo (workflow "Promo videos"): <язык>_<сцена>.mp4, .start (время первого кадра)
 и .log (строки "SFX <время> <звук> <громкость>" из отладочной сборки с -uiSfxLog).
 
-Форматы: v - 1080x1920 (TikTok, Reels, Shorts), h - 1920x1080 (YouTube, превью и In-Stream).
+Форматы: v - 1080x1920 (TikTok, Reels, Shorts), h - 1920x1080 (обычный YouTube), у темы в script.json поле formats.
+Рядом с каждым роликом json с заголовком, подписью и хэштегами, как у роликов Harvest Hollow.
 Звук собирается здесь: в записи симулятора его нет, поэтому эффекты кладутся по логу, плюс музыка кухни.
 """
 import argparse
@@ -27,9 +28,6 @@ SCRIPT = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 FPS = 30
 SR = 44100
 SIZES = {"v": (1080, 1920), "h": (1920, 1080)}
-# 9:16: высота полосы с подписью и ширина игры (по бокам и сверху - размытый фон)
-V_BAND = 360
-V_GAME_W = 1000
 
 
 def run(cmd):
@@ -141,118 +139,154 @@ def rounded(im, radius):
     return out
 
 
-def caption_overlay(fmt, caption, highlight, style, phone_box):
-    """Слой поверх видео: для v - подпись сверху прямо на игре, для h - фон, телефон-рамка и подпись справа."""
+CREAM = (255, 246, 228)
+BROWN = (74, 44, 26)
+
+
+def rays(size, style, center=None, seed=3):
+    """Фон как у Harvest Hollow: градиент, лучи из центра и мягкие пятна."""
+    W, H = size
+    im = gradient(size, *style)
+    cx, cy = center or (W / 2, H * 0.42)
+    layer = Image.new("RGBA", size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(layer)
+    R = max(W, H) * 1.5
+    n = 18
+    for i in range(n):
+        if i % 2:
+            continue
+        a0, a1 = 2 * math.pi * i / n, 2 * math.pi * (i + 1) / n
+        d.polygon([(cx, cy), (cx + R * math.cos(a0), cy + R * math.sin(a0)), (cx + R * math.cos(a1), cy + R * math.sin(a1))],
+                  fill=(255, 255, 255, 30))
+    im.alpha_composite(layer)
+    return im
+
+
+def hook_card(im, text, highlight, box, size):
+    """Хук на светлой плашке с коричневой рамкой, как в роликах Harvest Hollow."""
+    x0, y0, x1, y1 = box
+    d = ImageDraw.Draw(im)
+    f, lines = wrap(d, text, size, x1 - x0 - 70, 3)
+    lh = f.size * 1.16
+    hgt = len(lines) * lh + 56
+    cy = (y0 + y1) / 2
+    top = cy - hgt / 2
+    sh = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    ImageDraw.Draw(sh).rounded_rectangle((x0 + 6, top + 14, x1 + 6, top + hgt + 14), 34, fill=(0, 0, 0, 90))
+    im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(12)))
+    d.rounded_rectangle((x0, top, x1, top + hgt), 34, fill=CREAM, outline=BROWN, width=7)
+    y = top + 28
+    for line in lines:
+        w = d.textlength(line, font=f)
+        x = (x0 + x1) / 2 - w / 2
+        if highlight and highlight in line:
+            before, _, after = line.partition(highlight)
+            for part, color in ((before, BROWN), (highlight, (226, 92, 30)), (after, BROWN)):
+                if part:
+                    d.text((x, y), part, font=f, fill=color)
+                    x += d.textlength(part, font=f)
+        else:
+            d.text((x, y), line, font=f, fill=BROWN)
+        y += lh
+
+
+def game_box(fmt):
+    """Где стоит запись игры: v - под плашкой хука, h - слева."""
     W, H = SIZES[fmt]
     if fmt == "v":
-        # сверху полоса под подпись, игра ниже (см. V_BAND); фон - размытая та же запись
-        im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        if caption:
-            d = ImageDraw.Draw(im)
-            f, lines = wrap(d, caption, 104, W - 90, 2)
-            block = len(lines) * f.size * 1.08
-            text_block(im, caption, W / 2, (V_BAND - block) / 2 + 6, 104, W - 90, highlight=highlight, max_lines=2)
-        return im
-    top, bottom = style
-    im = gradient((W, H), top, bottom)
-    x0, y0, x1, y1 = phone_box
-    bezel = 18
-    d = ImageDraw.Draw(im)
+        x0, y0 = 110, 380
+        w = W - 2 * x0
+        return (x0, y0, x0 + w, H - 60)
+    h = H - 110
+    w = round(h * 0.56)
+    return (300, 55, 300 + w, 55 + h)
+
+
+def caption_overlay(fmt, hook, highlight, style):
+    """Слой поверх видео: фон с лучами, рамка игры (окно прозрачное) и хук."""
+    W, H = SIZES[fmt]
+    x0, y0, x1, y1 = game_box(fmt)
+    im = rays((W, H), style, center=((x0 + x1) / 2, (y0 + y1) / 2))
+    b = 12
     sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    ImageDraw.Draw(sh).rounded_rectangle((x0 - bezel + 10, y0 - bezel + 24, x1 + bezel + 10, y1 + bezel + 24), 90, fill=(0, 0, 0, 110))
-    im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(24)))
-    d.rounded_rectangle((x0 - bezel, y0 - bezel, x1 + bezel, y1 + bezel), 90, fill=(28, 28, 34, 255))
-    # окно экрана прозрачное: видео подкладывается снизу
+    ImageDraw.Draw(sh).rounded_rectangle((x0 - b + 8, y0 - b + 20, x1 + b + 8, y1 + b + 20), 56, fill=(0, 0, 0, 110))
+    im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(20)))
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle((x0 - b, y0 - b, x1 + b, y1 + b), 56, fill=BROWN)
+    d.rounded_rectangle((x0 - b + 4, y0 - b + 4, x1 + b - 4, y1 + b - 4), 52, outline=(140, 96, 60), width=3)
     hole = Image.new("L", (W, H), 255)
-    ImageDraw.Draw(hole).rounded_rectangle((x0, y0, x1, y1), 72, fill=0)
-    alpha = np.minimum(np.array(im.getchannel("A")), np.array(hole))
-    im.putalpha(Image.fromarray(alpha))
-    if caption:
-        tx = (x1 + bezel + W) / 2
-        text_block(im, caption, tx, 360, 120, W - x1 - 200, highlight=highlight, max_lines=3)
+    ImageDraw.Draw(hole).rounded_rectangle((x0, y0, x1, y1), 44, fill=0)
+    im.putalpha(Image.fromarray(np.minimum(np.array(im.getchannel("A")), np.array(hole))))
+    if hook:
+        if fmt == "v":
+            hook_card(im, hook, highlight, (50, 40, W - 50, 330), 74)
+        else:
+            hook_card(im, hook, highlight, (x1 + 110, 200, W - 110, 880), 84)
     return im
 
 
 def endcard_frames(fmt, lang, style, n):
-    """Концовка: иконка выпрыгивает, название, кнопка "Играть бесплатно" пульсирует."""
+    """Концовка: иконка выпрыгивает, название, кнопка "Играй бесплатно на iPhone" пульсирует, "Ссылка в профиле"."""
     W, H = SIZES[fmt]
     t = SCRIPT["texts"][lang]
-    base = gradient((W, H), *style)
-    icon = rounded(Image.open(ICON).convert("RGBA").resize((400, 400), Image.LANCZOS), 90)
-    deco = ["dish_burger", "dish_sushi", "dish_pizza", "dish_taco", "dish_croissant", "tomato"]
     if fmt == "v":
-        spots = [(150, 330, -14), (930, 420, 12), (130, 1560, 10), (950, 1640, -10)]
-        icon_c, title_y, sub_y, btn_y = (W / 2, 640), 900, 1090, 1300
+        icon_size, icon_c, title_y, btn_y, deco_y = 440, (W / 2, 560), 860, 1270, (300, 1560)
     else:
-        spots = [(200, 200, -14), (1720, 230, 12), (230, 860, 10), (1700, 880, -10)]
-        icon_c, title_y, sub_y, btn_y = (W / 2, 270), 470, 640, 740
+        icon_size, icon_c, title_y, btn_y, deco_y = 330, (W / 2, 250), 450, 790, (190, 880)
+    base = rays((W, H), style, center=icon_c)
+    icon = rounded(Image.open(ICON).convert("RGBA").resize((icon_size, icon_size), Image.LANCZOS), icon_size // 4.5)
     static = base.copy()
+    deco = ["dish_burger", "dish_sushi", "dish_pizza", "dish_taco"]
+    spots = [(W * 0.14, deco_y[0], -14), (W * 0.86, deco_y[0] + 80, 12), (W * 0.14, deco_y[1], 10), (W * 0.86, deco_y[1] + 60, -10)]
     for name, (x, y, r) in zip(deco, spots):
-        paste_sprite(static, name, x, y, 230, r)
-    text_block(static, t["name"], W / 2, title_y, 120, W - 160, max_lines=2)
-    text_block(static, t["tagline"], W / 2, sub_y, 70, W - 200, fill=(255, 240, 200), max_lines=2)
+        paste_sprite(static, name, x, y, 220, r)
+    text_block(static, t["name"], W / 2, title_y, 170, W - 140, fill=(255, 214, 64), stroke=BROWN, max_lines=1)
     frames = []
     for i in range(n):
         im = static.copy()
         k = min(1, i / 9)
-        s = 1 + 0.25 * math.sin(k * math.pi) if k < 1 else 1  # прыжок иконки
-        s = s * (0.4 + 0.6 * k)
-        ic = icon.resize((int(400 * s), int(400 * s)), Image.LANCZOS)
+        s = (1 + 0.22 * math.sin(k * math.pi) if k < 1 else 1) * (0.4 + 0.6 * k)
+        ic = icon.resize((int(icon_size * s), int(icon_size * s)), Image.LANCZOS)
+        sh = Image.new("RGBA", im.size, (0, 0, 0, 0))
+        sh.paste((0, 0, 0, 100), (int(icon_c[0] - ic.width / 2 + 8), int(icon_c[1] - ic.height / 2 + 16)), ic.getchannel("A"))
+        im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(14)))
         im.alpha_composite(ic, (int(icon_c[0] - ic.width / 2), int(icon_c[1] - ic.height / 2)))
-        # кнопка
-        pulse = 1 + 0.05 * math.sin(i / FPS * 2 * math.pi * 1.4)
-        bw, bh = int(640 * pulse), int(150 * pulse)
-        bx, by = int(W / 2 - bw / 2), int(btn_y - bh / 2 + 60)
+        pulse = 1 + 0.04 * math.sin(i / FPS * 2 * math.pi * 1.3)
         d = ImageDraw.Draw(im)
-        d.rounded_rectangle((bx, by + 12, bx + bw, by + bh + 12), bh // 2, fill=(40, 120, 30))
-        d.rounded_rectangle((bx, by, bx + bw, by + bh), bh // 2, fill=(110, 210, 70), outline=(255, 255, 255), width=6)
-        f = font(int(64 * pulse))
+        f = font(int(62 * pulse))
         label = t["cta"]
+        bw = int(d.textlength(label, font=f) + 120 * pulse)
+        bh = int(140 * pulse)
+        bx, by = int(W / 2 - bw / 2), int(btn_y - bh / 2)
+        d.rounded_rectangle((bx, by + 12, bx + bw, by + bh + 12), bh // 2, fill=(40, 120, 30))
+        d.rounded_rectangle((bx, by, bx + bw, by + bh), bh // 2, fill=(96, 200, 64), outline=(40, 120, 30), width=5)
+        d.rounded_rectangle((bx + 18, by + 10, bx + bw - 18, by + bh * 0.42), bh // 4, fill=(140, 225, 100))
         lw = d.textlength(label, font=f)
-        d.text((W / 2 - lw / 2, by + bh / 2 - f.size * 0.62), label, font=f, fill=(255, 255, 255), stroke_width=5,
+        d.text((W / 2 - lw / 2, by + bh / 2 - f.size * 0.6), label, font=f, fill=(255, 255, 255), stroke_width=4,
                stroke_fill=(40, 110, 30))
-        f2 = font(54)
-        store = t["store"]
-        sw_ = d.textlength(store, font=f2)
-        d.text((W / 2 - sw_ / 2, by + bh + 36), store, font=f2, fill=(255, 255, 255), stroke_width=4, stroke_fill=(60, 40, 30))
+        f2 = font(58)
+        link = t["link"]
+        lw2 = d.textlength(link, font=f2)
+        d.text((W / 2 - lw2 / 2, by + bh + 50), link, font=f2, fill=(255, 255, 255), stroke_width=5, stroke_fill=BROWN)
         frames.append(im.convert("RGB"))
     return frames
 
 
 # ---------- Видео ----------
 
-def phone_box(fmt):
-    W, H = SIZES[fmt]
-    if fmt != "h":
-        return None
-    h = H - 110
-    w = round(h * 1320 / 2868)
-    x0 = 330
-    return (x0, 55, x0 + w, 55 + h)
-
-
 def render_segment(src, seg, fmt, overlay_png, out, clip_size):
+    """Кусок записи в окне рамки: по ширине окна, по высоте окно начинается с доли "y" от верха записи."""
     W, H = SIZES[fmt]
     t0, dur, speed = seg["t0"], seg["dur"], seg.get("speed", 1.0)
     cw, ch = clip_size
-    zoom = seg.get("zoom", 1.0)
-    if fmt == "v":
-        # игра шириной V_GAME_W под полосой подписи, окно по высоте начинается с доли "y" от верха записи
-        gw = V_GAME_W
-        gh = H - V_BAND
-        sh = int(ch * gw / cw) // 2 * 2
-        y = min(int(sh * seg.get("y", 0.055)), sh - gh)
-        trim = f"trim=start={t0}:duration={dur * speed},setpts=(PTS-STARTPTS)/{speed},fps={FPS}"
-        vf = (f"[0:v]{trim},split[a][b];"
-              f"[a]scale={W}:-2,crop={W}:{H}:0:(ih-{H})/2,gblur=sigma=40,eq=brightness=-0.12:saturation=1.2[bg];"
-              f"[b]scale={gw}:{sh}:flags=lanczos,crop={gw}:{gh}:0:{y}[g];"
-              f"[bg][g]overlay={(W - gw) // 2}:{V_BAND}[c];[c][1:v]overlay=0:0,format=yuv420p[o]")
-    else:
-        x0, y0, x1, y1 = phone_box(fmt)
-        pw, ph = x1 - x0, y1 - y0
-        vf = (f"color=c=black:s={W}x{H}:r={FPS}:d={dur}[bg];"
-              f"[0:v]trim=start={t0}:duration={dur * speed},setpts=(PTS-STARTPTS)/{speed},fps={FPS},"
-              f"scale={pw}:{ph}:flags=lanczos[g];[bg][g]overlay={x0}:{y0}[b];[b][1:v]overlay=0:0,format=yuv420p[o]")
+    x0, y0, x1, y1 = game_box(fmt)
+    gw, gh = x1 - x0, y1 - y0
+    sh = int(ch * gw / cw) // 2 * 2
+    y = max(0, min(int(sh * seg.get("y", 0.05)), sh - gh))
+    vf = (f"color=c=black:s={W}x{H}:r={FPS}:d={dur}[bg];"
+          f"[0:v]trim=start={t0}:duration={dur * speed},setpts=(PTS-STARTPTS)/{speed},fps={FPS},"
+          f"scale={gw}:{sh}:flags=lanczos,crop={gw}:{gh}:0:{y}[g];[bg][g]overlay={x0}:{y0}[b];"
+          f"[b][1:v]overlay=0:0,format=yuv420p[o]")
     run(["ffmpeg", "-y", "-v", "error", "-i", src, "-loop", "1", "-i", overlay_png, "-filter_complex", vf, "-map", "[o]",
          "-t", f"{dur:.3f}", "-r", str(FPS), "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-an", out])
 
@@ -330,16 +364,18 @@ def mix_audio(total, placed, music, music_vol, out):
 def build(rec_dir, out_dir, lang, ad_key, fmt, work):
     ad = SCRIPT["ads"][ad_key]
     style = SCRIPT["styles"][ad.get("style", "teal")]
+    work = os.path.join(work, f"{lang}_{ad_key}_{fmt}")
+    os.makedirs(work, exist_ok=True)
     parts, placed = [], []
     clock = 0.0
     for i, seg in enumerate(ad["segments"]):
         name = f"{lang}_{seg['clip']}"
         src = os.path.join(rec_dir, name + ".mp4")
         cw, ch, _ = probe(src)
-        cap = SCRIPT["captions"].get(seg.get("caption", ""), {}).get(lang, "")
-        hl = SCRIPT["captions"].get(seg.get("caption", ""), {}).get(lang + "_hl")
-        png = os.path.join(work, f"{ad_key}_{fmt}_{i}.png")
-        caption_overlay(fmt, cap, hl, style, phone_box(fmt)).save(png)
+        png = os.path.join(work, f"{lang}_{ad_key}_{fmt}.png")
+        if not os.path.exists(png):
+            hook = ad["hook"][lang]
+            caption_overlay(fmt, hook, ad["hook"].get(lang + "_hl"), style).save(png)
         mp4 = os.path.join(work, f"{lang}_{ad_key}_{fmt}_{i}.mp4")
         render_segment(src, seg, fmt, png, mp4, (cw, ch))
         parts.append(mp4)
@@ -362,8 +398,15 @@ def build(rec_dir, out_dir, lang, ad_key, fmt, work):
     run(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", silent])
     wav = os.path.join(work, f"{lang}_{ad_key}_{fmt}.m4a")
     mix_audio(total, placed, ad.get("music", "music_kitchen"), ad.get("music_vol", 0.45), wav)
-    tag = {"v": "9x16", "h": "16x9"}[fmt]
-    out = os.path.join(out_dir, f"sortelier_{ad_key}_{lang}_{tag}.mp4")
+    # имена как у роликов Harvest Hollow: <тема>_<язык>.mp4 и рядом json для публикации
+    stem = f"{ad_key}_{lang}" + ("" if fmt == "v" else "_16x9")
+    out = os.path.join(out_dir, stem + ".mp4")
+    tags = SCRIPT["hashtags"][lang]
+    title = ad["title"][lang]
+    meta = {"id": ad_key, "lang": lang, "file": stem + ".mp4", "title": title,
+            "caption": f"{title}. {SCRIPT['texts'][lang]['free']} " + " ".join(tags), "hashtags": tags}
+    with open(os.path.join(out_dir, stem + ".json"), "w") as f:
+        json.dump(meta, f, ensure_ascii=False, indent=2)
     run(["ffmpeg", "-y", "-v", "error", "-i", silent, "-i", wav, "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "copy",
          "-shortest", "-movflags", "+faststart", out])
     print(out, f"{total:.1f}s")
@@ -376,13 +419,14 @@ def main():
     ap.add_argument("out")
     ap.add_argument("--only", default="ru,en")
     ap.add_argument("--ads", default=",".join(SCRIPT["ads"].keys()))
-    ap.add_argument("--formats", default="v,h")
+    ap.add_argument("--formats", default="")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     work = tempfile.mkdtemp(prefix="promo_")
     for lang in args.only.split(","):
         for ad in args.ads.split(","):
-            for fmt in args.formats.split(","):
+            fmts = args.formats.split(",") if args.formats else SCRIPT["ads"][ad].get("formats", ["v"])
+            for fmt in fmts:
                 build(args.recordings, args.out, lang, ad, fmt, work)
 
 
