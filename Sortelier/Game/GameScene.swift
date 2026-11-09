@@ -1249,6 +1249,7 @@ extension GameScene {
         }
         let step = SKAction.sequence([.run { [weak self] in self?.livePlayStep(pace) }, .wait(forDuration: pace)])
         run(.sequence([.wait(forDuration: 1.6), .repeatForever(step)]), withKey: "livePlay")
+        _ = nextLiveMove()
     }
 
     /// Следующий ход из готового решения. Решение ищется в фоне (в отладочной сборке это секунды);

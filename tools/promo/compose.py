@@ -27,6 +27,9 @@ SCRIPT = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 FPS = 30
 SR = 44100
 SIZES = {"v": (1080, 1920), "h": (1920, 1080)}
+# 9:16: высота полосы с подписью и ширина игры (по бокам и сверху - размытый фон)
+V_BAND = 360
+V_GAME_W = 1000
 
 
 def run(cmd):
@@ -54,7 +57,7 @@ def wrap(draw, text, size, max_w, max_lines=3):
     while size > 30:
         f = font(size)
         lines, cur = [], ""
-        for word in text.split():
+        for word in text.split(" "):
             trial = (cur + " " + word).strip()
             if draw.textlength(trial, font=f) <= max_w or not cur:
                 cur = trial
@@ -142,15 +145,13 @@ def caption_overlay(fmt, caption, highlight, style, phone_box):
     """Слой поверх видео: для v - подпись сверху прямо на игре, для h - фон, телефон-рамка и подпись справа."""
     W, H = SIZES[fmt]
     if fmt == "v":
+        # сверху полоса под подпись, игра ниже (см. V_BAND); фон - размытая та же запись
         im = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        # мягкое затемнение под текстом, чтобы он читался на любом фоне
-        shade = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        sd = ImageDraw.Draw(shade)
-        for i in range(520):
-            sd.line([(0, i), (W, i)], fill=(20, 10, 5, int(150 * (1 - i / 520) ** 1.6)))
-        im.alpha_composite(shade)
         if caption:
-            text_block(im, caption, W / 2, 190, 112, W - 120, highlight=highlight, max_lines=3)
+            d = ImageDraw.Draw(im)
+            f, lines = wrap(d, caption, 104, W - 90, 2)
+            block = len(lines) * f.size * 1.08
+            text_block(im, caption, W / 2, (V_BAND - block) / 2 + 6, 104, W - 90, highlight=highlight, max_lines=2)
         return im
     top, bottom = style
     im = gradient((W, H), top, bottom)
@@ -236,13 +237,16 @@ def render_segment(src, seg, fmt, overlay_png, out, clip_size):
     cw, ch = clip_size
     zoom = seg.get("zoom", 1.0)
     if fmt == "v":
-        # видео на весь экран по ширине, окно по высоте задает "y" (доля лишней высоты сверху)
-        sw = int(W * zoom) // 2 * 2
-        sh = int(ch * sw / cw) // 2 * 2
-        y = int((sh - H) * seg.get("y", 0.5))
-        x = (sw - W) // 2 + int(seg.get("x", 0) * (sw - W))
-        vf = (f"[0:v]trim=start={t0}:duration={dur * speed},setpts=(PTS-STARTPTS)/{speed},fps={FPS},"
-              f"scale={sw}:{sh}:flags=lanczos,crop={W}:{H}:{max(0, x)}:{max(0, y)}[g];[g][1:v]overlay=0:0,format=yuv420p[o]")
+        # игра шириной V_GAME_W под полосой подписи, окно по высоте начинается с доли "y" от верха записи
+        gw = V_GAME_W
+        gh = H - V_BAND
+        sh = int(ch * gw / cw) // 2 * 2
+        y = min(int(sh * seg.get("y", 0.055)), sh - gh)
+        trim = f"trim=start={t0}:duration={dur * speed},setpts=(PTS-STARTPTS)/{speed},fps={FPS}"
+        vf = (f"[0:v]{trim},split[a][b];"
+              f"[a]scale={W}:-2,crop={W}:{H}:0:(ih-{H})/2,gblur=sigma=40,eq=brightness=-0.12:saturation=1.2[bg];"
+              f"[b]scale={gw}:{sh}:flags=lanczos,crop={gw}:{gh}:0:{y}[g];"
+              f"[bg][g]overlay={(W - gw) // 2}:{V_BAND}[c];[c][1:v]overlay=0:0,format=yuv420p[o]")
     else:
         x0, y0, x1, y1 = phone_box(fmt)
         pw, ph = x1 - x0, y1 - y0

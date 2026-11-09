@@ -4,6 +4,10 @@ import UserNotifications
 /// Локальные напоминания: жизни восстановились, стрик сгорает, новое испытание, давно не заходил.
 enum Notifications {
     static func requestIfNeeded() {
+        #if DEBUG
+        // запись роликов: системное окно разрешения висело бы поверх всех следующих сцен
+        if UIDebug.flag("uiLivePlay") { return }
+        #endif
         let progress = PlayerProgress.shared
         guard !progress.notificationsAsked else { return }
         progress.markNotificationsAsked()
