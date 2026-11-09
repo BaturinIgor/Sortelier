@@ -24,3 +24,6 @@ SAMMLE ALLES
 Füll das Kochbuch, vervollständige das Kartenalbum, verdiene Erfolge und gestalte deine Küche mit neuen Hintergründen.
 
 Keine aufgezwungene Werbung zwischen den Leveln. Belohnungswerbung ist immer freiwillig.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

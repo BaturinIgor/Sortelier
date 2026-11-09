@@ -24,3 +24,6 @@ Sortelier खाने-पीने की एक आरामदायक स�
 कुकबुक भरें, कार्ड एल्बम पूरा करें, अचीवमेंट कमाएं और नए बैकग्राउंड से अपनी रसोई सजाएं।
 
 लेवलों के बीच कोई ज़बरदस्ती वाला विज्ञापन नहीं। इनाम वाले विज्ञापन हमेशा वैकल्पिक हैं।
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

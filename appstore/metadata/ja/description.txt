@@ -24,3 +24,6 @@ Sortelierは、食べ物をテーマにしたほのぼのソートパズルで�
 レシピ帳を埋めて、カードアルバムをコンプリート、実績を獲得して、新しい背景でキッチンをデコレーション。
 
 レベルの合間に強制広告はありません。リワード広告はいつでも任意です。
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

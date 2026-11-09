@@ -24,3 +24,6 @@ Sortelier لعبة ألغاز ترتيب دافئة ومريحة عن الطعا
 املأ كتاب الطبخ، وأكمل ألبوم البطاقات، واكسب الإنجازات، وزيّن مطبخك بخلفيات جديدة.
 
 لا إعلانات إجبارية بين المستويات. والإعلانات مقابل المكافآت اختيارية دائمًا.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

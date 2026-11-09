@@ -24,3 +24,6 @@ COLLEZIONA TUTTO
 Riempi il ricettario, completa l'album delle carte, ottieni obiettivi e decora la tua cucina con nuovi sfondi.
 
 Niente pubblicità forzata tra un livello e l'altro. Le pubblicità con ricompensa sono sempre facoltative.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

@@ -24,3 +24,6 @@ Sortelier는 음식을 소재로 한 아늑한 정리 퍼즐이에요. 주방 �
 요리책을 채우고, 카드 앨범을 완성하고, 업적을 달성하고, 새로운 배경으로 주방을 꾸며 보세요.
 
 레벨 사이에 강제로 나오는 광고는 없어요. 보상형 광고는 언제나 선택 사항이에요.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

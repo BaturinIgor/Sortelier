@@ -24,3 +24,6 @@ CONSÍGUELO TODO
 Llena el libro de recetas, completa el álbum de cartas, consigue logros y decora tu cocina con fondos nuevos.
 
 Sin anuncios forzosos entre niveles. Los anuncios con recompensa son siempre opcionales.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

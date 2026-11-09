@@ -24,3 +24,6 @@ Sortelier คือเกมพัซเซิลเรียงของแส�
 เติมสมุดสูตรอาหารให้เต็ม สะสมการ์ดในอัลบั้ม รับความสำเร็จ และแต่งครัวด้วยฉากหลังใหม่ๆ
 
 ไม่มีโฆษณาบังคับคั่นระหว่างด่าน โฆษณาแลกรางวัลเป็นตัวเลือกเสมอ
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

@@ -24,3 +24,6 @@ ZBIERAJ WSZYSTKO
 Wypełnij książkę kucharską, skompletuj album kart, zdobywaj osiągnięcia i urządzaj kuchnię nowymi tłami.
 
 Żadnych natrętnych reklam między poziomami. Reklamy z nagrodą są zawsze opcjonalne.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

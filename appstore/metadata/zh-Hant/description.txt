@@ -24,3 +24,6 @@ Sortelier 是一款溫馨的美食整理益智遊戲。在廚房貨架之間拖�
 填滿食譜書，集齊卡片相簿，解鎖成就，用新背景裝飾你的廚房。
 
 關卡之間沒有強制廣告。獎勵廣告永遠都是自由選擇。
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

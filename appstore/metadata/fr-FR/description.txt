@@ -24,3 +24,6 @@ COLLECTIONNE TOUT
 Remplis le livre de recettes, complète l'album de cartes, décroche des succès et décore ta cuisine avec de nouveaux fonds.
 
 Pas de publicité forcée entre les niveaux. Les publicités avec récompense sont toujours facultatives.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

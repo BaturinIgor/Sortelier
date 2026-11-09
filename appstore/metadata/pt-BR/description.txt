@@ -24,3 +24,6 @@ COLECIONE TUDO
 Complete o livro de receitas, preencha o álbum de cartas, ganhe conquistas e decore sua cozinha com novos cenários.
 
 Sem anúncios forçados entre os níveis. Anúncios com recompensa são sempre opcionais.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

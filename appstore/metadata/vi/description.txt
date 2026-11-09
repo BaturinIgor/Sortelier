@@ -24,3 +24,6 @@ SƯU TẦM TẤT CẢ
 Hoàn thành sách nấu ăn, sưu tầm album thẻ, nhận thành tựu và trang trí bếp với những hình nền mới.
 
 Không có quảng cáo bắt buộc giữa các màn chơi. Quảng cáo nhận thưởng luôn là tùy chọn.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

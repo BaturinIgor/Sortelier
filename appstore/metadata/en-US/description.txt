@@ -24,3 +24,6 @@ COLLECT IT ALL
 Fill the cookbook, complete the card album, earn achievements and decorate your kitchen with new backgrounds.
 
 No forced ads between levels. Rewarded ads are always optional.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md
