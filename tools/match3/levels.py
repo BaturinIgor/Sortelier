@@ -70,7 +70,7 @@ def level(n, shape, colors, goals, intro=None, hard=False, build=None):
         if goal[0] == "collect":
             out_goals.append({"type": "collect", "item": goal[1], "count": goal[2]})
         else:
-            chars = {"crate": "123", "ice": "iIk", "jam": "jk"}[goal[0]]
+            chars = {"crate": "123", "ice": "iIk", "jam": "jk", "choc": "c"}[goal[0]]
             total = count(g, chars)
             assert total > 0, (n, goal)
             out_goals.append({"type": goal[0], "count": total})
@@ -217,6 +217,8 @@ def target(lv):
         return 0.97
     if n <= 6:
         return 1.0
+    if n > 60 and lv.get("intro"):
+        return 0.9  # уровень с обучением новому блокеру проходится почти всегда
     if n <= 15:
         return 0.88 if not lv["hard"] else 0.7
     if n <= 30:

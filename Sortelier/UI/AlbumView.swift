@@ -154,6 +154,7 @@ struct AlbumScreen: View {
                         bookDetail(AlbumCatalog.books[index])
                     } else {
                         VStack(spacing: 14) {
+                            ScreenTip(id: "album", icon: "icon_cards")
                             summary
                             SectionTitle(title: lang.t("album.chests"), color: Theme.orange)
                             chestShelf

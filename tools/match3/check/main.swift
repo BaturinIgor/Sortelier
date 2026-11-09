@@ -80,8 +80,12 @@ struct Mirror {
                 }
             case let .convert(id, _, _, _):
                 if !alive.contains(id) { problem("L\(level) convert of dead \(id)") }
-            case .crate, .ice, .jam, .booster:
+            case .crate, .ice, .jam, .choc, .booster:
                 break
+            case let .chocGrow(_, to, id):
+                if !alive.contains(id) { problem("L\(level) choc over dead \(id)") }
+                alive.remove(id)
+                if idAt[to] == id { idAt[to] = nil } else { problem("L\(level) choc \(id) not at \(to)") }
             case let .move(id, path, _):
                 if !alive.contains(id) { problem("L\(level) move of dead \(id) path \(path)") }
                 // падения одного момента идут в любом порядке: как в сцене, итог сверяется после хода

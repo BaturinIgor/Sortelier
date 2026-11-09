@@ -8,6 +8,7 @@
 import argparse
 import json
 import math
+import glob
 import os
 import random
 
@@ -24,12 +25,14 @@ LOCALES = {
     "it": ["it"], "tr": ["tr"], "pl": ["pl"], "id": ["id"], "vi": ["vi"], "th": ["th"], "hi": ["hi"], "ar": ["ar-SA"],
     "ja": ["ja"], "ko": ["ko"], "zh-Hans": ["zh-Hans"], "zh-Hant": ["zh-Hant"],
 }
-SHOTS = ["recipes", "customers", "kitchens", "events", "twists", "collect"]
+SHOTS = ["recipes", "customers", "market", "workshop", "kitchens", "events", "twists", "collect"]
 
 # фон кадра: градиент сверху вниз и продукты-украшения вокруг подписи
 STYLE = {
     "recipes": (((255, 150, 60), (240, 80, 90)), ["bun", "patty", "lettuce", "dish_burger"]),
     "customers": (((40, 190, 170), (30, 120, 160)), ["dish_taco", "nachos", "lime", "churros"]),
+    "market": (((240, 90, 120), (250, 160, 60)), ["tomato", "cheese", "milk", "grapes"]),
+    "workshop": (((60, 170, 120), (40, 120, 170)), ["dish_burger", "cookie", "sausage", "tomato"]),
     "kitchens": (((90, 140, 250), (130, 80, 220)), ["dish_sushi", "dish_pizza", "dish_croissant", "dish_taco"]),
     "events": (((140, 70, 200), (250, 120, 40)), ["pumpkin", "candy_corn", "ghost_cookie", "caramel_apple"]),
     "twists": (((70, 90, 210), (40, 170, 230)), ["macaron", "dish_eclair", "strawberry", "chocolate"]),
@@ -184,8 +187,17 @@ def compose(lang, key, shot_path, fonts, index):
     return im.convert("RGB")
 
 
+EULA = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/"
+PRIVACY = "https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md"
+# Apple требует рабочую ссылку на условия использования (EULA) в описании, раз есть подписки
+LEGAL = {"ru": ("Условия использования (EULA)", "Политика конфиденциальности"),
+         "en": ("Terms of Use (EULA)", "Privacy Policy")}
+
+
 def write_metadata(lang):
-    t = texts(lang)
+    t = dict(texts(lang))
+    terms, privacy = LEGAL.get(lang, LEGAL["en"])
+    t["description"] = t["description"].rstrip() + f"\n\n{terms}: {EULA}\n{privacy}: {PRIVACY}"
     files = {"name.txt": t["name"], "subtitle.txt": t["subtitle"], "keywords.txt": t["keywords"],
              "promotional_text.txt": t["promo"], "description.txt": t["description"], "release_notes.txt": t["release_notes"]}
     limits = {"name.txt": 30, "subtitle.txt": 30, "keywords.txt": 100, "promotional_text.txt": 170}
@@ -206,6 +218,11 @@ def main():
     ap.add_argument("--fonts", default=os.path.join(ROOT, "art", "fonts"))
     args = ap.parse_args()
     langs = [l for l in args.only.split(",") if l] or list(LOCALES)
+    # старые снимки (другой набор экранов) убираем, иначе в App Store уйдет больше 10
+    for lang in langs:
+        for loc in LOCALES[lang]:
+            for old in glob.glob(os.path.join(STORE, "screenshots", loc, "*.jpg")):
+                os.remove(old)
     for lang in langs:
         write_metadata(lang)
         for i, key in enumerate(SHOTS):

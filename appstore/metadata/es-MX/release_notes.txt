@@ -1,4 +1,6 @@
-- Cocina Mexicana y Panadería Francesa: 60 niveles nuevos, con productos, platos y música nuevos
-- Nuevos obstáculos: candados con producto llave y estantes encadenados
-- Los eventos de temporada ahora tienen su propio mapa con delicias especiales y un invitado disfrazado
-- Evento Noche de Halloween
+¡Bienvenido a Sortelier! En la primera versión:
+- 150 niveles de ordenar en 5 cocinas del mundo
+- Mercado Match: 600 niveles de combinar 3
+- Taller del chef: combina ingredientes en platos
+- Huerto del proveedor y la Gran Receta
+- Desafíos diarios y semanales, carreras de chefs, eventos de temporada y un álbum de cartas

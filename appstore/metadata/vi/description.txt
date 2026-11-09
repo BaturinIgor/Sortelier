@@ -6,6 +6,11 @@ Ba món giống nhau sẽ dành cho một vị khách, còn ba nguyên liệu kh
 NĂM NỀN ẨM THỰC TRÊN THẾ GIỚI
 Quán ăn kiểu Mỹ, bếp Nhật, quán trattoria Ý, quán cantina Mexico và tiệm bánh Pháp: 150 màn chơi được kiểm tra thủ công, mỗi bếp có nguyên liệu, âm nhạc và hình nền riêng.
 
+THÊM BA TRÒ CHƠI BÊN TRONG
+Chợ Ghép: 600 màn ghép 3 với vật phẩm hỗ trợ, màn pháo hoa và sô-cô-la lan ra nếu bạn để yên.
+Xưởng bếp trưởng: ghép hai món giống nhau thành món tốt hơn và hoàn thành đơn của khách.
+Vườn nhà cung cấp: nông sản tự lớn và cùng mỗi chiến thắng góp vào Công thức lớn để nhận phần thưởng lớn.
+
 THỬ THÁCH MỚI TRÊN ĐƯỜNG ĐI
 Thực phẩm đóng băng, món bí ẩn, những vị khách sành ăn khó tính nhưng boa hậu hĩnh, kệ bị khóa bằng món chìa khóa và những kệ bị xích lại với nhau.
 
@@ -19,3 +24,6 @@ SƯU TẦM TẤT CẢ
 Hoàn thành sách nấu ăn, sưu tầm album thẻ, nhận thành tựu và trang trí bếp với những hình nền mới.
 
 Không có quảng cáo bắt buộc giữa các màn chơi. Quảng cáo nhận thưởng luôn là tùy chọn.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

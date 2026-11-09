@@ -6,6 +6,11 @@ Tiga produk yang sama diberikan ke pelanggan, tapi tiga bahan berbeda berubah ja
 LIMA DAPUR DUNIA
 Diner Amerika, dapur Jepang, trattoria Italia, cantina Meksiko, dan toko roti Prancis: 150 level yang dicek satu per satu, dan setiap dapur punya produk, musik, serta latar sendiri.
 
+TIGA GAME LAIN DI DALAMNYA
+Pasar Match: 600 level match-3 dengan booster, level kembang api, dan cokelat yang menyebar jika dibiarkan.
+Bengkel Koki: gabungkan dua barang yang sama menjadi yang lebih baik dan penuhi pesanan pelanggan.
+Kebun pemasok: hasil panen tumbuh sendiri dan, bersama setiap kemenangan, masuk ke Resep Besar untuk hadiah besar.
+
 TANTANGAN BARU DI SEPANJANG JALAN
 Produk beku, item misteri, Gourmet pemilih dengan tip besar, rak terkunci yang dibuka dengan produk kunci, dan rak yang saling dirantai.
 
@@ -19,3 +24,6 @@ KOLEKSI SEMUANYA
 Isi buku resep, lengkapi album kartu, raih pencapaian, dan hias dapurmu dengan latar baru.
 
 Tidak ada iklan paksaan di antara level. Iklan berhadiah selalu opsional.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

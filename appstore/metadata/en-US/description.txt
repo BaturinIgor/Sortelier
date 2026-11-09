@@ -6,6 +6,11 @@ Three of the same product go to a customer, but three different ingredients beco
 FIVE KITCHENS OF THE WORLD
 American diner, Japanese kitchen, Italian trattoria, Mexican cantina and French bakery: 150 hand-checked levels, each with its own products, music and background.
 
+THREE MORE GAMES INSIDE
+Market Match: 600 match-3 levels with boosters, fireworks levels and chocolate that spreads if you leave it alone.
+Chef's Workshop: merge two identical items into a better one and fill customer orders.
+Supplier's garden: crops grow on their own and, together with every win, go into the Big Recipe for a big reward.
+
 NEW TWISTS ALONG THE WAY
 Frozen products, mystery items, picky Gourmets with big tips, shelves locked with a key product and shelves chained together.
 
@@ -19,3 +24,6 @@ COLLECT IT ALL
 Fill the cookbook, complete the card album, earn achievements and decorate your kitchen with new backgrounds.
 
 No forced ads between levels. Rewarded ads are always optional.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

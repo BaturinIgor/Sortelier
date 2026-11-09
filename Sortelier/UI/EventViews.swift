@@ -92,6 +92,8 @@ struct EventsHub: View {
     private var hub: some View {
             ScreenScaffold(title: lang.t("tab.events"), back: { router.open(.map) }) {
                 SegmentPicker(items: sections, selection: $router.eventsSection)
+                ScreenTip(id: "events." + section.rawValue, icon: section == .events ? "icon_ticket" : (section == .challenges ? "icon_calendar" : "icon_gift"))
+                    .id(section)
                 Group {
                     switch section {
                     case .events:
@@ -539,7 +541,17 @@ struct EventTrack: View {
         let current = tiers.indices.first { i in
             (state.points >= tiers[i].points && !state.claimed.contains(i)) || state.points < tiers[i].points
         } ?? max(0, tiers.count - 1)
-        return StepTrack(count: tiers.count, current: current, cellWidth: cell) { i in
+        let ready = progress.claimableTiers(event).count
+        return VStack(spacing: 10) {
+            if ready >= 2 {
+                ClaimAllButton(count: ready) { granted = progress.claimAllTiers(event) }
+            }
+            track(tiers: tiers, current: current)
+        }
+    }
+
+    private func track(tiers: [EventTier], current: Int) -> some View {
+        StepTrack(count: tiers.count, current: current, cellWidth: cell) { i in
             VStack(spacing: 6) {
                 if pass {
                     rewardCell(i, tiers[i].pass, isPass: true, reached: state.points >= tiers[i].points,

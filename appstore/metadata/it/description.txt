@@ -6,6 +6,11 @@ Tre prodotti uguali vanno a un cliente, ma tre ingredienti diversi diventano un 
 CINQUE CUCINE DAL MONDO
 Diner americano, cucina giapponese, trattoria italiana, cantina messicana e panetteria francese: 150 livelli controllati a mano, e ogni cucina ha i suoi prodotti, la sua musica e il suo sfondo.
 
+ALTRI TRE GIOCHI INCLUSI
+Mercato Match: 600 livelli match-3 con potenziamenti, livelli fuochi d'artificio e cioccolato che si espande se lo lasci stare.
+Laboratorio dello chef: unisci due oggetti uguali in uno migliore e completa gli ordini dei clienti.
+Orto del fornitore: il raccolto cresce da solo e, con ogni vittoria, va nella Grande Ricetta per un grande premio.
+
 NUOVE SFIDE LUNGO LA STRADA
 Prodotti congelati, articoli misteriosi, Buongustai esigenti con mance generose, scaffali chiusi a chiave con un prodotto-chiave e scaffali incatenati tra loro.
 
@@ -19,3 +24,6 @@ COLLEZIONA TUTTO
 Riempi il ricettario, completa l'album delle carte, ottieni obiettivi e decora la tua cucina con nuovi sfondi.
 
 Niente pubblicità forzata tra un livello e l'altro. Le pubblicità con ricompensa sono sempre facoltative.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md

@@ -20,7 +20,7 @@ struct ShopScreen: View {
     private var sections: [SegmentPicker<ShopSection>.Item] {
         var items: [SegmentPicker<ShopSection>.Item] = [
             .init(id: .offers, title: lang.t("shop.section.offers"),
-                  badge: (!progress.starterBought && progress.isPassed(5)) || progress.jarFull),
+                  badge: progress.jarFull),
             .init(id: .coins, title: lang.t("shop.section.coins")),
             .init(id: .boosters, title: lang.t("shop.section.boosters"))
         ]
@@ -59,7 +59,10 @@ struct ShopScreen: View {
                 VIPActivatedPopup { vipActivated = false }
             }
         }
-        .onAppear { Analytics.log("shop_open", ["section": section.rawValue]) }
+        .onAppear {
+            Analytics.log("shop_open", ["section": section.rawValue])
+            progress.markShopSeen()
+        }
     }
 
     // MARK: - Разделы

@@ -19,7 +19,7 @@ from multiprocessing import Pool
 sys.path.insert(0, os.path.dirname(__file__))
 from bot import play  # noqa: E402
 from levels import COLORS6, LEVELS, target  # noqa: E402
-from generated import desired_length  # noqa: E402
+from generated import RELAYOUT_PATH, build_one, desired_length, relayout  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 OUT = os.path.join(ROOT, "Sortelier", "Resources", "Data", "match3.json")
@@ -91,6 +91,26 @@ def tune(pool, lv, runs):
     return lv, report
 
 
+def broken(rep):
+    """Бот почти не проходит уровень даже на потолке ходов: раскладка неудачная (ящики за дырами и т.п.)."""
+    return rep["moves"] >= 60 and rep["free"] < 0.35 or rep["free"] < 0.2 or rep["used_p50"] >= 90
+
+
+def tune_or_relayout(pool, lv, runs, variants):
+    tuned, rep = tune(pool, calibrate(pool, lv), runs)
+    n = lv["id"]
+    if n <= 60 or not broken(rep):
+        return tuned, rep
+    start = variants.get(n, 0)
+    for v in range(start + 1, start + 8):
+        cand, crep = tune(pool, calibrate(pool, build_one(n, v)), runs)
+        print(json.dumps({"relayout": n, "variant": v, "moves": crep["moves"], "free": crep["free"]}), flush=True)
+        if not broken(crep):
+            variants[n] = v
+            return cand, crep
+    return tuned, rep
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", type=int, default=40)
@@ -106,11 +126,12 @@ def main():
     reports = {}
     if os.path.exists(REPORT):
         reports = {r["id"]: r for r in json.load(open(REPORT))}
+    variants = relayout()
     with Pool(os.cpu_count() or 2) as pool:
         for lv in LEVELS:
             if only and lv["id"] not in only:
                 continue
-            tuned, rep = tune(pool, calibrate(pool, lv), args.runs)
+            tuned, rep = tune_or_relayout(pool, lv, args.runs, variants)
             existing[lv["id"]] = tuned
             reports[lv["id"]] = rep
             print(json.dumps(rep), flush=True)
@@ -125,6 +146,9 @@ def main():
         json.dump({"levels": levels}, f, ensure_ascii=False, separators=(",", ":"))
     with open(REPORT, "w") as f:
         json.dump([reports[k] for k in sorted(reports)], f, indent=1)
+    if variants:
+        with open(RELAYOUT_PATH, "w") as f:
+            json.dump({str(k): v for k, v in sorted(variants.items())}, f, indent=1)
 
 
 if __name__ == "__main__":

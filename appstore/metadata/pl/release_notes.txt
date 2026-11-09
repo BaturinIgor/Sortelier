@@ -1,4 +1,6 @@
-- Kuchnia Meksykańska i Francuska Piekarnia: 60 nowych poziomów, nowe produkty, dania i muzyka
-- Nowe przeszkody: kłódki z produktem-kluczem i półki na łańcuchach
-- Wydarzenia sezonowe mają teraz własną mapę ze specjalnymi smakołykami i gościem w kostiumie
-- Wydarzenie Noc Halloween
+Witaj w Sortelier! W pierwszej wersji:
+- 150 poziomów sortowania w 5 kuchniach świata
+- Targ Match: 600 poziomów match-3
+- Pracownia szefa: łącz składniki w dania
+- Ogródek dostawcy i Wielki Przepis
+- Wyzwania dzienne i tygodniowe, wyścigi kucharzy, wydarzenia sezonowe i album kart

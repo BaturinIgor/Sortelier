@@ -21,31 +21,6 @@ enum Analytics {
     }
 }
 
-/// Реклама за награду. В сборке для SideStore награда выдается без показа.
-final class Ads {
-    static let shared = Ads()
-
-    var canShow: Bool { PlayerProgress.shared.isVIP || PlayerProgress.shared.adsLeftToday > 0 }
-
-    func showRewarded(placement: String, completion: @escaping (Bool) -> Void) {
-        // VIP получает награду сразу, без рекламы и без расхода лимита
-        if PlayerProgress.shared.isVIP {
-            Analytics.log("ad_reward_vip", ["placement": placement])
-            completion(true)
-            return
-        }
-        guard canShow else {
-            completion(false)
-            return
-        }
-        PlayerProgress.shared.countAdView()
-        Analytics.log("ad_reward", ["placement": placement])
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            completion(true)
-        }
-    }
-}
-
 /// Тактильная отдача.
 enum Haptics {
     private static var on: Bool { PlayerProgress.shared.settings.haptics }

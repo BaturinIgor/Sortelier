@@ -46,7 +46,7 @@ jobs:
             -destination 'generic/platform=iOS' \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
-            SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) SIDELOAD' \
+            SWIFT_ACTIVE_COMPILATION_CONDITIONS='$(inherited) SIDELOAD TEST_PURCHASES' \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             build > build.log 2>&1

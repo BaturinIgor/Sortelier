@@ -6,6 +6,11 @@ Trzy takie same produkty trafiają do klienta, ale trzy różne składniki zamie
 PIĘĆ KUCHNI ŚWIATA
 Amerykański diner, japońska kuchnia, włoska trattoria, meksykańska cantina i francuska piekarnia: 150 ręcznie sprawdzonych poziomów, a każda kuchnia ma własne produkty, muzykę i tło.
 
+TRZY KOLEJNE GRY W ŚRODKU
+Targ Match: 600 poziomów match-3 z boosterami, poziomami fajerwerków i czekoladą, która rozlewa się, gdy ją zostawisz.
+Pracownia szefa: łącz dwa takie same przedmioty w lepszy i realizuj zamówienia klientów.
+Ogródek dostawcy: plony rosną same i z każdym zwycięstwem trafiają do Wielkiego Przepisu po dużą nagrodę.
+
 NOWE WYZWANIA PO DRODZE
 Mrożone produkty, tajemnicze przedmioty, wybredni Smakosze z hojnymi napiwkami, półki zamknięte na kłódkę z produktem-kluczem i półki połączone łańcuchem.
 
@@ -19,3 +24,6 @@ ZBIERAJ WSZYSTKO
 Wypełnij książkę kucharską, skompletuj album kart, zdobywaj osiągnięcia i urządzaj kuchnię nowymi tłami.
 
 Żadnych natrętnych reklam między poziomami. Reklamy z nagrodą są zawsze opcjonalne.
+
+Terms of Use (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Privacy Policy: https://github.com/BaturinIgor/Sortelier/blob/main/PRIVACY.md
