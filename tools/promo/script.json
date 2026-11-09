@@ -1,0 +1,27 @@
+{
+  "texts": {
+    "ru": {"name": "Sortelier", "tagline": "Сортируй, готовь, угощай", "cta": "Играть бесплатно", "store": "в App Store"},
+    "en": {"name": "Sortelier", "tagline": "Sort, cook and serve", "cta": "Play for free", "store": "on the App Store"}
+  },
+  "styles": {
+    "teal": [[40, 190, 170], [30, 120, 160]],
+    "orange": [[255, 150, 60], [240, 80, 90]],
+    "purple": [[90, 140, 250], [130, 80, 220]]
+  },
+  "captions": {
+    "hook_sort": {"ru": "Сможешь разложить ВСЁ по полкам?", "ru_hl": "ВСЁ", "en": "Can you sort it ALL?", "en_hl": "ALL"},
+    "triples": {"ru": "Собери три одинаковых", "en": "Match three of a kind"},
+    "recipes": {"ru": "Готовь блюда по рецептам", "en": "Cook dishes by recipe"},
+    "customers": {"ru": "Обслужи каждого гостя", "en": "Serve every guest"},
+    "kitchens": {"ru": "5 кухонь мира и 150 уровней", "en": "5 world kitchens, 150 levels"},
+    "twists": {"ru": "Лед, замки и полки на цепи", "en": "Ice, locks and chained shelves"},
+    "win": {"ru": "Три звезды!", "en": "Three stars!"},
+    "hook_m3": {"ru": "А тут еще и 3 В РЯД!", "ru_hl": "3 В РЯД!", "en": "Wait, there's MATCH-3 too!", "en_hl": "MATCH-3"},
+    "combos": {"ru": "Бомбы, скалки и пончики", "en": "Bombs, rolling pins and donuts"},
+    "m3levels": {"ru": "600 уровней 3 в ряд", "en": "600 match-3 levels"},
+    "book": {"ru": "Собери кулинарную книгу", "en": "Fill your cookbook"},
+    "events": {"ru": "Сезонные ивенты", "en": "Seasonal events"},
+    "relax": {"ru": "Самая уютная головоломка", "en": "The coziest puzzle ever"}
+  },
+  "ads": {}
+}

@@ -412,3 +412,58 @@ struct Board {
         return score + buried * 0.08 - Double(free) * 0.2
     }
 }
+
+#if DEBUG
+// MARK: - Решатель для рекламных роликов (-uiLivePlay)
+
+/// Лучевой поиск, как в tools/levels/rules.py: подсказка смотрит на ход вперед и в записи гоняет продукт туда-сюда.
+extension Board {
+    private struct DebugKey: Hashable {
+        let items: [[[String?]]]
+        let served: Int
+        let left: Int
+    }
+
+    private var debugKey: DebugKey {
+        DebugKey(items: shelves.map { $0.map { $0.map { $0?.item } } }, served: served, left: queue.count)
+    }
+
+    private func debugMoves() -> [(Int, Int, Int)] {
+        var out: [(Int, Int, Int)] = []
+        for s in shelves.indices where !isClosed(s) {
+            var seen = Set<String>()
+            for k in 0..<Board.slots {
+                guard let piece = shelves[s][0][k], !isFrozen(piece), !seen.contains(piece.item) else { continue }
+                seen.insert(piece.item)
+                for d in shelves.indices where d != s && canPlace(on: d) { out.append((s, k, d)) }
+            }
+        }
+        return out
+    }
+
+    func debugSolve(beam: Int = 80, maxDepth: Int = 250) -> [(from: Int, slot: Int, to: Int)]? {
+        typealias Move = (from: Int, slot: Int, to: Int)
+        var frontier: [(board: Board, path: [Move], h: Double)] = [(self, [], 0)]
+        var seen: Set<DebugKey> = [debugKey]
+        for _ in 0..<maxDepth {
+            var next: [(board: Board, path: [Move], h: Double)] = []
+            for node in frontier {
+                if node.board.isWon { return node.path }
+                for m in node.board.debugMoves() {
+                    var copy = node.board
+                    guard let outcome = copy.move(from: m.0, slot: m.1, to: m.2) else { continue }
+                    guard seen.insert(copy.debugKey).inserted else { continue }
+                    let path = node.path + [(from: m.0, slot: m.1, to: m.2)]
+                    if copy.isWon { return path }
+                    if !copy.hasMove { continue }
+                    next.append((copy, path, copy.heuristic() - Double(outcome.fires.count) * 3))
+                }
+            }
+            if next.isEmpty { return nil }
+            next.sort { $0.h < $1.h }
+            frontier = Array(next.prefix(beam))
+        }
+        return nil
+    }
+}
+#endif

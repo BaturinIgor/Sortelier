@@ -1236,9 +1236,50 @@ final class GameScene: SKScene {
 extension GameScene {
     func startLivePlay() {
         guard let pace = UIDebug.value("uiLivePlay").flatMap(Double.init), action(forKey: "livePlay") == nil else { return }
+        // окно "Новое блюдо" ставит сцену на паузу: закрываем его сами через пару секунд
+        var shownFor = 0
+        Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] timer in
+            guard let self = self else { timer.invalidate(); return }
+            if self.session.newDish != nil {
+                shownFor += 1
+                if shownFor >= 9 { self.session.newDish = nil; shownFor = 0 }
+            } else {
+                shownFor = 0
+            }
+        }
         let step = SKAction.sequence([.run { [weak self] in self?.livePlayStep(pace) }, .wait(forDuration: pace)])
         run(.sequence([.wait(forDuration: 1.6), .repeatForever(step)]), withKey: "livePlay")
     }
+
+    /// Следующий ход из готового решения. Решение ищется в фоне (в отладочной сборке это секунды);
+    /// если уровень пошел не по плану, ищем заново, а пока ждем - ход подсказки.
+    private func nextLiveMove() -> (from: Int, slot: Int, to: Int)? {
+        let board = session.board
+        if var plan = GameScene.livePlan, let m = plan.first {
+            var copy = board
+            if copy.move(from: m.from, slot: m.slot, to: m.to) != nil {
+                plan.removeFirst()
+                GameScene.livePlan = plan
+                return m
+            }
+        }
+        if GameScene.liveSolving || GameScene.liveFailed { return nil }
+        GameScene.livePlan = nil
+        GameScene.liveSolving = true
+        DispatchQueue.global(qos: .userInitiated).async {
+            let plan = board.debugSolve()
+            DispatchQueue.main.async {
+                GameScene.livePlan = plan
+                GameScene.liveFailed = plan == nil
+                GameScene.liveSolving = false
+            }
+        }
+        return nil
+    }
+
+    private static var liveSolving = false
+    private static var liveFailed = false
+    private static var livePlan: [(from: Int, slot: Int, to: Int)]?
 
     private func demoHand() -> SKLabelNode {
         if let hand = board.childNode(withName: "demoHand") as? SKLabelNode { return hand }
@@ -1256,11 +1297,13 @@ extension GameScene {
 
     private func livePlayStep(_ pace: Double) {
         let hand = demoHand()
-        guard session.phase == .playing, !session.board.isWon, let m = session.board.hint(),
-              let piece = session.board.front(m.from)[m.slot], let node = pieceNodes[piece.uid] else {
+        guard session.phase == .playing, !session.board.isWon, session.newDish == nil else {
             hand.run(.fadeOut(withDuration: 0.2))
             return
         }
+        // решатель не справился: ходим подсказкой
+        let planned = nextLiveMove() ?? (GameScene.liveFailed ? session.board.hint() : nil)
+        guard let m = planned, let piece = session.board.front(m.from)[m.slot], let node = pieceNodes[piece.uid] else { return }
         let dstSlot = session.board.freeSlot(in: m.to) ?? 1
         let start = node.position, end = slotPosition(m.to, dstSlot)
         // кончик пальца чуть ниже центра продукта
