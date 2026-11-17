@@ -41,7 +41,7 @@ extension WinBadge {
         case .season:
             return WinBadge(icon: EventUI.icon(gain.kind), value: "+\(gain.amount)", caption: lang.t("win.b.stamps"), detail: detail)
         case .hunt:
-            return WinBadge(icon: gain.theme, gold: true, value: "+\(gain.amount)", caption: lang.t("win.b.hunt"), detail: detail)
+            return WinBadge(icon: EventUI.icon(gain.kind), value: "+\(gain.amount)", caption: lang.t("win.b.hunt"), detail: detail)
         case .race:
             return WinBadge(icon: EventUI.icon(gain.kind), value: "\(gain.total)/\(RaceEvent.goal)", caption: lang.t("win.b.race"),
                             detail: detail)

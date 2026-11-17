@@ -15,6 +15,10 @@ enum Notifications {
     /// Разрешение просим после третьего уровня, когда игрок уже втянулся.
     static func afterWin(level: Int, mode: PlayMode) {
         guard mode == .main, level >= 3 else { return }
+        #if DEBUG
+        // снимки окна победы: системный запрос разрешения закрыл бы окно
+        if UIDebug.flag("uiWin") { return }
+        #endif
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) { requestIfNeeded() }
     }
 
