@@ -536,15 +536,23 @@ struct MarketLevelPopup: View {
                             .background(InsetBackground(radius: 12))
                         }
                     }
-                    VStack(spacing: 4) {
-                        Text(lang.t("m3.streak.popup"))
-                            .font(Theme.rounded(13, .heavy))
-                            .foregroundColor(Theme.brownSoft)
-                            .multilineTextAlignment(.center)
+                    // серия побед: короткий заголовок, правило по тапу
+                    VStack(spacing: 2) {
+                        HStack(spacing: 4) {
+                            SpriteImage(name: "icon_flame", size: 18)
+                            Text(lang.t("m3.streak.title", min(progress.marketStreak, MarketBalance.streakMax)))
+                                .font(Theme.rounded(13, .heavy))
+                                .foregroundColor(Theme.brownSoft)
+                            Image(systemName: "info.circle.fill")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(Theme.brownSoft.opacity(0.7))
+                        }
                         StreakStages(stage: progress.marketStreak)
                     }
                     .padding(8)
                     .background(InsetBackground(radius: 12))
+                    .contentShape(Rectangle())
+                    .onTapGesture { Toast.info(lang.t("m3.streak.popup")) }
                     Text(lang.t("m3.pre")).font(Theme.rounded(14, .heavy)).foregroundColor(Theme.brownSoft)
                     HStack(spacing: 12) {
                         ForEach(M3Booster.preLevel) { b in preButton(b) }

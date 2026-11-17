@@ -97,6 +97,13 @@ final class GameSession: ObservableObject {
             guard let m = board.hint(), move(from: m.from, slot: m.slot, to: m.to) != nil, !board.isWon else { break }
         }
         pendingDish = nil
+        // снимок окна победы: уровень сразу засчитывается (-uiLevel 35 -uiWin)
+        if UIDebug.flag("uiWin") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                guard let self = self, self.phase == .playing else { return }
+                self.finish()
+            }
+        }
         #endif
     }
 

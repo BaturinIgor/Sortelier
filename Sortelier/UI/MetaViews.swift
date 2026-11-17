@@ -22,29 +22,145 @@ struct GoldSprite: View {
     }
 }
 
-/// Строка в окне победы: значок, подпись и полученная награда.
-struct RewardLine: View {
-    let symbol: String
-    let color: Color
-    let title: String
-    let granted: Granted?
+/// Значок в окне победы: иконка, число и подпись в одно-два слова. Полный текст открывается по тапу,
+/// чтобы окно не превращалось в столбик длинных фраз.
+struct WinBadge {
+    /// Спрайт, "coin_icon" или имя продукта (с gold = true - золотой продукт охоты).
+    let icon: String
+    var gold = false
+    let value: String
+    let caption: String
+    let detail: String
+}
+
+extension WinBadge {
+    /// Очки ивента за победу: печати сезона, золотые продукты охоты, победы гонки.
+    static func event(_ gain: PlayerProgress.EventGain, lang: Lang) -> WinBadge {
+        let detail = EventUI.gainText(gain, lang: lang)
+        switch gain.kind {
+        case .season:
+            return WinBadge(icon: EventUI.icon(gain.kind), value: "+\(gain.amount)", caption: lang.t("win.b.stamps"), detail: detail)
+        case .hunt:
+            return WinBadge(icon: gain.theme, gold: true, value: "+\(gain.amount)", caption: lang.t("win.b.hunt"), detail: detail)
+        case .race:
+            return WinBadge(icon: EventUI.icon(gain.kind), value: "\(gain.total)/\(RaceEvent.goal)", caption: lang.t("win.b.race"),
+                            detail: detail)
+        case .double:
+            return WinBadge(icon: "coin_icon", value: "×2", caption: lang.t("win.b.double"), detail: lang.t("event.double.about"))
+        }
+    }
+
+    /// Фоновые бонусы победы в любой игре: шаги Большого рецепта, монеты в банку, счастливый час.
+    static func background(recipe: Int, jar: Int, happy: Bool, lang: Lang) -> [WinBadge] {
+        var list: [WinBadge] = []
+        if recipe > 0 {
+            list.append(WinBadge(icon: "icon_recipe", value: "+\(recipe)", caption: lang.t("win.b.recipe"), detail: lang.t("recipe.win")))
+        }
+        if jar > 0 {
+            list.append(WinBadge(icon: "icon_jar", value: "+\(jar)", caption: lang.t("win.b.jar"), detail: lang.t("jar.win", jar)))
+        }
+        if happy {
+            list.append(WinBadge(icon: "icon_happy", value: "×2", caption: lang.t("win.b.happy"), detail: lang.t("happy.win")))
+        }
+        return list
+    }
+}
+
+struct WinBadgeTile: View {
+    let badge: WinBadge
+    var size: CGFloat = 66
 
     var body: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 6) {
-                if symbol == "coin_icon" {
-                    CoinIcon(size: 22)
-                } else if symbol.hasPrefix("icon_") {
-                    SpriteImage(name: symbol, size: 24)
-                } else if let sprite = GameIcon.sprite(for: symbol) {
-                    SpriteImage(name: sprite, size: 24)
-                } else {
-                    Image(systemName: symbol).font(.system(size: 15, weight: .bold)).foregroundColor(color)
+        Button { Toast.info(badge.detail) } label: {
+            VStack(spacing: 1) {
+                icon.frame(height: size * 0.44)
+                if !badge.value.isEmpty {
+                    Text(badge.value)
+                        .font(Theme.rounded(size * 0.23, .black))
+                        .foregroundColor(Theme.brown)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                        .monospacedDigit()
                 }
-                Text(title).font(Theme.rounded(15, .heavy)).foregroundColor(Theme.brown)
+                Text(badge.caption)
+                    .font(Theme.rounded(10, .heavy))
+                    .foregroundColor(Theme.brownSoft)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
             }
-            if let granted = granted, !granted.reward.isEmpty {
-                RewardChips(reward: granted.reward, card: granted.card, perRow: 4, tileWidth: 56)
+            .padding(.horizontal, 3)
+            .frame(width: size, height: size * 1.06)
+            .background(InsetBackground(radius: size * 0.22))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PressScaleStyle())
+        .accessibilityLabel(badge.detail)
+    }
+
+    @ViewBuilder
+    private var icon: some View {
+        let s = size * 0.42
+        if badge.icon == "coin_icon" {
+            CoinIcon(size: s * 0.85)
+        } else if badge.gold {
+            GoldSprite(name: badge.icon, size: s)
+        } else {
+            SpriteImage(name: badge.icon, size: s)
+        }
+    }
+}
+
+/// Все награды окна победы одной сеткой по 4 в ряд: сначала полученные предметы, потом значки прогресса.
+struct WinRewardsGrid: View {
+    /// Награды разных источников (стрик, серия шефа, испытание, гурман) подряд.
+    let rewards: [Reward]
+    let badges: [WinBadge]
+    var perRow = 4
+    var size: CGFloat = 66
+
+    private enum Cell {
+        case item(RewardItem)
+        case badge(WinBadge)
+    }
+
+    var body: some View {
+        let cells = rewards.flatMap(\.items).map { Cell.item($0) } + badges.map { Cell.badge($0) }
+        let rows = stride(from: 0, to: cells.count, by: perRow).map { Array(cells[$0..<min($0 + perRow, cells.count)]) }
+        VStack(spacing: 8) {
+            ForEach(rows.indices, id: \.self) { r in
+                HStack(spacing: 8) {
+                    ForEach(rows[r].indices, id: \.self) { i in
+                        switch rows[r][i] {
+                        case let .item(item): RewardTile(item: item, size: size)
+                        case let .badge(badge): WinBadgeTile(badge: badge, size: size)
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+/// Монеты за уровень крупно, с отсчетом от нуля.
+struct WinCoins: View {
+    let total: Int
+    @State private var coins = 0
+
+    var body: some View {
+        HStack(spacing: 8) {
+            CoinIcon(size: 30)
+            Text("+\(coins)").font(Theme.rounded(26, .black)).foregroundColor(Theme.brown).monospacedDigit()
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 6)
+        .background(InsetBackground())
+        .onAppear {
+            let steps = 20
+            for k in 1...steps {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3 + Double(k) * 0.035) {
+                    coins = total * k / steps
+                }
             }
         }
     }
