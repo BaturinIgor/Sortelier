@@ -633,23 +633,25 @@ struct MarketWinView: View {
 
     /// Серия побед: короткий заголовок и ступени в одной плашке.
     private var streakLine: some View {
-        VStack(spacing: 2) {
-            HStack(spacing: 4) {
-                SpriteImage(name: "icon_flame", size: 18)
-                Text(lang.t("m3.streak.title", min(result.streak, MarketBalance.streakMax)))
-                    .font(Theme.rounded(13, .heavy))
-                    .foregroundColor(Theme.brownSoft)
-                Image(systemName: "info.circle.fill")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(Theme.brownSoft.opacity(0.7))
+        Button { Toast.info(lang.t("m3.streak.popup")) } label: {
+            VStack(spacing: 2) {
+                HStack(spacing: 4) {
+                    SpriteImage(name: "icon_flame", size: 18)
+                    Text(lang.t("m3.streak.title", min(result.streak, MarketBalance.streakMax)))
+                        .font(Theme.rounded(13, .heavy))
+                        .foregroundColor(Theme.brownSoft)
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(Theme.brownSoft.opacity(0.7))
+                }
+                StreakStages(stage: result.streak, animateFrom: model.streakAtStart)
             }
-            StreakStages(stage: result.streak, animateFrom: model.streakAtStart)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 6)
+            .background(InsetBackground(radius: 14))
+            .contentShape(Rectangle())
         }
-        .padding(.horizontal, 6)
-        .padding(.vertical, 6)
-        .background(InsetBackground(radius: 14))
-        .contentShape(Rectangle())
-        .onTapGesture { Toast.info(lang.t("m3.streak.popup")) }
+        .buttonStyle(PressScaleStyle())
     }
 }
 
