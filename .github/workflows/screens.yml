@@ -14,6 +14,10 @@ on:
         description: "Часть имени симулятора, например SE или Pro Max (по умолчанию - обычный iPhone)"
         required: false
         default: ""
+      only:
+        description: "Снимать только экраны, чьи имена подходят под регулярку (например ^win|m3_win), по умолчанию все"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -82,11 +86,13 @@ jobs:
       - name: Take screenshots
         run: |
           UDID="${{ steps.sim.outputs.udid }}"
+          ONLY="${{ github.event.inputs.only }}"
           APP="build/Build/Products/Debug-iphonesimulator/Sortelier.app"
           xcrun simctl install "$UDID" "$APP"
           mkdir -p shots
           shoot() {
             name="$1"; shift
+            if [ -n "$ONLY" ] && ! echo "$name" | grep -Eq "$ONLY"; then return 0; fi
             xcrun simctl terminate "$UDID" com.personal.sortelier >/dev/null 2>&1 || true
             xcrun simctl launch "$UDID" com.personal.sortelier -uiDemo "$@" >/dev/null
             sleep 7
@@ -137,6 +143,11 @@ jobs:
           shoot m3_intro    -uiLang ru -uiScreen marketlevel -uiMarketLevel 11
           shoot m3_out      -uiLang ru -uiScreen marketlevel -uiMarketLevel 14 -uiNoIntro -uiM3Out
           shoot m3_win      -uiLang ru -uiScreen marketlevel -uiMarketLevel 12 -uiNoIntro -uiM3Win
+          shoot m3_win_en   -uiLang en -uiScreen marketlevel -uiMarketLevel 12 -uiNoIntro -uiM3Win
+          shoot win         -uiLang ru -uiLevel 35 -uiNoIntro -uiWin
+          shoot win_en      -uiLang en -uiLevel 35 -uiNoIntro -uiWin
+          shoot win_replay  -uiLang ru -uiLevel 30 -uiNoIntro -uiWin
+          shoot win_de      -uiLang de -uiLevel 35 -uiNoIntro -uiWin
           shoot m3_pause    -uiLang ru -uiScreen marketlevel -uiMarketLevel 20 -uiNoIntro -uiM3Pause
           shoot m3_fever    -uiLang ru -uiScreen marketlevel -uiMarketLevel 97 -uiNoIntro
           shoot m3_choc_intro -uiLang ru -uiScreen marketlevel -uiMarketLevel 94

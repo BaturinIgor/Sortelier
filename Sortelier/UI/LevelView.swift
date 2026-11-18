@@ -419,8 +419,9 @@ struct WinView: View {
         }
     }
 
+    /// Звезды, монеты крупно, разбивка монет одной строкой и все награды сеткой значков.
     private func summary(_ result: GameSession.Result) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             HStack(spacing: 4) {
                 ForEach(0..<3, id: \.self) { i in
                     SpriteImage(name: "icon_star", size: i == 1 ? 78 : 62, silhouette: i >= shown)
@@ -428,64 +429,26 @@ struct WinView: View {
                         .offset(y: i == 1 ? -8 : 0)
                 }
             }
-            VStack(spacing: 6) {
-                row(lang.t("win.orders"), result.served * Balance.coinsPerOrder)
-                if result.tips > 0 { row(lang.t("win.tips"), result.tips) }
-                if result.comboCoins > 0 { row(lang.t("win.combo"), result.comboCoins) }
-                row(lang.t("win.efficiency"), result.efficiency)
-                Rectangle().fill(Theme.chipBorder).frame(height: 2)
-                row(lang.t("win.total"), result.total, bold: true)
+            VStack(spacing: 4) {
+                WinCoins(total: result.total)
+                Text(breakdown(result))
+                    .font(Theme.rounded(12, .heavy))
+                    .foregroundColor(Theme.brownSoft)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                if session.isReplay {
+                    Text(result.reward.coinsAdded > 0 ? lang.t("win.record", result.reward.coinsAdded) : lang.t("win.norecord"))
+                        .font(Theme.rounded(12, .heavy))
+                        .foregroundColor(Theme.brownSoft)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
-            .padding(12)
-            .background(InsetBackground())
-            rewardText(result)
-            extras(result)
-        }
-    }
-
-    private func row(_ title: String, _ value: Int, bold: Bool = false) -> some View {
-        HStack {
-            Text(title).font(Theme.rounded(15, bold ? .black : .bold)).foregroundColor(bold ? Theme.brown : Theme.brownSoft)
-            Spacer()
-            CoinIcon(size: 20)
-            Text("\(value)").font(Theme.rounded(17, bold ? .black : .heavy)).foregroundColor(Theme.brown).monospacedDigit()
-        }
-    }
-
-    /// Стрик, серия шефа и награда испытания.
-    @ViewBuilder
-    private func extras(_ result: GameSession.Result) -> some View {
-        VStack(spacing: 6) {
-            if let day = result.streakDay, let granted = result.streak {
-                RewardLine(symbol: "icon_flame", color: Theme.orange, title: lang.t("win.streak", day), granted: granted)
-            }
-            if session.mode == .main && !session.isReplay && result.chefSeries > 1 {
-                RewardLine(symbol: "icon_crown", color: Theme.gold, title: lang.t("win.chef", result.chefSeries),
-                           granted: result.chef)
-            }
-            if let granted = result.challenge {
-                RewardLine(symbol: "calendar", color: Theme.green, title: lang.t(challengeTitle), granted: granted)
-            }
-            ForEach(result.events) { gain in
-                RewardLine(symbol: EventUI.icon(gain.kind), color: EventUI.color(gain.kind),
-                           title: EventUI.gainText(gain, lang: lang), granted: nil)
-            }
-            if result.doubleBonus > 0 {
-                RewardLine(symbol: "coin_icon", color: Theme.green, title: lang.t("event.double.bonus", result.doubleBonus),
-                           granted: nil)
-            }
-            if result.vipBonus > 0 {
-                RewardLine(symbol: "icon_crown", color: Theme.gold, title: lang.t("win.vip", result.vipBonus), granted: nil)
-            }
-            if let gift = result.gourmetGift {
-                RewardLine(symbol: "icon_crown", color: Theme.gold,
-                           title: lang.t(gift.reward.background != nil ? "win.gourmet.bg" : "win.gourmet"), granted: gift)
-            }
-            if result.recipeSteps > 0 {
-                RewardLine(symbol: "icon_recipe", color: Theme.orange, title: lang.t("recipe.win"), granted: nil)
-            }
-            if result.jar > 0 {
-                RewardLine(symbol: "icon_jar", color: Theme.gold, title: lang.t("jar.win", result.jar), granted: nil)
+            let rewards = [result.streak, result.chef, result.challenge, result.gourmetGift].compactMap { $0?.reward }
+            let list = badges(result)
+            if !list.isEmpty || rewards.contains(where: { !$0.isEmpty }) {
+                WinRewardsGrid(rewards: rewards, badges: list)
             }
             if let review = result.critic {
                 CriticReviewCard(review: review)
@@ -493,28 +456,55 @@ struct WinView: View {
         }
     }
 
+    /// "Заказы 120 · Чаевые 15 · Серии 10 · Ходы 30": только то, что не ноль.
+    private func breakdown(_ result: GameSession.Result) -> String {
+        var parts = ["\(lang.t("win.orders")) \(result.served * Balance.coinsPerOrder)"]
+        if result.tips > 0 { parts.append("\(lang.t("win.tips")) \(result.tips)") }
+        if result.comboCoins > 0 { parts.append("\(lang.t("win.combo")) \(result.comboCoins)") }
+        if result.efficiency > 0 { parts.append("\(lang.t("win.moves")) \(result.efficiency)") }
+        return parts.joined(separator: " · ")
+    }
+
+    /// Стрик, серия шефа, испытание, ивенты и фоновые бонусы: значок с числом, полный текст по тапу.
+    private func badges(_ result: GameSession.Result) -> [WinBadge] {
+        var list: [WinBadge] = []
+        if result.reward.lifeReturned {
+            list.append(WinBadge(icon: "icon_heart", value: "+1", caption: lang.t("win.b.life"), detail: lang.t("win.life")))
+        }
+        if let day = result.streakDay, result.streak != nil {
+            list.append(WinBadge(icon: "icon_flame", value: lang.t("win.b.day", day), caption: lang.t("win.b.streak"),
+                                 detail: lang.t("win.streak", day)))
+        }
+        if session.mode == .main && !session.isReplay && result.chefSeries > 1 {
+            list.append(WinBadge(icon: "icon_crown", value: "×\(result.chefSeries)", caption: lang.t("win.b.chef"),
+                                 detail: lang.t("win.chef", result.chefSeries)))
+        }
+        if result.challenge != nil {
+            list.append(WinBadge(icon: "icon_calendar", value: "✓", caption: lang.t("win.b.challenge"),
+                                 detail: lang.t(challengeTitle)))
+        }
+        list += result.events.map { WinBadge.event($0, lang: lang) }
+        if result.doubleBonus > 0 {
+            list.append(WinBadge(icon: "coin_icon", value: "+\(result.doubleBonus)", caption: lang.t("win.b.double"),
+                                 detail: lang.t("event.double.bonus", result.doubleBonus)))
+        }
+        if result.vipBonus > 0 {
+            list.append(WinBadge(icon: "icon_crown", value: "+\(result.vipBonus)", caption: "VIP",
+                                 detail: lang.t("win.vip", result.vipBonus)))
+        }
+        if let gift = result.gourmetGift {
+            list.append(WinBadge(icon: "customer_10_happy", value: "", caption: lang.t("win.b.gourmet"),
+                                 detail: lang.t(gift.reward.background != nil ? "win.gourmet.bg" : "win.gourmet")))
+        }
+        list += WinBadge.background(recipe: result.recipeSteps, jar: result.jar, happy: false, lang: lang)
+        return list
+    }
+
     private var challengeTitle: String {
         switch session.mode {
         case .daily: return "win.daily"
         case .weekly: return "win.weekly"
         case .main, .event: return ""
-        }
-    }
-
-    @ViewBuilder
-    private func rewardText(_ result: GameSession.Result) -> some View {
-        VStack(spacing: 4) {
-            if session.isReplay {
-                Text(result.reward.coinsAdded > 0 ? lang.t("win.record", result.reward.coinsAdded) : lang.t("win.norecord"))
-                    .font(Theme.rounded(14, .semibold))
-                    .foregroundColor(Theme.brownSoft)
-                    .multilineTextAlignment(.center)
-            }
-            if result.reward.lifeReturned {
-                Text(lang.t("win.life"))
-                    .font(Theme.rounded(14, .bold))
-                    .foregroundColor(Theme.red)
-            }
         }
     }
 }

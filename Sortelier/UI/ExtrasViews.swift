@@ -239,21 +239,22 @@ struct CriticReviewCard: View {
     @EnvironmentObject private var lang: Lang
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            SpriteImage(name: Critic.sprite, size: 64)
-            VStack(alignment: .leading, spacing: 4) {
-                StarsRow(count: review.stars, size: 16)
+        HStack(alignment: .center, spacing: 8) {
+            SpriteImage(name: Critic.sprite, size: 48)
+            VStack(alignment: .leading, spacing: 2) {
+                StarsRow(count: review.stars, size: 13)
                 Text("\"" + lang.t("critic.review.\(review.stars).\(review.text)") + "\"")
-                    .font(Theme.rounded(14, .semibold))
+                    .font(Theme.rounded(13, .semibold))
                     .italic()
                     .foregroundColor(Theme.brown)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(lang.t("critic.points", review.points))
-                    .font(Theme.rounded(13, .black))
+                    .font(Theme.rounded(12, .black))
                     .foregroundColor(Theme.vip)
             }
         }
-        .padding(10)
+        .padding(8)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(InsetBackground(radius: 14, color: Color(red: 0.96, green: 0.92, blue: 1)))
     }
 }
