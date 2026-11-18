@@ -408,6 +408,298 @@
    "biome": 5
   },
   {
+   "id": "soybeans",
+   "kind": "raw",
+   "biome": 6,
+   "chain": "tofu"
+  },
+  {
+   "id": "tofu",
+   "kind": "chain",
+   "biome": 6
+  },
+  {
+   "id": "noodles",
+   "kind": "ingredient",
+   "biome": 6
+  },
+  {
+   "id": "bok_choy",
+   "kind": "ingredient",
+   "biome": 6
+  },
+  {
+   "id": "shrimp",
+   "kind": "ingredient",
+   "biome": 6
+  },
+  {
+   "id": "ginger",
+   "kind": "ingredient",
+   "biome": 6
+  },
+  {
+   "id": "bao",
+   "kind": "snack",
+   "biome": 6
+  },
+  {
+   "id": "spring_roll",
+   "kind": "snack",
+   "biome": 6
+  },
+  {
+   "id": "fortune_cookie",
+   "kind": "snack",
+   "biome": 6
+  },
+  {
+   "id": "bubble_tea",
+   "kind": "snack",
+   "biome": 6
+  },
+  {
+   "id": "mooncake",
+   "kind": "snack",
+   "biome": 6
+  },
+  {
+   "id": "tanghulu",
+   "kind": "snack",
+   "biome": 6
+  },
+  {
+   "id": "chicken",
+   "kind": "ingredient",
+   "biome": 7
+  },
+  {
+   "id": "paneer",
+   "kind": "ingredient",
+   "biome": 7
+  },
+  {
+   "id": "spinach",
+   "kind": "ingredient",
+   "biome": 7
+  },
+  {
+   "id": "lentils",
+   "kind": "ingredient",
+   "biome": 7
+  },
+  {
+   "id": "mango",
+   "kind": "ingredient",
+   "biome": 7
+  },
+  {
+   "id": "samosa",
+   "kind": "snack",
+   "biome": 7
+  },
+  {
+   "id": "naan",
+   "kind": "snack",
+   "biome": 7
+  },
+  {
+   "id": "masala_chai",
+   "kind": "snack",
+   "biome": 7
+  },
+  {
+   "id": "jalebi",
+   "kind": "snack",
+   "biome": 7
+  },
+  {
+   "id": "ladoo",
+   "kind": "snack",
+   "biome": 7
+  },
+  {
+   "id": "gulab_jamun",
+   "kind": "snack",
+   "biome": 7
+  },
+  {
+   "id": "cabbage",
+   "kind": "raw",
+   "biome": 8,
+   "chain": "kimchi"
+  },
+  {
+   "id": "kimchi",
+   "kind": "chain",
+   "biome": 8
+  },
+  {
+   "id": "gochujang",
+   "kind": "ingredient",
+   "biome": 8
+  },
+  {
+   "id": "seaweed",
+   "kind": "ingredient",
+   "biome": 8
+  },
+  {
+   "id": "cucumber",
+   "kind": "ingredient",
+   "biome": 8
+  },
+  {
+   "id": "rice_cake",
+   "kind": "ingredient",
+   "biome": 8
+  },
+  {
+   "id": "hotteok",
+   "kind": "snack",
+   "biome": 8
+  },
+  {
+   "id": "banana_milk",
+   "kind": "snack",
+   "biome": 8
+  },
+  {
+   "id": "dalgona",
+   "kind": "snack",
+   "biome": 8
+  },
+  {
+   "id": "bingsu",
+   "kind": "snack",
+   "biome": 8
+  },
+  {
+   "id": "yakgwa",
+   "kind": "snack",
+   "biome": 8
+  },
+  {
+   "id": "hodugwaja",
+   "kind": "snack",
+   "biome": 8
+  },
+  {
+   "id": "saffron",
+   "kind": "ingredient",
+   "biome": 9
+  },
+  {
+   "id": "potato",
+   "kind": "ingredient",
+   "biome": 9
+  },
+  {
+   "id": "garlic",
+   "kind": "ingredient",
+   "biome": 9
+  },
+  {
+   "id": "chorizo",
+   "kind": "ingredient",
+   "biome": 9
+  },
+  {
+   "id": "pepper",
+   "kind": "ingredient",
+   "biome": 9
+  },
+  {
+   "id": "orange",
+   "kind": "ingredient",
+   "biome": 9
+  },
+  {
+   "id": "patatas_bravas",
+   "kind": "snack",
+   "biome": 9
+  },
+  {
+   "id": "croquetas",
+   "kind": "snack",
+   "biome": 9
+  },
+  {
+   "id": "turron",
+   "kind": "snack",
+   "biome": 9
+  },
+  {
+   "id": "crema_catalana",
+   "kind": "snack",
+   "biome": 9
+  },
+  {
+   "id": "empanada",
+   "kind": "snack",
+   "biome": 9
+  },
+  {
+   "id": "ensaimada",
+   "kind": "snack",
+   "biome": 9
+  },
+  {
+   "id": "feta",
+   "kind": "ingredient",
+   "biome": 10
+  },
+  {
+   "id": "pita",
+   "kind": "ingredient",
+   "biome": 10
+  },
+  {
+   "id": "lamb",
+   "kind": "ingredient",
+   "biome": 10
+  },
+  {
+   "id": "eggplant",
+   "kind": "ingredient",
+   "biome": 10
+  },
+  {
+   "id": "yogurt",
+   "kind": "ingredient",
+   "biome": 10
+  },
+  {
+   "id": "baklava",
+   "kind": "snack",
+   "biome": 10
+  },
+  {
+   "id": "koulouri",
+   "kind": "snack",
+   "biome": 10
+  },
+  {
+   "id": "frappe",
+   "kind": "snack",
+   "biome": 10
+  },
+  {
+   "id": "loukoumades",
+   "kind": "snack",
+   "biome": 10
+  },
+  {
+   "id": "figs",
+   "kind": "snack",
+   "biome": 10
+  },
+  {
+   "id": "melomakarona",
+   "kind": "snack",
+   "biome": 10
+  },
+  {
    "id": "pumpkin",
    "kind": "ingredient",
    "biome": 0,
@@ -759,6 +1051,240 @@
     "cream"
    ],
    "biome": 5
+  },
+  {
+   "id": "mapo_tofu",
+   "ingredients": [
+    "tofu",
+    "chili",
+    "leek"
+   ],
+   "biome": 6
+  },
+  {
+   "id": "fried_rice",
+   "ingredients": [
+    "rice",
+    "egg",
+    "leek"
+   ],
+   "biome": 6
+  },
+  {
+   "id": "chow_mein",
+   "ingredients": [
+    "noodles",
+    "bok_choy",
+    "soy"
+   ],
+   "biome": 6
+  },
+  {
+   "id": "dim_sum",
+   "ingredients": [
+    "shrimp",
+    "ginger",
+    "bok_choy"
+   ],
+   "biome": 6
+  },
+  {
+   "id": "hot_pot",
+   "ingredients": [
+    "tofu",
+    "mushroom",
+    "shrimp"
+   ],
+   "biome": 6
+  },
+  {
+   "id": "butter_chicken",
+   "ingredients": [
+    "chicken",
+    "tomato",
+    "butter"
+   ],
+   "biome": 7
+  },
+  {
+   "id": "lassi",
+   "ingredients": [
+    "mango",
+    "mango",
+    "mango"
+   ],
+   "biome": 7
+  },
+  {
+   "id": "biryani",
+   "ingredients": [
+    "rice",
+    "chicken",
+    "onion"
+   ],
+   "biome": 7
+  },
+  {
+   "id": "palak_paneer",
+   "ingredients": [
+    "spinach",
+    "paneer",
+    "cream"
+   ],
+   "biome": 7
+  },
+  {
+   "id": "dal",
+   "ingredients": [
+    "lentils",
+    "onion",
+    "tomato"
+   ],
+   "biome": 7
+  },
+  {
+   "id": "kimchi_pancake",
+   "ingredients": [
+    "kimchi",
+    "egg",
+    "leek"
+   ],
+   "biome": 8
+  },
+  {
+   "id": "bibimbap",
+   "ingredients": [
+    "rice",
+    "egg",
+    "gochujang"
+   ],
+   "biome": 8
+  },
+  {
+   "id": "kimbap",
+   "ingredients": [
+    "rice",
+    "seaweed",
+    "cucumber"
+   ],
+   "biome": 8
+  },
+  {
+   "id": "bulgogi",
+   "ingredients": [
+    "beef",
+    "onion",
+    "soy"
+   ],
+   "biome": 8
+  },
+  {
+   "id": "tteokbokki",
+   "ingredients": [
+    "rice_cake",
+    "gochujang",
+    "leek"
+   ],
+   "biome": 8
+  },
+  {
+   "id": "paella",
+   "ingredients": [
+    "rice",
+    "shrimp",
+    "saffron"
+   ],
+   "biome": 9
+  },
+  {
+   "id": "orange_juice",
+   "ingredients": [
+    "orange",
+    "orange",
+    "orange"
+   ],
+   "biome": 9
+  },
+  {
+   "id": "spanish_omelette",
+   "ingredients": [
+    "potato",
+    "egg",
+    "onion"
+   ],
+   "biome": 9
+  },
+  {
+   "id": "gazpacho",
+   "ingredients": [
+    "tomato",
+    "cucumber",
+    "pepper"
+   ],
+   "biome": 9
+  },
+  {
+   "id": "gambas",
+   "ingredients": [
+    "shrimp",
+    "garlic",
+    "olive_oil"
+   ],
+   "biome": 9
+  },
+  {
+   "id": "bocadillo",
+   "ingredients": [
+    "baguette",
+    "chorizo",
+    "pepper"
+   ],
+   "biome": 9
+  },
+  {
+   "id": "spanakopita",
+   "ingredients": [
+    "dough",
+    "spinach",
+    "feta"
+   ],
+   "biome": 10
+  },
+  {
+   "id": "greek_salad",
+   "ingredients": [
+    "tomato",
+    "cucumber",
+    "feta"
+   ],
+   "biome": 10
+  },
+  {
+   "id": "gyros",
+   "ingredients": [
+    "pita",
+    "lamb",
+    "onion"
+   ],
+   "biome": 10
+  },
+  {
+   "id": "tzatziki",
+   "ingredients": [
+    "yogurt",
+    "cucumber",
+    "garlic"
+   ],
+   "biome": 10
+  },
+  {
+   "id": "moussaka",
+   "ingredients": [
+    "eggplant",
+    "lamb",
+    "tomato"
+   ],
+   "biome": 10
   },
   {
    "id": "pumpkin_soup",

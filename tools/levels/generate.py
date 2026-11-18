@@ -672,6 +672,17 @@ LEVELS10 = [
     (9, 5, 24, 10, 7, 0.65, 2, T, None, 5, 0, 3, 1, 3),
 ]
 
+# Индийская и испанская кухни: общие ингредиенты (лук, помидор, рис, креветки) делают почти любую тройку
+# блюдом, и раскладки выходили легче третьей кухни. Меньше свободных мест после первых пяти уровней.
+def _tighter(table, cut, start=5):
+    return [row[:4] + (max(4, row[4] - cut),) + row[5:] if i >= start else row for i, row in enumerate(table)]
+
+
+LEVELS7 = _tighter(LEVELS7, 2)
+LEVELS8 = _tighter(LEVELS8, 1)
+LEVELS9 = _tighter(LEVELS9, 2)
+
+
 BIOME_LEVELS = {1: (1, LEVELS), 2: (31, LEVELS2), 3: (61, LEVELS3), 4: (91, LEVELS4), 5: (121, LEVELS5),
                 6: (151, LEVELS6), 7: (181, LEVELS7), 8: (211, LEVELS8), 9: (241, LEVELS9), 10: (271, LEVELS10)}
 
