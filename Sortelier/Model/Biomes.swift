@@ -59,18 +59,18 @@ enum Biomes {
         case 1: return Balance.chests
         case 2:
             return [
-                Balance.Chest(stars: 30, coins: 300, boosters: [.hint: 1, .undo: 1], unlimitedLives: 0, goldShelves: false),
-                Balance.Chest(stars: 60, coins: 700, boosters: [.hint: 1, .undo: 1, .shelf: 1], unlimitedLives: 3600,
+                Balance.Chest(stars: 30, coins: 120, boosters: [.hint: 1, .undo: 1], unlimitedLives: 0, goldShelves: false),
+                Balance.Chest(stars: 60, coins: 250, boosters: [.hint: 1, .undo: 1], unlimitedLives: 3600,
                               goldShelves: false, album: .silver),
-                Balance.Chest(stars: 90, coins: 2000, boosters: [.hint: 2, .undo: 2, .shelf: 2],
+                Balance.Chest(stars: 90, coins: 700, boosters: [.hint: 1, .undo: 1, .shelf: 1],
                               unlimitedLives: 4 * 3600, goldShelves: false, album: .gold)
             ]
         default:
             return [
-                Balance.Chest(stars: 30, coins: 400, boosters: [.hint: 1, .undo: 1], unlimitedLives: 0, goldShelves: false),
-                Balance.Chest(stars: 60, coins: 900, boosters: [.hint: 1, .undo: 1, .shelf: 1], unlimitedLives: 2 * 3600,
+                Balance.Chest(stars: 30, coins: 150, boosters: [.hint: 1, .undo: 1], unlimitedLives: 0, goldShelves: false),
+                Balance.Chest(stars: 60, coins: 300, boosters: [.hint: 1, .undo: 1, .shelf: 1], unlimitedLives: 2 * 3600,
                               goldShelves: false, album: .silver),
-                Balance.Chest(stars: 90, coins: 2500, boosters: [.hint: 3, .undo: 3, .shelf: 2],
+                Balance.Chest(stars: 90, coins: 800, boosters: [.hint: 2, .undo: 2, .shelf: 1],
                               unlimitedLives: 6 * 3600, goldShelves: false, album: .star)
             ]
         }
@@ -149,7 +149,7 @@ extension PlayerProgress {
         }
         if owned && lucky {
             save()
-            return grant(Reward(coins: 50 * count), source: "gourmet")
+            return grant(Reward(coins: 20 * count), source: "gourmet")
         }
         save()
         return nil

@@ -764,7 +764,7 @@ final class GameScene: SKScene {
                     node.position = pos
                 }
             }
-            node.update(patience: c.patience, max: b.patienceMax, coins: Balance.coinsPerOrder + b.tip(for: c),
+            node.update(patience: c.patience, max: b.patienceMax, coins: Balance.levelCoins(Balance.coinsPerOrder + b.tip(for: c)),
                         tip: b.tip(for: c), paused: b.pauseLeft > 0, animated: animated)
         }
         updateQueueBadge(waiting: b.queue.count - visible.count)
@@ -776,7 +776,7 @@ final class GameScene: SKScene {
         let b = session.board
         for c in b.queue.prefix(Board.counter) {
             guard let node = customerNodes[c.uid], !node.leaving else { continue }
-            node.update(patience: c.patience, max: b.patienceMax, coins: Balance.coinsPerOrder + b.tip(for: c),
+            node.update(patience: c.patience, max: b.patienceMax, coins: Balance.levelCoins(Balance.coinsPerOrder + b.tip(for: c)),
                         tip: b.tip(for: c), paused: b.pauseLeft > 0, animated: true)
         }
         updatePauseBadge()

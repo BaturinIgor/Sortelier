@@ -71,7 +71,7 @@ enum MergeBalance {
     static var energyRegen: TimeInterval { TimeInterval(RemoteConfig.shared.int("balance.energyRegenSeconds", 180)) }
     static var adEnergy: Int { RemoteConfig.shared.int("balance.energyAd", 10) }
     static var buyEnergy: Int { RemoteConfig.shared.int("balance.energyBuy", 10) }
-    static var buyEnergyPrice: Int { RemoteConfig.shared.int("balance.energyBuyPrice", 60) }
+    static var buyEnergyPrice: Int { RemoteConfig.shared.int("balance.energyBuyPrice", 200) }
     static let orderSlots = 3
     /// Ящик с припасами за рекламу: столько предметов первых ступеней.
     static let supplyItems = 3
@@ -87,8 +87,8 @@ enum MergeBalance {
         let boosters: [Booster] = [.hint, .undo, .shelf]
         let booster = boosters[Int.random(in: 0..<boosters.count, using: &rng)]
         switch value {
-        case ..<5: return Reward(coins: 20 * value)
-        case ..<9: return Reward(coins: 30, boosters: [booster: 1])
+        case ..<5: return Reward(coins: 8 * value)
+        case ..<9: return Bool.random(using: &rng) ? Reward(coins: 30, boosters: [booster: 1]) : Reward(coins: 40)
         case ..<17: return Reward(coins: 40, unlimitedMinutes: 15)
         case ..<33: return Reward(unlimitedMinutes: 30, chests: [.bronze: 1])
         default: return Reward(unlimitedMinutes: 60, chests: [.silver: 1])

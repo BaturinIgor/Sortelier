@@ -61,14 +61,14 @@ enum MarketBalance {
 
     /// "Рынок" открывается после этого уровня основной карты.
     static var unlockLevel: Int { config.int("market.unlockLevel", 8) }
-    static var winCoins: Int { config.int("market.winCoins", 30) }
-    static var coinsPerMove: Int { config.int("market.coinsPerMove", 3) }
+    static var winCoins: Int { config.int("market.winCoins", 15) }
+    static var coinsPerMove: Int { config.int("market.coinsPerMove", 1) }
     static var extraMoves: Int { config.int("market.extraMoves", 5) }
-    static var extraPrices: [Int] { config.ints("market.extraPrices", [150, 300, 600]) }
+    static var extraPrices: [Int] { config.ints("market.extraPrices", [200, 400, 800]) }
     /// Энергия кладовой за каждую победу на "Рынке".
     static var winEnergy: Int { config.int("market.winEnergy", 3) }
     /// Каждая N-я победа на "Рынке" дает бустер основной игры.
-    static var boosterEvery: Int { config.int("market.boosterEvery", 3) }
+    static var boosterEvery: Int { config.int("market.boosterEvery", 5) }
 
     static func price(_ b: M3Booster) -> Int {
         let fallback: Int
@@ -104,13 +104,13 @@ enum MarketBalance {
     }
 
     static func chests(chapter: Int) -> [StarChest] {
-        // монеты растут первые 4 главы, дальше держатся, чтобы 20 глав не ломали экономику
-        let k = min(chapter, 4)
+        // монеты растут первые 2 главы, дальше держатся, чтобы 20 глав не ломали экономику
+        let k = min(chapter, 2)
         return [
-            StarChest(stars: 30, reward: Reward(coins: 150 * k, market: [.mallet: 1, .pin: 1], chests: [.bronze: 1])),
-            StarChest(stars: 60, reward: Reward(coins: 300 * k, boosters: [.hint: 1, .undo: 1], market: [.bomb: 1, .knife: 1],
+            StarChest(stars: 30, reward: Reward(coins: 80 * k, market: [.mallet: 1, .pin: 1], chests: [.bronze: 1])),
+            StarChest(stars: 60, reward: Reward(coins: 150 * k, boosters: [.hint: 1, .undo: 1], market: [.bomb: 1, .knife: 1],
                                                 chests: [.silver: 1])),
-            StarChest(stars: 90, reward: Reward(coins: 800 * k, boosters: [.shelf: 1], unlimitedMinutes: 60, market: [.rainbow: 1, .mixer: 1],
+            StarChest(stars: 90, reward: Reward(coins: 400 * k, boosters: [.shelf: 1], unlimitedMinutes: 60, market: [.rainbow: 1, .mixer: 1],
                                                 chests: [.gold: 1])),
         ]
     }
