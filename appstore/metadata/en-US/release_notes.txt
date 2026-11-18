@@ -1,5 +1,5 @@
 Welcome to Sortelier! In the first version:
-- 300 sorting levels in 10 kitchens of the world
+- 150 sorting levels in 5 kitchens of the world
 - Market Match: 600 match-3 levels
 - Chef's Workshop: merge ingredients into dishes
 - Supplier's garden and the Big Recipe

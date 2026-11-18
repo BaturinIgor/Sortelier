@@ -3,8 +3,8 @@ Sortelier to przytulna gra logiczna o jedzeniu. Przeciągaj produkty między kuc
 NIE TYLKO SORTUJ, ALE GOTUJ
 Trzy takie same produkty trafiają do klienta, ale trzy różne składniki zamieniają się w danie: bułka, kotlet i sałata dają burgera, ryż, ryba i sos sojowy dają sushi. Z mąki robi się ciasto, a ciasto ląduje w pizzy. Liczy się każdy ruch.
 
-DZIESIĘĆ KUCHNI ŚWIATA
-Amerykański diner, japońska kuchnia, włoska trattoria, meksykańska cantina, francuska piekarnia oraz kuchnie chińska, indyjska, koreańska, hiszpańska i grecka: 300 ręcznie sprawdzonych poziomów, a każda kuchnia ma własne produkty, muzykę i tło.
+PIĘĆ KUCHNI ŚWIATA
+Amerykański diner, japońska kuchnia, włoska trattoria, meksykańska cantina i francuska piekarnia: 150 ręcznie sprawdzonych poziomów, a każda kuchnia ma własne produkty, muzykę i tło.
 
 TRZY KOLEJNE GRY W ŚRODKU
 Targ Match: 600 poziomów match-3 z boosterami, poziomami fajerwerków i czekoladą, która rozlewa się, gdy ją zostawisz.

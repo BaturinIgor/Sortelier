@@ -1,5 +1,5 @@
 Witaj w Sortelier! W pierwszej wersji:
-- 300 poziomów sortowania w 10 kuchniach świata
+- 150 poziomów sortowania w 5 kuchniach świata
 - Targ Match: 600 poziomów match-3
 - Pracownia szefa: łącz składniki w dania
 - Ogródek dostawcy i Wielki Przepis

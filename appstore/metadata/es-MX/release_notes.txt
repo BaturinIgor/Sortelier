@@ -1,5 +1,5 @@
 ¡Bienvenido a Sortelier! En la primera versión:
-- 300 niveles de ordenar en 10 cocinas del mundo
+- 150 niveles de ordenar en 5 cocinas del mundo
 - Mercado Match: 600 niveles de combinar 3
 - Taller del chef: combina ingredientes en platos
 - Huerto del proveedor y la Gran Receta

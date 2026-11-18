@@ -1,5 +1,5 @@
 Boas-vindas ao Sortelier! Na primeira versão:
-- 300 fases de organizar em 10 cozinhas do mundo
+- 150 fases de organizar em 5 cozinhas do mundo
 - Feira Match: 600 fases de combinar 3
 - Oficina do chef: junte ingredientes em pratos
 - Horta do fornecedor e Grande Receita

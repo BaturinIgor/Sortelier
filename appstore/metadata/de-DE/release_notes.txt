@@ -1,5 +1,5 @@
 Willkommen bei Sortelier! In der ersten Version:
-- 300 Sortier-Level in 10 Küchen der Welt
+- 150 Sortier-Level in 5 Küchen der Welt
 - Markt-Match: 600 Match-3-Level
 - Kochwerkstatt: Zutaten zu Gerichten kombinieren
 - Garten des Lieferanten und das Große Rezept

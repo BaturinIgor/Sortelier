@@ -3,8 +3,8 @@ Sortelier, yemek temalı sıcacık bir sıralama bulmacası. Ürünleri mutfak r
 SADECE SIRALAMA, PİŞİR DE
 Aynı üç ürün müşteriye gider, ama üç farklı malzeme bir yemeğe dönüşür: ekmek, köfte ve marul hamburger olur, pirinç, balık ve soya sosu suşi olur. Un hamura döner, hamur da pizzaya girer. Her hamle önemli.
 
-DÜNYANIN ON MUTFAĞI
-Amerikan lokantası, Japon mutfağı, İtalyan trattoriası, Meksika kantini, Fransız fırını ile Çin, Hint, Kore, İspanyol ve Yunan mutfakları: elle kontrol edilmiş 300 seviye, her mutfağın kendi ürünleri, müziği ve arka planı var.
+DÜNYANIN BEŞ MUTFAĞI
+Amerikan lokantası, Japon mutfağı, İtalyan trattoriası, Meksika kantini ve Fransız fırını: elle kontrol edilmiş 150 seviye, her mutfağın kendi ürünleri, müziği ve arka planı var.
 
 İÇİNDE ÜÇ OYUN DAHA
 Pazar Eşleştir: güçlendiriciler, havai fişek bölümleri ve dokunmazsan yayılan çikolatayla 600 üçlü eşleştirme bölümü.

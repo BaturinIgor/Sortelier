@@ -1,5 +1,5 @@
 Bienvenue dans Sortelier ! Dans la première version :
-- 300 niveaux de tri dans 10 cuisines du monde
+- 150 niveaux de tri dans 5 cuisines du monde
 - Marché Match : 600 niveaux de match-3
 - Atelier du chef : fusionne les ingrédients en plats
 - Potager du fournisseur et Grande Recette

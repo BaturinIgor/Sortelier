@@ -3,8 +3,8 @@ Sortelier is a cozy sorting puzzle about food. Drag products between kitchen she
 COOK, DON'T JUST SORT
 Three of the same product go to a customer, but three different ingredients become a dish: bun, patty and lettuce make a burger, rice, fish and soy make sushi. Flour turns into dough, dough goes into pizza. Every move counts.
 
-TEN KITCHENS OF THE WORLD
-American diner, Japanese kitchen, Italian trattoria, Mexican cantina, French bakery, Chinese, Indian, Korean, Spanish and Greek kitchens: 300 hand-checked levels, each with its own products, music and background.
+FIVE KITCHENS OF THE WORLD
+American diner, Japanese kitchen, Italian trattoria, Mexican cantina and French bakery: 150 hand-checked levels, each with its own products, music and background.
 
 THREE MORE GAMES INSIDE
 Market Match: 600 match-3 levels with boosters, fireworks levels and chocolate that spreads if you leave it alone.
