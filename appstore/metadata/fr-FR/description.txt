@@ -3,8 +3,8 @@ Sortelier est un puzzle de tri tout doux autour de la nourriture. Fais glisser l
 NE TRIE PAS SEULEMENT, CUISINE !
 Trois produits identiques partent chez un client, mais trois ingrédients différents deviennent un plat : pain, steak et salade font un burger, riz, poisson et sauce soja font des sushis. La farine devient pâte, et la pâte file dans la pizza. Chaque coup compte.
 
-CINQ CUISINES DU MONDE
-Diner américain, cuisine japonaise, trattoria italienne, cantina mexicaine et boulangerie française : 150 niveaux vérifiés à la main, et chaque cuisine a ses propres produits, sa musique et son décor.
+DIX CUISINES DU MONDE
+Diner américain, cuisine japonaise, trattoria italienne, cantina mexicaine, boulangerie française et cuisines chinoise, indienne, coréenne, espagnole et grecque : 300 niveaux vérifiés à la main, et chaque cuisine a ses propres produits, sa musique et son décor.
 
 TROIS AUTRES JEUX INCLUS
 Marché Match : 600 niveaux de match-3 avec des bonus, des niveaux feu d'artifice et du chocolat qui s'étale si on le laisse.

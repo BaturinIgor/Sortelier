@@ -643,6 +643,16 @@ struct IntroView: View {
             threeOf("lime", dish: "dish_limeade")
         case "truffles":
             threeOf("chocolate", dish: "dish_truffles")
+        case "tofu":
+            chainRecipe(raw: "soybeans", made: "tofu", with: ["chili", "leek"], dish: "dish_mapo_tofu")
+        case "lassi":
+            threeOf("mango", dish: "dish_lassi")
+        case "kimchi":
+            chainRecipe(raw: "cabbage", made: "kimchi", with: ["egg", "leek"], dish: "dish_kimchi_pancake")
+        case "orange":
+            threeOf("orange", dish: "dish_orange_juice")
+        case "spanakopita":
+            chainRecipe(raw: "flour", made: "dough", with: ["spinach", "feta"], dish: "dish_spanakopita")
         case "key":
             ZStack {
                 SpriteImage(name: progress.goldShelves ? "shelf_gold" : "shelf", size: 120)

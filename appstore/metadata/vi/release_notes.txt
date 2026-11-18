@@ -1,5 +1,5 @@
 Chào mừng đến với Sortelier! Trong phiên bản đầu tiên:
-- 150 màn sắp xếp ở 5 căn bếp thế giới
+- 300 màn sắp xếp ở 10 căn bếp thế giới
 - Chợ Ghép: 600 màn ghép 3
 - Xưởng bếp trưởng: ghép nguyên liệu thành món ăn
 - Vườn nhà cung cấp và Công thức lớn

@@ -3110,5 +3110,481 @@
  "unlock.feature.go": {
   "en": "Try it",
   "ru": "Попробовать"
+ },
+ "biome.8.name": {
+  "en": "Korean Kitchen",
+  "ru": "Корейская кухня"
+ },
+ "biome.9.name": {
+  "en": "Spanish Kitchen",
+  "ru": "Испанская кухня"
+ },
+ "biome.10.name": {
+  "en": "Greek Taverna",
+  "ru": "Греческая таверна"
+ },
+ "biome.6.subtitle": {
+  "en": "Dim sum, noodles and mapo tofu",
+  "ru": "Димсамы, лапша и мапо тофу"
+ },
+ "biome.6.intro": {
+  "en": "Turn soybeans into tofu, steam dim sum and cook a spicy hot pot. Mind the frozen products and locked shelves!",
+  "ru": "Делай тофу из соевых бобов, готовь димсамы на пару и острый хого. Следи за замороженными продуктами и замками!"
+ },
+ "biome.7.subtitle": {
+  "en": "Curry, biryani and mango lassi",
+  "ru": "Карри, бирьяни и манго-ласси"
+ },
+ "biome.7.intro": {
+  "en": "Blend mango lassi, simmer butter chicken and open shelves with a key product. Watch out for chained shelves!",
+  "ru": "Взбивай манго-ласси, томи курицу в масле и открывай полки продуктом-ключом. Не забывай про полки на цепи!"
+ },
+ "biome.8.subtitle": {
+  "en": "Bibimbap, kimbap and tteokbokki",
+  "ru": "Пибимпап, кимпаб и токпокки"
+ },
+ "biome.8.intro": {
+  "en": "Turn napa cabbage into kimchi, roll kimbap and free shelves from chains. The trickiest frost is here!",
+  "ru": "Делай кимчи из пекинской капусты, крути кимпаб и освобождай полки от цепей. Здесь самый крепкий мороз!"
+ },
+ "biome.9.subtitle": {
+  "en": "Paella, tortilla and gazpacho",
+  "ru": "Паэлья, тортилья и гаспачо"
+ },
+ "biome.9.intro": {
+  "en": "Squeeze fresh orange juice, cook paella with saffron and open double locks with keys. ¡Buen provecho!",
+  "ru": "Выжимай апельсиновый сок, вари паэлью с шафраном и открывай двойные замки ключами. Buen provecho!"
+ },
+ "biome.10.subtitle": {
+  "en": "Greek salad, gyros and moussaka",
+  "ru": "Греческий салат, гирос и мусака"
+ },
+ "biome.10.intro": {
+  "en": "The grand finale: every trick of the world's kitchens at once. Bake spanakopita from dough, wrap gyros and keep an eye on ice, locks, keys and chains. Opa!",
+  "ru": "Большой финал: все хитрости кухонь мира сразу. Пеки спанакопиту из теста, заворачивай гирос и следи за льдом, замками, ключами и цепями. Опа!"
+ },
+ "bg.china": {
+  "en": "Chinese kitchen",
+  "ru": "Китайская кухня"
+ },
+ "bg.india": {
+  "en": "Indian kitchen",
+  "ru": "Индийская кухня"
+ },
+ "bg.korea": {
+  "en": "Korean kitchen",
+  "ru": "Корейская кухня"
+ },
+ "bg.spain": {
+  "en": "Spanish kitchen",
+  "ru": "Испанская кухня"
+ },
+ "bg.greece": {
+  "en": "Greek taverna",
+  "ru": "Греческая таверна"
+ },
+ "intro.tofu.title": {
+  "en": "Homemade tofu",
+  "ru": "Домашний тофу"
+ },
+ "intro.tofu.text": {
+  "en": "Three scoops of soybeans on one shelf turn into tofu right away. Tofu, chili and leek make mapo tofu.",
+  "ru": "Три мерки соевых бобов на одной полке сразу превращаются в тофу. Тофу, перец чили и лук-порей - это мапо тофу."
+ },
+ "intro.lassi.title": {
+  "en": "Mango lassi",
+  "ru": "Манго-ласси"
+ },
+ "intro.lassi.text": {
+  "en": "Three mangoes on one shelf make lassi for a customer who ordered it.",
+  "ru": "Три манго на одной полке - это ласси для покупателя, который его заказал."
+ },
+ "intro.kimchi.title": {
+  "en": "Kimchi",
+  "ru": "Кимчи"
+ },
+ "intro.kimchi.text": {
+  "en": "Three napa cabbages on one shelf turn into a jar of kimchi right away. Kimchi, egg and leek make a kimchi pancake.",
+  "ru": "Три кочана пекинской капусты на одной полке сразу превращаются в банку кимчи. Кимчи, яйцо и лук-порей - это блинчик с кимчи."
+ },
+ "intro.orange.title": {
+  "en": "Fresh orange juice",
+  "ru": "Свежий апельсиновый сок"
+ },
+ "intro.orange.text": {
+  "en": "Three oranges on one shelf make juice for a customer who ordered it. Tomatoes are needed for gazpacho now, so plan ahead.",
+  "ru": "Три апельсина на одной полке - это сок для покупателя, который его заказал. Помидоры здесь нужны для гаспачо, так что думай наперед."
+ },
+ "intro.spanakopita.title": {
+  "en": "Spanakopita",
+  "ru": "Спанакопита"
+ },
+ "intro.spanakopita.text": {
+  "en": "Three bags of flour on one shelf turn into dough. Dough, spinach and feta make spanakopita.",
+  "ru": "Три мешка муки на одной полке превращаются в тесто. Тесто, шпинат и фета - это спанакопита."
+ },
+ "item.soybeans": {
+  "en": "Soybeans",
+  "ru": "Соевые бобы"
+ },
+ "item.tofu": {
+  "en": "Tofu",
+  "ru": "Тофу"
+ },
+ "item.noodles": {
+  "en": "Noodles",
+  "ru": "Лапша"
+ },
+ "item.bok_choy": {
+  "en": "Bok choy",
+  "ru": "Бок-чой"
+ },
+ "item.shrimp": {
+  "en": "Shrimp",
+  "ru": "Креветка"
+ },
+ "item.ginger": {
+  "en": "Ginger",
+  "ru": "Имбирь"
+ },
+ "item.bao": {
+  "en": "Steamed bun",
+  "ru": "Паровая булочка"
+ },
+ "item.spring_roll": {
+  "en": "Spring rolls",
+  "ru": "Спринг-роллы"
+ },
+ "item.fortune_cookie": {
+  "en": "Fortune cookie",
+  "ru": "Печенье с предсказанием"
+ },
+ "item.bubble_tea": {
+  "en": "Bubble tea",
+  "ru": "Бабл-ти"
+ },
+ "item.mooncake": {
+  "en": "Mooncake",
+  "ru": "Лунный пряник"
+ },
+ "item.tanghulu": {
+  "en": "Candied berries",
+  "ru": "Ягоды в карамели"
+ },
+ "item.chicken": {
+  "en": "Chicken leg",
+  "ru": "Куриная ножка"
+ },
+ "item.paneer": {
+  "en": "Paneer",
+  "ru": "Панир"
+ },
+ "item.spinach": {
+  "en": "Spinach",
+  "ru": "Шпинат"
+ },
+ "item.lentils": {
+  "en": "Red lentils",
+  "ru": "Красная чечевица"
+ },
+ "item.mango": {
+  "en": "Mango",
+  "ru": "Манго"
+ },
+ "item.samosa": {
+  "en": "Samosa",
+  "ru": "Самоса"
+ },
+ "item.naan": {
+  "en": "Naan",
+  "ru": "Наан"
+ },
+ "item.masala_chai": {
+  "en": "Masala chai",
+  "ru": "Масала-чай"
+ },
+ "item.jalebi": {
+  "en": "Jalebi",
+  "ru": "Джалеби"
+ },
+ "item.ladoo": {
+  "en": "Ladoo",
+  "ru": "Ладду"
+ },
+ "item.gulab_jamun": {
+  "en": "Gulab jamun",
+  "ru": "Гулаб джамун"
+ },
+ "item.cabbage": {
+  "en": "Napa cabbage",
+  "ru": "Пекинская капуста"
+ },
+ "item.kimchi": {
+  "en": "Kimchi",
+  "ru": "Кимчи"
+ },
+ "item.gochujang": {
+  "en": "Gochujang",
+  "ru": "Кочхуджан"
+ },
+ "item.seaweed": {
+  "en": "Nori sheets",
+  "ru": "Листы нори"
+ },
+ "item.cucumber": {
+  "en": "Cucumber",
+  "ru": "Огурец"
+ },
+ "item.rice_cake": {
+  "en": "Rice cakes",
+  "ru": "Рисовые палочки ттоки"
+ },
+ "item.hotteok": {
+  "en": "Sweet pancake",
+  "ru": "Сладкий блинчик хотток"
+ },
+ "item.banana_milk": {
+  "en": "Banana milk",
+  "ru": "Банановое молоко"
+ },
+ "item.dalgona": {
+  "en": "Dalgona candy",
+  "ru": "Конфета далгона"
+ },
+ "item.bingsu": {
+  "en": "Bingsu",
+  "ru": "Пинсу"
+ },
+ "item.yakgwa": {
+  "en": "Honey cookie",
+  "ru": "Медовое печенье якква"
+ },
+ "item.hodugwaja": {
+  "en": "Walnut cakes",
+  "ru": "Ореховые пирожные"
+ },
+ "item.saffron": {
+  "en": "Saffron",
+  "ru": "Шафран"
+ },
+ "item.potato": {
+  "en": "Potato",
+  "ru": "Картофель"
+ },
+ "item.garlic": {
+  "en": "Garlic",
+  "ru": "Чеснок"
+ },
+ "item.chorizo": {
+  "en": "Chorizo",
+  "ru": "Чоризо"
+ },
+ "item.pepper": {
+  "en": "Bell pepper",
+  "ru": "Сладкий перец"
+ },
+ "item.orange": {
+  "en": "Orange",
+  "ru": "Апельсин"
+ },
+ "item.patatas_bravas": {
+  "en": "Patatas bravas",
+  "ru": "Патата бравас"
+ },
+ "item.croquetas": {
+  "en": "Croquetas",
+  "ru": "Крокеты"
+ },
+ "item.turron": {
+  "en": "Turrón",
+  "ru": "Туррон"
+ },
+ "item.crema_catalana": {
+  "en": "Crema catalana",
+  "ru": "Каталонский крем"
+ },
+ "item.empanada": {
+  "en": "Empanada",
+  "ru": "Эмпанада"
+ },
+ "item.ensaimada": {
+  "en": "Ensaimada",
+  "ru": "Энсаймада"
+ },
+ "item.feta": {
+  "en": "Feta",
+  "ru": "Фета"
+ },
+ "item.pita": {
+  "en": "Pita",
+  "ru": "Пита"
+ },
+ "item.lamb": {
+  "en": "Lamb chop",
+  "ru": "Каре ягненка"
+ },
+ "item.eggplant": {
+  "en": "Eggplant",
+  "ru": "Баклажан"
+ },
+ "item.yogurt": {
+  "en": "Greek yogurt",
+  "ru": "Греческий йогурт"
+ },
+ "item.baklava": {
+  "en": "Baklava",
+  "ru": "Пахлава"
+ },
+ "item.koulouri": {
+  "en": "Sesame ring",
+  "ru": "Кулури с кунжутом"
+ },
+ "item.frappe": {
+  "en": "Iced frappé",
+  "ru": "Холодный фраппе"
+ },
+ "item.loukoumades": {
+  "en": "Honey puffs",
+  "ru": "Медовые пончики"
+ },
+ "item.figs": {
+  "en": "Figs",
+  "ru": "Инжир"
+ },
+ "item.melomakarona": {
+  "en": "Honey biscuits",
+  "ru": "Медовое печенье"
+ },
+ "dish.mapo_tofu": {
+  "en": "Mapo tofu",
+  "ru": "Мапо тофу"
+ },
+ "dish.fried_rice": {
+  "en": "Fried rice",
+  "ru": "Жареный рис"
+ },
+ "dish.chow_mein": {
+  "en": "Chow mein",
+  "ru": "Жареная лапша"
+ },
+ "dish.dim_sum": {
+  "en": "Dim sum",
+  "ru": "Димсамы"
+ },
+ "dish.hot_pot": {
+  "en": "Hot pot",
+  "ru": "Хого"
+ },
+ "dish.butter_chicken": {
+  "en": "Butter chicken",
+  "ru": "Курица в масле"
+ },
+ "dish.lassi": {
+  "en": "Mango lassi",
+  "ru": "Манго-ласси"
+ },
+ "dish.biryani": {
+  "en": "Biryani",
+  "ru": "Бирьяни"
+ },
+ "dish.palak_paneer": {
+  "en": "Palak paneer",
+  "ru": "Палак панир"
+ },
+ "dish.dal": {
+  "en": "Dal",
+  "ru": "Дал"
+ },
+ "dish.kimchi_pancake": {
+  "en": "Kimchi pancake",
+  "ru": "Блинчик с кимчи"
+ },
+ "dish.bibimbap": {
+  "en": "Bibimbap",
+  "ru": "Пибимпап"
+ },
+ "dish.kimbap": {
+  "en": "Kimbap",
+  "ru": "Кимпаб"
+ },
+ "dish.bulgogi": {
+  "en": "Bulgogi",
+  "ru": "Пулькоги"
+ },
+ "dish.tteokbokki": {
+  "en": "Tteokbokki",
+  "ru": "Токпокки"
+ },
+ "dish.paella": {
+  "en": "Paella",
+  "ru": "Паэлья"
+ },
+ "dish.orange_juice": {
+  "en": "Orange juice",
+  "ru": "Апельсиновый сок"
+ },
+ "dish.spanish_omelette": {
+  "en": "Spanish omelette",
+  "ru": "Испанская тортилья"
+ },
+ "dish.gazpacho": {
+  "en": "Gazpacho",
+  "ru": "Гаспачо"
+ },
+ "dish.gambas": {
+  "en": "Garlic shrimp",
+  "ru": "Креветки с чесноком"
+ },
+ "dish.bocadillo": {
+  "en": "Bocadillo",
+  "ru": "Бокадильо"
+ },
+ "dish.spanakopita": {
+  "en": "Spanakopita",
+  "ru": "Спанакопита"
+ },
+ "dish.greek_salad": {
+  "en": "Greek salad",
+  "ru": "Греческий салат"
+ },
+ "dish.gyros": {
+  "en": "Gyros",
+  "ru": "Гирос"
+ },
+ "dish.tzatziki": {
+  "en": "Tzatziki",
+  "ru": "Дзадзики"
+ },
+ "dish.moussaka": {
+  "en": "Moussaka",
+  "ru": "Мусака"
+ },
+ "bg.source.mexico": {
+  "en": "Opens with the Mexican Kitchen",
+  "ru": "Откроется с мексиканской кухней"
+ },
+ "bg.source.bakery": {
+  "en": "Opens with the French Bakery",
+  "ru": "Откроется с французской пекарней"
+ },
+ "bg.source.china": {
+  "en": "Opens with the Chinese Kitchen",
+  "ru": "Откроется с китайской кухней"
+ },
+ "bg.source.india": {
+  "en": "Opens with the Indian Kitchen",
+  "ru": "Откроется с индийской кухней"
+ },
+ "bg.source.korea": {
+  "en": "Opens with the Korean Kitchen",
+  "ru": "Откроется с корейской кухней"
+ },
+ "bg.source.spain": {
+  "en": "Opens with the Spanish Kitchen",
+  "ru": "Откроется с испанской кухней"
+ },
+ "bg.source.greece": {
+  "en": "Opens with the Greek Taverna",
+  "ru": "Откроется с греческой таверной"
  }
 }

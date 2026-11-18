@@ -3,9 +3,9 @@ import Foundation
 /// Биомы карты: по 30 уровней, открываются звездами предыдущего биома или монетами.
 enum Biomes {
     /// Сколько биомов уже есть в игре.
-    static let playable = 5
-    /// Анонсы следующих кухонь на карте ("скоро").
-    static let upcoming = [6, 7]
+    static let playable = 10
+    /// Анонсы следующих кухонь на карте ("скоро"): пока все объявленные кухни в игре.
+    static let upcoming: [Int] = []
     static var unlockPrice: Int { RemoteConfig.shared.int("balance.biomeUnlockPrice", 3000) }
 
     static func first(_ biome: Int) -> Int { (biome - 1) * Balance.levelsPerBiome + 1 }
@@ -24,6 +24,11 @@ enum Biomes {
         case 3: return "italy"
         case 4: return "mexico"
         case 5: return "bakery"
+        case 6: return "china"
+        case 7: return "india"
+        case 8: return "korea"
+        case 9: return "spain"
+        case 10: return "greece"
         default: return KitchenStyle.defaultId
         }
     }
@@ -35,6 +40,11 @@ enum Biomes {
         case 3: return "music_italy"
         case 4: return "music_mexico"
         case 5: return "music_bakery"
+        case 6: return "music_china"
+        case 7: return "music_india"
+        case 8: return "music_korea"
+        case 9: return "music_spain"
+        case 10: return "music_greece"
         default: return "music_kitchen"
         }
     }
@@ -47,6 +57,11 @@ enum Biomes {
         case 3: return "dish_pizza"
         case 4: return "dish_taco"
         case 5: return "dish_croissant"
+        case 6: return "dish_dim_sum"
+        case 7: return "dish_butter_chicken"
+        case 8: return "dish_bibimbap"
+        case 9: return "dish_paella"
+        case 10: return "dish_greek_salad"
         // страница ивентов в книге
         case 0: return "icon_ticket"
         default: return ""

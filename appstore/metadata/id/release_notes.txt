@@ -1,5 +1,5 @@
 Selamat datang di Sortelier! Di versi pertama:
-- 150 level sortir di 5 dapur dunia
+- 300 level sortir di 10 dapur dunia
 - Pasar Match: 600 level match-3
 - Bengkel Koki: gabungkan bahan menjadi hidangan
 - Kebun pemasok dan Resep Besar

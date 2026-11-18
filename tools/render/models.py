@@ -3354,7 +3354,8 @@ def render(sprite_id, out_dir, size=360, spin_frames=0, samples=96):
 
 
 # Модели новых кухонь и ивентов лежат в отдельных модулях: каждый добавляет свои функции в MODELS.
-EXTENSIONS = ("models_mexico", "models_bakery", "models_events", "models_match3", "models_remodel", "models_dishes2")
+EXTENSIONS = ("models_mexico", "models_bakery", "models_events", "models_match3", "models_remodel", "models_dishes2",
+              "models_world")
 
 
 def load_extensions():
