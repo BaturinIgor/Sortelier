@@ -60,6 +60,22 @@ final class RegressionTests: XCTestCase {
         log("\(what): \(ok ? "OK" : "FAIL") (ищем '\(text)')")
     }
 
+    /// Кухни 6-10: первый уровень с новой механикой показывает свое интро, после него открывается поле.
+    func testNewKitchens() {
+        let intros = [(151, "Домашний тофу"), (182, "Манго-ласси"), (211, "Кимчи"), (242, "апельсиновый сок"), (271, "Спанакопита")]
+        for (n, (id, title)) in intros.enumerated() {
+            let app = launch(["-uiLevel", "\(id)"])
+            shot(app, "7\(n)_intro_\(id)")
+            check(app, title, "интро уровня \(id)")
+            app.terminate()
+        }
+        let app = launch(["-uiLevel", "300", "-uiAutoplay", "6"])
+        shot(app, "75_level_300")
+        app.terminate()
+        let book = launch(["-uiScreen", "book"])
+        shot(book, "76_book")
+    }
+
     /// Карта -> "Продуктовый ряд" -> список глав -> уровень -> игра.
     func testMarketFromMap() {
         let app = launch(["-uiScreen", "map"])

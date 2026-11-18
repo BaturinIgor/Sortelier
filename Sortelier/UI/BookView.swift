@@ -97,6 +97,16 @@ struct BookContent: View {
     }
 
     private var biomePicker: some View {
+        // кухонь больше, чем помещается в ширину: лента листается, выбранная кухня прокручивается в кадр
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                pickerRow.padding(.vertical, 4).padding(.horizontal, 2)
+            }
+            .onAppear { proxy.scrollTo(biome, anchor: .center) }
+        }
+    }
+
+    private var pickerRow: some View {
         HStack(spacing: 8) {
             // последняя страница - продукты сезонных ивентов (биом 0), она открыта всегда
             ForEach(Array(1...Biomes.playable) + [0], id: \.self) { b in
@@ -114,8 +124,7 @@ struct BookContent: View {
                     .overlay(alignment: .topTrailing) {
                         if open && !unpaid(biome: b).isEmpty { BadgeDot().offset(x: 4, y: -4) }
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 54)
+                    .frame(width: 56, height: 54)
                     .background(
                         ZStack {
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -126,6 +135,7 @@ struct BookContent: View {
                     )
                 }
                 .buttonStyle(PressScaleStyle())
+                .id(b)
             }
         }
     }

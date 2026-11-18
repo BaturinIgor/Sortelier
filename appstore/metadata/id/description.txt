@@ -3,8 +3,8 @@ Sortelier adalah puzzle menyortir makanan yang nyaman. Seret produk di antara ra
 BUKAN CUMA MENYORTIR, TAPI MEMASAK
 Tiga produk yang sama diberikan ke pelanggan, tapi tiga bahan berbeda berubah jadi hidangan: roti, patty, dan selada jadi burger, nasi, ikan, dan kecap asin jadi sushi. Tepung jadi adonan, adonan masuk ke pizza. Setiap langkah berarti.
 
-LIMA DAPUR DUNIA
-Diner Amerika, dapur Jepang, trattoria Italia, cantina Meksiko, dan toko roti Prancis: 150 level yang dicek satu per satu, dan setiap dapur punya produk, musik, serta latar sendiri.
+SEPULUH DAPUR DUNIA
+Diner Amerika, dapur Jepang, trattoria Italia, cantina Meksiko, toko roti Prancis, serta dapur Tiongkok, India, Korea, Spanyol, dan Yunani: 300 level yang dicek satu per satu, dan setiap dapur punya produk, musik, serta latar sendiri.
 
 TIGA GAME LAIN DI DALAMNYA
 Pasar Match: 600 level match-3 dengan booster, level kembang api, dan cokelat yang menyebar jika dibiarkan.
