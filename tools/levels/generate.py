@@ -900,6 +900,10 @@ def place_chains(rng, shelves, orders, path, count, locks, keys):
 # Уровни ивентов включают проверку длины решения сами (events.py)
 STRICT_LENGTH = False
 
+# кухни 6-10: с какого уровня биома (от 0) отсеиваются слишком легкие раскладки и сколько раз подряд
+EASY_FROM = 5
+EASY_SKIPS_MAX = 40
+
 
 def generate_level(level_no, params, seed, biome=1):
     shelves_n, depth, n_orders, n_dishes, free, hidden, ing_triples, hard, intro = params[:9]
@@ -910,6 +914,7 @@ def generate_level(level_no, params, seed, biome=1):
     # но после нескольких длинных берем самое короткое из них (для кухонь 4-5 и ивентов)
     strict = STRICT_LENGTH or biome >= 4
     long_ones = []
+    easy_skips = 0
     for attempt in range(600):
         orders = pick_orders(rng, level_no, n_orders, n_dishes, ing_triples, biome)
         items = items_for(orders)
@@ -947,6 +952,12 @@ def generate_level(level_no, params, seed, biome=1):
         # слишком простой уровень для своей позиции пропускаем
         if level_no > 3 and len(path) < len(items) * 0.45:
             continue
+        # кухни 6-10: после первых уровней биома раскладку, которую проходит почти жадная игра
+        # (лучевой поиск шириной 2), считаем слишком легкой и ищем другую
+        if biome >= 6 and level_no - BIOME_LEVELS[biome][0] >= EASY_FROM and easy_skips < EASY_SKIPS_MAX:
+            if solve(CAT, shelves, orders, beam=2, max_depth=depth_cap, locks=locks, keys=keys, chains=chains):
+                easy_skips += 1
+                continue
         if strict and len(path) > len(items) * 1.8:
             long_ones.append((len(path) / len(items), attempt, orders, shelves, path, locks, keys, chains))
             if len(long_ones) < 4:
