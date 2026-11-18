@@ -10,6 +10,15 @@ enum Balance {
     static var comboFrom: Int { config.int("balance.comboFrom", 3) }
     static var comboWindow: Int { config.int("balance.comboWindow", 3) }
     static var efficiencyShare: Double { config.double("balance.efficiencyShare", 0.3) }
+    /// Какая доля очков уровня идет на счет монетами. Очки уровня (заказы, чаевые, серии) решают звезды,
+    /// поэтому пороги звезд в уровнях не трогаем, а на экране и на счету показываем уже монеты.
+    static var levelCoinShare: Double { config.double("balance.levelCoinShare", 0.4) }
+
+    /// Очки уровня в монетах.
+    static func levelCoins(_ points: Int) -> Int {
+        guard points > 0 else { return 0 }
+        return max(1, Int((Double(points) * levelCoinShare).rounded()))
+    }
 
     static var maxLives: Int { config.int("balance.maxLives", 5) }
     static var lifeRegen: TimeInterval { TimeInterval(config.int("balance.lifeRegenMinutes", 30) * 60) }
@@ -20,7 +29,7 @@ enum Balance {
     /// Сколько ходов терпение стоит на паузе после бустера.
     static var pauseMoves: Int { config.int("balance.pauseMoves", 5) }
 
-    static var continuePrices: [Int] { config.ints("balance.continuePrices", [150, 300, 600]) }
+    static var continuePrices: [Int] { config.ints("balance.continuePrices", [250, 500, 900]) }
     static var adDailyLimit: Int { config.int("balance.adDailyLimit", 10) }
 
     static let levelsPerBiome = 30
@@ -36,10 +45,10 @@ enum Balance {
     }
 
     static let chests: [Chest] = [
-        Chest(stars: 30, coins: 200, boosters: [.hint: 1, .undo: 1], unlimitedLives: 0, goldShelves: false),
-        Chest(stars: 60, coins: 500, boosters: [.hint: 1, .undo: 1, .shelf: 1], unlimitedLives: 3600, goldShelves: false,
+        Chest(stars: 30, coins: 100, boosters: [.hint: 1, .undo: 1], unlimitedLives: 0, goldShelves: false),
+        Chest(stars: 60, coins: 200, boosters: [.hint: 1, .undo: 1], unlimitedLives: 3600, goldShelves: false,
               album: .silver),
-        Chest(stars: 90, coins: 1500, boosters: [.hint: 2, .undo: 2, .shelf: 2], unlimitedLives: 3 * 3600, goldShelves: true,
+        Chest(stars: 90, coins: 500, boosters: [.hint: 1, .undo: 1, .shelf: 1], unlimitedLives: 3 * 3600, goldShelves: true,
               album: .gold)
     ]
 }

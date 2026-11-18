@@ -77,7 +77,7 @@ struct LevelContent: View {
                     .ignoresSafeArea()
                 VStack(spacing: 4) {
                     topBar
-                    StarProgress(coins: session.orderCoins, thresholds: session.level.stars)
+                    StarProgress(points: session.orderCoins, thresholds: session.level.stars)
                     Spacer()
                     if session.boostersAllowed {
                         boosterBar
@@ -430,7 +430,7 @@ struct WinView: View {
                 }
             }
             VStack(spacing: 4) {
-                WinCoins(total: result.total)
+                WinCoins(total: result.coins)
                 Text(breakdown(result))
                     .font(Theme.rounded(12, .heavy))
                     .foregroundColor(Theme.brownSoft)
@@ -458,10 +458,10 @@ struct WinView: View {
 
     /// "Заказы 120 · Чаевые 15 · Серии 10 · Ходы 30": только то, что не ноль.
     private func breakdown(_ result: GameSession.Result) -> String {
-        var parts = ["\(lang.t("win.orders")) \(result.served * Balance.coinsPerOrder)"]
-        if result.tips > 0 { parts.append("\(lang.t("win.tips")) \(result.tips)") }
-        if result.comboCoins > 0 { parts.append("\(lang.t("win.combo")) \(result.comboCoins)") }
-        if result.efficiency > 0 { parts.append("\(lang.t("win.moves")) \(result.efficiency)") }
+        var parts = ["\(lang.t("win.orders")) \(Balance.levelCoins(result.served * Balance.coinsPerOrder))"]
+        if result.tips > 0 { parts.append("\(lang.t("win.tips")) \(Balance.levelCoins(result.tips))") }
+        if result.comboCoins > 0 { parts.append("\(lang.t("win.combo")) \(Balance.levelCoins(result.comboCoins))") }
+        if result.efficiency > 0 { parts.append("\(lang.t("win.moves")) \(Balance.levelCoins(result.efficiency))") }
         return parts.joined(separator: " · ")
     }
 
@@ -751,13 +751,17 @@ private func patienceBar(_ fraction: CGFloat, _ color: Color) -> some View {
 }
 
 /// Монеты уровня и пороги звезд: 1 звезда за прохождение, 2 и 3 - по монетам.
+/// Звезды считаются в очках уровня, а показываются монетами (Balance.levelCoins).
 struct StarProgress: View {
-    let coins: Int
+    let points: Int
     let thresholds: [Int]
 
     var body: some View {
-        let s2 = thresholds.first ?? 1
-        let s3 = thresholds.count > 1 ? thresholds[1] : s2
+        let p2 = thresholds.first ?? 1
+        let p3 = thresholds.count > 1 ? thresholds[1] : p2
+        let coins = Balance.levelCoins(points)
+        let s2 = Balance.levelCoins(p2)
+        let s3 = Balance.levelCoins(p3)
         let top = max(1, Double(s3) * 1.12)
         HStack(spacing: 8) {
             CoinIcon(size: 20)
@@ -773,8 +777,8 @@ struct StarProgress: View {
                     Capsule().fill(LinearGradient(colors: [Theme.gold, Theme.orange], startPoint: .leading, endPoint: .trailing))
                         .frame(width: max(10, w * CGFloat(min(1, Double(coins) / top))), height: 10)
                         .animation(.easeOut(duration: 0.3), value: coins)
-                    marker(stars: 2, value: s2, x: w * CGFloat(Double(s2) / top), reached: coins >= s2)
-                    marker(stars: 3, value: s3, x: w * CGFloat(Double(s3) / top), reached: coins >= s3)
+                    marker(stars: 2, value: s2, x: w * CGFloat(Double(s2) / top), reached: points >= p2)
+                    marker(stars: 3, value: s3, x: w * CGFloat(Double(s3) / top), reached: points >= p3)
                 }
                 .frame(height: geo.size.height)
             }

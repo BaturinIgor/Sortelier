@@ -66,16 +66,16 @@ enum BigRecipe {
 
     private static func reward(step: Int, hard: Bool, rng: inout M3RNG) -> Reward {
         if step == steps - 1 {
-            return Reward(coins: 1500, boosters: [.hint: 2, .undo: 2, .shelf: 1], unlimitedMinutes: hard ? 120 : 60,
+            return Reward(coins: 700, boosters: [.hint: 2, .undo: 2, .shelf: 1], unlimitedMinutes: hard ? 120 : 60,
                           market: [.rainbow: 1, .bomb: 2], chests: [.gold: 1])
         }
         if isMilestone(step) {
             let chest: ChestKind = step >= 14 ? .silver : .bronze
             let better: ChestKind = step >= 14 ? .gold : .silver
-            return hard ? Reward(coins: 200 + step * 10, market: [.bomb: 1], chests: [better: 1])
-                        : Reward(coins: 120 + step * 8, chests: [chest: 1])
+            return hard ? Reward(coins: 100 + step * 5, market: [.bomb: 1], chests: [better: 1])
+                        : Reward(coins: 60 + step * 4, chests: [chest: 1])
         }
-        let coins = 30 + step * 4
+        let coins = 15 + step * 2
         if !hard { return Reward(coins: coins) }
         switch rng.int(4) {
         case 0: return Reward(coins: coins, market: [.pin: 1])
@@ -199,10 +199,10 @@ enum Garden {
         let market: [M3Booster] = [.mallet, .pin, .mixer]
         let main: [Booster] = [.hint, .undo, .shuffle]
         switch (bed + harvest) % 4 {
-        case 0: return Reward(coins: 40)
-        case 1: return Reward(coins: 25, energy: 6)
-        case 2: return Reward(coins: 25, market: [market[harvest % 3]: 1])
-        default: return Reward(coins: 30, boosters: [main[harvest % 3]: 1])
+        case 0: return Reward(coins: 20)
+        case 1: return Reward(coins: 10, energy: 6)
+        case 2: return Reward(coins: 10, market: [market[harvest % 3]: 1])
+        default: return Reward(coins: 15, boosters: [main[harvest % 3]: 1])
         }
     }
 }
@@ -326,11 +326,11 @@ enum Critic {
 
     static func reward(_ index: Int) -> Reward {
         switch index {
-        case 0: return Reward(coins: 150, market: [.pin: 1])
-        case 1: return Reward(coins: 250, boosters: [.hint: 1, .undo: 1], chests: [.bronze: 1])
-        case 2: return Reward(coins: 400, market: [.bomb: 1, .knife: 1], chests: [.silver: 1])
-        case 3: return Reward(coins: 600, boosters: [.shelf: 1], unlimitedMinutes: 60, chests: [.silver: 1])
-        default: return Reward(coins: 1200, market: [.rainbow: 1], chests: [.gold: 1])
+        case 0: return Reward(coins: 60, market: [.pin: 1])
+        case 1: return Reward(coins: 100, boosters: [.hint: 1, .undo: 1], chests: [.bronze: 1])
+        case 2: return Reward(coins: 160, market: [.bomb: 1, .knife: 1], chests: [.silver: 1])
+        case 3: return Reward(coins: 250, boosters: [.shelf: 1], unlimitedMinutes: 60, chests: [.silver: 1])
+        default: return Reward(coins: 500, market: [.rainbow: 1], chests: [.gold: 1])
         }
     }
 

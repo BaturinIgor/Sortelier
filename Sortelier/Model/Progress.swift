@@ -274,12 +274,13 @@ final class PlayerProgress: ObservableObject {
         let lifeReturned: Bool
     }
 
-    /// Засчитывает победу. Монеты при переигровке только за улучшение рекорда.
-    func completeLevel(_ level: Int, coins: Int, stars newStars: Int) -> LevelReward {
+    /// Засчитывает победу. points - очки уровня (рекорд хранится в очках), coins - они же в монетах.
+    /// Монеты при переигровке только за улучшение рекорда.
+    func completeLevel(_ level: Int, points: Int, coins: Int, stars newStars: Int) -> LevelReward {
         let previousBest = best(level)
         let previousStars = stars(level)
-        let added = max(0, coins - previousBest)
-        data.best[String(level)] = max(previousBest, coins)
+        let added = points > previousBest ? max(0, coins - Balance.levelCoins(previousBest)) : 0
+        data.best[String(level)] = max(previousBest, points)
         data.stars[String(level)] = max(previousStars, newStars)
         data.coins += added
         data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += added
@@ -291,7 +292,7 @@ final class PlayerProgress: ObservableObject {
             lifeReturned = true
         }
         save()
-        return LevelReward(coinsAdded: added, newRecord: coins > previousBest && previousBest > 0,
+        return LevelReward(coinsAdded: added, newRecord: points > previousBest && previousBest > 0,
                            firstThreeStars: firstThree, lifeReturned: lifeReturned)
     }
 

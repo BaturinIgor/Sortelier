@@ -11,7 +11,10 @@ final class GameSession: ObservableObject {
         let tips: Int
         let comboCoins: Int
         let efficiency: Int
+        /// Очки уровня: по ним звезды.
         let total: Int
+        /// Те же очки в монетах (сумма строк экрана победы).
+        let coins: Int
         let stars: Int
         let reward: PlayerProgress.LevelReward
         /// День стрика, если засчитан этой победой, и его награда.
@@ -176,7 +179,13 @@ final class GameSession: ObservableObject {
 
     /// Монеты за срабатывание с учетом чаевых и серии: для всплывающей подписи.
     func coins(for fire: Fire, combo: Int) -> Int {
-        Balance.coinsPerOrder + fire.tip + (combo >= Balance.comboFrom ? Balance.comboBonus : 0)
+        Balance.levelCoins(Balance.coinsPerOrder + fire.tip + (combo >= Balance.comboFrom ? Balance.comboBonus : 0))
+    }
+
+    /// Монеты за уровень: каждая строка экрана победы переводится из очков отдельно, итог - их сумма.
+    static func payout(served: Int, tips: Int, combo: Int, efficiency: Int) -> Int {
+        Balance.levelCoins(served * Balance.coinsPerOrder) + Balance.levelCoins(tips) + Balance.levelCoins(combo)
+            + Balance.levelCoins(efficiency)
     }
 
     private func discover(_ order: Order) {
@@ -224,13 +233,14 @@ final class GameSession: ObservableObject {
         let efficiency = Int((Balance.efficiencyShare * Double(Balance.coinsPerOrder) * n * eff).rounded())
         let total = orderCoins + efficiency
         let stars = total >= level.stars[1] ? 3 : (total >= level.stars[0] ? 2 : 1)
+        let coins = Self.payout(served: level.orders.count, tips: tips, combo: comboCoins, efficiency: efficiency)
         let progress = PlayerProgress.shared
         var reward: PlayerProgress.LevelReward
         var chef: Granted?
         var challenge: Granted?
         switch mode {
         case .main:
-            reward = progress.completeLevel(level.id, coins: total, stars: stars)
+            reward = progress.completeLevel(level.id, points: total, coins: coins, stars: stars)
             if !isReplay {
                 progress.bump(.levelsWon)
                 chef = progress.chefWin(level: level.id)
@@ -238,20 +248,20 @@ final class GameSession: ObservableObject {
             if reward.firstThreeStars { progress.bump(.threeStars) }
         case let .daily(day):
             let first = !progress.dailyDone(day)
-            if first { progress.addCoins(total) }
+            if first { progress.addCoins(coins) }
             challenge = progress.completeDaily(day)
-            reward = PlayerProgress.LevelReward(coinsAdded: first ? total : 0, newRecord: false,
+            reward = PlayerProgress.LevelReward(coinsAdded: first ? coins : 0, newRecord: false,
                                                 firstThreeStars: false, lifeReturned: false)
         case let .weekly(week, index):
             let first = progress.weeklyDone(week) == index
-            if first { progress.addCoins(total) }
+            if first { progress.addCoins(coins) }
             challenge = progress.completeWeekly(week, index: index)
-            reward = PlayerProgress.LevelReward(coinsAdded: first ? total : 0, newRecord: false,
+            reward = PlayerProgress.LevelReward(coinsAdded: first ? coins : 0, newRecord: false,
                                                 firstThreeStars: false, lifeReturned: false)
         case let .event(id, _, index):
             let first = progress.completeEventLevel(id, index: index)
-            if first { progress.addCoins(total) }
-            reward = PlayerProgress.LevelReward(coinsAdded: first ? total : 0, newRecord: false,
+            if first { progress.addCoins(coins) }
+            reward = PlayerProgress.LevelReward(coinsAdded: first ? coins : 0, newRecord: false,
                                                 firstThreeStars: false, lifeReturned: false)
         }
         let events = progress.eventsAfterWin(mode: mode, isNewLevel: mode == .main && !isReplay, stars: stars,
@@ -263,14 +273,14 @@ final class GameSession: ObservableObject {
         let gourmetGift = progress.gourmetServed(count: happyGourmets)
         let vipBonus = progress.vipBonus(for: reward.coinsAdded)
         result = Result(orderCoins: orderCoins, served: level.orders.count, tips: tips, comboCoins: comboCoins,
-                        efficiency: efficiency, total: total, stars: stars, reward: reward,
+                        efficiency: efficiency, total: total, coins: coins, stars: stars, reward: reward,
                         streakDay: streak?.day, streak: streak?.granted, chef: chef,
                         chefSeries: progress.chefSeries, challenge: challenge,
                         events: events.gains, doubleBonus: events.bonus, gourmetGift: gourmetGift,
                         vipBonus: vipBonus)
         result?.recipeSteps = progress.recipeAdd(recipeItems)
         progress.gardenWater()
-        result?.jar = progress.jarAdd(win: true, coins: reward.coinsAdded + tips)
+        result?.jar = progress.jarAdd(win: true, coins: reward.coinsAdded + Balance.levelCoins(tips))
         result?.critic = progress.criticFinish(won: true, stars: stars)
         Notifications.afterWin(level: level.id, mode: mode)
         phase = .won
