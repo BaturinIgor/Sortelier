@@ -6,15 +6,16 @@
     "comboFrom": 3,
     "comboWindow": 3,
     "efficiencyShare": 0.3,
+    "levelCoinShare": 0.4,
     "maxLives": 5,
     "lifeRegenMinutes": 30,
     "livesRefillPrice": 200,
     "startCoins": 300,
     "pauseMoves": 5,
     "continuePrices": [
-      150,
-      300,
-      600
+      250,
+      500,
+      900
     ],
     "adDailyLimit": 10,
     "boosterPrices": {
@@ -30,13 +31,13 @@
       "default": 63
     },
     "streakCoins": [
+      10,
+      15,
       20,
       30,
       40,
-      60,
-      80,
-      100,
-      200
+      50,
+      100
     ],
     "streakFreezePrice": 150,
     "streakMaxFreezes": 2,
@@ -46,7 +47,7 @@
     "energyRegenSeconds": 180,
     "energyAd": 10,
     "energyBuy": 10,
-    "energyBuyPrice": 60
+    "energyBuyPrice": 200
   },
   "events": {
     "season": [
@@ -140,16 +141,16 @@
   },
   "market": {
     "unlockLevel": 8,
-    "winCoins": 30,
-    "coinsPerMove": 3,
+    "winCoins": 15,
+    "coinsPerMove": 1,
     "extraMoves": 5,
     "extraPrices": [
-      150,
-      300,
-      600
+      200,
+      400,
+      800
     ],
     "winEnergy": 3,
-    "boosterEvery": 3,
+    "boosterEvery": 5,
     "prices": {
       "pin": 60,
       "bomb": 130,

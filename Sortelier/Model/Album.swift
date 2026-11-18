@@ -30,10 +30,10 @@ enum ChestKind: String, CaseIterable, Codable, Identifiable {
 
     var coins: Int {
         switch self {
-        case .bronze: return 30
-        case .silver: return 80
-        case .gold: return 200
-        case .star: return 300
+        case .bronze: return 10
+        case .silver: return 30
+        case .gold: return 80
+        case .star: return 120
         }
     }
 
@@ -96,22 +96,22 @@ enum AlbumCatalog {
 
     static func bookReward(_ i: Int) -> Reward {
         switch i {
-        case 0: return Reward(coins: 300, boosters: [.hint: 1, .undo: 1])
-        case 1: return Reward(coins: 400, unlimitedMinutes: 30)
-        case 2: return Reward(coins: 400, boosters: [.shuffle: 1, .shelf: 1])
-        case 3: return Reward(coins: 500, energy: 40)
-        case 4: return Reward(coins: 500, boosters: [.hint: 2, .pause: 1])
-        case 5: return Reward(coins: 600, unlimitedMinutes: 60)
-        case 6: return Reward(coins: 600, boosters: [.undo: 2, .shuffle: 2])
-        case 7: return Reward(coins: 800, unlimitedMinutes: 120, energy: 60)
-        case 9: return Reward(coins: 800, boosters: [.hint: 2, .pause: 2])
-        case 10: return Reward(coins: 900, unlimitedMinutes: 120)
-        default: return Reward(coins: 1000, boosters: [.hint: 2, .undo: 2, .shuffle: 2, .shelf: 2, .pause: 2])
+        case 0: return Reward(coins: 150, boosters: [.hint: 1, .undo: 1])
+        case 1: return Reward(coins: 200, unlimitedMinutes: 30)
+        case 2: return Reward(coins: 200, boosters: [.shuffle: 1, .shelf: 1])
+        case 3: return Reward(coins: 250, energy: 40)
+        case 4: return Reward(coins: 250, boosters: [.hint: 1, .pause: 1])
+        case 5: return Reward(coins: 300, unlimitedMinutes: 60)
+        case 6: return Reward(coins: 300, boosters: [.undo: 1, .shuffle: 1])
+        case 7: return Reward(coins: 400, unlimitedMinutes: 120, energy: 60)
+        case 9: return Reward(coins: 400, boosters: [.hint: 1, .pause: 1])
+        case 10: return Reward(coins: 450, unlimitedMinutes: 120)
+        default: return Reward(coins: 500, boosters: [.hint: 1, .undo: 1, .shuffle: 1, .shelf: 1, .pause: 1])
         }
     }
 
     /// Главный приз за весь альбом.
-    static let grand = Reward(coins: 3000, boosters: [.hint: 3, .undo: 3, .shuffle: 3, .shelf: 3, .pause: 3],
+    static let grand = Reward(coins: 1500, boosters: [.hint: 2, .undo: 2, .shuffle: 2, .shelf: 2, .pause: 2],
                               unlimitedMinutes: 360)
 
     /// Цена звездного сундука в звездах альбома (их дают повторки).

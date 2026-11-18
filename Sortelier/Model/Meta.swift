@@ -391,59 +391,59 @@ enum WelcomeQuests {
     /// По 7 заданий на день. Счетчики общие за всю игру, поэтому цели растут от дня к дню.
     /// Старые id (d1a-d7c) не меняются: забранные задания у игроков остаются забранными.
     static let all: [Quest] = [
-        Quest(id: "d1a", day: 1, stat: .levelsWon, target: 2, reward: Reward(coins: 40)),
-        Quest(id: "d1b", day: 1, stat: .served, target: 6, reward: Reward(coins: 40)),
+        Quest(id: "d1a", day: 1, stat: .levelsWon, target: 2, reward: Reward(coins: 20)),
+        Quest(id: "d1b", day: 1, stat: .served, target: 6, reward: Reward(coins: 20)),
         Quest(id: "d1c", day: 1, stat: .triples, target: 4, reward: Reward(boosters: [.hint: 1])),
-        Quest(id: "d1d", day: 1, stat: .dishes, target: 1, reward: Reward(coins: 30)),
+        Quest(id: "d1d", day: 1, stat: .dishes, target: 1, reward: Reward(coins: 20)),
         Quest(id: "d1e", day: 1, stat: .merges, target: 3, reward: Reward(energy: 10)),
-        Quest(id: "d1f", day: 1, stat: .tips, target: 10, reward: Reward(coins: 30)),
+        Quest(id: "d1f", day: 1, stat: .tips, target: 10, reward: Reward(coins: 20)),
         Quest(id: "d1g", day: 1, stat: .levelsWon, target: 4, reward: Reward(boosters: [.undo: 1])),
-        Quest(id: "d2a", day: 2, stat: .levelsWon, target: 6, reward: Reward(coins: 60)),
+        Quest(id: "d2a", day: 2, stat: .levelsWon, target: 6, reward: Reward(coins: 30)),
         Quest(id: "d2b", day: 2, stat: .dishes, target: 3, reward: Reward(boosters: [.undo: 1])),
-        Quest(id: "d2c", day: 2, stat: .threeStars, target: 1, reward: Reward(coins: 60)),
-        Quest(id: "d2d", day: 2, stat: .served, target: 25, reward: Reward(coins: 50)),
+        Quest(id: "d2c", day: 2, stat: .threeStars, target: 1, reward: Reward(coins: 30)),
+        Quest(id: "d2d", day: 2, stat: .served, target: 25, reward: Reward(coins: 20)),
         Quest(id: "d2e", day: 2, stat: .mergeOrders, target: 1, reward: Reward(energy: 15)),
         Quest(id: "d2f", day: 2, stat: .maxCombo, target: 3, reward: Reward(boosters: [.hint: 1])),
-        Quest(id: "d2g", day: 2, stat: .boostersUsed, target: 1, reward: Reward(coins: 50)),
-        Quest(id: "d3a", day: 3, stat: .levelsWon, target: 9, reward: Reward(coins: 80)),
-        Quest(id: "d3b", day: 3, stat: .tips, target: 40, reward: Reward(coins: 60)),
+        Quest(id: "d2g", day: 2, stat: .boostersUsed, target: 1, reward: Reward(coins: 20)),
+        Quest(id: "d3a", day: 3, stat: .levelsWon, target: 9, reward: Reward(coins: 40)),
+        Quest(id: "d3b", day: 3, stat: .tips, target: 40, reward: Reward(coins: 30)),
         Quest(id: "d3c", day: 3, stat: .boostersUsed, target: 3, reward: Reward(boosters: [.shelf: 1])),
-        Quest(id: "d3d", day: 3, stat: .triples, target: 30, reward: Reward(coins: 60)),
+        Quest(id: "d3d", day: 3, stat: .triples, target: 30, reward: Reward(coins: 30)),
         Quest(id: "d3e", day: 3, stat: .marketWins, target: 1, reward: Reward(market: [.mallet: 1])),
-        Quest(id: "d3f", day: 3, stat: .dailyDone, target: 1, reward: Reward(coins: 80)),
+        Quest(id: "d3f", day: 3, stat: .dailyDone, target: 1, reward: Reward(coins: 40)),
         Quest(id: "d3g", day: 3, stat: .threeStars, target: 3, reward: Reward(chests: [.bronze: 1])),
-        Quest(id: "d4a", day: 4, stat: .dailyDone, target: 2, reward: Reward(coins: 100, chests: [.bronze: 1])),
-        Quest(id: "d4b", day: 4, stat: .levelsWon, target: 12, reward: Reward(coins: 80)),
+        Quest(id: "d4a", day: 4, stat: .dailyDone, target: 2, reward: Reward(coins: 50, chests: [.bronze: 1])),
+        Quest(id: "d4b", day: 4, stat: .levelsWon, target: 12, reward: Reward(coins: 40)),
         Quest(id: "d4c", day: 4, stat: .dishes, target: 8, reward: Reward(boosters: [.hint: 1, .undo: 1])),
-        Quest(id: "d4d", day: 4, stat: .marketWins, target: 3, reward: Reward(coins: 80)),
+        Quest(id: "d4d", day: 4, stat: .marketWins, target: 3, reward: Reward(coins: 40)),
         Quest(id: "d4e", day: 4, stat: .merges, target: 25, reward: Reward(energy: 20)),
-        Quest(id: "d4f", day: 4, stat: .eventRewards, target: 1, reward: Reward(coins: 80)),
+        Quest(id: "d4f", day: 4, stat: .eventRewards, target: 1, reward: Reward(coins: 40)),
         Quest(id: "d4g", day: 4, stat: .served, target: 60, reward: Reward(boosters: [.shuffle: 1])),
-        Quest(id: "d5a", day: 5, stat: .levelsWon, target: 15, reward: Reward(coins: 100)),
-        Quest(id: "d5b", day: 5, stat: .served, target: 90, reward: Reward(coins: 100)),
+        Quest(id: "d5a", day: 5, stat: .levelsWon, target: 15, reward: Reward(coins: 50)),
+        Quest(id: "d5b", day: 5, stat: .served, target: 90, reward: Reward(coins: 50)),
         Quest(id: "d5c", day: 5, stat: .threeStars, target: 6, reward: Reward(unlimitedMinutes: 30)),
-        Quest(id: "d5d", day: 5, stat: .recipeSteps, target: 2, reward: Reward(coins: 100)),
+        Quest(id: "d5d", day: 5, stat: .recipeSteps, target: 2, reward: Reward(coins: 50)),
         Quest(id: "d5e", day: 5, stat: .mergeOrders, target: 4, reward: Reward(chests: [.bronze: 1])),
-        Quest(id: "d5f", day: 5, stat: .harvests, target: 1, reward: Reward(coins: 80)),
+        Quest(id: "d5f", day: 5, stat: .harvests, target: 1, reward: Reward(coins: 40)),
         Quest(id: "d5g", day: 5, stat: .eventRewards, target: 3, reward: Reward(boosters: [.shelf: 1])),
-        Quest(id: "d6a", day: 6, stat: .weeklyLevels, target: 1, reward: Reward(coins: 150)),
-        Quest(id: "d6b", day: 6, stat: .levelsWon, target: 18, reward: Reward(coins: 120)),
+        Quest(id: "d6a", day: 6, stat: .weeklyLevels, target: 1, reward: Reward(coins: 80)),
+        Quest(id: "d6b", day: 6, stat: .levelsWon, target: 18, reward: Reward(coins: 60)),
         Quest(id: "d6c", day: 6, stat: .tips, target: 200, reward: Reward(boosters: [.shelf: 1])),
         Quest(id: "d6d", day: 6, stat: .marketWins, target: 6, reward: Reward(market: [.knife: 1, .spatula: 1])),
-        Quest(id: "d6e", day: 6, stat: .dailyDone, target: 3, reward: Reward(coins: 120)),
+        Quest(id: "d6e", day: 6, stat: .dailyDone, target: 3, reward: Reward(coins: 60)),
         Quest(id: "d6f", day: 6, stat: .triples, target: 90, reward: Reward(boosters: [.hint: 1, .undo: 1])),
-        Quest(id: "d6g", day: 6, stat: .chests, target: 3, reward: Reward(coins: 120)),
-        Quest(id: "d7a", day: 7, stat: .levelsWon, target: 21, reward: Reward(coins: 150)),
-        Quest(id: "d7b", day: 7, stat: .dishes, target: 25, reward: Reward(coins: 150)),
+        Quest(id: "d6g", day: 6, stat: .chests, target: 3, reward: Reward(coins: 60)),
+        Quest(id: "d7a", day: 7, stat: .levelsWon, target: 21, reward: Reward(coins: 80)),
+        Quest(id: "d7b", day: 7, stat: .dishes, target: 25, reward: Reward(coins: 80)),
         Quest(id: "d7c", day: 7, stat: .threeStars, target: 10, reward: Reward(chests: [.silver: 1])),
         Quest(id: "d7d", day: 7, stat: .marketWins, target: 10, reward: Reward(unlimitedMinutes: 30)),
         Quest(id: "d7e", day: 7, stat: .mergeOrders, target: 8, reward: Reward(energy: 30)),
-        Quest(id: "d7f", day: 7, stat: .recipeSteps, target: 5, reward: Reward(coins: 150)),
+        Quest(id: "d7f", day: 7, stat: .recipeSteps, target: 5, reward: Reward(coins: 80)),
         Quest(id: "d7g", day: 7, stat: .maxCombo, target: 5, reward: Reward(boosters: [.shuffle: 1, .shelf: 1]))
     ]
 
     /// Главный приз за все задания: эксклюзивный фон закусочной.
-    static let grand = Reward(coins: 500, unlimitedMinutes: 180, background: "diner")
+    static let grand = Reward(coins: 250, unlimitedMinutes: 180, background: "diner")
 
     static let days = 7
     /// После скольких дней набор исчезает с карты, даже если не закрыт.
@@ -491,7 +491,7 @@ enum Achievements {
         Achievement(id: "merge", category: .pantry, stat: .mergeOrders, tiers: [5, 20, 60, 150, 400], symbol: "square.grid.3x3.fill"),
         Achievement(id: "merges", category: .pantry, stat: .merges, tiers: [20, 100, 400, 1200, 3000], symbol: "arrow.triangle.merge"),
         Achievement(id: "boosters", category: .pantry, stat: .boostersUsed, tiers: [5, 20, 50, 120, 300], symbol: "wand.and.stars"),
-        Achievement(id: "rich", category: .pantry, stat: .coinsEarned, tiers: [1000, 5000, 20000, 60000, 150000], symbol: "bitcoinsign.circle.fill"),
+        Achievement(id: "rich", category: .pantry, stat: .coinsEarned, tiers: [500, 2000, 7000, 20000, 50000], symbol: "bitcoinsign.circle.fill"),
         // рынок и фоновые события
         Achievement(id: "market", category: .pantry, stat: .marketWins, tiers: [5, 15, 30, 45, 60], symbol: "basket.fill"),
         Achievement(id: "recipe", category: .pantry, stat: .recipeSteps, tiers: [5, 25, 60, 120, 250], symbol: "takeoutbag.and.cup.and.straw.fill"),
@@ -503,11 +503,11 @@ enum Achievements {
 
     static func reward(tier: Int) -> Reward {
         switch tier {
-        case 0: return Reward(coins: 50)
-        case 1: return Reward(coins: 120, boosters: [.hint: 1])
-        case 2: return Reward(coins: 250, boosters: [.undo: 1, .shuffle: 1])
-        case 3: return Reward(coins: 500, chests: [.bronze: 1])
-        default: return Reward(coins: 900, unlimitedMinutes: 60, chests: [.silver: 1])
+        case 0: return Reward(coins: 20)
+        case 1: return Reward(coins: 50, boosters: [.hint: 1])
+        case 2: return Reward(coins: 100, boosters: [.undo: 1])
+        case 3: return Reward(coins: 200, chests: [.bronze: 1])
+        default: return Reward(coins: 400, unlimitedMinutes: 60, chests: [.silver: 1])
         }
     }
 }
@@ -521,18 +521,18 @@ enum AchievementTrack {
     }
 
     static let milestones: [Milestone] = [
-        Milestone(stars: 5, reward: Reward(coins: 200)),
+        Milestone(stars: 5, reward: Reward(coins: 100)),
         Milestone(stars: 10, reward: Reward(boosters: [.hint: 1, .undo: 1, .shuffle: 1])),
-        Milestone(stars: 15, reward: Reward(coins: 300, chests: [.bronze: 1])),
+        Milestone(stars: 15, reward: Reward(coins: 150, chests: [.bronze: 1])),
         Milestone(stars: 22, reward: Reward(unlimitedMinutes: 60, energy: 30)),
-        Milestone(stars: 30, reward: Reward(coins: 500, chests: [.silver: 1])),
+        Milestone(stars: 30, reward: Reward(coins: 200, chests: [.silver: 1])),
         Milestone(stars: 40, reward: Reward(boosters: [.hint: 2, .undo: 2, .shelf: 1, .pause: 1])),
-        Milestone(stars: 50, reward: Reward(coins: 800, chests: [.silver: 1])),
+        Milestone(stars: 50, reward: Reward(coins: 300, chests: [.silver: 1])),
         Milestone(stars: 62, reward: Reward(unlimitedMinutes: 180, energy: 60)),
-        Milestone(stars: 75, reward: Reward(coins: 1200, chests: [.gold: 1])),
-        Milestone(stars: 90, reward: Reward(coins: 1500, boosters: [.hint: 3, .undo: 3, .shuffle: 3, .shelf: 2])),
-        Milestone(stars: 105, reward: Reward(coins: 2000, chests: [.gold: 2])),
-        Milestone(stars: 115, reward: Reward(coins: 5000, unlimitedMinutes: 360, chests: [.star: 1]))
+        Milestone(stars: 75, reward: Reward(coins: 400, chests: [.gold: 1])),
+        Milestone(stars: 90, reward: Reward(coins: 500, boosters: [.hint: 2, .undo: 2, .shuffle: 2, .shelf: 1])),
+        Milestone(stars: 105, reward: Reward(coins: 700, chests: [.gold: 2])),
+        Milestone(stars: 115, reward: Reward(coins: 1500, unlimitedMinutes: 360, chests: [.star: 1]))
     ]
 }
 
@@ -580,8 +580,8 @@ struct KitchenStyle: Identifiable {
 
 enum StreakRewards {
     static var coins: [Int] {
-        let list = RemoteConfig.shared.ints("balance.streakCoins", [20, 30, 40, 60, 80, 100, 200])
-        return list.count == 7 ? list : [20, 30, 40, 60, 80, 100, 200]
+        let list = RemoteConfig.shared.ints("balance.streakCoins", [10, 15, 20, 30, 40, 50, 100])
+        return list.count == 7 ? list : [10, 15, 20, 30, 40, 50, 100]
     }
     static var freezePrice: Int { RemoteConfig.shared.int("balance.streakFreezePrice", 150) }
     static var maxFreezes: Int { RemoteConfig.shared.int("balance.streakMaxFreezes", 2) }
@@ -593,18 +593,20 @@ enum StreakRewards {
 }
 
 enum ChefSeries {
-    /// Каждые 3 победы подряд с первой попытки - бустер по кругу.
+    /// Каждые 5 побед подряд с первой попытки - бустер по кругу.
+    static let every = 5
+
     static func reward(series: Int) -> Reward? {
-        guard series > 0, series % 3 == 0 else { return nil }
+        guard series > 0, series % every == 0 else { return nil }
         let order: [Booster] = [.hint, .undo, .shelf]
-        return Reward(boosters: [order[(series / 3 - 1) % order.count]: 1])
+        return Reward(boosters: [order[(series / every - 1) % order.count]: 1])
     }
 }
 
 enum ChallengeRewards {
-    static let daily = Reward(coins: 50, chests: [.bronze: 1])
-    static let weekly = Reward(coins: 300, boosters: [.hint: 1, .undo: 1], chests: [.silver: 1])
-    static let medal = Reward(coins: 1500, boosters: [.hint: 2, .undo: 2, .shelf: 1], chests: [.gold: 1])
+    static let daily = Reward(coins: 30, chests: [.bronze: 1])
+    static let weekly = Reward(coins: 150, boosters: [.hint: 1, .undo: 1], chests: [.silver: 1])
+    static let medal = Reward(coins: 600, boosters: [.hint: 2, .undo: 2, .shelf: 1], chests: [.gold: 1])
     static let medalDaily = 20
     static let medalWeekly = 4
 }
