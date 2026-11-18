@@ -678,9 +678,15 @@ def _tighter(table, cut, start=5):
     return [row[:4] + (max(4, row[4] - cut),) + row[5:] if i >= start else row for i, row in enumerate(table)]
 
 
-LEVELS7 = _tighter(LEVELS7, 2)
+# Меньше свободных мест помогло только корейской кухне: в индийской и испанской ходов становится меньше,
+# и почти жадная игра находит решение даже чаще. Там сложность дают цепи, как во французской пекарне.
+def _chains_like(table, ref, start=5):
+    return [row[:13] + (max(row[13], ref[i][13]),) if i >= start else row for i, row in enumerate(table)]
+
+
+LEVELS7 = _chains_like(LEVELS7, LEVELS5)
 LEVELS8 = _tighter(LEVELS8, 1)
-LEVELS9 = _tighter(LEVELS9, 2)
+LEVELS9 = _chains_like(LEVELS9, LEVELS5)
 
 
 BIOME_LEVELS = {1: (1, LEVELS), 2: (31, LEVELS2), 3: (61, LEVELS3), 4: (91, LEVELS4), 5: (121, LEVELS5),
