@@ -132,4 +132,31 @@ final class RegressionTests: XCTestCase {
         sleep(2)
         shot(app, "95_push_garden_over_merge")
     }
+
+    /// Окно победы сетки значков: тап по значку стрика показывает полный текст, "Дальше" ведет на следующий уровень.
+    func testWinBadges() {
+        let app = launch(["-uiLevel", "35", "-uiWin"])
+        sleep(2)
+        shot(app, "71_win")
+        check(app, "Дальше", "окно победы с кнопкой Дальше")
+        check(app, "Стрик", "значок стрика в окне победы")
+        tap(app, "Стрик")
+        shot(app, "72_win_badge")
+        check(app, "Стрик: день", "полный текст значка по тапу")
+        tap(app, "Дальше")
+        shot(app, "73_next_level")
+        check(app, "Уровень 36", "следующий уровень открылся")
+    }
+
+    /// Окно победы "Продуктового ряда": серия побед и значки, кнопка на карту рынка.
+    func testMarketWin() {
+        let app = launch(["-uiScreen", "marketlevel", "-uiMarketLevel", "12", "-uiM3Win"])
+        sleep(6)
+        shot(app, "74_m3_win")
+        check(app, "Победы подряд", "серия побед в окне победы рынка")
+        tap(app, "Победы подряд")
+        shot(app, "75_m3_streak_info")
+        // тост живет в отдельном окне и не виден дереву XCUITest: правило серии проверяется по снимку 75
+        check(app, "На карту", "кнопка На карту")
+    }
 }

@@ -580,7 +580,6 @@ struct MarketWinView: View {
     let map: () -> Void
     @EnvironmentObject private var lang: Lang
     @State private var shown = 0
-    @State private var coins = 0
 
     var body: some View {
         ZStack {
@@ -607,17 +606,11 @@ struct MarketWinView: View {
                     Haptics.light()
                 }
             }
-            let steps = 20
-            for k in 1...steps {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3 + Double(k) * 0.035) {
-                    coins = result.coins * k / steps
-                }
-            }
         }
     }
 
     private var rewards: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             HStack(spacing: 4) {
                 ForEach(0..<3, id: \.self) { i in
                     SpriteImage(name: "icon_star", size: i == 1 ? 78 : 62, silhouette: i >= shown)
@@ -625,32 +618,12 @@ struct MarketWinView: View {
                         .offset(y: i == 1 ? -8 : 0)
                 }
             }
-            HStack(spacing: 8) {
-                CoinIcon(size: 30)
-                Text("+\(coins)").font(Theme.rounded(26, .black)).foregroundColor(Theme.brown).monospacedDigit()
-            }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 6)
-            .background(InsetBackground())
-            VStack(spacing: 8) {
-                streakLine
-                if !result.bonus.isEmpty {
-                    RewardLine(symbol: "icon_gift", color: Theme.green, title: lang.t("m3.win.bonus"),
-                               granted: Granted(reward: result.bonus, card: nil))
-                }
-                ForEach(result.events) { gain in
-                    RewardLine(symbol: EventUI.icon(gain.kind), color: EventUI.color(gain.kind),
-                               title: EventUI.gainText(gain, lang: lang), granted: nil)
-                }
-                if result.recipeSteps > 0 {
-                    RewardLine(symbol: "icon_recipe", color: Theme.orange, title: lang.t("recipe.win"), granted: nil)
-                }
-                if result.jar > 0 {
-                    RewardLine(symbol: "icon_jar", color: Theme.gold, title: lang.t("jar.win", result.jar), granted: nil)
-                }
-                if result.happyHour {
-                    RewardLine(symbol: "icon_happy", color: Theme.gold, title: lang.t("happy.win"), granted: nil)
-                }
+            WinCoins(total: result.coins)
+            streakLine
+            let badges: [WinBadge] = result.events.map { WinBadge.event($0, lang: lang) }
+                + WinBadge.background(recipe: result.recipeSteps, jar: result.jar, happy: result.happyHour, lang: lang)
+            if !badges.isEmpty || !result.bonus.isEmpty {
+                WinRewardsGrid(rewards: [result.bonus], badges: badges)
             }
             if let review = result.critic {
                 CriticReviewCard(review: review)
@@ -658,16 +631,27 @@ struct MarketWinView: View {
         }
     }
 
+    /// Серия побед: короткий заголовок и ступени в одной плашке.
     private var streakLine: some View {
-        VStack(spacing: 4) {
-            HStack(spacing: 6) {
-                SpriteImage(name: "icon_flame", size: 24)
-                Text(lang.t("m3.streak.title", min(result.streak, MarketBalance.streakMax)))
-                    .font(Theme.rounded(15, .heavy))
-                    .foregroundColor(Theme.brown)
+        Button { Toast.info(lang.t("m3.streak.popup")) } label: {
+            VStack(spacing: 2) {
+                HStack(spacing: 4) {
+                    SpriteImage(name: "icon_flame", size: 18)
+                    Text(lang.t("m3.streak.title", min(result.streak, MarketBalance.streakMax)))
+                        .font(Theme.rounded(13, .heavy))
+                        .foregroundColor(Theme.brownSoft)
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(Theme.brownSoft.opacity(0.7))
+                }
+                StreakStages(stage: result.streak, animateFrom: model.streakAtStart)
             }
-            StreakStages(stage: result.streak, animateFrom: model.streakAtStart)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 6)
+            .background(InsetBackground(radius: 14))
+            .contentShape(Rectangle())
         }
+        .buttonStyle(PressScaleStyle())
     }
 }
 

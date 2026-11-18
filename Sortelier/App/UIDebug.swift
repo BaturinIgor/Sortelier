@@ -6,6 +6,7 @@ import SwiftUI
 /// -uiChest gold (открытие сундука, с -uiChestTaps 3 и -uiChestAll).
 /// -uiSplash (заставка не уходит), -uiPush garden (как будто игру открыли нажатием на напоминание).
 /// -uiNewbie (мини-игры еще закрыты), -uiUnlockNews (окно "Открыто!" на карте).
+/// -uiWin (уровень из -uiLevel сразу пройден: окно победы), -uiM3Win (то же для "Продуктового ряда").
 enum UIDebug {
     static var args: [String] { ProcessInfo.processInfo.arguments }
 
