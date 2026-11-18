@@ -1,0 +1,379 @@
+{
+ "texts": {
+  "ru": {
+   "name": "Sortelier",
+   "cta": "Играй бесплатно на iPhone",
+   "link": "Ссылка в профиле",
+   "free": "Sortelier, бесплатно на iPhone"
+  },
+  "en": {
+   "name": "Sortelier",
+   "cta": "Play free on iPhone",
+   "link": "Link in bio",
+   "free": "Sortelier, free on iPhone"
+  }
+ },
+ "styles": {
+  "teal": [
+   [
+    40,
+    190,
+    170
+   ],
+   [
+    30,
+    120,
+    160
+   ]
+  ],
+  "orange": [
+   [
+    255,
+    150,
+    60
+   ],
+   [
+    240,
+    80,
+    90
+   ]
+  ],
+  "purple": [
+   [
+    90,
+    140,
+    250
+   ],
+   [
+    130,
+    80,
+    220
+   ]
+  ]
+ },
+ "ads": {
+  "sort_asmr": {
+   "music": "music_kitchen",
+   "segments": [
+    {
+     "clip": "sort94",
+     "at": "first",
+     "off": 0.5,
+     "dur": 20,
+     "speed": 2.5,
+     "until": "win"
+    },
+    {
+     "clip": "sort94",
+     "at": "win",
+     "off": -3.0,
+     "dur": 4.5,
+     "speed": 1.2
+    }
+   ],
+   "hooks": [
+    {
+     "ru": "Разложил всё по полкам. Смотри до конца!",
+     "en": "Sorted every shelf. Watch till the end!",
+     "ru_hl": "Смотри до конца!",
+     "en_hl": "Watch till the end!"
+    },
+    {
+     "ru": "Сможешь разложить ВСЁ по полкам?",
+     "en": "Can you sort it ALL?",
+     "ru_hl": "ВСЁ",
+     "en_hl": "ALL"
+    }
+   ],
+   "titles": [
+    {
+     "ru": "Раскладываю продукты по полкам",
+     "en": "Sorting snacks onto the shelves"
+    },
+    {
+     "ru": "Сможешь разложить всё?",
+     "en": "Can you sort it all?"
+    }
+   ]
+  },
+  "guests": {
+   "music": "music_japan",
+   "segments": [
+    {
+     "clip": "sort45",
+     "at": "first",
+     "off": 1,
+     "dur": 20,
+     "speed": 2.5,
+     "until": "win"
+    },
+    {
+     "clip": "sort45",
+     "at": "win",
+     "off": -3.0,
+     "dur": 4.5,
+     "speed": 1.2
+    }
+   ],
+   "hooks": [
+    {
+     "ru": "Гости ждут, а на полках бардак",
+     "en": "Guests are waiting and the shelves are a mess"
+    },
+    {
+     "ru": "Чем быстрее, тем больше чаевых",
+     "en": "Faster service, bigger tips",
+     "ru_hl": "больше чаевых",
+     "en_hl": "bigger tips"
+    }
+   ],
+   "titles": [
+    {
+     "ru": "Накорми всех гостей",
+     "en": "Feed every guest"
+    },
+    {
+     "ru": "Быстрее значит больше чаевых",
+     "en": "Faster service, bigger tips"
+    }
+   ]
+  },
+  "kitchens": {
+   "music": "music_italy",
+   "segments": [
+    {
+     "clip": "sort25",
+     "at": "first",
+     "off": 6,
+     "dur": 3.6,
+     "speed": 2.5
+    },
+    {
+     "clip": "sort45",
+     "at": "first",
+     "off": 18,
+     "dur": 3.6,
+     "speed": 2.5
+    },
+    {
+     "clip": "sort75",
+     "at": "first",
+     "off": 18,
+     "dur": 3.6,
+     "speed": 2.5
+    },
+    {
+     "clip": "sort94",
+     "at": "first",
+     "off": 10,
+     "dur": 3.6,
+     "speed": 2.5
+    },
+    {
+     "clip": "sort140",
+     "at": "first",
+     "off": 20,
+     "dur": 3.6,
+     "speed": 2.5
+    },
+    {
+     "clip": "sort94",
+     "at": "win",
+     "off": -3.0,
+     "dur": 4,
+     "speed": 1.2
+    }
+   ],
+   "hooks": [
+    {
+     "ru": "5 кухонь мира. Какая твоя?",
+     "en": "5 world kitchens. Which one is yours?",
+     "ru_hl": "Какая твоя?",
+     "en_hl": "Which one is yours?"
+    },
+    {
+     "ru": "Америка, Япония, Италия, Мексика и Париж",
+     "en": "America, Japan, Italy, Mexico and Paris"
+    }
+   ],
+   "titles": [
+    {
+     "ru": "5 кухонь мира",
+     "en": "5 world kitchens"
+    },
+    {
+     "ru": "Кухни со всего мира",
+     "en": "Kitchens from around the world"
+    }
+   ]
+  },
+  "match3": {
+   "music": "music_mexico",
+   "segments": [
+    {
+     "clip": "m3_7",
+     "at": "first",
+     "off": 0.5,
+     "dur": 14,
+     "speed": 2.5
+    },
+    {
+     "clip": "m3_28",
+     "at": "first",
+     "off": 5,
+     "dur": 8,
+     "speed": 2.5
+    }
+   ],
+   "hooks": [
+    {
+     "ru": "Подожди, тут ещё и 3 в ряд?",
+     "en": "Wait, there's match-3 too?",
+     "ru_hl": "3 в ряд?",
+     "en_hl": "match-3"
+    },
+    {
+     "ru": "Смотри, что делают бомбы и пончики",
+     "en": "Watch the bombs and donuts go off"
+    }
+   ],
+   "titles": [
+    {
+     "ru": "А ещё тут есть 3 в ряд",
+     "en": "There's match-3 too"
+    },
+    {
+     "ru": "Бомбы, скалки и пончики",
+     "en": "Bombs, rolling pins and donuts"
+    }
+   ]
+  },
+  "tour": {
+   "music": "music_kitchen",
+   "formats": [
+    "v",
+    "h"
+   ],
+   "segments": [
+    {
+     "clip": "sort25",
+     "at": "first",
+     "off": 8,
+     "dur": 4,
+     "speed": 2.5
+    },
+    {
+     "clip": "sort94",
+     "at": "first",
+     "off": 10,
+     "dur": 3.5,
+     "speed": 2.5
+    },
+    {
+     "clip": "m3_7",
+     "at": "first",
+     "off": 12,
+     "dur": 4.5,
+     "speed": 2.5
+    },
+    {
+     "clip": "recipe",
+     "at": 5,
+     "dur": 2.5
+    },
+    {
+     "clip": "book",
+     "at": 5,
+     "dur": 2.5
+    },
+    {
+     "clip": "events",
+     "at": 5,
+     "dur": 2.5
+    },
+    {
+     "clip": "map",
+     "at": 5,
+     "dur": 2.5
+    }
+   ],
+   "hooks": [
+    {
+     "ru": "Всё, что есть в моей уютной кухне",
+     "en": "Everything in my cozy kitchen"
+    },
+    {
+     "ru": "Подожди, в этой игре ещё и ЭТО есть?",
+     "en": "Wait, this game has THIS too?",
+     "ru_hl": "ЭТО",
+     "en_hl": "THIS"
+    }
+   ],
+   "titles": [
+    {
+     "ru": "Сортировка, 3 в ряд, рецепты и ивенты",
+     "en": "Sorting, match-3, recipes and events"
+    },
+    {
+     "ru": "Что ещё есть в игре",
+     "en": "What else is in the game"
+    }
+   ]
+  },
+  "twists": {
+   "music": "music_bakery",
+   "segments": [
+    {
+     "clip": "sort140",
+     "at": "first",
+     "off": 22,
+     "dur": 11,
+     "speed": 2.5
+    },
+    {
+     "clip": "sort75",
+     "at": "first",
+     "off": 20,
+     "dur": 11,
+     "speed": 2.5
+    }
+   ],
+   "hooks": [
+    {
+     "ru": "Лёд, замки и полки на цепи",
+     "en": "Ice, locks and chained shelves"
+    },
+    {
+     "ru": "Спорим, не пройдёшь с первой попытки?",
+     "en": "Bet you can't beat it on the first try?"
+    }
+   ],
+   "titles": [
+    {
+     "ru": "Хитрые уровни",
+     "en": "Tricky levels"
+    },
+    {
+     "ru": "Пройдёшь с первой попытки?",
+     "en": "First try?"
+    }
+   ]
+  }
+ },
+ "hashtags": {
+  "ru": [
+   "#уютныеигры",
+   "#головоломка",
+   "#сортировка",
+   "#мобильныеигры",
+   "#инди"
+  ],
+  "en": [
+   "#cozygames",
+   "#puzzlegame",
+   "#sortinggame",
+   "#mobilegames",
+   "#indiegame"
+  ]
+ }
+}

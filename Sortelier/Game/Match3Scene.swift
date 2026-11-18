@@ -212,6 +212,10 @@ final class Match3Scene: SKScene {
     override func didMove(to view: SKView) {
         view.ignoresSiblingOrder = true
         if !built && size.width > 10 && model != nil { build() }
+        #if DEBUG
+        speed = UIDebug.slowMo
+        startLivePlay()
+        #endif
     }
 
     // MARK: - Раскладка
@@ -462,7 +466,8 @@ final class Match3Scene: SKScene {
     }
 
     override func update(_ currentTime: TimeInterval) {
-        let dt = lastTime == 0 ? 0 : min(0.1, currentTime - lastTime)
+        // speed влияет только на SKAction; лента событий идет по своим часам, поэтому множим и ее
+        let dt = (lastTime == 0 ? 0 : min(0.1, currentTime - lastTime)) * Double(speed)
         lastTime = currentTime
         budget = 48
         guard !isPaused else { return }
@@ -1136,3 +1141,48 @@ final class Match3Scene: SKScene {
         Audio.shared.play(effect, volume: volume)
     }
 }
+
+#if DEBUG
+// MARK: - Живая игра для рекламных роликов (-uiLivePlay 1.4)
+
+/// Палец сам делает ходы подсказки с паузой: запись видео в CI.
+extension Match3Scene {
+    func startLivePlay() {
+        guard let pace = UIDebug.value("uiLivePlay").flatMap(Double.init), action(forKey: "livePlay") == nil else { return }
+        let step = SKAction.sequence([.run { [weak self] in self?.livePlayStep(pace) }, .wait(forDuration: 0.25)])
+        run(.sequence([.wait(forDuration: 2.2), .repeatForever(step)]), withKey: "livePlay")
+    }
+
+    private func demoHand() -> SKLabelNode {
+        if let hand = tileLayer.childNode(withName: "demoHand") as? SKLabelNode { return hand }
+        let hand = SKLabelNode(text: "\u{1F446}")
+        hand.name = "demoHand"
+        hand.fontSize = cell * 1.1
+        hand.verticalAlignmentMode = .top
+        hand.horizontalAlignmentMode = .center
+        hand.zPosition = 200
+        hand.alpha = 0
+        hand.position = CGPoint(x: cell * 2, y: -cell * 3)
+        tileLayer.addChild(hand)
+        return hand
+    }
+
+    private func livePlayStep(_ pace: Double) {
+        let hand = demoHand()
+        guard hand.action(forKey: "swipe") == nil else { return }
+        guard built, let model = model, model.canInteract, !playing, let h = model.board.hint() else {
+            if model?.canInteract != true && !playing { hand.run(.fadeOut(withDuration: 0.2)) }
+            return
+        }
+        let a = point(h.0), b = point(h.1)
+        let tip = CGPoint(x: cell * 0.06, y: -cell * 0.1)
+        let reach = SKAction.move(to: CGPoint(x: a.x + tip.x, y: a.y + tip.y), duration: 0.3)
+        reach.timingMode = .easeInEaseOut
+        let drag = SKAction.move(to: CGPoint(x: b.x + tip.x, y: b.y + tip.y), duration: 0.2)
+        drag.timingMode = .easeOut
+        hand.run(.sequence([.group([.fadeIn(withDuration: 0.15), reach]), .scale(to: 0.88, duration: 0.07), drag,
+                            .run { [weak self] in self?.trySwap(h.0, h.1) }, .scale(to: 1, duration: 0.08),
+                            .wait(forDuration: max(0, pace - 0.65))]), withKey: "swipe")
+    }
+}
+#endif

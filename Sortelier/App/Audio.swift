@@ -39,6 +39,13 @@ final class Audio {
     private let queue = DispatchQueue(label: "sortelier.audio", qos: .userInitiated)
 
     func play(_ effect: Effect, volume: Float = 1) {
+        #if DEBUG
+        // запись роликов в CI: в симуляторе звука нет, время звуков пишем в лог и накладываем при сборке видео
+        if UIDebug.flag("uiSfxLog") {
+            let line = String(format: "SFX %.3f %@ %.2f\n", Date().timeIntervalSince1970, effect.rawValue, volume)
+            FileHandle.standardError.write(Data(line.utf8))
+        }
+        #endif
         guard PlayerProgress.shared.settings.sound, let pool = pools[effect], !pool.isEmpty else { return }
         let index = (cursor[effect] ?? 0) % pool.count
         cursor[effect] = index + 1
