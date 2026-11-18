@@ -561,6 +561,11 @@ struct KitchenStyle: Identifiable {
         KitchenStyle(id: "italy", price: 0, source: .biome),
         KitchenStyle(id: "mexico", price: 0, source: .biome),
         KitchenStyle(id: "bakery", price: 0, source: .biome),
+        KitchenStyle(id: "china", price: 0, source: .biome),
+        KitchenStyle(id: "india", price: 0, source: .biome),
+        KitchenStyle(id: "korea", price: 0, source: .biome),
+        KitchenStyle(id: "spain", price: 0, source: .biome),
+        KitchenStyle(id: "greece", price: 0, source: .biome),
         KitchenStyle(id: "halloween", price: 0, source: .event),
         KitchenStyle(id: "gourmet", price: 0, source: .gourmet)
     ]

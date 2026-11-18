@@ -1,5 +1,5 @@
 Sortelier'e hoş geldin! İlk sürümde:
-- Dünyanın 5 mutfağında 150 sıralama bölümü
+- Dünyanın 10 mutfağında 300 sıralama bölümü
 - Pazar Eşleştir: 600 üçlü eşleştirme bölümü
 - Şefin Atölyesi: malzemeleri yemeklere birleştir
 - Tedarikçi bahçesi ve Büyük Tarif
