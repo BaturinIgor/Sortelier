@@ -1,0 +1,7 @@
+shot market_popup: pid 12101 cpu 17.5
+shot m3_win: pid 12825 cpu 21.2
+shot m3_win_en: pid 13618 cpu 45.2
+shot win: pid 14483 cpu 4.9
+shot win_en: pid 14923 cpu 15.6
+shot win_replay: pid 15499 cpu 3.9
+shot win_de: pid 16193 cpu 7.0
