@@ -1,0 +1,58 @@
+# Макеты всех экранов, окон и состояний (design/<версия>/screens): имя кадра и аргументы запуска
+# после -uiDemo. Снимает .github/workflows/design.yml. Параметры описаны в Sortelier/App/UIDebug.swift.
+01-splash -uiLang ru -uiSplash
+02-map -uiLang ru -uiScreen map
+03-map-newbie -uiLang ru -uiScreen map -uiNewbie
+04-map-unlocked-news -uiLang ru -uiScreen map -uiUnlockNews
+05-map-rail -uiLang ru -uiScreen map -uiHappy
+06-level-intro -uiLang ru -uiLevel 35
+07-level -uiLang ru -uiLevel 35 -uiNoIntro
+08-level-mid -uiLang ru -uiLevel 35 -uiNoIntro -uiAutoplay 6
+09-level-win -uiLang ru -uiLevel 35 -uiNoIntro -uiWin
+10-level-win-replay -uiLang ru -uiLevel 30 -uiNoIntro -uiWin
+11-event-level -uiLang ru -uiEvent autumn:0 -uiNoIntro
+12-shop -uiLang ru -uiScreen shop
+13-shop-coins -uiLang ru -uiScreen shop -uiShop coins
+14-shop-boosters -uiLang ru -uiScreen shop -uiShop boosters
+15-shop-market -uiLang ru -uiScreen shop -uiShop market
+16-shop-bottom -uiLang ru -uiScreen shop -uiScroll bottom
+17-events -uiLang ru -uiScreen events
+18-events-bottom -uiLang ru -uiScreen events -uiScroll bottom -uiHappy
+19-event-map -uiLang ru -uiScreen eventmap
+20-challenges -uiLang ru -uiScreen challenges
+21-quests -uiLang ru -uiScreen quests
+22-album -uiLang ru -uiScreen album
+23-album-bottom -uiLang ru -uiScreen album -uiScroll bottom
+24-chest-info -uiLang ru -uiScreen album -uiInfo gold
+25-chest-closed -uiLang ru -uiScreen album -uiChest gold
+26-chest-reveal -uiLang ru -uiScreen album -uiChest gold -uiChestTaps 3
+27-chest-summary -uiLang ru -uiScreen album -uiChest star -uiChestTaps 1 -uiChestAll
+28-book -uiLang ru -uiScreen book
+29-achievements -uiLang ru -uiScreen achievements
+30-achievements-bottom -uiLang ru -uiScreen achievements -uiScroll bottom
+31-backgrounds -uiLang ru -uiScreen backgrounds
+32-settings -uiLang ru -uiScreen settings
+33-language -uiLang ru -uiScreen language
+34-lives -uiLang ru -uiScreen lives
+35-streak -uiLang ru -uiScreen streak
+36-merge -uiLang ru -uiScreen merge
+37-recipe -uiLang ru -uiScreen recipe
+38-garden -uiLang ru -uiScreen garden -uiHappy
+39-jar -uiLang ru -uiScreen jar
+40-critic -uiLang ru -uiScreen map -uiCritic
+41-market -uiLang ru -uiScreen market
+41a-market-chapters -uiLang ru -uiScreen market -uiMarketChapters
+42-market-popup -uiLang ru -uiScreen market -uiMarketPopup 13
+43-market-intro -uiLang ru -uiScreen marketlevel -uiMarketLevel 11
+44-market-level -uiLang ru -uiScreen marketlevel -uiMarketLevel 8 -uiNoIntro
+45-market-mid -uiLang ru -uiScreen marketlevel -uiMarketLevel 20 -uiNoIntro -uiAutoplay 5
+46-market-shape -uiLang ru -uiScreen marketlevel -uiMarketLevel 41 -uiNoIntro -uiAutoplay 3
+47-market-pause -uiLang ru -uiScreen marketlevel -uiMarketLevel 20 -uiNoIntro -uiM3Pause
+48-market-out-of-moves -uiLang ru -uiScreen marketlevel -uiMarketLevel 14 -uiNoIntro -uiM3Out
+49-market-win -uiLang ru -uiScreen marketlevel -uiMarketLevel 12 -uiNoIntro -uiM3Win
+50-market-fever -uiLang ru -uiScreen marketlevel -uiMarketLevel 97 -uiNoIntro
+51-market-chocolate-intro -uiLang ru -uiScreen marketlevel -uiMarketLevel 94
+52-market-chocolate -uiLang ru -uiScreen marketlevel -uiMarketLevel 106 -uiNoIntro -uiAutoplay 6
+53-push-daily -uiLang ru -uiPush challenges
+54-push-streak -uiLang ru -uiPush streak
+55-push-garden -uiLang ru -uiPush garden
