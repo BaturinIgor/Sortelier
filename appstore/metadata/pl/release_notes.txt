@@ -1,6 +1,5 @@
-Witaj w Sortelier! W pierwszej wersji:
-- 300 poziomów sortowania w 10 kuchniach świata
-- Targ Match: 600 poziomów match-3
-- Pracownia szefa: łącz składniki w dania
-- Ogródek dostawcy i Wielki Przepis
-- Wyzwania dzienne i tygodniowe, wyścigi kucharzy, wydarzenia sezonowe i album kart
+Nowości w wersji 1.1:
+- 5 nowych kuchni: chińska, indyjska, koreańska, hiszpańska i grecka, każda z własnymi daniami, muzyką i tłem
+- 150 nowych poziomów sortowania, łącznie 300
+- Nowy ekran zwycięstwa: wszystkie nagrody od razu widoczne
+- Lepszy balans i poprawki błędów

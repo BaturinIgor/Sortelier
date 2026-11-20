@@ -1,6 +1,5 @@
-Sortelier'e hoş geldin! İlk sürümde:
-- Dünyanın 10 mutfağında 300 sıralama bölümü
-- Pazar Eşleştir: 600 üçlü eşleştirme bölümü
-- Şefin Atölyesi: malzemeleri yemeklere birleştir
-- Tedarikçi bahçesi ve Büyük Tarif
-- Günlük ve haftalık görevler, şef yarışları, sezon etkinlikleri ve kart albümü
+1.1 sürümündeki yenilikler:
+- 5 yeni mutfak: Çin, Hint, Kore, İspanyol ve Yunan, her birinin kendi yemekleri, müziği ve arka planı var
+- 150 yeni sıralama seviyesi, toplam 300
+- Yeni zafer ekranı: tüm ödüller tek bakışta
+- Denge iyileştirmeleri ve hata düzeltmeleri

@@ -8,6 +8,7 @@ import argparse
 import glob
 import hashlib
 import os
+import re
 import sys
 import urllib.request
 
@@ -23,6 +24,12 @@ REPO = "https://github.com/BaturinIgor/Sortelier/blob/main/"
 PRIVACY_URL = REPO + "PRIVACY.md"
 SUPPORT_URL = REPO + "SUPPORT.md"
 COPYRIGHT = "2026 Igor Baturin"
+
+
+def marketing_version():
+    """Номер версии для стора берём из project.yml, как и сборка."""
+    text = open(os.path.join(ROOT, "project.yml"), encoding="utf-8").read()
+    return re.search(r'MARKETING_VERSION:\s*"?([0-9.]+)"?', text).group(1)
 
 
 def read(loc, name):
@@ -134,16 +141,28 @@ def main():
                               "relationships": {"appPricePoint": rel("appPricePoints", free)}}]})
             print("price: free")
 
-    # --- версия 1.0: тексты и скриншоты ---
+    # --- версия из project.yml: тексты и скриншоты ---
+    vstring = marketing_version()
     versions = get_all(f"/v1/apps/{app}/appStoreVersions?filter[platform]=IOS")
     version = next((v for v in versions if v["attributes"]["appStoreState"] in
                     ("PREPARE_FOR_SUBMISSION", "DEVELOPER_REJECTED", "REJECTED", "METADATA_REJECTED")), None)
     if not version:
-        sys.exit("no editable App Store version")
+        if any(v["attributes"]["versionString"] == vstring for v in versions):
+            sys.exit(f"version {vstring} is already in review or live: bump MARKETING_VERSION in project.yml")
+        # новой версии ещё нет: создаём её, App Store Connect переносит тексты и скриншоты прошлой
+        r = call("POST", "/v1/appStoreVersions", {"data": {"type": "appStoreVersions",
+                 "attributes": {"platform": "IOS", "versionString": vstring, "releaseType": "AFTER_APPROVAL"},
+                 "relationships": {"app": rel("apps", app)}}})
+        if not r:
+            sys.exit(f"could not create App Store version {vstring}")
+        version = r["data"]
+        versions.append(version)
+        print("created version", vstring)
     vid = version["id"]
     first = len(versions) == 1
     call("PATCH", f"/v1/appStoreVersions/{vid}", {"data": {"type": "appStoreVersions", "id": vid,
-         "attributes": {"copyright": COPYRIGHT, "versionString": "1.0"}}})
+         "attributes": {"copyright": COPYRIGHT, "versionString": vstring}}})
+    print("version", vstring, version["attributes"].get("appStoreState") or "PREPARE_FOR_SUBMISSION")
     have = {l["attributes"]["locale"]: l["id"] for l in get_all(f"/v1/appStoreVersions/{vid}/appStoreVersionLocalizations")}
     for loc in locales:
         attrs = {"description": read(loc, "description.txt"), "keywords": read(loc, "keywords.txt"),

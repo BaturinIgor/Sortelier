@@ -1,6 +1,5 @@
-Willkommen bei Sortelier! In der ersten Version:
-- 300 Sortier-Level in 10 Küchen der Welt
-- Markt-Match: 600 Match-3-Level
-- Kochwerkstatt: Zutaten zu Gerichten kombinieren
-- Garten des Lieferanten und das Große Rezept
-- Tägliche und wöchentliche Challenges, Kochrennen, saisonale Events und ein Kartenalbum
+Neu in Version 1.1:
+- 5 neue Küchen: chinesisch, indisch, koreanisch, spanisch und griechisch, jede mit eigenen Gerichten, eigener Musik und eigenem Hintergrund
+- 150 neue Sortier-Level, jetzt insgesamt 300
+- Neuer Siegesbildschirm: alle Belohnungen auf einen Blick
+- Besseres Balancing und Fehlerbehebungen

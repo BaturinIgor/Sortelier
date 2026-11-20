@@ -1,6 +1,5 @@
-¡Bienvenido a Sortelier! En la primera versión:
-- 300 niveles de ordenar en 10 cocinas del mundo
-- Mercado Match: 600 niveles de combinar 3
-- Taller del chef: combina ingredientes en platos
-- Huerto del proveedor y la Gran Receta
-- Desafíos diarios y semanales, carreras de chefs, eventos de temporada y un álbum de cartas
+Novedades de la versión 1.1:
+- 5 cocinas nuevas: china, india, coreana, española y griega, cada una con sus platos, su música y su fondo
+- 150 niveles de ordenar nuevos, 300 en total
+- Nueva pantalla de victoria: todas tus recompensas de un vistazo
+- Mejoras de equilibrio y corrección de errores
