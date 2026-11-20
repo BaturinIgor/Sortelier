@@ -61,6 +61,25 @@ def main():
     locales = sorted(d for d in os.listdir(META) if os.path.isdir(os.path.join(META, d)))
     app = get_all(f"/v1/apps?filter[bundleId]={BUNDLE}")[0]["id"]
 
+    # --- версия из project.yml: создаём первой, иначе App Store Connect не даст редактируемую
+    # информацию о приложении (название, подзаголовок, рейтинг) и PATCH вернёт 409 ---
+    vstring = marketing_version()
+    versions = get_all(f"/v1/apps/{app}/appStoreVersions?filter[platform]=IOS")
+    version = next((v for v in versions if v["attributes"]["appStoreState"] in
+                    ("PREPARE_FOR_SUBMISSION", "DEVELOPER_REJECTED", "REJECTED", "METADATA_REJECTED")), None)
+    if not version:
+        if any(v["attributes"]["versionString"] == vstring for v in versions):
+            sys.exit(f"version {vstring} is already in review or live: bump MARKETING_VERSION in project.yml")
+        # новой версии ещё нет: создаём её, App Store Connect переносит тексты и скриншоты прошлой
+        r = call("POST", "/v1/appStoreVersions", {"data": {"type": "appStoreVersions",
+                 "attributes": {"platform": "IOS", "versionString": vstring, "releaseType": "AFTER_APPROVAL"},
+                 "relationships": {"app": rel("apps", app)}}})
+        if not r:
+            sys.exit(f"could not create App Store version {vstring}")
+        version = r["data"]
+        versions.append(version)
+        print("created version", vstring)
+
     # права на материалы: сторонний контент (реклама AdMob, шрифты OFL) есть, права на него есть
     call("PATCH", f"/v1/apps/{app}", {"data": {"type": "apps", "id": app,
          "attributes": {"contentRightsDeclaration": "USES_THIRD_PARTY_CONTENT"}}})
@@ -141,23 +160,7 @@ def main():
                               "relationships": {"appPricePoint": rel("appPricePoints", free)}}]})
             print("price: free")
 
-    # --- версия из project.yml: тексты и скриншоты ---
-    vstring = marketing_version()
-    versions = get_all(f"/v1/apps/{app}/appStoreVersions?filter[platform]=IOS")
-    version = next((v for v in versions if v["attributes"]["appStoreState"] in
-                    ("PREPARE_FOR_SUBMISSION", "DEVELOPER_REJECTED", "REJECTED", "METADATA_REJECTED")), None)
-    if not version:
-        if any(v["attributes"]["versionString"] == vstring for v in versions):
-            sys.exit(f"version {vstring} is already in review or live: bump MARKETING_VERSION in project.yml")
-        # новой версии ещё нет: создаём её, App Store Connect переносит тексты и скриншоты прошлой
-        r = call("POST", "/v1/appStoreVersions", {"data": {"type": "appStoreVersions",
-                 "attributes": {"platform": "IOS", "versionString": vstring, "releaseType": "AFTER_APPROVAL"},
-                 "relationships": {"app": rel("apps", app)}}})
-        if not r:
-            sys.exit(f"could not create App Store version {vstring}")
-        version = r["data"]
-        versions.append(version)
-        print("created version", vstring)
+    # --- версия из project.yml: тексты и скриншоты (сама версия создана в начале) ---
     vid = version["id"]
     first = len(versions) == 1
     call("PATCH", f"/v1/appStoreVersions/{vid}", {"data": {"type": "appStoreVersions", "id": vid,
@@ -202,6 +205,8 @@ def main():
     print("errors:", len(errors))
     for e in errors:
         print(" ", e)
+    if errors:
+        sys.exit(1)  # workflow должен краснеть, а не молча оставлять стор недозалитым
 
 
 if __name__ == "__main__":
