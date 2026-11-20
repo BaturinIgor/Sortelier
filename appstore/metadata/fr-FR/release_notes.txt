@@ -1,6 +1,5 @@
-Bienvenue dans Sortelier ! Dans la première version :
-- 300 niveaux de tri dans 10 cuisines du monde
-- Marché Match : 600 niveaux de match-3
-- Atelier du chef : fusionne les ingrédients en plats
-- Potager du fournisseur et Grande Recette
-- Défis quotidiens et hebdomadaires, courses de chefs, événements saisonniers et album de cartes
+Nouveautés de la version 1.1 :
+- 5 nouvelles cuisines : chinoise, indienne, coréenne, espagnole et grecque, chacune avec ses plats, sa musique et son décor
+- 150 nouveaux niveaux de tri, 300 au total
+- Nouvel écran de victoire : toutes vos récompenses en un coup d'œil
+- Équilibrage amélioré et corrections de bugs

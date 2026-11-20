@@ -1,6 +1,5 @@
-Welcome to Sortelier! In the first version:
-- 300 sorting levels in 10 kitchens of the world
-- Market Match: 600 match-3 levels
-- Chef's Workshop: merge ingredients into dishes
-- Supplier's garden and the Big Recipe
-- Daily and weekly challenges, chef races, seasonal events and a card album
+What's new in 1.1:
+- 5 new kitchens: Chinese, Indian, Korean, Spanish and Greek, each with its own dishes, music and background
+- 150 new sorting levels, 300 in total
+- New win screen: all your rewards at a glance
+- Balance improvements and bug fixes

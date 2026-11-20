@@ -1,6 +1,5 @@
-Selamat datang di Sortelier! Di versi pertama:
-- 300 level sortir di 10 dapur dunia
-- Pasar Match: 600 level match-3
-- Bengkel Koki: gabungkan bahan menjadi hidangan
-- Kebun pemasok dan Resep Besar
-- Tantangan harian dan mingguan, balapan koki, event musiman, dan album kartu
+Yang baru di versi 1.1:
+- 5 dapur baru: Tiongkok, India, Korea, Spanyol, dan Yunani, masing-masing dengan hidangan, musik, dan latar sendiri
+- 150 level menyortir baru, total 300
+- Layar kemenangan baru: semua hadiah terlihat sekaligus
+- Peningkatan keseimbangan dan perbaikan bug

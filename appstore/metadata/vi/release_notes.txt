@@ -1,6 +1,5 @@
-Chào mừng đến với Sortelier! Trong phiên bản đầu tiên:
-- 300 màn sắp xếp ở 10 căn bếp thế giới
-- Chợ Ghép: 600 màn ghép 3
-- Xưởng bếp trưởng: ghép nguyên liệu thành món ăn
-- Vườn nhà cung cấp và Công thức lớn
-- Thử thách ngày và tuần, đua đầu bếp, sự kiện theo mùa và album thẻ
+Có gì mới trong phiên bản 1.1:
+- 5 bếp mới: Trung Hoa, Ấn Độ, Hàn Quốc, Tây Ban Nha và Hy Lạp, mỗi bếp có món ăn, âm nhạc và hình nền riêng
+- 150 màn sắp xếp mới, tổng cộng 300 màn
+- Màn hình chiến thắng mới: xem mọi phần thưởng trong nháy mắt
+- Cân bằng tốt hơn và sửa lỗi
