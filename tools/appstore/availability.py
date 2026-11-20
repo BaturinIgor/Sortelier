@@ -29,7 +29,8 @@ def main():
 
     avail = (call("GET", f"/v1/apps/{app}/appAvailabilityV2") or {}).get("data")
     if not avail:
-        print("availability: NOT SET")
+        errors[:] = [e for e in errors if "appAvailabilityV2" not in e]  # 404 тут значит «не задана», а не сбой
+        print("availability: NOT SET (the app is on sale nowhere)")
         terr = []
     else:
         print("availability", avail["id"], "availableInNewTerritories:", avail["attributes"].get("availableInNewTerritories"))
