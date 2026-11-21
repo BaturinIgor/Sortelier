@@ -1,5 +1,8 @@
-Yang baru di versi 1.1:
-- 5 dapur baru: Tiongkok, India, Korea, Spanyol, dan Yunani, masing-masing dengan hidangan, musik, dan latar sendiri
-- 150 level menyortir baru, total 300
-- Layar kemenangan baru: semua hadiah terlihat sekaligus
-- Peningkatan keseimbangan dan perbaikan bug
+Yang baru di 1.2:
+- Pasar Match: gandakan koin dengan menonton video di layar kemenangan
+- Tombol Mulai ulang di layar kemenangan dan saat buntu
+- Menang beruntun: di tahap ke-5 donat pelangi juga muncul di papan
+- 4 berjajar memberi penggilas yang melintang, dan menukar keping spesial dengan keping biasa kini juga bisa membuat keping spesial baru
+- Hubungi kami langsung dari pengaturan
+- Pesan yang jelas saat video berhadiah tidak tersedia
+- Perbaikan bug dan peningkatan

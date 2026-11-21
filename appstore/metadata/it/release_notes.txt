@@ -1,5 +1,8 @@
-Novità della versione 1.1:
-- 5 nuove cucine: cinese, indiana, coreana, spagnola e greca, ognuna con i suoi piatti, la sua musica e il suo sfondo
-- 150 nuovi livelli di riordino, 300 in tutto
-- Nuova schermata di vittoria: tutte le ricompense a colpo d'occhio
-- Bilanciamento migliorato e correzioni di bug
+Novità della 1.2:
+- Mercato Match: raddoppia le monete con un video nella schermata di vittoria
+- Pulsante Ricomincia nella schermata di vittoria e quando sei bloccato
+- Vittorie di fila: al 5° livello compare anche una ciambella arcobaleno sul tabellone
+- 4 in fila danno un mattarello perpendicolare alla fila, e scambiare un pezzo speciale con uno normale ora può crearne uno nuovo
+- Scrivici direttamente dalle impostazioni
+- Messaggi chiari quando un video premio non è disponibile
+- Correzioni e miglioramenti

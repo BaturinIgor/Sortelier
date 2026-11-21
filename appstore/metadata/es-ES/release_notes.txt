@@ -1,5 +1,8 @@
-Novedades de la versión 1.1:
-- 5 cocinas nuevas: china, india, coreana, española y griega, cada una con sus platos, su música y su fondo
-- 150 niveles de ordenar nuevos, 300 en total
-- Nueva pantalla de victoria: todas tus recompensas de un vistazo
-- Mejoras de equilibrio y corrección de errores
+Novedades de la 1.2:
+- Mercado Match: duplica tus monedas con un video en la pantalla de victoria
+- Botón Reiniciar en la pantalla de victoria y cuando te atascas
+- Victorias seguidas: en el 5.º nivel también aparece una dona arcoíris en el tablero
+- 4 en línea dan un rodillo perpendicular a la línea, y cambiar una ficha especial por una normal ahora también puede crear una nueva especial
+- Escríbenos directamente desde los ajustes
+- Mensajes claros cuando un video con recompensa no está disponible
+- Correcciones y mejoras

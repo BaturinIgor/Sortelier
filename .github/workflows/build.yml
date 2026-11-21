@@ -9,6 +9,7 @@ on:
       - "appstore/**"
       - "tools/**"
       - "art/**"
+      - "docs/**"
       - ".github/workflows/levels.yml"
       - ".github/workflows/store.yml"
   workflow_dispatch:

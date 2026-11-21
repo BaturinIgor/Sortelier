@@ -1,6 +1,6 @@
 # Sortelier: политика конфиденциальности
 
-Действует с 6 ноября 2026 года. Вопросы и запросы по данным: dawnwell.app+sortelier@gmail.com
+Действует с 22 ноября 2026 года (версия 1.2). Вопросы и запросы по данным: dawnwell.app+sortelier@gmail.com
 
 ## Что хранит игра
 
@@ -10,7 +10,13 @@
 
 ## Аналитика
 
-Сейчас игра не отправляет статистику игры на серверы разработчика. Если это изменится, политика будет обновлена до выхода такой версии.
+С версии 1.2 игра отправляет анонимную статистику через Google Analytics for Firebase (Google LLC): какие уровни начаты, пройдены и проиграны, сколько звезд и ходов, сколько монет получено и потрачено, какие бустеры использованы, показы роликов за награду, покупки (товар, цена и валюта, без платежных данных), а также модель устройства, версию iOS, язык и страну по IP-адресу. По этим данным мы находим слишком сложные уровни и ошибки.
+
+Статистика не связана с личностью игрока: имени, почты и контактов игра не знает, рекламный идентификатор (IDFA) и идентификатор поставщика (IDFV) в статистику не передаются, данные не используются для рекламы и не продаются. Firebase хранит на устройстве случайный идентификатор установки, чтобы считать сессии и удержание.
+
+Игрокам из Европейской экономической зоны, Великобритании и Швейцарии игра хранит этот идентификатор только с согласия в форме Google; без согласия статистика отправляется без идентификатора. Изменить выбор можно в любой момент: Настройки → Настройки рекламы.
+
+Как Google обрабатывает данные Firebase: https://firebase.google.com/support/privacy
 
 ## Реклама
 
@@ -42,7 +48,7 @@ AdMob может получать технические данные устро
 
 # Sortelier: privacy policy
 
-Effective November 6, 2026. Questions and data requests: dawnwell.app+sortelier@gmail.com
+Effective November 22, 2026 (version 1.2). Questions and data requests: dawnwell.app+sortelier@gmail.com
 
 ## What the game stores
 
@@ -52,7 +58,13 @@ Settings show a Player ID: a random number created on the device. Include it in 
 
 ## Analytics
 
-The game currently does not send gameplay statistics to the developer's servers. If this changes, this policy will be updated before such a version is released.
+Starting with version 1.2, the game sends anonymous statistics through Google Analytics for Firebase (Google LLC): which levels are started, won and lost, stars and moves, coins earned and spent, boosters used, rewarded video views, purchases (item, price and currency, no payment details), plus device model, iOS version, language and country derived from the IP address. We use this to find levels that are too hard and to fix bugs.
+
+The statistics are not linked to your identity: the game does not know your name, email or contacts, the advertising identifier (IDFA) and the identifier for vendor (IDFV) are not sent, and the data is not used for advertising and is not sold. Firebase keeps a random installation identifier on the device to count sessions and retention.
+
+For players in the European Economic Area, the UK and Switzerland, this identifier is stored only with consent given in the Google consent form; without consent, statistics are sent without an identifier. You can change your choice at any time: Settings → Ad privacy.
+
+How Google handles Firebase data: https://firebase.google.com/support/privacy
 
 ## Ads
 

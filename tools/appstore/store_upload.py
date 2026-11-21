@@ -23,6 +23,9 @@ SHOTS = os.path.join(ROOT, "appstore", "screenshots")
 REPO = "https://github.com/BaturinIgor/Sortelier/blob/main/"
 PRIVACY_URL = REPO + "PRIVACY.md"
 SUPPORT_URL = REPO + "SUPPORT.md"
+# Сайт разработчика в карточке App Store: на этом домене лежит app-ads.txt (https://baturinigor.github.io/app-ads.txt),
+# без него AdMob не подтверждает приложение и почти не отдает настоящие ролики.
+MARKETING_URL = "https://baturinigor.github.io/Sortelier/"
 COPYRIGHT = "2026 Igor Baturin"
 
 
@@ -169,7 +172,8 @@ def main():
     have = {l["attributes"]["locale"]: l["id"] for l in get_all(f"/v1/appStoreVersions/{vid}/appStoreVersionLocalizations")}
     for loc in locales:
         attrs = {"description": read(loc, "description.txt"), "keywords": read(loc, "keywords.txt"),
-                 "promotionalText": read(loc, "promotional_text.txt"), "supportUrl": SUPPORT_URL}
+                 "promotionalText": read(loc, "promotional_text.txt"), "supportUrl": SUPPORT_URL,
+                 "marketingUrl": MARKETING_URL}
         if not first:
             attrs["whatsNew"] = read(loc, "release_notes.txt")
         if loc in have:

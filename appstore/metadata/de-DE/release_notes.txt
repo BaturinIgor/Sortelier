@@ -1,5 +1,8 @@
-Neu in Version 1.1:
-- 5 neue Küchen: chinesisch, indisch, koreanisch, spanisch und griechisch, jede mit eigenen Gerichten, eigener Musik und eigenem Hintergrund
-- 150 neue Sortier-Level, jetzt insgesamt 300
-- Neuer Siegesbildschirm: alle Belohnungen auf einen Blick
-- Besseres Balancing und Fehlerbehebungen
+Neu in 1.2:
+- Markt-Match: Münzen auf dem Siegesbildschirm per Video verdoppeln
+- Neustart-Knopf auf dem Siegesbildschirm und wenn du feststeckst
+- Siegesserie: Auf der 5. Stufe liegt jetzt zusätzlich ein Regenbogen-Donut auf dem Feld
+- 4 in einer Reihe ergeben ein Nudelholz quer zur Reihe, und ein Spezialteil mit einem normalen Teil zu tauschen kann jetzt ein neues Spezialteil bilden
+- „Schreib uns“ direkt in den Einstellungen
+- Klare Hinweise, wenn kein Belohnungsvideo verfügbar ist
+- Fehlerbehebungen und Verbesserungen

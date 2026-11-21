@@ -1,5 +1,8 @@
-What's new in 1.1:
-- 5 new kitchens: Chinese, Indian, Korean, Spanish and Greek, each with its own dishes, music and background
-- 150 new sorting levels, 300 in total
-- New win screen: all your rewards at a glance
-- Balance improvements and bug fixes
+What's new in 1.2:
+- Market Match: double your coins for a video on the win screen
+- Restart button on the win screen and when you're stuck
+- Win streak: the 5th step now also puts a rainbow donut on the board
+- 4 in a row gives a rolling pin across the line, and swapping a special with a regular piece can now create a new special
+- Contact us right from the settings
+- Clear messages when a reward video isn't available
+- Bug fixes and improvements
