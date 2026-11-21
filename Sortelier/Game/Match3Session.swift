@@ -37,6 +37,8 @@ final class Match3Model: ObservableObject {
     @Published private(set) var finaleCoins = 0
     @Published private(set) var extraBought = 0
     @Published private(set) var adUsed = false
+    /// Монеты за победу удвоены за ролик.
+    @Published private(set) var doubled = false
     @Published private(set) var critic: Bool
     /// Бустеры, потраченные в текущем ходе. Списываются из прогресса, когда поле успокоится: сохранение и
     /// перерисовка всего интерфейса не попадают на анимацию бустера (из-за этого поле подтормаживало).
@@ -86,9 +88,15 @@ final class Match3Model: ObservableObject {
         guard phase == .starting else { return }
         // праздничный уровень: свои спецфишки со старта, потом серия побед и бустеры
         var specials = (level.start ?? []) + PlayerProgress.shared.streakSpecials
+        var pre: [String] = []
         for b in preBoosters {
-            if let s = b.special, PlayerProgress.shared.use(b) { specials.append(s) }
+            if let s = b.special, PlayerProgress.shared.use(b) {
+                specials.append(s)
+                pre.append(b.rawValue)
+            }
         }
+        Analytics.log("market_start", ["level": level.id, "chapter": level.chapter, "streak": streakAtStart,
+                                       "pre": pre.joined(separator: ","), "hard": level.hard == true, "fever": level.isFever])
         let delay = 0.5 + Double(level.rows) * 0.035 + 0.45
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             guard let self = self else { return }
@@ -285,6 +293,9 @@ final class Match3Model: ObservableObject {
             guard let self = self else { return }
             self.scene.convertSource = nil
             self.result = PlayerProgress.shared.marketWin(self.level, movesLeft: left, collected: self.collected)
+            Analytics.log("market_end", ["level": self.level.id, "chapter": self.level.chapter, "won": true,
+                                         "moves_bought": self.extraBought, "ad_moves": self.adUsed])
+            Analytics.refreshUser()
             self.phase = .won
         }
     }
@@ -304,7 +315,7 @@ final class Match3Model: ObservableObject {
     }
 
     func buyMoves() -> Bool {
-        guard phase == .outOfMoves, PlayerProgress.shared.spend(extraPrice) else { return false }
+        guard phase == .outOfMoves, PlayerProgress.shared.spend(extraPrice, item: "m3_moves") else { return false }
         extraBought += 1
         addMoves()
         Analytics.log("market_moves", ["level": level.id, "n": extraBought])
@@ -321,6 +332,19 @@ final class Match3Model: ObservableObject {
         }
     }
 
+    // MARK: - Победа
+
+    /// Удвоить монеты за победу за ролик, как в сортировке.
+    func doubleCoins(_ done: @escaping (Bool) -> Void) {
+        guard phase == .won, let coins = result?.coins, coins > 0, !doubled else { return done(false) }
+        Ads.shared.showRewarded(placement: "m3_double_coins") { [weak self] ok in
+            guard let self = self, ok else { return done(false) }
+            PlayerProgress.shared.addCoins(coins, source: "m3_double_coins")
+            self.doubled = true
+            done(true)
+        }
+    }
+
     private func addMoves() {
         movesLeft += MarketBalance.extraMoves
         phase = .playing
@@ -330,6 +354,8 @@ final class Match3Model: ObservableObject {
     func giveUp() {
         guard phase == .outOfMoves else { return }
         PlayerProgress.shared.marketLose(level, collected: collected)
+        Analytics.log("market_end", ["level": level.id, "chapter": level.chapter, "won": false, "gave_up": true,
+                                     "moves_bought": extraBought, "ad_moves": adUsed])
         phase = .lost
     }
 

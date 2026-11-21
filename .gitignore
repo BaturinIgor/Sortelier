@@ -7,3 +7,6 @@ build.log
 __pycache__/
 art/renders/
 art/render_log.txt
+Sortelier/Resources/GoogleService-Info.plist
+tools/analytics/GoogleService-Info.plist
+Sortelier/Info.plist

@@ -906,7 +906,14 @@ S.update({
 S.update({
  "ads.notReady": ("The video isn't ready yet. Check your connection and try again", "Ролик еще не загрузился. Проверь интернет и попробуй еще раз"),
  "settings.adPrivacy": ("Ad privacy", "Настройки рекламы"),
- "att.usage": ("Allow tracking so the ads you watch for rewards match your interests. The game works the same either way.", "Разреши отслеживание, чтобы ролики за награду были ближе к твоим интересам. Игра работает одинаково при любом выборе."),
+ "att.usage": ("Allow tracking so the ads you watch for rewards match your interests. The game works the same either way.", "Разреши отслеживание, чтобы ролики за награду были ближе к твоим интересам. Игра работает одинаково при любом выборе."),})
+
+S.update({
+ "ads.closedEarly": ("The video was closed before the end, so there's no reward this time", "Ролик закрыт раньше времени, поэтому награды нет"),
+ "settings.feedback": ("Contact us", "Написать нам"),
+ "settings.feedback.hint": ("Bugs, ideas, questions about purchases", "Ошибки, идеи, вопросы о покупках"),
+ "feedback.subject": ("Sortelier: feedback", "Sortelier: обратная связь"),
+ "feedback.noMail": ("Mail isn't set up on this device. Our address {0} is copied", "Почта на устройстве не настроена. Адрес {0} скопирован"),
 })
 
 

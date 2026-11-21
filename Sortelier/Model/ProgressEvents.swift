@@ -47,6 +47,7 @@ extension PlayerProgress {
             bonus = coinsAdded * (DoubleEvent.multiplier - 1)
             data.coins += bonus
             data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += bonus
+            Analytics.earned(bonus, source: "double_event")
         }
         save()
         return (gains, bonus)

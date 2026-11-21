@@ -3,24 +3,6 @@ import UIKit
 import QuartzCore
 import SpriteKit
 
-/// Аналитика. Ключ AppMetrica задается в Info.plist (AppMetricaAPIKey).
-/// Пока ключа нет, события только пишутся в лог: SDK подключим вместе с ключом.
-enum Analytics {
-    static var apiKey: String {
-        (Bundle.main.object(forInfoDictionaryKey: "AppMetricaAPIKey") as? String) ?? ""
-    }
-
-    static func start() {
-        log("app_open")
-    }
-
-    static func log(_ event: String, _ params: [String: Any] = [:]) {
-        #if DEBUG
-        print("[analytics]", event, params)
-        #endif
-    }
-}
-
 /// Тактильная отдача.
 enum Haptics {
     private static var on: Bool { PlayerProgress.shared.settings.haptics }

@@ -209,7 +209,7 @@ struct MarketLevelContent: View {
                 if model.critic { showCritic() } else { model.start() }
             }
         } else if model.phase == .won, let result = model.result {
-            MarketWinView(model: model, result: result, next: { close(result.level + 1) }, map: { close(nil) })
+            MarketWinView(model: model, result: result, next: { close(result.level + 1) }, restart: { close(result.level) }, map: { close(nil) })
         } else if model.phase == .outOfMoves {
             OutOfMovesView(model: model)
         } else if model.phase == .lost {
@@ -549,7 +549,7 @@ struct OutOfMovesView: View {
                     .buttonStyle(GameButtonStyle(palette: .orange))
                     if !model.adUsed {
                         Button {
-                            model.adMoves { ok in if !ok { Toast.error(lang.t("ads.limit")) } }
+                            model.adMoves { _ in }
                         } label: {
                             HStack { AdIcon(); Text(lang.t("m3.out.ad", MarketBalance.extraMoves)) }
                         }
@@ -577,9 +577,13 @@ struct MarketWinView: View {
     @ObservedObject var model: Match3Model
     let result: MarketResult
     let next: () -> Void
+    let restart: () -> Void
     let map: () -> Void
     @EnvironmentObject private var lang: Lang
     @State private var shown = 0
+
+    private var canDouble: Bool { result.coins > 0 && !model.doubled }
+    private var hasNext: Bool { MarketCatalog.shared.level(result.level + 1) != nil }
 
     var body: some View {
         ZStack {
@@ -587,18 +591,23 @@ struct MarketWinView: View {
             PopupCard(title: lang.t("win.title"), maxWidth: 340) {
                 VStack(spacing: 12) {
                     // награды прокручиваются, кнопки всегда на экране
-                    FitScroll(reserved: 250) { rewards.padding(.top, 10) }
-                    HStack(spacing: 10) {
-                        Button(lang.t("win.map"), action: map).buttonStyle(GameButtonStyle(palette: .paper))
-                        if MarketCatalog.shared.level(result.level + 1) != nil {
-                            Button(lang.t("win.next"), action: next).buttonStyle(GameButtonStyle(palette: .orange))
+                    FitScroll(reserved: (canDouble ? 340 : 250) + (hasNext ? 56 : 0)) { rewards.padding(.top, 10) }
+                    if canDouble {
+                        Button {
+                            model.doubleCoins { _ in }
+                        } label: {
+                            HStack { AdIcon(); Text(lang.t("win.double")) }
                         }
+                        .buttonStyle(GameButtonStyle(palette: .green))
+                        AdsLeftLabel()
                     }
+                    WinButtons(hasNext: hasNext, map: map, restart: restart, next: next)
                 }
             }
         }
         .onAppear {
             Audio.shared.play(.win, volume: 0.8)
+            ReviewPrompt.noteWin(great: result.stars >= 3 || result.streak >= 3)
             for i in 1...max(1, result.stars) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.35 + 0.3 * Double(i)) {
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.45)) { shown = i }
@@ -674,12 +683,8 @@ struct StreakStages: View {
                     }
                     .frame(width: 26, height: 26)
                     .scaleEffect(on && i == lit - 1 ? 1.15 : 1)
-                    HStack(spacing: -6) {
-                        ForEach(Array(MarketBalance.streak[i].suffix(2).enumerated()), id: \.offset) { _, s in
-                            SpriteImage(name: s.sprite, size: 22)
-                        }
-                    }
-                    .opacity(on ? 1 : 0.45)
+                    StreakStageIcons(specials: MarketBalance.streak[i])
+                        .opacity(on ? 1 : 0.45)
                 }
                 .frame(maxWidth: .infinity)
                 .rotationEffect(.degrees(broken && i < (animateFrom ?? 0) ? Double((i % 2 == 0 ? -1 : 1) * 12) : 0))
@@ -879,5 +884,39 @@ struct MarketIntroView: View {
         default:
             SpriteImage(name: "icon_market", size: 80)
         }
+    }
+}
+
+/// Спецфишки одной ступени серии: каждый вид один раз (повтор - "×2" в углу), сеткой по два,
+/// чтобы все умещались в узкой колонке ступени и не наезжали друг на друга.
+struct StreakStageIcons: View {
+    let specials: [M3Special]
+
+    private var groups: [(sprite: String, count: Int)] {
+        var out: [(sprite: String, count: Int)] = []
+        for s in specials {
+            if let i = out.firstIndex(where: { $0.sprite == s.sprite }) { out[i].count += 1 } else { out.append((s.sprite, 1)) }
+        }
+        return out
+    }
+
+    var body: some View {
+        let list = groups
+        let size: CGFloat = list.count > 1 ? 20 : 24
+        LazyVGrid(columns: Array(repeating: GridItem(.fixed(size), spacing: 2), count: min(2, list.count)), spacing: 2) {
+            ForEach(Array(list.enumerated()), id: \.offset) { _, g in
+                SpriteImage(name: g.sprite, size: size)
+                    .overlay(alignment: .bottomTrailing) {
+                        if g.count > 1 {
+                            Text("×\(g.count)")
+                                .font(Theme.rounded(9, .black))
+                                .foregroundColor(.white)
+                                .outlined(Theme.woodDark, width: 1)
+                                .offset(x: 4, y: 2)
+                        }
+                    }
+            }
+        }
+        .frame(height: list.count > 2 ? size * 2 + 2 : size)
     }
 }

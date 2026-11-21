@@ -13,11 +13,15 @@ packages:
   GoogleUserMessagingPlatform:
     url: https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git
     from: 3.0.0
+  # Google Analytics for Firebase (анонимная статистика, без IDFA), как в Habits.
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: "13.0.0"
 
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    MARKETING_VERSION: "1.1"
+    MARKETING_VERSION: "1.2"
     CURRENT_PROJECT_VERSION: "1"
     TARGETED_DEVICE_FAMILY: "1"
     CODE_SIGN_STYLE: Manual
@@ -36,6 +40,10 @@ targets:
     dependencies:
       - package: GoogleMobileAds
       - package: GoogleUserMessagingPlatform
+      # FirebaseAnalyticsCore, а не FirebaseAnalytics: без IDFA (AdSupport) и GoogleAdsOnDeviceConversion.
+      # Модуль тот же: import FirebaseAnalytics.
+      - package: Firebase
+        product: FirebaseAnalyticsCore
     info:
       path: Sortelier/Info.plist
       properties:
@@ -55,7 +63,15 @@ targets:
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
         UIAppFonts: [Nunito-Bold.ttf, Nunito-ExtraBold.ttf, Nunito-Black.ttf]
-        AppMetricaAPIKey: ""
+        # Firebase Analytics: без рекламных сигналов, IDFV и подмены делегата приложения.
+        # GoogleService-Info.plist кладет только сборка для App Store (tools/analytics/add_firebase_config.sh).
+        FirebaseAutomaticScreenReportingEnabled: false
+        FirebaseAppDelegateProxyEnabled: false
+        GOOGLE_ANALYTICS_DEFAULT_ALLOW_AD_PERSONALIZATION_SIGNALS: false
+        GOOGLE_ANALYTICS_IDFV_COLLECTION_ENABLED: false
+        GOOGLE_ANALYTICS_REGISTRATION_WITH_AD_NETWORK_ENABLED: false
+        # Firebase сам ничего не собирает: сбор включает код (Analytics.start) после согласия.
+        FIREBASE_ANALYTICS_COLLECTION_ENABLED: false
         # AdMob, приложение Sortelier. В отладке и сборке для SideStore код берет тестовый блок Google (Ads.unitId).
         GADApplicationIdentifier: ca-app-pub-9867750696429328~4506031184
         AdMobRewardedUnit: ca-app-pub-9867750696429328/4907541770
@@ -117,6 +133,8 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         # Только iPhone: пресет xcodegen для приложения иначе ставит 1,2, и App Store требует снимки iPad
         TARGETED_DEVICE_FAMILY: "1"
+        # Firebase через Swift Package Manager требует -ObjC.
+        OTHER_LDFLAGS: ["$(inherited)", "-ObjC"]
       configs:
         # Бесплатные покупки только в отладочной сборке (симулятор, снимки в CI). Релиз и App Store покупают по-настоящему.
         Debug:

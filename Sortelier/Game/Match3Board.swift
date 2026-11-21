@@ -236,6 +236,8 @@ struct M3Board {
     private var fires: [Pending] = []
     private var bornAt: [Int: Double] = [:]
     private var lastHit: Double = 0
+    /// Спецфишка, которую нельзя задеть в этом ходе: только что собрана обычной фишкой при обмене со спецфишкой.
+    private var shielded: Int?
 
     // Тайминги (секунды).
     static let swapTime = 0.17
@@ -432,8 +434,9 @@ struct M3Board {
         let longest = (g.rowsRuns + g.colRuns).map(\.count).max() ?? 0
         if longest >= 5 { return .rainbow }
         if !g.rowsRuns.isEmpty && !g.colRuns.isEmpty { return .bomb }
-        if g.rowsRuns.contains(where: { $0.count == 4 }) { return .rowPin }
-        if g.colRuns.contains(where: { $0.count == 4 }) { return .colPin }
+        // 4 по горизонтали дают вертикальную скалку (сносит столбец), 4 по вертикали - горизонтальную (ряд)
+        if g.rowsRuns.contains(where: { $0.count == 4 }) { return .colPin }
+        if g.colRuns.contains(where: { $0.count == 4 }) { return .rowPin }
         if g.squares > 0 { return .whisk }
         return nil
     }
@@ -557,12 +560,24 @@ struct M3Board {
             emit(0, .swap(a, b, back: false))
             tiles.swapAt(index(a), index(b))
             let (pos, special, other) = sa != nil ? (b, ta, tb) : (a, tb, ta)
+            let otherPos = pos == b ? a : b
             tiles[index(pos)] = nil
             var fire = M3Fire(special: special.kind.special ?? .bomb)
             fire.color = other.kind.color
-            schedule(Self.swapTime, id: special.id, cell: pos, fire)
-            // как в rules.py: сначала срабатывает спецфишка, совпадения ищутся после падения
+            // обычная фишка собрала на новом месте комбинацию на спецфишку: спецфишка появляется сразу
+            // и не задевается срабатыванием (как в rules.py)
+            let made = findGroups().filter { $0.cells.contains(otherPos) && Self.special(of: $0) != nil }
+            var fireAt = Self.swapTime
+            if !made.isEmpty {
+                let anchors = made.compactMap { anchor(of: $0, prefer: [otherPos]) }
+                clear(made, at: Self.swapTime, prefer: [otherPos])
+                shielded = anchors.compactMap { tiles[index($0)] }.first { $0.kind.special != nil }?.id
+                fireAt = Self.swapTime + Self.popTime
+            }
+            schedule(fireAt, id: special.id, cell: pos, fire)
+            // как в rules.py: сначала срабатывает спецфишка, остальные совпадения ищутся после падения
             let end = settle(from: Self.swapTime, prefer: [], groupsFirst: false)
+            shielded = nil
             return finish(end: spreadChoc(at: end), counted: true)
         }
         guard swapMakesMatch(a, b) else {
@@ -653,6 +668,7 @@ struct M3Board {
         fires = []
         bornAt = [:]
         lastHit = 0
+        shielded = nil
     }
 
     private mutating func emit(_ t: Double, _ e: M3Event) {
@@ -695,6 +711,7 @@ struct M3Board {
             emit(t, .jam(p))
         }
         guard let tile = tiles[i] else { return }
+        if tile.id == shielded { return }
         if ice[i] > 0 {
             ice[i] -= 1
             if ice[i] == 0 { gotIce += 1 }

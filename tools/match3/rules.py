@@ -203,10 +203,11 @@ class Board:
             return "R"
         if hs and vs:
             return "B"
+        # 4 по горизонтали - вертикальная скалка (V, столбец), 4 по вертикали - горизонтальная (H, ряд)
         if any(len(x) == 4 for x in hs):
-            return "H"
-        if any(len(x) == 4 for x in vs):
             return "V"
+        if any(len(x) == 4 for x in vs):
+            return "H"
         if sq:
             return "W"
         return None
@@ -336,7 +337,17 @@ class Board:
             self.moves += 1
             self.tile[r][c], self.tile[r2][c2] = self.tile[r2][c2], self.tile[r][c]
             pos, other = (b, a) if sa else (a, b)
-            self.fire(pos, sa or sb, color=self.color(*other))
+            color = self.color(*other)
+            kind = sa or sb
+            self.tile[pos[0]][pos[1]] = None
+            # обычная фишка собрала комбинацию на спецфишку: спецфишка появляется и не задевается срабатыванием
+            made = [g for g in self.find_groups() if other in g[0] and self.group_special(*g[1:])]
+            if made:
+                anchors = [self.group_anchor(g[0], g[1], g[2], [other]) for g in made]
+                self.run_queue(self.clear_groups(made, prefer=[other]))
+                self.shield = next((p for p in anchors if p and self.special(*p)), None)
+            self.fire(pos, kind, color=color)
+            self.shield = None
             self.resolve()
             return True
         if not self.swap_makes_match(r, c, r2, c2):
@@ -378,6 +389,8 @@ class Board:
             self.got["jam"] += 1
         t = self.tile[r][c]
         if t is None:
+            return
+        if (r, c) == getattr(self, "shield", None):
             return
         if self.ice[r][c]:
             self.ice[r][c] -= 1

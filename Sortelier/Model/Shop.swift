@@ -149,6 +149,7 @@ final class Store: ObservableObject {
                 let granted = await deliver(transaction)
                 await transaction.finish()
                 Analytics.log("purchase_done", ["item": item.rawValue])
+                Analytics.purchase(product, item: item.rawValue)
                 return .done(granted)
             case .userCancelled:
                 Analytics.log("purchase_cancel", ["item": item.rawValue])
@@ -296,7 +297,7 @@ extension PlayerProgress {
     func vipBonus(for coins: Int) -> Int {
         guard isVIP, coins > 0 else { return 0 }
         let bonus = Int((Double(coins) * (VIP.coinMultiplier - 1)).rounded())
-        addCoins(bonus)
+        addCoins(bonus, source: "vip_bonus")
         return bonus
     }
 }

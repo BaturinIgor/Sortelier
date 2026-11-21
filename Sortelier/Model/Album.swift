@@ -247,6 +247,7 @@ extension PlayerProgress {
         data.meta.album.stars += stars
         data.coins += kind.coins
         data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += kind.coins
+        Analytics.earned(kind.coins, source: "album_chest")
         data.meta.stats[Stat.chests.rawValue, default: 0] += 1
         let owned = AlbumCatalog.cards.filter { (data.meta.album.cards[$0.id] ?? 0) > 0 }.count
         if owned > stat(.albumCards) { data.meta.stats[Stat.albumCards.rawValue] = owned }

@@ -1,6 +1,6 @@
 # Sortelier: политика конфиденциальности
 
-Действует с 6 ноября 2026 года. Вопросы и запросы по данным: zdrgvretrsyhtrse@mail.ru
+Действует с 6 ноября 2026 года. Вопросы и запросы по данным: dawnwell.app+sortelier@gmail.com
 
 ## Что хранит игра
 
@@ -42,7 +42,7 @@ AdMob может получать технические данные устро
 
 # Sortelier: privacy policy
 
-Effective November 6, 2026. Questions and data requests: zdrgvretrsyhtrse@mail.ru
+Effective November 6, 2026. Questions and data requests: dawnwell.app+sortelier@gmail.com
 
 ## What the game stores
 

@@ -28,6 +28,11 @@ jobs:
           brew install xcodegen
           xcodebuild -version
 
+      - name: Add Firebase config (analytics)
+        env:
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+        run: tools/analytics/add_firebase_config.sh com.personal.sortelier
+
       - name: Generate Xcode project
         run: xcodegen generate
 
