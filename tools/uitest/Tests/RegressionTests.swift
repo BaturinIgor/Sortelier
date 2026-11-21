@@ -175,4 +175,36 @@ final class RegressionTests: XCTestCase {
         // тост живет в отдельном окне и не виден дереву XCUITest: правило серии проверяется по снимку 75
         check(app, "На карту", "кнопка На карту")
     }
+
+    /// 1.2: "Начать заново" в окне победы сортировки перезапускает тот же уровень.
+    func testWinRestart() {
+        let app = launch(["-uiLevel", "35", "-uiWin"])
+        sleep(2)
+        check(app, "Начать заново", "кнопка Начать заново в окне победы")
+        check(app, "На карту", "кнопка На карту в окне победы")
+        tap(app, "Начать заново")
+        shot(app, "76_win_restart")
+        check(app, "Уровень 35", "тот же уровень открылся заново")
+    }
+
+    /// 1.2: окно победы "3 в ряд": удвоение монет за ролик (в демо награда сразу) и "Начать заново".
+    func testMarketWinDouble() {
+        let app = launch(["-uiScreen", "marketlevel", "-uiMarketLevel", "12", "-uiM3Win"])
+        sleep(6)
+        shot(app, "77_m3_win_double")
+        check(app, "×2 монеты за рекламу", "кнопка удвоения монет в окне победы рынка")
+        check(app, "Начать заново", "кнопка Начать заново в окне победы рынка")
+        tap(app, "×2 монеты за рекламу")
+        sleep(1)
+        let gone = !element(app, "×2 монеты за рекламу").exists
+        log("кнопка удвоения пропала после ролика: \(gone ? "OK" : "FAIL")")
+        shot(app, "78_m3_win_doubled")
+    }
+
+    /// 1.2: кнопка "Написать нам" в настройках.
+    func testFeedbackButton() {
+        let app = launch(["-uiScreen", "settings"])
+        shot(app, "79_settings_feedback")
+        check(app, "Написать нам", "кнопка Написать нам в настройках")
+    }
 }
