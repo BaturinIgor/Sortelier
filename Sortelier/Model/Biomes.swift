@@ -118,7 +118,7 @@ extension PlayerProgress {
     func openBiome(_ biome: Int, pay: Bool) -> Bool {
         guard !isBiomeOpen(biome), biomeGateReached(biome) else { return false }
         if pay {
-            guard spend(Biomes.unlockPrice) else { return false }
+            guard spend(Biomes.unlockPrice, item: "kitchen_unlock") else { return false }
         } else {
             guard biomeStarsReady(biome) else { return false }
         }

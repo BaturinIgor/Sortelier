@@ -130,7 +130,7 @@ struct MergeView: View {
                 .minimumScaleFactor(0.8)
             Button {
                 Ads.shared.showRewarded(placement: "merge_supply") { ok in
-                    guard ok else { return Toast.error(lang.t("ads.limit")) }
+                    guard ok else { return }
                     let added = model.game.addSupply()
                     if added == 0 { Toast.error(lang.t("merge.full")) } else { Audio.shared.play(.chest) }
                 }
@@ -320,7 +320,7 @@ struct EnergyPopup: View {
                         .fixedSize(horizontal: false, vertical: true)
                     Button {
                         Ads.shared.showRewarded(placement: "energy") { ok in
-                            if ok { progress.addMergeEnergy(MergeBalance.adEnergy) } else { Toast.error(lang.t("ads.limit")) }
+                            if ok { progress.addMergeEnergy(MergeBalance.adEnergy) }
                         }
                     } label: {
                         HStack(spacing: 6) { AdIcon(); Text(lang.t("merge.energy.ad", MergeBalance.adEnergy)) }

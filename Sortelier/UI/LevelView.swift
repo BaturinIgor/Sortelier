@@ -231,9 +231,9 @@ struct LevelContent: View {
             DishUnlockView(dish: dish) { session.newDish = nil }
                 .transition(.opacity)
         } else if session.phase == .won {
-            WinView(session: session, next: goNext, close: close)
+            WinView(session: session, next: goNext, restart: restart, close: close)
         } else if session.phase == .stuck {
-            StuckView(session: session, giveUp: {
+            StuckView(session: session, restart: restart, giveUp: {
                 session.abandon()
                 close()
             })
@@ -307,6 +307,7 @@ struct PauseView: View {
 
 struct StuckView: View {
     @ObservedObject var session: GameSession
+    let restart: () -> Void
     let giveUp: () -> Void
     @EnvironmentObject private var lang: Lang
     @EnvironmentObject private var progress: PlayerProgress
@@ -338,15 +339,20 @@ struct StuckView: View {
                     .buttonStyle(GameButtonStyle(palette: .orange))
                     if !session.adContinueUsed {
                         Button {
-                            session.continueWithAd { ok in if !ok { Toast.error(lang.t("ads.limit")) } }
+                            session.continueWithAd { _ in }
                         } label: {
                             HStack { AdIcon(); Text(lang.t("stuck.ad")) }
                         }
                         .buttonStyle(BigButtonStyle(color: Theme.green))
                         AdsLeftLabel()
                     }
-                    Button(lang.t(session.costsLife ? "stuck.giveup" : "stuck.giveup.replay"), action: giveUp)
-                        .buttonStyle(GameButtonStyle(palette: .paper))
+                    HStack(spacing: 10) {
+                        Button(lang.t(session.costsLife ? "stuck.giveup" : "stuck.giveup.replay"), action: giveUp)
+                            .buttonStyle(GameButtonStyle(palette: .paper))
+                        // заново: та же цена, что у "Начать заново" в паузе (жизнь за новый уровень)
+                        Button(lang.t("pause.restart"), action: restart)
+                            .buttonStyle(GameButtonStyle(palette: .paper))
+                    }
                 }
             }
         }
@@ -374,6 +380,7 @@ struct StuckView: View {
 struct WinView: View {
     @ObservedObject var session: GameSession
     let next: () -> Void
+    let restart: () -> Void
     let close: () -> Void
     @EnvironmentObject private var lang: Lang
     @State private var shown = 0
@@ -385,28 +392,24 @@ struct WinView: View {
                 PopupCard(title: lang.t("win.title"), maxWidth: 330) {
                     VStack(spacing: 12) {
                         // награды прокручиваются, кнопки всегда на экране
-                        FitScroll(reserved: result.reward.coinsAdded > 0 && !session.doubled ? 340 : 250) {
+                        FitScroll(reserved: (result.reward.coinsAdded > 0 && !session.doubled ? 340 : 250) + (session.nextLevel != nil ? 56 : 0)) {
                             summary(result).padding(.top, 10)
                         }
                         if result.reward.coinsAdded > 0 && !session.doubled {
                             Button {
-                                session.doubleCoins { ok in if !ok { Toast.error(lang.t("ads.limit")) } }
+                                session.doubleCoins { _ in }
                             } label: {
                                 HStack { AdIcon(); Text(lang.t("win.double")) }
                             }
                             .buttonStyle(GameButtonStyle(palette: .green))
                             AdsLeftLabel()
                         }
-                        HStack(spacing: 10) {
-                            Button(lang.t("win.map"), action: close).buttonStyle(GameButtonStyle(palette: .paper))
-                            if session.nextLevel != nil {
-                                Button(lang.t("win.next"), action: next).buttonStyle(GameButtonStyle(palette: .orange))
-                            }
-                        }
+                        WinButtons(hasNext: session.nextLevel != nil, map: close, restart: restart, next: next)
                     }
                 }
                 .onAppear {
                     Audio.shared.play(.win, volume: 0.8)
+                    ReviewPrompt.noteWin(great: result.stars >= 3)
                     for i in 1...result.stars {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35 + 0.3 * Double(i)) {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.45)) { shown = i }
@@ -852,5 +855,32 @@ struct BuyBoosterView: View {
                 }
             }
         }
+    }
+}
+
+/// Кнопки под экраном победы (сортировка и 3 в ряд): "Дальше" крупно, ниже "На карту" и "Начать заново".
+struct WinButtons: View {
+    let hasNext: Bool
+    let map: () -> Void
+    let restart: () -> Void
+    let next: () -> Void
+    @EnvironmentObject private var lang: Lang
+
+    var body: some View {
+        VStack(spacing: 10) {
+            if hasNext {
+                Button(lang.t("win.next")) { leave(next) }.buttonStyle(GameButtonStyle(palette: .orange))
+            }
+            HStack(spacing: 10) {
+                Button(lang.t("win.map")) { leave(map) }.buttonStyle(GameButtonStyle(palette: .paper, height: 46, fontSize: 18))
+                Button(lang.t("pause.restart")) { leave(restart) }.buttonStyle(GameButtonStyle(palette: .paper, height: 46, fontSize: 18))
+            }
+        }
+    }
+
+    /// Окно победы закрывается: тут же, если момент удачный, iOS спросит оценку.
+    private func leave(_ action: () -> Void) {
+        action()
+        ReviewPrompt.askIfPending()
     }
 }

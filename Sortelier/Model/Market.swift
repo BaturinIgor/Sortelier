@@ -92,7 +92,9 @@ enum MarketBalance {
         [.whisk, .rowPin],
         [.whisk, .rowPin, .rowPin],
         [.whisk, .rowPin, .bomb],
-        [.whisk, .rowPin, .bomb, .rowPin],
+        // 5-я ступень заметно сильнее 4-й: к ее набору добавляется радужный пончик
+        // (бот: доля побед 83% -> 91%, на сложных уровнях 71% -> 83%, tools/match3/balance.py, режимы s5 и s5R)
+        [.whisk, .rowPin, .bomb, .rowPin, .rainbow],
     ]
 
     static var streakMax: Int { streak.count }
@@ -230,7 +232,7 @@ extension PlayerProgress {
     }
 
     func buy(_ b: M3Booster) -> Bool {
-        guard spend(MarketBalance.price(b)) else { return false }
+        guard spend(MarketBalance.price(b), item: "m3_booster_" + b.rawValue) else { return false }
         add(b)
         return true
     }

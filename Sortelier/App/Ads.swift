@@ -64,6 +64,7 @@ final class Ads: NSObject, FullScreenContentDelegate {
         ConsentInformation.shared.requestConsentInfoUpdate(with: params) { [weak self] error in
             DispatchQueue.main.async {
                 if let error { Analytics.log("ads_consent_error", ["error": error.localizedDescription]) }
+                Analytics.updateConsent()
                 self?.presentConsentIfNeeded()
             }
         }
@@ -79,6 +80,7 @@ final class Ads: NSObject, FullScreenContentDelegate {
         ConsentForm.loadAndPresentIfRequired(from: vc) { [weak self] error in
             DispatchQueue.main.async {
                 if let error { Analytics.log("ads_consent_form_error", ["error": error.localizedDescription]) }
+                Self.consentAnswered()
                 self?.requestTracking {
                     if ConsentInformation.shared.canRequestAds { self?.startSDK() }
                 }
@@ -95,10 +97,26 @@ final class Ads: NSObject, FullScreenContentDelegate {
         // вопрос показывается только у активного приложения: даем окну появиться
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             ATTrackingManager.requestTrackingAuthorization { status in
-                Analytics.log("att", ["status": status.rawValue])
+                let names: [ATTrackingManager.AuthorizationStatus: String] = [.authorized: "authorized", .denied: "denied",
+                                                                               .restricted: "restricted", .notDetermined: "not_determined"]
+                Analytics.log("att", ["status": names[status] ?? "unknown"])
                 DispatchQueue.main.async { done() }
             }
         }
+    }
+
+    /// Ответ в форме Google: статистика получает новое согласие, событие consent - каким оно стало.
+    private static func consentAnswered() {
+        Analytics.updateConsent()
+        let status: String
+        switch ConsentInformation.shared.consentStatus {
+        case .obtained: status = "obtained"
+        case .required: status = "required"
+        case .notRequired: status = "not_required"
+        default: status = "unknown"
+        }
+        Analytics.log("consent", ["status": status, "ads": ConsentInformation.shared.canRequestAds,
+                                  "analytics": Analytics.storageAllowed])
     }
 
     private func startSDK() {
@@ -114,6 +132,7 @@ final class Ads: NSObject, FullScreenContentDelegate {
         guard let vc = Self.topController() else { return }
         ConsentForm.presentPrivacyOptionsForm(from: vc) { [weak self] _ in
             DispatchQueue.main.async {
+                Self.consentAnswered()
                 if ConsentInformation.shared.canRequestAds { self?.startSDK() }
             }
         }
@@ -132,6 +151,7 @@ final class Ads: NSObject, FullScreenContentDelegate {
                 guard let self else { return }
                 self.loading = false
                 if let ad {
+                    Analytics.log("ad_loaded", ["retry": self.retry])
                     ad.fullScreenContentDelegate = self
                     self.ad = ad
                     self.loadedAt = Date()
@@ -155,6 +175,34 @@ final class Ads: NSObject, FullScreenContentDelegate {
 
     // MARK: показ
 
+    /// Почему ролик не дал награду. Сообщение игроку показывает сам Ads: места показа только получают false.
+    enum Failure: String {
+        /// дневной лимит роликов исчерпан
+        case limit
+        /// ролик не загрузился (нет сети, AdMob не отдал ролик) или не смог показаться
+        case notLoaded = "not_loaded"
+        /// игрок закрыл ролик до награды
+        case closedEarly = "closed_early"
+        /// уже идет показ или ожидание другого ролика (двойное нажатие): без сообщения
+        case busy
+    }
+
+    /// Сообщение игроку о неудаче.
+    static func notify(_ failure: Failure) {
+        switch failure {
+        case .limit: Toast.error(Lang.shared.t("ads.limit"))
+        case .notLoaded: Toast.info(Lang.shared.t("ads.notReady"), icon: "wifi.exclamationmark")
+        case .closedEarly: Toast.info(Lang.shared.t("ads.closedEarly"), icon: "play.slash.fill")
+        case .busy: break
+        }
+    }
+
+    private func fail(_ failure: Failure, placement: String, _ completion: (Bool) -> Void) {
+        Analytics.log("ad_fail", ["placement": placement, "reason": failure.rawValue])
+        Self.notify(failure)
+        completion(false)
+    }
+
     func showRewarded(placement: String, completion: @escaping (Bool) -> Void) {
         // VIP получает награду сразу, без рекламы и без расхода лимита
         if PlayerProgress.shared.isVIP {
@@ -162,10 +210,9 @@ final class Ads: NSObject, FullScreenContentDelegate {
             completion(true)
             return
         }
-        guard canShow, presenting == nil, waiting == nil else {
-            completion(false)
-            return
-        }
+        Analytics.log("ad_request", ["placement": placement, "ready": adFresh])
+        guard presenting == nil, waiting == nil else { return fail(.busy, placement: placement, completion) }
+        guard canShow else { return fail(.limit, placement: placement, completion) }
         #if DEBUG
         if instant {
             PlayerProgress.shared.countAdView()
@@ -188,18 +235,15 @@ final class Ads: NSObject, FullScreenContentDelegate {
     private func failWaiting() {
         guard let waiting else { return }
         self.waiting = nil
-        Toast.info(Lang.shared.t("ads.notReady"), icon: "wifi.exclamationmark")
-        waiting(false)
+        fail(.notLoaded, placement: waitPlacement, waiting)
     }
 
     private func present(placement: String, completion: @escaping (Bool) -> Void) {
-        guard let ad, let vc = Self.topController() else {
-            completion(false)
-            return
-        }
+        guard let ad, let vc = Self.topController() else { return fail(.notLoaded, placement: placement, completion) }
         self.ad = nil
         self.placement = placement
         earned = false
+        failure = nil
         presenting = completion
         Audio.shared.silence(true)
         Analytics.log("ad_show", ["placement": placement])
@@ -212,15 +256,22 @@ final class Ads: NSObject, FullScreenContentDelegate {
         Audio.shared.silence(false)
         guard let done = presenting else { return }
         presenting = nil
-        if earned {
+        let ok = earned
+        let placement = placement
+        let failure = self.failure ?? .closedEarly
+        if ok {
             PlayerProgress.shared.countAdView()
             Analytics.log("ad_reward", ["placement": placement])
         }
-        let ok = earned
         // награда после закрытия ролика, чтобы анимации были видны
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { done(ok) }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            if ok { done(true) } else { self?.fail(failure, placement: placement, done) }
+        }
         load()
     }
+
+    /// Почему показ закончился без награды (nil - игрок закрыл ролик раньше времени).
+    private var failure: Failure?
 
     func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         DispatchQueue.main.async { self.finish() }
@@ -230,8 +281,8 @@ final class Ads: NSObject, FullScreenContentDelegate {
         Analytics.log("ad_present_error", ["error": error.localizedDescription])
         DispatchQueue.main.async {
             self.earned = false
+            self.failure = .notLoaded
             self.finish()
-            Toast.info(Lang.shared.t("ads.notReady"), icon: "wifi.exclamationmark")
         }
     }
 

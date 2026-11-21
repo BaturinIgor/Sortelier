@@ -142,17 +142,22 @@ final class PlayerProgress: ObservableObject {
 
     var coins: Int { data.coins }
 
-    func addCoins(_ amount: Int) {
+    func addCoins(_ amount: Int, source: String = "other") {
         guard amount != 0 else { return }
         data.coins = max(0, data.coins + amount)
-        if amount > 0 { data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += amount }
+        if amount > 0 {
+            data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += amount
+            Analytics.earned(amount, source: source)
+        }
         save()
     }
 
-    func spend(_ amount: Int) -> Bool {
+    /// Списать монеты. item - на что (для аналитики экономики: spend_virtual_currency).
+    func spend(_ amount: Int, item: String = "other") -> Bool {
         guard data.coins >= amount else { return false }
         data.coins -= amount
         save()
+        Analytics.spent(amount, item: item)
         return true
     }
 
@@ -173,7 +178,7 @@ final class PlayerProgress: ObservableObject {
     }
 
     func buy(_ booster: Booster) -> Bool {
-        guard spend(booster.price) else { return false }
+        guard spend(booster.price, item: "booster_" + booster.rawValue) else { return false }
         add(booster)
         return true
     }
@@ -234,7 +239,7 @@ final class PlayerProgress: ObservableObject {
     }
 
     func refillLives() -> Bool {
-        guard spend(Balance.livesRefillPrice) else { return false }
+        guard spend(Balance.livesRefillPrice, item: "lives_refill") else { return false }
         addLife(maxLives)
         return true
     }
@@ -284,6 +289,7 @@ final class PlayerProgress: ObservableObject {
         data.stars[String(level)] = max(previousStars, newStars)
         data.coins += added
         data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += added
+        Analytics.earned(added, source: "level_win")
         let firstThree = newStars == 3 && previousStars < 3
         var lifeReturned = false
         if firstThree && !unlimitedLives && data.lives < maxLives {
@@ -312,6 +318,7 @@ final class PlayerProgress: ObservableObject {
         data.meta.stats[Stat.chests.rawValue, default: 0] += 1
         data.coins += chest.coins
         data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += chest.coins
+        Analytics.earned(chest.coins, source: "kitchen_chest")
         for (booster, n) in chest.boosters { data.boosters[booster.rawValue, default: 0] += n }
         if chest.goldShelves { data.goldShelves = true }
         if let album = chest.album { addChests([album.rawValue: 1]) }
@@ -369,6 +376,7 @@ final class PlayerProgress: ObservableObject {
         guard total > 0 else { return 0 }
         data.coins += total
         data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += total
+        Analytics.earned(total, source: "book")
         save()
         Analytics.log("book_coins", ["coins": total, "cards": ids.count])
         return total

@@ -1,5 +1,8 @@
-Nowości w wersji 1.1:
-- 5 nowych kuchni: chińska, indyjska, koreańska, hiszpańska i grecka, każda z własnymi daniami, muzyką i tłem
-- 150 nowych poziomów sortowania, łącznie 300
-- Nowy ekran zwycięstwa: wszystkie nagrody od razu widoczne
-- Lepszy balans i poprawki błędów
+Nowości w 1.2:
+- Targ Match: podwój monety za film na ekranie wygranej
+- Przycisk „Od nowa” na ekranie wygranej i gdy utkniesz
+- Wygrane z rzędu: na 5. stopniu na planszy pojawia się też tęczowy pączek
+- 4 w rzędzie dają wałek w poprzek rzędu, a zamiana specjalnego elementu ze zwykłym może teraz stworzyć nowy specjalny
+- „Napisz do nas” prosto z ustawień
+- Jasne komunikaty, gdy film z nagrodą jest niedostępny
+- Poprawki i ulepszenia

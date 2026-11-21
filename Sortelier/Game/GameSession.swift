@@ -93,7 +93,8 @@ final class GameSession: ObservableObject {
         self.mode = mode
         self.isReplay = mode == .main && PlayerProgress.shared.isPassed(level.id)
         self.board = Board(level: level)
-        Analytics.log("level_start", ["level": level.id, "replay": isReplay, "mode": mode.analyticsName])
+        Analytics.log("level_start", ["level": level.id, "replay": isReplay, "mode": mode.analyticsName, "biome": level.biome,
+                                      "lives": PlayerProgress.shared.data.lives])
         #if DEBUG
         // снимки экрана в середине уровня: несколько ходов подсказки
         for _ in 0..<UIDebug.autoplay {
@@ -222,7 +223,7 @@ final class GameSession: ObservableObject {
         } else if board.isStuck {
             phase = .stuck
             Haptics.warning()
-            Analytics.log("level_stuck", ["level": level.id, "moves": moves])
+            Analytics.log("level_stuck", ["level": level.id, "moves": moves, "mode": mode.analyticsName, "replay": isReplay])
         }
     }
 
@@ -248,19 +249,19 @@ final class GameSession: ObservableObject {
             if reward.firstThreeStars { progress.bump(.threeStars) }
         case let .daily(day):
             let first = !progress.dailyDone(day)
-            if first { progress.addCoins(coins) }
+            if first { progress.addCoins(coins, source: "challenge_win") }
             challenge = progress.completeDaily(day)
             reward = PlayerProgress.LevelReward(coinsAdded: first ? coins : 0, newRecord: false,
                                                 firstThreeStars: false, lifeReturned: false)
         case let .weekly(week, index):
             let first = progress.weeklyDone(week) == index
-            if first { progress.addCoins(coins) }
+            if first { progress.addCoins(coins, source: "challenge_win") }
             challenge = progress.completeWeekly(week, index: index)
             reward = PlayerProgress.LevelReward(coinsAdded: first ? coins : 0, newRecord: false,
                                                 firstThreeStars: false, lifeReturned: false)
         case let .event(id, _, index):
             let first = progress.completeEventLevel(id, index: index)
-            if first { progress.addCoins(coins) }
+            if first { progress.addCoins(coins, source: "challenge_win") }
             reward = PlayerProgress.LevelReward(coinsAdded: first ? coins : 0, newRecord: false,
                                                 firstThreeStars: false, lifeReturned: false)
         }
@@ -286,7 +287,9 @@ final class GameSession: ObservableObject {
         phase = .won
         Haptics.success()
         Analytics.log("level_win", ["level": level.id, "moves": moves, "coins": total, "stars": stars,
-                                    "tips": tips, "par": level.par, "replay": isReplay])
+                                    "tips": tips, "par": level.par, "replay": isReplay, "mode": mode.analyticsName,
+                                    "biome": level.biome, "continued": continues > 0])
+        Analytics.refreshUser()
     }
 
     // MARK: - Бустеры
@@ -361,7 +364,7 @@ final class GameSession: ObservableObject {
     }
 
     func continueWithCoins() -> Bool {
-        guard phase == .stuck, PlayerProgress.shared.spend(continuePrice) else { return false }
+        guard phase == .stuck, PlayerProgress.shared.spend(continuePrice, item: "continue") else { return false }
         continues += 1
         Analytics.log("continue", ["level": level.id, "way": "coins"])
         addShelf()
@@ -403,7 +406,8 @@ final class GameSession: ObservableObject {
             PlayerProgress.shared.addLevelStats(served: servedCount, tips: tips, dishes: dishCount,
                                                 triples: tripleCount, maxCombo: bestCombo)
         }
-        Analytics.log("level_fail", ["level": level.id, "moves": moves, "replay": isReplay])
+        Analytics.log("level_fail", ["level": level.id, "moves": moves, "replay": isReplay, "mode": mode.analyticsName,
+                                    "biome": level.biome])
     }
 
     // MARK: - Победа
@@ -412,7 +416,7 @@ final class GameSession: ObservableObject {
         guard let reward = result?.reward, reward.coinsAdded > 0, !doubled else { return done(false) }
         Ads.shared.showRewarded(placement: "double_coins") { [weak self] ok in
             guard let self = self, ok else { return done(false) }
-            PlayerProgress.shared.addCoins(reward.coinsAdded)
+            PlayerProgress.shared.addCoins(reward.coinsAdded, source: "double_coins")
             self.doubled = true
             done(true)
         }

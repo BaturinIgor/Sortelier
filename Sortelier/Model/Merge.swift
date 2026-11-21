@@ -199,7 +199,7 @@ final class MergeGame: ObservableObject {
         guard let item = item(at: index) else { return 0 }
         data.cells[index] = nil
         commit()
-        PlayerProgress.shared.addCoins(item.sellPrice)
+        PlayerProgress.shared.addCoins(item.sellPrice, source: "merge_sell")
         Analytics.log("merge_sell", ["tier": item.tier, "chain": item.chain.rawValue])
         return item.sellPrice
     }
@@ -305,7 +305,7 @@ extension PlayerProgress {
     }
 
     func buyEnergy() -> Bool {
-        guard spend(MergeBalance.buyEnergyPrice) else { return false }
+        guard spend(MergeBalance.buyEnergyPrice, item: "merge_energy") else { return false }
         addMergeEnergy(MergeBalance.buyEnergy)
         return true
     }

@@ -1,5 +1,8 @@
-Có gì mới trong phiên bản 1.1:
-- 5 bếp mới: Trung Hoa, Ấn Độ, Hàn Quốc, Tây Ban Nha và Hy Lạp, mỗi bếp có món ăn, âm nhạc và hình nền riêng
-- 150 màn sắp xếp mới, tổng cộng 300 màn
-- Màn hình chiến thắng mới: xem mọi phần thưởng trong nháy mắt
-- Cân bằng tốt hơn và sửa lỗi
+Có gì mới trong 1.2:
+- Chợ Ghép: nhân đôi xu bằng một video ở màn hình chiến thắng
+- Nút Chơi lại ở màn hình chiến thắng và khi bị kẹt
+- Chuỗi thắng: ở bậc 5, bàn chơi có thêm một chiếc bánh donut cầu vồng
+- 4 ô thẳng hàng cho cây cán bột vuông góc với hàng, và đổi ô đặc biệt với ô thường giờ cũng có thể tạo ra ô đặc biệt mới
+- Liên hệ với chúng tôi ngay trong phần cài đặt
+- Thông báo rõ ràng khi video nhận thưởng không có sẵn
+- Sửa lỗi và cải tiến

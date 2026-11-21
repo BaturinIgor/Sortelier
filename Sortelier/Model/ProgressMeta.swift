@@ -40,7 +40,10 @@ extension PlayerProgress {
             reward.chests[ChestKind.bronze.rawValue, default: 0] += 1
         }
         data.coins += reward.coins
-        if reward.coins > 0 { data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += reward.coins }
+        if reward.coins > 0 {
+            data.meta.stats[Stat.coinsEarned.rawValue, default: 0] += reward.coins
+            Analytics.earned(reward.coins, source: source)
+        }
         for (k, v) in reward.boosters { data.boosters[k, default: 0] += v }
         for (k, v) in reward.market { data.market.boosters[k, default: 0] += v }
         if reward.lives > 0 { addLife(reward.lives) }
@@ -74,7 +77,7 @@ extension PlayerProgress {
     var streakFreezes: Int { data.meta.streak.freezes }
 
     func buyFreeze() -> Bool {
-        guard data.meta.streak.freezes < StreakRewards.maxFreezes, spend(StreakRewards.freezePrice) else { return false }
+        guard data.meta.streak.freezes < StreakRewards.maxFreezes, spend(StreakRewards.freezePrice, item: "streak_freeze") else { return false }
         data.meta.streak.freezes += 1
         save()
         Analytics.log("streak_freeze")
@@ -309,7 +312,7 @@ extension PlayerProgress {
     func owns(_ style: KitchenStyle) -> Bool { data.meta.backgrounds.contains(style.id) }
 
     func buy(_ style: KitchenStyle) -> Bool {
-        guard style.source == .shop, !owns(style), spend(style.price) else { return false }
+        guard style.source == .shop, !owns(style), spend(style.price, item: "background") else { return false }
         data.meta.backgrounds.append(style.id)
         data.meta.background = style.id
         data.meta.stats[Stat.kitchens.rawValue] = data.meta.backgrounds.count

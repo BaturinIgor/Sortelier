@@ -739,7 +739,7 @@ struct LivesPopup: View {
                         .buttonStyle(GameButtonStyle(palette: .orange))
                         Button {
                             Ads.shared.showRewarded(placement: "life") { ok in
-                                if ok { progress.addLife() } else { Toast.error(lang.t("ads.limit")) }
+                                if ok { progress.addLife() }
                             }
                         } label: {
                             HStack(spacing: 6) { AdIcon(); Text(lang.t("lives.ad")) }
@@ -812,6 +812,30 @@ struct SettingsScreen: View {
                     .background(PaperBackground(radius: 18))
                 }
                 .buttonStyle(PressScaleStyle())
+                Button {
+                    Audio.shared.play(.button, volume: 0.6)
+                    Support.writeEmail()
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "envelope.fill")
+                            .font(.system(size: 22, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(width: 40, height: 40)
+                            .background(Circle().fill(Theme.orange))
+                            .overlay(Circle().strokeBorder(ButtonPalette.orange.dark, lineWidth: 2.5))
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(lang.t("settings.feedback")).font(Theme.rounded(19, .black)).foregroundColor(Theme.brown)
+                            Text(lang.t("settings.feedback.hint")).font(Theme.rounded(13, .heavy)).foregroundColor(Theme.brownSoft)
+                                .lineLimit(2)
+                                .minimumScaleFactor(0.8)
+                        }
+                        Spacer(minLength: 4)
+                    }
+                    .padding(14)
+                    .background(PaperBackground(radius: 18))
+                }
+                .buttonStyle(PressScaleStyle())
+                .accessibilityIdentifier("settings.feedback")
                 HStack(spacing: 18) {
                     Link(lang.t("shop.privacy"), destination: Legal.privacy)
                     if Ads.shared.privacyOptionsRequired {

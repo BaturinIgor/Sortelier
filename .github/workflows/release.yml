@@ -1,0 +1,36 @@
+name: App Store release
+
+# Привязывает обработанную сборку версии из project.yml к версии в App Store Connect и ставит
+# контакт для проверяющего (tools/appstore/release.py). Отправка на проверку - только если submit = true.
+# Запуск вручную или пушем в main коммита со словом [release] (тогда без отправки на проверку).
+on:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: "Номер сборки (пусто - самая свежая)"
+        required: false
+        default: ""
+      submit:
+        description: "Отправить на проверку"
+        type: boolean
+        default: false
+  push:
+    branches: ["main"]
+
+jobs:
+  release:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          pip install -q "pyjwt[crypto]"
+          args="--wait-minutes 80"
+          [ -n "${{ github.event.inputs.build }}" ] && args="$args --build ${{ github.event.inputs.build }}"
+          [ "${{ github.event.inputs.submit }}" = "true" ] && args="$args --submit"
+          python3 tools/appstore/release.py $args

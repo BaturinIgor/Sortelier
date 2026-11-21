@@ -19,8 +19,9 @@ from bot import play  # noqa: E402
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 DATA = os.path.join(ROOT, "Sortelier", "Resources", "Data", "match3.json")
 
-# Ступени серии (как MarketBalance.streak в Market.swift) и вариант с пончиком на 5-й ступени для сравнения.
-STREAK = [["W"], ["W", "H"], ["W", "H", "H"], ["W", "H", "B"], ["W", "H", "B", "H"]]
+# Ступени серии (как MarketBalance.streak в Market.swift). s5 - 5-я ступень в игре (с пончиком с версии 1.2),
+# s4 - 4-я ступень, s5R оставлен для сравнения со старыми таблицами.
+STREAK = [["W"], ["W", "H"], ["W", "H", "H"], ["W", "H", "B"], ["W", "H", "B", "H", "R"]]
 STREAK_RAINBOW = ["H", "W", "B", "H", "R"]
 
 MODES = {
@@ -33,6 +34,7 @@ MODES = {
     "pre3+5": (["H", "B", "R"], 5),
     "s1": (STREAK[0], 0),
     "s3": (STREAK[2], 0),
+    "s4": (STREAK[3], 0),
     "s5": (STREAK[4], 0),
     "s5R": (STREAK_RAINBOW, 0),
 }
