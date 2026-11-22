@@ -73,8 +73,8 @@ targets:
         # Firebase сам ничего не собирает: сбор включает код (Analytics.start) после согласия.
         FIREBASE_ANALYTICS_COLLECTION_ENABLED: false
         # AdMob, приложение Sortelier. В отладке и сборке для SideStore код берет тестовый блок Google (Ads.unitId).
-        GADApplicationIdentifier: ca-app-pub-9867750696429328~4506031184
-        AdMobRewardedUnit: ca-app-pub-9867750696429328/4907541770
+        GADApplicationIdentifier: ca-app-pub-9867750696429328~1111846546
+        AdMobRewardedUnit: ca-app-pub-9867750696429328/8648776971
         NSUserTrackingUsageDescription: "Your data will be used to show you more relevant ads."
         SKAdNetworkItems:
           - SKAdNetworkIdentifier: cstr6suwn9.skadnetwork
