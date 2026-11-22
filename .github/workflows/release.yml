@@ -22,9 +22,13 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[release]')
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
       - env:
+          GH_TOKEN: ${{ github.token }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
@@ -32,5 +36,11 @@ jobs:
           pip install -q "pyjwt[crypto]"
           args="--wait-minutes 80"
           [ -n "${{ github.event.inputs.build }}" ] && args="$args --build ${{ github.event.inputs.build }}"
+          # при пуше ждем сборку из этого же коммита: номер сборки = run_number прогона TestFlight.
+          # Иначе release успевает раньше загрузки и привязывает прошлую сборку.
+          if [ "${{ github.event_name }}" = "push" ]; then
+            n=$(gh run list --workflow testflight.yml --commit "$GITHUB_SHA" --json number -q '.[0].number')
+            [ -n "$n" ] && args="$args --build $n" && echo "waiting for build $n"
+          fi
           [ "${{ github.event.inputs.submit }}" = "true" ] && args="$args --submit"
           python3 tools/appstore/release.py $args
