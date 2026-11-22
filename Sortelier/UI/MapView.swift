@@ -233,7 +233,7 @@ struct MapView: View {
                 .onChange(of: openedBiome) { _ in scrollToCurrent(proxy) }
                 .onChange(of: scrollTarget) { target in
                     guard let target = target else { return }
-                    withAnimation(.easeInOut(duration: 0.45)) { proxy.scrollTo(target, anchor: .center) }
+                    withAnimation(.easeInOut(duration: 0.45)) { proxy.scrollTo(Self.nodeID(target), anchor: .center) }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { scrollTarget = nil }
                 }
             }
@@ -241,11 +241,15 @@ struct MapView: View {
         .ignoresSafeArea(edges: .bottom)
     }
 
+    /// id кружка уровня на карте. Не просто номер: ForEach кухонь помечает секции номерами 1...10,
+    /// и scrollTo(1) уезжал в середину секции первой кухни вместо уровня 1 (жалоба: новичок видел середину карты).
+    static func nodeID(_ level: Int) -> String { "level\(level)" }
+
     private func scrollToCurrent(_ proxy: ScrollViewProxy) {
         let current = progress.currentLevel
         let biome = Biomes.of(level: current)
         if progress.isBiomeOpen(biome) {
-            proxy.scrollTo(current, anchor: .center)
+            proxy.scrollTo(Self.nodeID(current), anchor: .center)
         } else {
             proxy.scrollTo("gate\(biome)", anchor: .center)
         }
@@ -258,7 +262,7 @@ struct MapView: View {
                 ForEach(levels.reversed()) { level in
                     node(level, width: width)
                         .frame(height: rowHeight)
-                        .id(level.id)
+                        .id(Self.nodeID(level.id))
                 }
             }
             .background(trail(levels: levels, width: width))
@@ -320,6 +324,7 @@ struct MapView: View {
                 .frame(width: size, height: size)
             }
             .buttonStyle(PressScaleStyle())
+            .accessibilityIdentifier(current ? "map.current" : "map.level\(level.id)")
             if unlocked && stars > 0 {
                 StarsRow(count: stars, size: 13, spacing: 0)
                     .padding(.horizontal, 6)

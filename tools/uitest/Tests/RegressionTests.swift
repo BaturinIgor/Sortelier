@@ -60,6 +60,23 @@ final class RegressionTests: XCTestCase {
         log("\(what): \(ok ? "OK" : "FAIL") (ищем '\(text)')")
     }
 
+    /// Жалоба: после установки карта открывалась на середине первой кухни, а не на текущем уровне.
+    /// Чистый прогресс (без -uiDemo): кружок текущего уровня (1) должен быть на экране.
+    func testFreshMapShowsCurrentLevel() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-uiLang", "ru", "-uiNoIntro"]
+        app.launch()
+        // вопрос ATT на чистой установке
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        if springboard.alerts.firstMatch.waitForExistence(timeout: 6) { springboard.alerts.firstMatch.buttons.firstMatch.tap() }
+        sleep(3)
+        let current = app.buttons["map.current"]
+        let ok = current.waitForExistence(timeout: 5) && current.isHittable
+        shot(app, "01_fresh_map")
+        log("текущий уровень на экране после установки: \(ok ? "OK" : "FAIL") (\(current.exists ? current.label : "нет"))")
+        XCTAssertTrue(ok)
+    }
+
     /// Кухни 6-10: первый уровень с новой механикой показывает свое интро, после него открывается поле.
     func testNewKitchens() {
         let intros = [(151, "Домашний тофу"), (182, "Манго-ласси"), (211, "Кимчи"), (242, "апельсиновый сок"), (271, "Спанакопита")]
