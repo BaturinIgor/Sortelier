@@ -1,0 +1,50 @@
+Ignoring --strip-bitcode because --sign was not passed
+Ignoring --strip-bitcode because --sign was not passed
+Test Case '-[SortelierUITests.FlowTests testBookCoins]' started.
+Test Case '-[SortelierUITests.FlowTests testBookCoins]' passed (115.067 seconds).
+Test Case '-[SortelierUITests.FlowTests testClaimOneTap]' started.
+Test Case '-[SortelierUITests.FlowTests testClaimOneTap]' passed (82.232 seconds).
+Test Case '-[SortelierUITests.FlowTests testEventsSections]' started.
+Test Case '-[SortelierUITests.FlowTests testEventsSections]' passed (41.318 seconds).
+Test Case '-[SortelierUITests.FlowTests testEventsSectionsDirect]' started.
+Test Case '-[SortelierUITests.FlowTests testEventsSectionsDirect]' passed (40.449 seconds).
+Test Case '-[SortelierUITests.FlowTests testKitchenSections]' started.
+Test Case '-[SortelierUITests.FlowTests testKitchenSections]' passed (18.657 seconds).
+Test Case '-[SortelierUITests.FlowTests testLockedMiniGames]' started.
+Test Case '-[SortelierUITests.FlowTests testLockedMiniGames]' passed (26.218 seconds).
+Test Case '-[SortelierUITests.FlowTests testMapBiomes]' started.
+Test Case '-[SortelierUITests.FlowTests testMapBiomes]' passed (23.904 seconds).
+Test Case '-[SortelierUITests.FlowTests testQuestsGo]' started.
+Test Case '-[SortelierUITests.FlowTests testQuestsGo]' passed (49.446 seconds).
+Test Case '-[SortelierUITests.FlowTests testUnlockNews]' started.
+Test Case '-[SortelierUITests.FlowTests testUnlockNews]' passed (27.097 seconds).
+Test Suite 'FlowTests' passed at 2026-11-27 20:06:07.671.
+Test Case '-[SortelierUITests.RegressionTests testAchievementsGo]' started.
+Test Case '-[SortelierUITests.RegressionTests testAchievementsGo]' passed (43.940 seconds).
+Test Case '-[SortelierUITests.RegressionTests testFeedbackButton]' started.
+Test Case '-[SortelierUITests.RegressionTests testFeedbackButton]' passed (19.622 seconds).
+Test Case '-[SortelierUITests.RegressionTests testFreshMapShowsCurrentLevel]' started.
+Test Case '-[SortelierUITests.RegressionTests testFreshMapShowsCurrentLevel]' passed (31.769 seconds).
+Test Case '-[SortelierUITests.RegressionTests testMarketFromMap]' started.
+Test Case '-[SortelierUITests.RegressionTests testMarketFromMap]' passed (63.444 seconds).
+Test Case '-[SortelierUITests.RegressionTests testMarketLivesPopup]' started.
+Test Case '-[SortelierUITests.RegressionTests testMarketLivesPopup]' passed (60.502 seconds).
+Test Case '-[SortelierUITests.RegressionTests testMarketWin]' started.
+Test Case '-[SortelierUITests.RegressionTests testMarketWin]' passed (50.302 seconds).
+Test Case '-[SortelierUITests.RegressionTests testMarketWinDouble]' started.
+Test Case '-[SortelierUITests.RegressionTests testMarketWinDouble]' passed (55.570 seconds).
+Test Case '-[SortelierUITests.RegressionTests testNewKitchens]' started.
+Test Case '-[SortelierUITests.RegressionTests testNewKitchens]' passed (135.945 seconds).
+Test Case '-[SortelierUITests.RegressionTests testPushGardenOverMerge]' started.
+Test Case '-[SortelierUITests.RegressionTests testPushGardenOverMerge]' passed (16.753 seconds).
+Test Case '-[SortelierUITests.RegressionTests testRailScreens]' started.
+Test Case '-[SortelierUITests.RegressionTests testRailScreens]' passed (43.450 seconds).
+Test Case '-[SortelierUITests.RegressionTests testShopSections]' started.
+Test Case '-[SortelierUITests.RegressionTests testShopSections]' passed (30.083 seconds).
+Test Case '-[SortelierUITests.RegressionTests testWinBadges]' started.
+Test Case '-[SortelierUITests.RegressionTests testWinBadges]' passed (54.068 seconds).
+Test Case '-[SortelierUITests.RegressionTests testWinRestart]' started.
+Test Case '-[SortelierUITests.RegressionTests testWinRestart]' passed (45.444 seconds).
+Test Suite 'RegressionTests' passed at 2026-11-27 20:16:58.583.
+Test Suite 'SortelierUITests.xctest' passed at 2026-11-27 20:16:58.585.
+Test Suite 'All tests' passed at 2026-11-27 20:16:58.586.
