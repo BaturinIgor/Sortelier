@@ -17,3 +17,11 @@ for g in get_all(f"/v1/apps/{app}/subscriptionGroups?limit=50"):
     print("group", g["id"], g["attributes"])
     for s in get_all(f"/v1/subscriptionGroups/{g['id']}/subscriptions?limit=50"):
         print("  sub", s["id"], s["attributes"].get("productId"), s["attributes"].get("state"))
+# Версии и сайт разработчика: AdMob ищет app-ads.txt на домене marketingUrl живой версии.
+for v in get_all(f"/v1/apps/{app}/appStoreVersions?limit=10"):
+    a = v["attributes"]
+    print("version", a.get("versionString"), a.get("appStoreState"), a.get("createdDate"))
+    for l in get_all(f"/v1/appStoreVersions/{v['id']}/appStoreVersionLocalizations?limit=50"):
+        la = l["attributes"]
+        if la.get("locale") in ("en-US", "ru"):
+            print("  ", la.get("locale"), "marketing:", la.get("marketingUrl"), "support:", la.get("supportUrl"))
