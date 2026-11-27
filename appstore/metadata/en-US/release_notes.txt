@@ -1,8 +1,2 @@
-What's new in 1.2:
-- Market Match: double your coins for a video on the win screen
-- Restart button on the win screen and when you're stuck
-- Win streak: the 5th step now also puts a rainbow donut on the board
-- 4 in a row gives a rolling pin across the line, and swapping a special with a regular piece can now create a new special
-- Contact us right from the settings
-- Clear messages when a reward video isn't available
+What's new in 1.2.1:
 - Bug fixes and improvements

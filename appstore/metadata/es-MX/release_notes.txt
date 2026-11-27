@@ -1,8 +1,2 @@
-Novedades de la 1.2:
-- Mercado Match: duplica tus monedas con un video en la pantalla de victoria
-- Botón Reiniciar en la pantalla de victoria y cuando te atascas
-- Victorias seguidas: en el 5.º nivel también aparece una dona arcoíris en el tablero
-- 4 en línea dan un rodillo perpendicular a la línea, y cambiar una ficha especial por una normal ahora también puede crear una nueva especial
-- Escríbenos directamente desde los ajustes
-- Mensajes claros cuando un video con recompensa no está disponible
-- Correcciones y mejoras
+Novedades de la versión 1.2.1:
+- Corrección de errores y mejoras

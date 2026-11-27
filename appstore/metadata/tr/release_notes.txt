@@ -1,8 +1,2 @@
-1.2'deki yenilikler:
-- Pazar Eşleştir: zafer ekranında video izleyerek altınlarını ikiye katla
-- Zafer ekranında ve sıkıştığında Yeniden başla düğmesi
-- Üst üste galibiyet: 5. basamakta tahtaya bir de gökkuşağı donut geliyor
-- 4'lü sıra, sıraya dik bir oklava veriyor; özel taşı normal taşla değiştirmek artık yeni bir özel taş da oluşturabiliyor
-- Ayarlardan doğrudan Bize yaz
-- Ödüllü video yoksa anlaşılır mesajlar
+1.2.1 sürümündeki yenilikler:
 - Hata düzeltmeleri ve iyileştirmeler

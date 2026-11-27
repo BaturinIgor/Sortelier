@@ -14,9 +14,9 @@ import UserMessagingPlatform
 ///   В отладке сбор включается аргументом запуска -AnalyticsDebug (с -FIRDebugEnabled события видны в DebugView).
 ///
 /// Личных данных нет: только номера уровней, звезды, монеты и т. п. IDFA Firebase не собирает (FirebaseAnalyticsCore,
-/// без AdSupport), IDFV и рекламные сигналы выключены в Info.plist. Согласие: в Европе, пока игрок не дал согласие
-/// в форме Google (UMP, цель 1 TCF - хранение на устройстве), Firebase работает без идентификатора
-/// (analytics_storage = denied), рекламные виды согласия всегда denied.
+/// без AdSupport), IDFV и рекламные сигналы выключены в Info.plist. Согласие: вне Европы статистика работает всегда,
+/// даже если форма Google (UMP) недоступна. В Европе, пока игрок не дал согласие в форме (цель 1 TCF - хранение
+/// на устройстве), Firebase работает без идентификатора (analytics_storage = denied). Рекламные виды согласия всегда denied.
 enum Analytics {
     private static var configured = false
 
@@ -59,20 +59,50 @@ enum Analytics {
         ])
     }
 
-    /// Можно ли хранить идентификатор статистики. Вне Европы - да, в Европе - если в форме дано согласие на цель 1.
-    /// Пока UMP не ответил (первый запуск, нет сети), - нет: события уходят без идентификатора.
+    /// Можно ли хранить идентификатор статистики. Анонимная статистика не зависит от рекламы:
+    /// вне Европы - всегда да, в Европе - только если в форме Google дано согласие на цель 1 TCF.
+    /// Если UMP не ответил (первый запуск, нет сети, Google недоступен), Европа определяется по региону устройства:
+    /// раньше неответ UMP считался отказом, и у игроков без доступа к Google статистика пропадала целиком.
     static var storageAllowed: Bool {
+        let defaults = UserDefaults.standard
+        let purposeOne = (defaults.string(forKey: "IABTCF_PurposeConsents") ?? "").first == "1"
         switch ConsentInformation.shared.consentStatus {
         case .notRequired:
             return true
         case .obtained:
-            let defaults = UserDefaults.standard
             guard defaults.integer(forKey: "IABTCF_gdprApplies") == 1 else { return true }
-            return (defaults.string(forKey: "IABTCF_PurposeConsents") ?? "").first == "1"
-        default:
+            return purposeOne
+        case .required:
+            // Европа, форма еще не заполнена
             return false
+        default:
+            // ответа UMP нет: в прошлые запуски форма могла быть заполнена, иначе решает регион
+            if defaults.object(forKey: "IABTCF_gdprApplies") != nil {
+                return defaults.integer(forKey: "IABTCF_gdprApplies") != 1 || purposeOne
+            }
+            return !isConsentRegion
         }
     }
+
+    /// Регион устройства, где для идентификатора на устройстве нужно согласие: ЕЭЗ, Великобритания, Швейцария.
+    static var isConsentRegion: Bool {
+        let region: String?
+        if #available(iOS 16, *) {
+            region = Locale.current.region?.identifier
+        } else {
+            region = Locale.current.regionCode
+        }
+        // регион неизвестен - осторожно, как в Европе
+        guard let region else { return true }
+        return consentRegions.contains(region.uppercased())
+    }
+
+    private static let consentRegions: Set<String> = [
+        "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT",
+        "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE", // ЕС
+        "IS", "LI", "NO", // ЕЭЗ
+        "GB", "CH",
+    ]
 
     // MARK: События
 
