@@ -1,0 +1,94 @@
+[analytics] app_open [:]
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+[analytics] level_start ["biome": 2, "level": 45, "mode": "main", "lives": 3, "replay": true]
+2026-11-27 20:30:45.132 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811446.684 place 0.80
+SFX 1795811449.082 place 0.80
+SFX 1795811449.082 invalid 0.25
+SFX 1795811449.699 triple 1.00
+2026-11-27 20:30:50.215 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811450.561 coin 0.70
+SFX 1795811451.433 place 0.80
+SFX 1795811453.815 place 0.80
+SFX 1795811453.816 invalid 0.25
+SFX 1795811454.450 triple 1.00
+SFX 1795811455.415 coin 0.70
+2026-11-27 20:30:55.451 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811456.198 place 0.80
+SFX 1795811458.567 place 0.80
+SFX 1795811459.198 dish 1.00
+SFX 1795811459.199 combo 0.70
+SFX 1795811460.081 coin 0.70
+2026-11-27 20:31:00.536 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811461.066 place 0.80
+SFX 1795811461.715 dish 1.00
+SFX 1795811461.715 combo 0.70
+SFX 1795811462.540 coin 0.70
+SFX 1795811463.415 place 0.80
+2026-11-27 20:31:05.633 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811465.683 place 0.80
+SFX 1795811466.398 triple 1.00
+SFX 1795811466.399 combo 0.70
+SFX 1795811467.203 coin 0.70
+SFX 1795811468.082 place 0.80
+SFX 1795811470.448 place 0.80
+2026-11-27 20:31:10.749 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811472.817 place 0.80
+SFX 1795811473.432 triple 1.00
+SFX 1795811473.432 combo 0.70
+SFX 1795811474.370 coin 0.70
+SFX 1795811475.199 place 0.80
+SFX 1795811475.815 dish 1.00
+SFX 1795811475.815 combo 0.70
+2026-11-27 20:31:15.833 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811476.689 coin 0.70
+SFX 1795811477.566 place 0.80
+SFX 1795811480.099 place 0.80
+SFX 1795811480.748 triple 1.00
+SFX 1795811480.749 combo 0.70
+2026-11-27 20:31:20.915 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811481.565 coin 0.70
+SFX 1795811482.498 place 0.80
+SFX 1795811484.683 place 0.80
+SFX 1795811485.415 triple 1.00
+SFX 1795811485.416 combo 0.70
+2026-11-27 20:31:26.016 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811486.187 coin 0.70
+SFX 1795811487.082 place 0.80
+SFX 1795811489.448 place 0.80
+SFX 1795811490.098 triple 1.00
+SFX 1795811490.099 combo 0.70
+SFX 1795811490.931 coin 0.70
+2026-11-27 20:31:31.099 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811491.817 place 0.80
+SFX 1795811494.198 place 0.80
+SFX 1795811494.815 dish 1.00
+SFX 1795811494.816 combo 0.70
+SFX 1795811495.698 coin 0.70
+2026-11-27 20:31:36.183 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811496.566 place 0.80
+SFX 1795811497.198 dish 1.00
+SFX 1795811497.199 combo 0.70
+SFX 1795811498.082 coin 0.70
+SFX 1795811499.065 place 0.80
+SFX 1795811501.382 place 0.80
+2026-11-27 20:31:41.399 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811503.698 place 0.80
+SFX 1795811504.400 triple 1.00
+SFX 1795811504.400 combo 0.70
+SFX 1795811505.208 coin 0.70
+SFX 1795811506.065 place 0.80
+2026-11-27 20:31:46.486 Sortelier[97207:245069] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811506.681 triple 1.00
+SFX 1795811506.682 combo 0.70
+SFX 1795811507.551 coin 0.70
+[analytics] earn_virtual_currency ["source": "level_win", "virtual_currency_name": "coins", "value": 60]
+[analytics] earn_virtual_currency ["value": 30, "source": "streak", "virtual_currency_name": "coins"]
+[analytics] reward ["source": "streak", "coins": 30, "chests": 1]
+[analytics] streak_day ["day": 4]
+[analytics] level_win ["replay": true, "biome": 2, "level": 45, "moves": 26, "par": 25, "mode": "main", "continued": false, "coins": 148, "stars": 3, "tips": 34]
+SFX 1795811508.083 win 0.80
+SFX 1795811508.752 star1 1.00
+SFX 1795811509.093 star2 1.00
+SFX 1795811509.394 star3 1.00
+com.personal.sortelier: 97207

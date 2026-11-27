@@ -1,0 +1,29 @@
+[analytics] app_open [:]
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+2026-11-27 20:16:14.715 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:16:19.799 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:16:24.899 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:16:30.082 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:16:35.416 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:16:40.499 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:16:45.684 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:16:50.816 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:16:55.901 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:17:00.983 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:17:06.066 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:17:11.151 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:17:16.435 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:17:21.534 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:17:26.618 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:17:31.699 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:17:36.784 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:17:41.883 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:17:46.967 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:17:52.049 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:17:57.132 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:18:02.568 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:18:07.666 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:18:12.751 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:18:17.832 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+2026-11-27 20:18:22.915 Sortelier[61786:161876] SKView: no drawables available for rendering. Skipping this frame.
+com.personal.sortelier: 61786

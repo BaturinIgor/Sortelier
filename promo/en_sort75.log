@@ -1,0 +1,92 @@
+[analytics] app_open [:]
+IOSurfaceClientSetSurfaceNotify failed e00002c7
+[analytics] level_start ["lives": 3, "replay": true, "mode": "main", "level": 75, "biome": 3]
+2026-11-27 20:34:09.866 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811651.319 place 0.80
+SFX 1795811653.700 place 0.80
+SFX 1795811653.703 invalid 0.25
+SFX 1795811654.332 triple 1.00
+2026-11-27 20:34:14.966 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811655.315 coin 0.70
+SFX 1795811656.067 place 0.80
+SFX 1795811656.698 triple 1.00
+SFX 1795811657.559 coin 0.70
+SFX 1795811658.465 place 0.80
+2026-11-27 20:34:20.049 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811660.998 place 0.80
+SFX 1795811663.282 place 0.80
+2026-11-27 20:34:25.317 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811665.567 place 0.80
+SFX 1795811665.568 invalid 0.25
+SFX 1795811665.568 invalid 0.25
+SFX 1795811665.568 invalid 0.25
+SFX 1795811666.265 triple 1.00
+SFX 1795811666.632 unlock 0.60
+SFX 1795811667.048 coin 0.70
+SFX 1795811667.965 place 0.80
+SFX 1795811670.332 place 0.80
+2026-11-27 20:34:30.401 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811672.700 place 0.80
+SFX 1795811675.083 place 0.80
+2026-11-27 20:34:35.517 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811677.450 place 0.80
+SFX 1795811679.948 place 0.80
+2026-11-27 20:34:40.632 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811682.298 place 0.80
+SFX 1795811684.565 place 0.80
+2026-11-27 20:34:45.750 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811686.965 place 0.80
+SFX 1795811689.317 place 0.80
+2026-11-27 20:34:50.832 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811691.700 place 0.80
+SFX 1795811694.082 place 0.80
+2026-11-27 20:34:55.932 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811696.450 place 0.80
+SFX 1795811698.948 place 0.80
+2026-11-27 20:35:01.016 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811701.282 place 0.80
+SFX 1795811703.565 place 0.80
+SFX 1795811705.982 place 0.80
+2026-11-27 20:35:06.116 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811708.332 place 0.80
+SFX 1795811710.699 place 0.80
+2026-11-27 20:35:11.366 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811713.082 place 0.80
+SFX 1795811715.465 place 0.80
+2026-11-27 20:35:16.466 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811717.932 place 0.80
+SFX 1795811720.265 place 0.80
+2026-11-27 20:35:21.550 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811722.566 place 0.80
+SFX 1795811724.965 place 0.80
+2026-11-27 20:35:26.634 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811727.315 place 0.80
+SFX 1795811729.715 place 0.80
+2026-11-27 20:35:31.716 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811732.082 place 0.80
+SFX 1795811734.448 place 0.80
+2026-11-27 20:35:36.815 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811736.948 place 0.80
+SFX 1795811739.265 place 0.80
+SFX 1795811741.567 place 0.80
+2026-11-27 20:35:41.916 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811743.965 place 0.80
+SFX 1795811746.331 place 0.80
+2026-11-27 20:35:46.999 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811748.700 place 0.80
+SFX 1795811751.082 place 0.80
+2026-11-27 20:35:52.082 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811753.465 place 0.80
+SFX 1795811756.015 place 0.80
+2026-11-27 20:35:57.351 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811758.298 place 0.80
+SFX 1795811760.565 place 0.80
+2026-11-27 20:36:02.434 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811762.965 place 0.80
+SFX 1795811765.317 place 0.80
+2026-11-27 20:36:07.549 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+SFX 1795811767.715 place 0.80
+SFX 1795811770.067 place 0.80
+SFX 1795811772.452 place 0.80
+2026-11-27 20:36:12.634 Sortelier[5450:263359] SKView: no drawables available for rendering. Skipping this frame.
+com.personal.sortelier: 5450
