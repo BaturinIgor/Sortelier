@@ -1,8 +1,2 @@
-Có gì mới trong 1.2:
-- Chợ Ghép: nhân đôi xu bằng một video ở màn hình chiến thắng
-- Nút Chơi lại ở màn hình chiến thắng và khi bị kẹt
-- Chuỗi thắng: ở bậc 5, bàn chơi có thêm một chiếc bánh donut cầu vồng
-- 4 ô thẳng hàng cho cây cán bột vuông góc với hàng, và đổi ô đặc biệt với ô thường giờ cũng có thể tạo ra ô đặc biệt mới
-- Liên hệ với chúng tôi ngay trong phần cài đặt
-- Thông báo rõ ràng khi video nhận thưởng không có sẵn
+Có gì mới trong phiên bản 1.2.1:
 - Sửa lỗi và cải tiến

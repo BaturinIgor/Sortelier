@@ -1,8 +1,2 @@
-Nouveautés de la 1.2 :
-- Marché Match : double tes pièces grâce à une vidéo sur l'écran de victoire
-- Bouton Rejouer sur l'écran de victoire et quand tu es bloqué
-- Victoires d'affilée : au 5e palier, un donut arc-en-ciel apparaît aussi sur le plateau
-- 4 alignés donnent un rouleau perpendiculaire à la ligne, et échanger une pièce spéciale avec une pièce normale peut maintenant en créer une nouvelle
-- « Nous écrire » directement depuis les réglages
-- Messages clairs quand une vidéo récompensée n'est pas disponible
-- Corrections et améliorations
+Nouveautés de la version 1.2.1 :
+- Corrections de bugs et améliorations

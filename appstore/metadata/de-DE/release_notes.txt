@@ -1,8 +1,2 @@
-Neu in 1.2:
-- Markt-Match: Münzen auf dem Siegesbildschirm per Video verdoppeln
-- Neustart-Knopf auf dem Siegesbildschirm und wenn du feststeckst
-- Siegesserie: Auf der 5. Stufe liegt jetzt zusätzlich ein Regenbogen-Donut auf dem Feld
-- 4 in einer Reihe ergeben ein Nudelholz quer zur Reihe, und ein Spezialteil mit einem normalen Teil zu tauschen kann jetzt ein neues Spezialteil bilden
-- „Schreib uns“ direkt in den Einstellungen
-- Klare Hinweise, wenn kein Belohnungsvideo verfügbar ist
+Neu in 1.2.1:
 - Fehlerbehebungen und Verbesserungen

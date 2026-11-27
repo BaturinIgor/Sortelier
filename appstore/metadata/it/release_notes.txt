@@ -1,8 +1,2 @@
-Novità della 1.2:
-- Mercato Match: raddoppia le monete con un video nella schermata di vittoria
-- Pulsante Ricomincia nella schermata di vittoria e quando sei bloccato
-- Vittorie di fila: al 5° livello compare anche una ciambella arcobaleno sul tabellone
-- 4 in fila danno un mattarello perpendicolare alla fila, e scambiare un pezzo speciale con uno normale ora può crearne uno nuovo
-- Scrivici direttamente dalle impostazioni
-- Messaggi chiari quando un video premio non è disponibile
-- Correzioni e miglioramenti
+Novità della versione 1.2.1:
+- Correzioni di bug e miglioramenti

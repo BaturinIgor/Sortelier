@@ -1,8 +1,2 @@
-Novidades da 1.2:
-- Feira Match: dobre suas moedas com um vídeo na tela de vitória
-- Botão Reiniciar na tela de vitória e quando você fica sem saída
-- Vitórias seguidas: no 5º nível, uma rosquinha arco-íris também aparece no tabuleiro
-- 4 em linha dão um rolo perpendicular à linha, e trocar uma peça especial por uma comum agora também pode criar uma nova especial
-- Fale conosco direto nas configurações
-- Mensagens claras quando um vídeo com recompensa não está disponível
-- Correções e melhorias
+Novidades da versão 1.2.1:
+- Correções de bugs e melhorias
